@@ -10,6 +10,46 @@ Web-based save editor for Pokemon Unbound (v 2.1.1.1.) with a React frontend and
 - Money editing
 - Save checksum recalculation and save export
 
+## UI Walkthrough
+
+### 1) Party and PC Overview
+
+Team section with quick access to your current party Pokemon.
+
+![Team section](backend/readme_images/team_section.png)
+
+PC box section for browsing and editing boxed Pokemon.
+
+![PC box section](backend/readme_images/box_section.png)
+
+### 2) Pokemon Editing Flow
+
+Edit IVs and EVs with per-stat controls.
+
+![Pokemon edit stats](backend/readme_images/pokemon_edit_stats.png)
+
+Edit moves and ability slot selection.
+
+![Pokemon edit moves](backend/readme_images/pokemon_edit_moves.png)
+
+Edit nature and held item in the same modal flow.
+
+![Pokemon edit nature and item](backend/readme_images/pokemon_edit_nature_item.png)
+
+### 3) Bag Editing Flow
+
+Start from the bag section with quick pocket detection.
+
+![Bag section with pockets](backend/readme_images/bag_section_with_pockets.png)
+
+Open a detected pocket and inspect full item contents.
+
+![Main item pocket view](backend/readme_images/main_item_pocket_view.png)
+
+Edit a slot to change quantity or item ID, then apply changes.
+
+![Edit item slot](backend/readme_images/edit_item_slot.png)
+
 ## Project Structure
 
 - `frontend/` React + Vite UI
