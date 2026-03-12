@@ -1,28 +1,54 @@
 import glob
 from typing import List
+from pathlib import Path
+import base64
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import FileResponse
-import unbound_editor_v8 as party_mod
-import unbound_bag_editor_v14 as bag_mod
-import edit_money_v2 as money_mod
+from fastapi.responses import FileResponse, Response
+from modules import party as party_mod
+from modules import bag as bag_mod
+from modules import money as money_mod
 from pydantic import BaseModel
-import unbound_box_editor_v16 as box_mod
+from modules import pc as box_mod
 import os
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware # <--- AGGIUNGI QUESTA RIGA
+from fastapi.middleware.cors import CORSMiddleware
+from core.item_icon_resolver import ItemIconResolver
 
 
 SAVE_FILE_NAME = "edited_save.sav"
+
+
+def _load_env_file():
+    env_path = Path(__file__).with_name(".env")
+    if not env_path.exists():
+        return
+    for raw in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip()
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+def _cors_origins_from_env():
+    raw = os.getenv("CORS_ORIGINS", "http://localhost:5173")
+    return [origin.strip() for origin in raw.split(",") if origin.strip()]
+
+
+_load_env_file()
 
 app = FastAPI()
 # Configurazione CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://192.168.1.6:5173", "http://192.168.1.6:5174"], # L'URL del tuo frontend Vite
+    allow_origins=_cors_origins_from_env(),
     allow_credentials=True,
-    allow_methods=["*"], # Permette tutti i metodi (GET, POST, ecc.)
-    allow_headers=["*"], # Permette tutti gli header
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # --- 1. SPOSTA TUTTE LE DEFINIZIONI DELLO STATO ALL'INIZIO ---
@@ -45,8 +71,17 @@ SEARCH_DIRS = [
     os.path.join(BASE_DIR, "icons", "pokemon"),
     os.path.join(BASE_DIR, "data", "icons", "pokemon")
 ]
+ITEM_ICONS_DIR = os.path.join(BASE_DIR, "icons", "items")
+
+ICON_FALLBACK_PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMBAAZ/q4cAAAAASUVORK5CYII="
+)
 
 icon_cache = {}
+item_icon_cache: dict[int, str | None] = {}
+item_icon_resolver = ItemIconResolver(ITEM_ICONS_DIR)
+
+
 @app.get("/pokemon-icon/{species_id}")
 async def get_pokemon_icon(species_id: int):
     # 1. Controlla la cache
@@ -92,16 +127,54 @@ async def get_pokemon_icon(species_id: int):
         icon_cache[species_id] = found_path  # Salva in cache
         return FileResponse(found_path)
 
-    raise HTTPException(status_code=404, detail="Icona non trovata")
+    return Response(content=ICON_FALLBACK_PNG, media_type="image/png")
+
+
+@app.get("/item-icon/{item_id}")
+async def get_item_icon(item_id: int):
+    if item_id <= 0:
+        raise HTTPException(status_code=404, detail="Icona item non trovata")
+
+    if item_id in item_icon_cache:
+        cached = item_icon_cache[item_id]
+        if cached:
+            return FileResponse(cached)
+        raise HTTPException(status_code=404, detail="Icona item non trovata")
+
+    item_name = bag_mod.DB_ITEMS.get(item_id)
+    icon_path = item_icon_resolver.resolve(item_name or "")
+    item_icon_cache[item_id] = icon_path
+
+    if icon_path:
+        return FileResponse(icon_path)
+    raise HTTPException(status_code=404, detail="Icona item non trovata")
 
 
 # --- 2. INIZIALIZZAZIONE UNIFICATA DEI DATABASE ---
 @app.on_event("startup")
 def load_databases():
     print("Caricamento database in corso...")
-    party_mod.find_and_load_ct()
-    bag_mod.load_names_from_ct()
-    box_mod.find_and_load_ct()
+    party_mod.load_static_data()
+    bag_mod.load_item_names_from_file()
+    bag_mod.load_tm_names_from_file()
+    box_mod.load_static_data()
+
+    if not any(os.path.isdir(p) for p in SEARCH_DIRS):
+        print(
+            "[WARN] Pokemon icon directory non trovata. "
+            "La UI funzionera' comunque senza sprite. "
+            "Per abilitarli, clona: "
+            "https://github.com/Skeli789/Dynamic-Pokemon-Expansion/tree/master/graphics/pokeicon "
+            f"in '{SEARCH_DIRS[0]}'."
+        )
+
+    if not item_icon_resolver.available:
+        print(
+            "[WARN] Item icon directory non trovata o vuota. "
+            "La UI funzionera' comunque senza icone strumenti. "
+            "Per abilitarle usa il pack items di Leon's ROM Base in "
+            f"'{ITEM_ICONS_DIR}'."
+        )
 
 
 @app.post("/upload")
@@ -297,12 +370,14 @@ async def update_nature(idx: int, data: NatureUpdate):
     return {"status": f"Natura cambiata in {party_mod.DB_NATURES.get(data.nature_id)}"}
 
 # Carica il database oggetti all'avvio
-bag_mod.load_names_from_ct()
+bag_mod.load_item_names_from_file()
+bag_mod.load_tm_names_from_file()
 
 class BagItemUpdate(BaseModel):
     offset: int  # L'indirizzo fisico nella memoria
     item_id: int
     quantity: int
+    encoding: str | None = None
 
 
 @app.get("/items")
@@ -324,6 +399,7 @@ async def scan_bag(search_item_id: int):
         return {"message": "Nessuna tasca trovata", "results": []}  # Già corretto qui
 
     max_idx = max((c['save_idx'] for c in candidates), default=-1)
+    pocket_type = bag_mod.pocket_type_for_item_id(search_item_id)
 
     results = []
     for c in candidates:
@@ -333,11 +409,26 @@ async def scan_bag(search_item_id: int):
             "sect_id": c['sect_id'],
             "save_idx": c['save_idx'],
             "is_active": c['save_idx'] == max_idx,
-            "is_main_pocket": c['sect_id'] == bag_mod.UNBOUND_ITEM_SECTOR_ID
+            "is_main_pocket": c['sect_id'] == bag_mod.UNBOUND_ITEM_SECTOR_ID,
+            "quality": c.get('quality'),
+            "score": c.get('score'),
+            "slot_count": c.get('pocket_slots'),
+            "dup_count": c.get('pocket_dups'),
+            "pocket_type": pocket_type,
         })
 
     # MODIFICA QUI: Ritorna l'oggetto con la chiave 'results'
     return {"results": results}
+
+
+@app.get("/bag/pockets/bootstrap")
+async def bag_pockets_bootstrap():
+    """Risoluzione rapida tasche principali (con validazione + fallback scan)."""
+    if not current_save["data"]:
+        raise HTTPException(status_code=400, detail="Carica un file .sav")
+
+    pockets = bag_mod.resolve_quick_pockets(current_save["data"])
+    return {"pockets": pockets}
 
 @app.get("/bag/pocket")
 async def get_pocket_items(anchor_offset: int):
@@ -350,9 +441,13 @@ async def get_pocket_items(anchor_offset: int):
 @app.post("/bag/item/update")
 async def update_bag_item(update: BagItemUpdate):
     """Modifica ID o quantità di uno slot specifico in memoria"""
-    # Scrittura a 2 byte (Little Endian)
-    bag_mod.wu16(current_save["data"], update.offset, update.item_id)
-    bag_mod.wu16(current_save["data"], update.offset + 2, update.quantity)
+    bag_mod.write_slot(
+        current_save["data"],
+        update.offset,
+        update.item_id,
+        update.quantity,
+        encoding=update.encoding,
+    )
     return {"status": "Slot borsa aggiornato"}
 
 

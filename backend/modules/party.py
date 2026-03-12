@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-# unbound_editor_v10.py — Unbound Editor con HA (Hidden Ability), Natura & Exp Logic
-# Features: Checksum Fix, Auto-load .CT file, Name Search, Nature Editing, Smart Level, Hidden Ability Toggle.
+# party.py — Unbound Editor con HA (Hidden Ability), Natura & Exp Logic
+# Features: Checksum Fix, static data loading, Name Search, Nature Editing, Smart Level, Hidden Ability Toggle.
 
 import struct
 import sys
 import shutil
 import os
-import re
-import glob
 import math
+
+from core.data_loader import load_id_name_file
 
 # --- CONFIGURAZIONE SALVATAGGIO ---
 SECTION_SIZE = 0x1000
@@ -127,40 +127,24 @@ def wu16(b, o, v): struct.pack_into("<H", b, o, v)
 def wu32(b, o, v): struct.pack_into("<I", b, o, v)
 
 
-# --- PARSER CHEAT TABLE ---
+def load_static_data():
+    DB_ITEMS.clear()
+    DB_MOVES.clear()
+    DB_SPECIES.clear()
+
+    DB_ITEMS.update(load_id_name_file("items.txt"))
+    DB_MOVES.update(load_id_name_file("moves.txt"))
+    DB_SPECIES.update(load_id_name_file("pokemon.txt"))
+
+    print(
+        f"[INFO] Dati statici caricati: "
+        f"{len(DB_ITEMS)} oggetti, {len(DB_MOVES)} mosse, {len(DB_SPECIES)} specie."
+    )
+
+
+# Compat legacy name.
 def find_and_load_ct():
-    ct_files = glob.glob("data/*.CT") + glob.glob("data/*.ct") + glob.glob("*.CT")
-    if not ct_files:
-        print("[WARN] Nessun file .CT trovato. Database vuoto.")
-        return
-    ct_path = ct_files[0]
-    print(f"Caricamento dati da: {ct_path}...")
-    try:
-        with open(ct_path, 'r', encoding='utf-8', errors='ignore') as f:
-            content = f.read()
-        _parse_category(content, r'local linkDropDownList = "(.*?)"', DB_ITEMS, "Oggetti")
-        _parse_category(content, r'local AttacksDropDownList = "(.*?)"', DB_MOVES, "Mosse")
-        _parse_category(content, r'local PokemonDropDownList = "(.*?)"', DB_SPECIES, "Pokémon")
-    except Exception as e:
-        print(f"[ERRORE] Lettura CT: {e}")
-
-
-def _parse_category(content, regex_pattern, target_dict, label):
-    match = re.search(regex_pattern, content, re.DOTALL)
-    if match:
-        raw_data = match.group(1)
-        lines = raw_data.replace('\\n', '\n').split('\n')
-        count = 0
-        for line in lines:
-            clean = line.strip().strip('"')
-            if ':' in clean:
-                parts = clean.split(':', 1)
-                try:
-                    target_dict[int(parts[0])] = parts[1].strip()
-                    count += 1
-                except ValueError:
-                    continue
-        print(f" -> Caricati {count} {label}.")
+    load_static_data()
 
 
 def search_id(query, db, db_name):
@@ -333,11 +317,11 @@ def calculate_section_checksum(data):
 
 def main():
     if len(sys.argv) < 2:
-        print("Uso: python3 unbound_editor_v10.py <savefile>")
+        print("Uso: python3 -m modules.party <savefile>")
         return
 
     save_path = sys.argv[1]
-    find_and_load_ct()
+    load_static_data()
     shutil.copy(save_path, save_path + ".bak_v10")
     print(f"Backup creato: {save_path}.bak_v10")
 

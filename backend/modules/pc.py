@@ -3,9 +3,9 @@ import struct
 import sys
 import shutil
 import math
-import glob
-import re
 import os
+
+from core.data_loader import load_id_name_file
 
 # --- CONFIGURAZIONE TECNICA (PC Unbound) ---
 # Settori che contengono SICURAMENTE Pokémon (Stream Dati Box 1-25)
@@ -49,38 +49,24 @@ GROWTH_NAMES = {
 }
 
 
-# --- FUNZIONI DI PARSING .CT ---
+def load_static_data():
+    DB_SPECIES.clear()
+    DB_ITEMS.clear()
+    DB_MOVES.clear()
+
+    DB_SPECIES.update(load_id_name_file("pokemon.txt"))
+    DB_ITEMS.update(load_id_name_file("items.txt"))
+    DB_MOVES.update(load_id_name_file("moves.txt"))
+
+    print(
+        f"[INFO] Dati statici caricati: "
+        f"{len(DB_SPECIES)} specie, {len(DB_ITEMS)} oggetti, {len(DB_MOVES)} mosse."
+    )
+
+
+# Compat legacy name.
 def find_and_load_ct():
-    ct_files = glob.glob("*.CT") + glob.glob("data/*.CT") + glob.glob("data/*.ct")
-    if not ct_files:
-        print("[WARN] Nessun file .CT trovato.")
-        return
-    try:
-        with open(ct_files[0], 'r', encoding='utf-8', errors='ignore') as f:
-            content = f.read()
-        _parse_category(content, r'local PokemonDropDownList = "(.*?)"', DB_SPECIES, "Specie")
-        _parse_category(content, r'local linkDropDownList = "(.*?)"', DB_ITEMS, "Oggetti")
-        _parse_category(content, r'local AttacksDropDownList = "(.*?)"', DB_MOVES, "Mosse")
-
-    except Exception as e:
-        print(f"[ERR] Errore parsing CT: {e}")
-
-
-def _parse_category(content, regex_pattern, target_dict, label):
-    match = re.search(regex_pattern, content, re.DOTALL)
-    if match:
-        raw_data = match.group(1)
-        lines = raw_data.replace('\\n', '\n').split('\n')
-        for line in lines:
-            clean = line.strip().strip('"')
-            if ':' in clean:
-                parts = clean.split(':', 1)
-                try:
-                    idx = int(parts[0].strip())
-                    target_dict[idx] = parts[1].strip()
-                except:
-                    continue
-        print(f"   -> Caricati {len(target_dict)} {label}.")
+    load_static_data()
 
 
 # --- UTILS MATEMATICHE ---
@@ -380,8 +366,9 @@ def write_save_HYBRID(save_data, sectors, buffer, headers, originals, filename, 
         # --------------------
 
         if sec_id not in POKEMON_STREAM_SECTORS:
-            # Settore non-stream (es. 13): Copia l'originale intatto
-            save_data[off: off + SECTION_SIZE] = originals[sec_id]
+            # Settore non-stream (es. 13): non sovrascrivere con snapshot vecchi.
+            # Manteniamo il contenuto corrente di save_data, cosi' eventuali edit
+            # Bag/Party effettuati dopo il load PC non vengono persi al commit.
             continue
 
         # Scrittura PC Stream Standard (Box 1-25)
@@ -462,10 +449,10 @@ def edit_item(pk):
 
 def main():
     print("--- UNBOUND EDITOR V16 (PRESET BOX SUPPORT) ---")
-    find_and_load_ct()
+    load_static_data()
 
     if len(sys.argv) < 2:
-        print("Uso: python3 unbound_box_editor_v16.py <savefile>")
+        print("Uso: python3 -m modules.pc <savefile>")
         return
 
     path = sys.argv[1]

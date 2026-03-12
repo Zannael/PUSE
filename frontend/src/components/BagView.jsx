@@ -1,7 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, Package, Edit3, Filter, X, ArrowLeft, Star, Save } from 'lucide-react';
 
 const BagView = () => {
+    const isTmHmItemId = (id) =>
+        (id >= 289 && id <= 346) ||
+        (id >= 375 && id <= 444);
+
     const [searchId, setSearchId] = useState(44);
     const [query, setQuery] = useState("");
     const [allItems, setAllItems] = useState([]);
@@ -13,9 +17,19 @@ const BagView = () => {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(false);
     const [itemFilter, setItemFilter] = useState("");
+    const [quickPockets, setQuickPockets] = useState({});
+    const [quickLoading, setQuickLoading] = useState(false);
 
     const dropdownRef = useRef(null);
     const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
+    const hasKnownItemName = (name) => {
+        if (!name) return false;
+        const low = name.toLowerCase();
+        return !low.startsWith('item ') && !low.startsWith('id ') && name !== '--- VUOTO ---';
+    };
+
+    const itemIconUrl = (itemId) => `${API_BASE}/item-icon/${itemId}`;
 
     useEffect(() => {
         const fetchItems = async () => {
@@ -27,6 +41,28 @@ const BagView = () => {
         };
         fetchItems();
     }, [API_BASE]);
+
+    const loadQuickPockets = useCallback(async () => {
+        setQuickLoading(true);
+        try {
+            const res = await fetch(`${API_BASE}/bag/pockets/bootstrap`);
+            if (!res.ok) {
+                setQuickPockets({});
+                return;
+            }
+            const data = await res.json();
+            setQuickPockets(data?.pockets || {});
+        } catch (err) {
+            console.error("Errore quick pockets", err);
+            setQuickPockets({});
+        } finally {
+            setQuickLoading(false);
+        }
+    }, [API_BASE]);
+
+    useEffect(() => {
+        loadQuickPockets();
+    }, [loadQuickPockets]);
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -72,7 +108,10 @@ const BagView = () => {
             } else {
                 alert("Nessun settore trovato.");
             }
-        } catch (err) { alert("Errore backend"); }
+        } catch (err) {
+            console.error(err);
+            alert("Errore backend");
+        }
         finally { setLoading(false); }
     };
 
@@ -80,11 +119,33 @@ const BagView = () => {
         setSelectedCand(cand);
         setLoading(true);
         try {
-            const res = await fetch(`${API_BASE}/bag/pocket?anchor_offset=${cand.anchor_offset}`);
+            const res = await fetch(
+                `${API_BASE}/bag/pocket?anchor_offset=${cand.anchor_offset}&_ts=${Date.now()}`,
+                { cache: "no-store" }
+            );
+            if (!res.ok) {
+                throw new Error("Errore caricamento tasca");
+            }
             const data = await res.json();
             setItems(data);
         } catch (err) { console.error(err); }
         finally { setLoading(false); }
+    };
+
+    const openQuickPocket = (pocket) => {
+        if (!pocket || !pocket.anchor_offset) return;
+        loadPocket({
+            anchor_offset: pocket.anchor_offset,
+            quality: pocket.quality,
+            score: pocket.score,
+            slot_count: pocket.slot_count,
+            pocket_type: pocket.pocket_type,
+            source: pocket.source,
+            confidence: pocket.confidence,
+            is_active: true,
+            sect_id: null,
+            sector: null,
+        });
     };
 
     // Aggiungi questi stati all'inizio di BagView
@@ -94,6 +155,11 @@ const BagView = () => {
     const [modalSearch, setModalSearch] = useState("");
 
     const handleUpdateSlot = async () => {
+        if (!editingItem) return;
+
+        const isTmPocket = selectedCand?.pocket_type === 'tm';
+        const quantityToWrite = isTmPocket || isTmHmItemId(editItemId) ? 1 : editQty;
+
         try {
             // 1. Aggiorna lo slot nella memoria del server
             const res = await fetch(`${API_BASE}/bag/item/update`, {
@@ -102,21 +168,43 @@ const BagView = () => {
                 body: JSON.stringify({
                     offset: editingItem.offset,
                     item_id: editItemId,
-                    quantity: editQty
+                    quantity: quantityToWrite,
+                    encoding: editingItem.encoding || null
                 })
             });
 
-            if (res.ok) {
-                // 2. Forza il ricalcolo checksum e la scrittura del file .sav su disco
-                await fetch(`${API_BASE}/save-all`, { method: "POST" });
-
-                // 3. Rinfresca la UI
-                await loadPocket(selectedCand);
-                setEditingItem(null);
-                setModalSearch("");
-                alert("Modifica applicata e file aggiornato!");
+            if (!res.ok) {
+                throw new Error("Errore update slot");
             }
+
+            // 2. Forza il ricalcolo checksum e la scrittura del file .sav su disco
+            const saveRes = await fetch(`${API_BASE}/save-all`, { method: "POST" });
+            if (!saveRes.ok) {
+                throw new Error("Errore save-all");
+            }
+
+            // 3. Aggiorna subito la UI locale
+            const newName = allItems.find((it) => it.id === editItemId)?.name || `Item ${editItemId}`;
+            setItems((prev) => prev.map((it) => {
+                if (it.offset !== editingItem.offset) return it;
+                return {
+                    ...it,
+                    id: editItemId,
+                    qty: quantityToWrite,
+                    name: editItemId === 0 ? '--- VUOTO ---' : newName
+                };
+            }));
+
+            // 4. Reload dal backend per conferma stato reale
+            if (selectedCand) {
+                await loadPocket(selectedCand);
+            }
+
+            setEditingItem(null);
+            setModalSearch("");
+            alert("Modifica applicata e file aggiornato!");
         } catch (err) {
+            console.error(err);
             alert("Errore durante l'aggiornamento e salvataggio.");
         }
     };
@@ -129,6 +217,7 @@ const BagView = () => {
                 alert("Borsa salvata e checksum ricalcolato con successo!");
             }
         } catch (err) {
+            console.error(err);
             alert("Errore nel salvataggio finale");
         }
     };
@@ -175,8 +264,19 @@ const BagView = () => {
                                     className="w-full flex items-center justify-between px-6 py-4 hover:bg-blue-500/10 transition-colors border-b border-white/5 last:border-0"
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-[10px] font-mono text-slate-500">
-                                            #{item.id}
+                                        <div className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-[10px] font-mono text-slate-500 overflow-hidden">
+                                            {item.id > 0 && hasKnownItemName(item.name) ? (
+                                                <img
+                                                    src={itemIconUrl(item.id)}
+                                                    alt={item.name}
+                                                    className="w-8 h-8 object-contain"
+                                                    onError={(e) => {
+                                                        e.currentTarget.style.display = 'none';
+                                                    }}
+                                                />
+                                            ) : (
+                                                `#${item.id}`
+                                            )}
                                         </div>
                                         <span className="font-bold text-slate-200">{item.name}</span>
                                     </div>
@@ -188,6 +288,52 @@ const BagView = () => {
             )}
 
             {/* SELEZIONE CANDIDATI */}
+            {!selectedCand && (
+                <div className="bg-[#1e293b] border border-white/10 rounded-3xl p-5 md:p-6 space-y-4">
+                    <div className="flex items-center justify-between gap-4">
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Quick Pockets</p>
+                            <p className="text-xs text-slate-400 mt-1">Accesso rapido validato con fallback. La ricerca per item resta il metodo piu stabile.</p>
+                        </div>
+                        <button
+                            onClick={loadQuickPockets}
+                            disabled={quickLoading}
+                            className="px-3 py-2 text-[11px] font-bold rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-50"
+                        >
+                            {quickLoading ? "..." : "Aggiorna"}
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        {[
+                            { key: "main", label: "Main Pocket" },
+                            { key: "ball", label: "Ball Pocket" },
+                            { key: "berry", label: "Berry Pouch" },
+                            { key: "tm", label: "TM Case" },
+                        ].map((cfg) => {
+                            const pocket = quickPockets?.[cfg.key] || null;
+                            const ready = !!pocket?.anchor_offset;
+                            return (
+                                <button
+                                    key={cfg.key}
+                                    onClick={() => openQuickPocket(pocket)}
+                                    disabled={!ready || loading}
+                                    className="text-left p-4 rounded-2xl border border-white/10 bg-slate-900/60 hover:bg-slate-800/60 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <p className="text-xs font-black uppercase tracking-wider text-slate-300">{cfg.label}</p>
+                                    <p className="text-[10px] font-mono text-slate-500 mt-2">
+                                        {ready ? `anchor ${pocket.anchor_offset}` : "non trovato"}
+                                    </p>
+                                    <p className="text-[10px] mt-1 text-slate-400">
+                                        {ready ? `${pocket.source} | ${pocket.confidence}` : "usa ricerca manuale"}
+                                    </p>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
             {candidates.length > 0 && !selectedCand && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top-4">
                     {candidates.map((cand, idx) => (
@@ -202,6 +348,12 @@ const BagView = () => {
                                 <div>
                                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Settore {cand.sector} (ID {cand.sect_id})</p>
                                     <p className="text-sm font-mono text-slate-300 mt-1">{cand.anchor_offset}</p>
+                                    <p className="text-[10px] font-mono text-slate-400 mt-1">
+                                        {cand.quality || 'n/a'} | slots: {cand.slot_count ?? '-'} | score: {cand.score ?? '-'}
+                                    </p>
+                                    {cand.pocket_type && (
+                                        <p className="text-[10px] font-mono text-slate-500 mt-1">type: {cand.pocket_type}</p>
+                                    )}
                                 </div>
                                 {cand.is_active && <span className="bg-emerald-500 text-[10px] font-black px-2 py-0.5 rounded text-emerald-950">ACTIVE</span>}
                             </div>
@@ -231,6 +383,9 @@ const BagView = () => {
                                         <Package size={18} className="text-blue-400" /> Contenuto Tasca
                                     </h3>
                                     <p className="text-[10px] text-slate-500 font-mono">{selectedCand.anchor_offset}</p>
+                                    {selectedCand.pocket_type && (
+                                        <p className="text-[10px] text-slate-500 font-mono">type: {selectedCand.pocket_type}</p>
+                                    )}
                                 </div>
                             </div>
                             <input
@@ -246,8 +401,19 @@ const BagView = () => {
                             {items.filter(i => i.name.toLowerCase().includes(itemFilter.toLowerCase())).map((item, idx) => (
                                 <div key={idx} className="bg-[#1e293b] p-4 flex items-center justify-between hover:bg-slate-800 transition-colors group">
                                     <div className="flex items-center gap-3 overflow-hidden">
-                                        <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center border border-white/5 flex-shrink-0">
-                                            <span className="text-[10px] font-mono text-slate-500">#{item.id}</span>
+                                        <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center border border-white/5 flex-shrink-0 overflow-hidden">
+                                            {item.id > 0 && hasKnownItemName(item.name) ? (
+                                                <img
+                                                    src={itemIconUrl(item.id)}
+                                                    alt={item.name}
+                                                    className="w-8 h-8 object-contain"
+                                                    onError={(e) => {
+                                                        e.currentTarget.style.display = 'none';
+                                                    }}
+                                                />
+                                            ) : (
+                                                <span className="text-[10px] font-mono text-slate-500">#{item.id}</span>
+                                            )}
                                         </div>
                                         <div className="overflow-hidden">
                                             <p className="text-sm font-bold truncate text-slate-200">{item.name}</p>
@@ -302,8 +468,12 @@ const BagView = () => {
                                             type="number"
                                             value={editQty}
                                             onChange={(e) => setEditQty(Math.min(999, parseInt(e.target.value) || 0))}
-                                            className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 mt-1 text-emerald-400 font-bold outline-none focus:border-blue-500"
+                                            disabled={selectedCand?.pocket_type === 'tm' || isTmHmItemId(editItemId)}
+                                            className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 mt-1 text-emerald-400 font-bold outline-none focus:border-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
                                         />
+                                        {(selectedCand?.pocket_type === 'tm' || isTmHmItemId(editItemId)) && (
+                                            <p className="text-[10px] text-slate-500 mt-1">TM/HM riusabili: quantità forzata a 1.</p>
+                                        )}
                                     </div>
 
                                     {/* Modifica Tipo Oggetto */}
@@ -328,9 +498,19 @@ const BagView = () => {
                                                             setEditItemId(it.id);
                                                             setModalSearch(it.name);
                                                         }}
-                                                        className={`w-full text-left px-4 py-2 text-xs transition-colors ${editItemId === it.id ? 'bg-blue-600 text-white' : 'hover:bg-white/5 text-slate-300'}`}
+                                                        className={`w-full text-left px-4 py-2 text-xs transition-colors flex items-center gap-2 ${editItemId === it.id ? 'bg-blue-600 text-white' : 'hover:bg-white/5 text-slate-300'}`}
                                                     >
-                                                        #{it.id} - {it.name}
+                                                        {it.id > 0 && hasKnownItemName(it.name) && (
+                                                            <img
+                                                                src={itemIconUrl(it.id)}
+                                                                alt={it.name}
+                                                                className="w-5 h-5 object-contain"
+                                                                onError={(e) => {
+                                                                    e.currentTarget.style.display = 'none';
+                                                                }}
+                                                            />
+                                                        )}
+                                                        <span>#{it.id} - {it.name}</span>
                                                     </button>
                                                 ))
                                             }

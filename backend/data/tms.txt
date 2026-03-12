@@ -1,0 +1,120 @@
+TM01: Focus Punch
+TM02: Dragon Claw
+TM03: Water Pulse
+TM04: Calm Mind
+TM05: Roar
+TM06: Toxic
+TM07: Hail
+TM08: Bulk Up
+TM09: Bullet Seed
+TM10: Hidden Power
+TM11: Sunny Day
+TM12: Taunt
+TM13: Ice Beam
+TM14: Blizzard
+TM15: Hyper Beam
+TM16: Light Screen
+TM17: Protect
+TM18: Rain Dance
+TM19: Giga Drain
+TM20: Safeguard
+TM21: Frustration
+TM22: Solar Beam
+TM23: Iron Tail
+TM24: Thunderbolt
+TM25: Thunder
+TM26: Earthquake
+TM27: Return
+TM28: Dig
+TM29: Psychic
+TM30: Shadow Ball
+TM31: Brick Break
+TM32: Double Team
+TM33: Reflect
+TM34: Shock Wave
+TM35: Flamethrower
+TM36: Sludge Bomb
+TM37: Sandstorm
+TM38: Fire Blast
+TM39: Rock Tomb
+TM40: Aerial Ace
+TM41: Torment
+TM42: Facade
+TM43: Secret Power
+TM44: Rest
+TM45: Attract
+TM46: Thief
+TM47: Steel Wing
+TM48: Skill Swap
+TM49: Leech Fang
+TM50: Overheat
+TM51: Roost
+TM52: Focus Blast
+TM53: Energy Ball
+TM54: False Swipe
+TM55: Brine
+TM56: Hone Claws
+TM57: Charge Beam
+TM58: Endure
+TM59: Dragon Pulse
+TM60: Drain Punch
+TM61: Will-O-Wisp
+TM62: Silver Wind
+TM63: Venoshock
+TM64: Explosion
+TM65: Shadow Claw
+TM66: Payback
+TM67: Recycle
+TM68: Giga Impact
+TM69: Rock Polish
+TM70: Flash
+TM71: Stone Edge
+TM72: Avalanche
+TM73: Thunder Wave
+TM74: Gyro Ball
+TM75: Swords Dance
+TM76: Stealth Rock
+TM77: Flame Charge
+TM78: Low Sweep
+TM79: Dark Pulse
+TM80: Rock Slide
+TM81: X-Scissor
+TM82: Sleep Talk
+TM83: Scald
+TM84: Poison Jab
+TM85: Dream Eater
+TM86: Grass Knot
+TM87: Swagger
+TM88: Pluck
+TM89: U-Turn
+TM90: Substitute
+TM91: Flash Cannon
+TM92: Volt Switch
+TM93: Dragon Tail
+TM94: Incinerate
+TM95: Struggle Bug
+TM96: Bulldoze
+TM97: Frost Breath
+TM98: Work Up
+TM99: Wild Charge
+TM100: Infestation
+TM101: Power-Up Hit
+TM102: Dazzle Gleam
+TM103: Sludge Wave
+TM104: Psyshock
+TM105: Brutal Swing
+TM106: Smart Strike
+TM107: Acrobatics
+TM108: Snarl
+TM109: Defog
+TM110: Drain Kiss
+TM111: Smack Down
+TM112: Round
+TM113: Echoed Voice
+TM114: Natural Gift
+TM115: Quash
+TM116: Trick Room
+TM117: Fling
+TM118: Aurora Veil
+TM119: Sky Drop
+TM120: Nature Power

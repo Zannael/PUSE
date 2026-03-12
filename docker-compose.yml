@@ -6,7 +6,11 @@ services:
     container_name: pokemon-backend
     ports:
       - "8000:8000"
-    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    environment:
+      BACKEND_HOST: ${BACKEND_HOST:-0.0.0.0}
+      BACKEND_PORT: ${BACKEND_PORT:-8000}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+    command: uvicorn main:app --host ${BACKEND_HOST:-0.0.0.0} --port ${BACKEND_PORT:-8000}
 
   frontend:
     build:

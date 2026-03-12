@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, LayoutGrid, Users, Briefcase, UserCircle, Save } from 'lucide-react';
+import { Upload, LayoutGrid, Users, Briefcase, Save, Edit3, X } from 'lucide-react';
 import PartyGrid from './components/PartyGrid';
 import PCGrid from './components/PCGrid';
 import BagView from "./components/BagView.jsx";
@@ -11,6 +11,8 @@ const App = () => {
     const [activeTab, setActiveTab] = useState('party');
     const [isLoaded, setIsLoaded] = useState(false);
     const [money, setMoney] = useState(0);
+    const [showMoneyModal, setShowMoneyModal] = useState(false);
+    const [moneyInput, setMoneyInput] = useState('0');
 
     const handleUpload = async (e) => {
         const file = e.target.files[0];
@@ -24,9 +26,10 @@ const App = () => {
                 const mRes = await fetch(`${API_BASE}/money`);
                 const mData = await mRes.json();
                 setMoney(mData.money);
+                setMoneyInput(String(mData.money ?? 0));
                 setIsLoaded(true);
             }
-        } catch (err) {
+        } catch {
             alert("Errore nel caricamento.");
         }
     };
@@ -85,7 +88,7 @@ const App = () => {
             setSelectedPokemon(null);
             setRefreshKey(prev => prev + 1);
             alert("Pokémon aggiornato e salvato con successo!");
-        } catch (err) {
+        } catch {
             alert("Errore nel salvataggio completo.");
         }
     };
@@ -117,8 +120,29 @@ const App = () => {
                 setRefreshKey(prev => prev + 1); // Ricarica la griglia
                 alert("PC Box aggiornato con successo!");
             }
-        } catch (err) {
+        } catch {
             alert("Errore nel salvataggio del PC.");
+        }
+    };
+
+    const openMoneyModal = () => {
+        setMoneyInput(String(money ?? 0));
+        setShowMoneyModal(true);
+    };
+
+    const handleUpdateMoney = async () => {
+        const amount = Math.max(0, parseInt(moneyInput, 10) || 0);
+        try {
+            const res = await fetch(`${API_BASE}/money/update?amount=${amount}`, { method: 'POST' });
+            if (!res.ok) {
+                throw new Error('money update failed');
+            }
+            setMoney(amount);
+            setShowMoneyModal(false);
+            alert('Soldi aggiornati con successo!');
+        } catch (err) {
+            console.error(err);
+            alert('Errore aggiornamento soldi.');
         }
     };
 
@@ -132,6 +156,13 @@ const App = () => {
                             <div className="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full text-emerald-400 font-mono text-sm">
                                 ${money.toLocaleString()}
                             </div>
+                            <button
+                                onClick={openMoneyModal}
+                                className="p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                                title="Modifica soldi"
+                            >
+                                <Edit3 size={14} />
+                            </button>
                             <a
                                 href={`${API_BASE}/download`}
                                 download
@@ -175,16 +206,43 @@ const App = () => {
                             }}
                         />}
                         {activeTab === 'bag' && <BagView />}
-
-                        {/* Placeholder per le altre tab non ancora pronte */}
-                        {activeTab !== 'party' && activeTab !== 'pc' && (
-                            <div className="text-center py-20 text-slate-500 italic bg-slate-800/20 rounded-[2rem]">
-                                Sezione {activeTab.toUpperCase()} in arrivo...
-                            </div>
-                        )}
                     </div>
                 )}
             </main>
+
+            {showMoneyModal && (
+                <div className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="w-full max-w-sm bg-[#0f172a] border border-white/10 rounded-[2rem] p-6 space-y-5">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-bold">Modifica Soldi</h3>
+                            <button onClick={() => setShowMoneyModal(false)} className="text-slate-500 hover:text-white">
+                                <X size={18} />
+                            </button>
+                        </div>
+                        <input
+                            type="number"
+                            min="0"
+                            value={moneyInput}
+                            onChange={(e) => setMoneyInput(e.target.value)}
+                            className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 font-mono text-emerald-400 outline-none focus:border-blue-500"
+                        />
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowMoneyModal(false)}
+                                className="flex-1 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700"
+                            >
+                                Annulla
+                            </button>
+                            <button
+                                onClick={handleUpdateMoney}
+                                className="flex-1 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 font-bold"
+                            >
+                                Applica
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {selectedPokemon && (
                 <PokemonEditorModal
