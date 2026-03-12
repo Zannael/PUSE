@@ -1,6 +1,6 @@
 # PUSE - A Pokemon Unbound (offline) Save Editor
 
-Web-based save editor for Pokemon Unbound with a React frontend and a FastAPI backend.
+Web-based save editor for Pokemon Unbound (v 2.1.1.1.) with a React frontend and a FastAPI backend.
 
 ## Features
 
