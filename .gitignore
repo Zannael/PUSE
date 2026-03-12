@@ -1,0 +1,39 @@
+# IDE / OS
+.idea/
+**/.idea/
+.vscode/
+.DS_Store
+
+# Python
+**/__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node
+node_modules/
+dist/
+frontend/dist/
+
+# Env files
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Save/ROM/runtime artifacts
+*.sav
+*.gba
+*.bak
+*.bak_*
+*.analysis_copy
+backend/edited_save.sav
+backend/local_artifacts/
+backend/icons/pokemon/
+backend/icons/items/
+backend/data/*.sav
+backend/data/*.sav.*
+backend/data/Unbound.gba
+
+# Logs
+*.log
