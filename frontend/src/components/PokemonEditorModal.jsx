@@ -5,10 +5,9 @@ export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
     const [activeTab, setActiveTab] = useState('stats');
     const [localPk, setLocalPk] = useState({ ...pokemon });
     const [allMoves, setAllMoves] = useState([]);
-    const [searchTerm, setSearchTerm] = useState(['', '', '', '']); // Una ricerca per ogni slot
+    const [searchTerm, setSearchTerm] = useState(['', '', '', '']);
     const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-    // Carica la lista di tutte le mosse all'apertura
     useEffect(() => {
         fetch(`${API_BASE}/moves`)
             .then(res => res.json())
@@ -27,7 +26,6 @@ export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
         newMoves[slotIndex] = parseInt(moveId);
         setLocalPk({ ...localPk, moves: newMoves });
 
-        // Pulisce la ricerca dopo la selezione
         const newSearch = [...searchTerm];
         newSearch[slotIndex] = '';
         setSearchTerm(newSearch);
@@ -36,7 +34,6 @@ export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
     const [allItems, setAllItems] = useState([]);
     const [itemSearch, setItemSearch] = useState('');
 
-// Carica anche gli strumenti all'avvio
     useEffect(() => {
         fetch(`${API_BASE}/items`)
             .then(res => res.json())
@@ -47,13 +44,12 @@ export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
             <div className="bg-[#0f172a] border border-white/10 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
 
-                {/* Header e Tabs (come nel tuo codice) */}
                 <div className="p-6 bg-[#1e293b] flex justify-between items-center border-b border-white/5">
                     <div className="flex items-center gap-4">
                         <img src={`${API_BASE}/pokemon-icon/${localPk.species_id}`} className="w-12 h-12 pixelated" alt="icon"/>
                         <div>
                             <h2 className="text-xl font-bold">{localPk.nickname}</h2>
-                            <p className="text-xs text-slate-500 uppercase font-black">Editor Pokémon</p>
+                            <p className="text-xs text-slate-500 uppercase font-black">Pokemon Editor</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full"><X /></button>
@@ -61,11 +57,10 @@ export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
 
                 <div className="flex bg-[#1e293b]/50 p-2 gap-2 border-b border-white/5">
                     <EditorTab active={activeTab === 'stats'} label="IVs & EVs" onClick={() => setActiveTab('stats')} />
-                    <EditorTab active={activeTab === 'moves'} label="Mosse & Abilità" onClick={() => setActiveTab('moves')} />
-                    <EditorTab active={activeTab === 'info'} label="Natura & Strumento" onClick={() => setActiveTab('info')} />
+                    <EditorTab active={activeTab === 'moves'} label="Moves & Ability" onClick={() => setActiveTab('moves')} />
+                    <EditorTab active={activeTab === 'info'} label="Nature & Item" onClick={() => setActiveTab('info')} />
                 </div>
 
-                {/* Content */}
                 <div className="flex-1 overflow-y-auto p-8">
                     {activeTab === 'stats' && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -81,14 +76,13 @@ export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
                                     <div key={idx}
                                          className="bg-slate-800/40 p-4 rounded-2xl border border-white/5 space-y-3">
                                         <label
-                                            className="text-[10px] font-black text-slate-500 uppercase">Mossa {idx + 1}</label>
+                                            className="text-[10px] font-black text-slate-500 uppercase">Move {idx + 1}</label>
 
-                                        {/* Barra di ricerca */}
                                         <div className="relative">
                                             <Search className="absolute left-3 top-2.5 text-slate-500" size={14}/>
                                             <input
                                                 type="text"
-                                                placeholder="Cerca per nome o ID..."
+                                                placeholder="Search by name or ID..."
                                                 value={searchTerm[idx]}
                                                 onChange={(e) => {
                                                     const s = [...searchTerm];
@@ -99,7 +93,6 @@ export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
                                             />
                                         </div>
 
-                                        {/* Risultati della ricerca o mossa attuale */}
                                         {searchTerm[idx].length > 1 ? (
                                             <div
                                                 className="max-h-32 overflow-y-auto bg-slate-900 rounded-xl border border-blue-500/30">
@@ -122,7 +115,7 @@ export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
                                             <div
                                                 className="flex justify-between items-center bg-slate-900/50 p-2 rounded-lg border border-white/5">
                                                 <span className="text-xs font-bold text-blue-400">
-                                                    {allMoves.find(m => m.id === moveId)?.name || "--- Vuoto ---"}
+                                                    {allMoves.find(m => m.id === moveId)?.name || "--- Empty ---"}
                                                 </span>
                                                 <span
                                                     className="text-[10px] font-mono text-slate-600">ID: {moveId}</span>
@@ -133,14 +126,14 @@ export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
                             </div>
 
                             <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
-                                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Configurazione
-                                    Abilità</h4>
+                                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Ability
+                                    Setup</h4>
 
                                 <div className="flex bg-slate-900 p-1 rounded-xl gap-1">
                                     {[
                                         {id: 0, label: 'Slot 1 (Standard)'},
                                         {id: 1, label: 'Slot 2 (Standard)'},
-                                        {id: 2, label: 'Nascosta (HA)'}
+                                        {id: 2, label: 'Hidden (HA)'}
                                     ].map((opt) => (
                                         <button
                                             key={opt.id}
@@ -157,8 +150,8 @@ export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
                                 </div>
                                 <p className="text-[9px] text-center text-slate-500 italic">
                                     {localPk.current_ability_index === 2
-                                        ? "L'abilità segreta ignora il PID del Pokémon."
-                                        : "Il sistema cambierà il PID mantenendo la stessa Natura."}
+                                        ? "Hidden ability ignores the Pokemon PID."
+                                        : "The system will change PID while keeping the same Nature."}
                                 </p>
                             </div>
                         </div>
@@ -167,41 +160,38 @@ export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
                     {activeTab === 'info' && (
                         <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
 
-                            {/* SEZIONE NATURA */}
                             <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
-                                    Natura del Pokémon
+                                    Pokemon Nature
                                 </label>
                                 <select
                                     value={localPk.nature_id}
                                     onChange={(e) => setLocalPk({...localPk, nature_id: parseInt(e.target.value)})}
                                     className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm text-blue-400 font-bold outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none cursor-pointer"
                                 >
-                                    {/* Mappatura delle 25 Nature standard GBA/Unbound */}
                                     {[
-                                        "Hardy (Ardita)", "Lonely (Schiva)", "Brave (Audace)", "Adamant (Decisa)", "Naughty (Birbona)",
-                                        "Bold (Sicura)", "Docile (Docile)", "Relaxed (Placida)", "Impish (Scaltra)", "Lax (Fiacca)",
-                                        "Timid (Timida)", "Hasty (Lesta)", "Serious (Seria)", "Jolly (Allegra)", "Naive (Ingenua)",
-                                        "Modest (Modesta)", "Mild (Mite)", "Quiet (Quieta)", "Bashful (Ritrosa)", "Rash (Ardente)",
-                                        "Calm (Calma)", "Gentle (Gentile)", "Sassy (Vivace)", "Careful (Cauta)", "Quirky (Furba)"
+                                        "Hardy", "Lonely", "Brave", "Adamant", "Naughty",
+                                        "Bold", "Docile", "Relaxed", "Impish", "Lax",
+                                        "Timid", "Hasty", "Serious", "Jolly", "Naive",
+                                        "Modest", "Mild", "Quiet", "Bashful", "Rash",
+                                        "Calm", "Gentle", "Sassy", "Careful", "Quirky"
                                     ].map((name, i) => (
                                         <option key={i} value={i}>{name}</option>
                                     ))}
                                 </select>
-                                <p className="text-[9px] text-center text-slate-500 italic">Cambiare la natura modificherà il PID del Pokémon nel salvataggio.</p>
+                                <p className="text-[9px] text-center text-slate-500 italic">Changing nature will modify the Pokemon PID in the save file.</p>
                             </div>
 
-                            {/* SEZIONE STRUMENTO */}
                             <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
-                                    Strumento Tenuto
+                                    Held Item
                                 </label>
 
                                 <div className="relative">
                                     <Search className="absolute left-3 top-3 text-slate-500" size={16} />
                                     <input
                                         type="text"
-                                        placeholder="Cerca strumento (es. 'Master', 'Leftovers' o ID...)"
+                                        placeholder="Search item (e.g. 'Master', 'Leftovers' or ID...)"
                                         value={itemSearch}
                                         onChange={(e) => setItemSearch(e.target.value)}
                                         className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm outline-none focus:border-blue-500/50"
@@ -234,13 +224,12 @@ export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
                                 ) : (
                                     <div className="flex justify-between items-center bg-slate-900/50 p-4 rounded-xl border border-emerald-500/20">
                                         <div className="flex flex-col">
-                                            <span className="text-[10px] text-slate-500 uppercase font-black">Strumento Attuale</span>
+                                            <span className="text-[10px] text-slate-500 uppercase font-black">Current Item</span>
                                             <span className="text-emerald-400 font-bold text-sm">
                             {allItems.find(i => i.id === localPk.item_id)?.name || "ID " + localPk.item_id}
                         </span>
                                         </div>
                                         <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-500">
-                                            {/* Puoi aggiungere un'icona borsa qui */}
                                         </div>
                                     </div>
                                 )}
@@ -254,7 +243,7 @@ export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
                 <div className="p-6 bg-[#1e293b]/80 border-t border-white/5 flex justify-end">
                     <button onClick={() => onSave(localPk)}
                             className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-3 rounded-2xl flex items-center gap-2 shadow-lg active:scale-95 transition-all">
-                        <Save size={18}/> SALVA MODIFICHE
+                        <Save size={18}/> SAVE CHANGES
                     </button>
                 </div>
             </div>
@@ -264,7 +253,6 @@ export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
 
 
 const StatGroup = ({title, type, data, update, max}) => {
-    // PROTEZIONE: Se data è undefined o null, usa un oggetto vuoto
     const statsEntries = data ? Object.entries(data) : [];
 
     return (

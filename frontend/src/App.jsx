@@ -3,7 +3,7 @@ import { Upload, LayoutGrid, Users, Briefcase, Save, Edit3, X } from 'lucide-rea
 import PartyGrid from './components/PartyGrid';
 import PCGrid from './components/PCGrid';
 import BagView from "./components/BagView.jsx";
-import {PokemonEditorModal} from "./components/PokemonEditorModal.jsx"; // 1. IMPORTA IL NUOVO COMPONENTE
+import {PokemonEditorModal} from "./components/PokemonEditorModal.jsx";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -30,15 +30,13 @@ const App = () => {
                 setIsLoaded(true);
             }
         } catch {
-            alert("Errore nel caricamento.");
+            alert("Upload failed.");
         }
     };
 
-    // AGGIUNGI QUESTI STATI
     const [selectedPokemon, setSelectedPokemon] = useState(null);
     const [refreshKey, setRefreshKey] = useState(0);
 
-// App.jsx -> Modifica handleSavePokemon
     const handleSavePokemon = async (updatedPk) => {
         try {
             const statsBase = {
@@ -46,7 +44,6 @@ const App = () => {
                 spa: updatedPk.ivs.SpA, spd: updatedPk.ivs.SpD, spe: updatedPk.ivs.Spe || updatedPk.ivs.Spd
             };
 
-            // 1. Salva IVs e EVs
             await fetch(`${API_BASE}/party/${updatedPk.index}/ivs`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(statsBase)
@@ -56,40 +53,33 @@ const App = () => {
                 body: JSON.stringify(statsBase)
             });
 
-            // 2. Salva Mosse
             await fetch(`${API_BASE}/party/${updatedPk.index}/moves`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ moves: updatedPk.moves })
             });
 
-            // 3. Salva Abilità (Switch 0, 1, 2)
             await fetch(`${API_BASE}/party/${updatedPk.index}/ability-switch`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ability_index: updatedPk.current_ability_index })
             });
 
-            // --- AGGIUNGI QUESTE DUE CHIAMATE ---
-            // 4. Salva Natura
             await fetch(`${API_BASE}/party/${updatedPk.index}/nature`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nature_id: updatedPk.nature_id })
             });
 
-            // 5. Salva Strumento
             await fetch(`${API_BASE}/party/${updatedPk.index}/item`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ item_id: updatedPk.item_id })
             });
-            // ------------------------------------
 
-            // 6. Sincronizzazione finale e ricalcolo checksum
             await fetch(`${API_BASE}/save-all`, { method: 'POST' });
 
             setSelectedPokemon(null);
             setRefreshKey(prev => prev + 1);
-            alert("Pokémon aggiornato e salvato con successo!");
+            alert("Pokemon updated and saved successfully!");
         } catch {
-            alert("Errore nel salvataggio completo.");
+            alert("Failed to save all changes.");
         }
     };
 
@@ -103,7 +93,6 @@ const App = () => {
                 ivs: updatedPk.ivs,
                 evs: updatedPk.evs,
                 nature_id: updatedPk.nature_id,
-                // Per il PC l'exp è fondamentale perché il livello è calcolato
                 exp: updatedPk.exp
             };
 
@@ -114,14 +103,13 @@ const App = () => {
             });
 
             if (res.ok) {
-                // Importante: ricalcola i checksum e scrivi il file
                 await fetch(`${API_BASE}/save-all`, { method: 'POST' });
                 setSelectedPokemon(null);
-                setRefreshKey(prev => prev + 1); // Ricarica la griglia
-                alert("PC Box aggiornato con successo!");
+                setRefreshKey(prev => prev + 1);
+                alert("PC Box updated successfully!");
             }
         } catch {
-            alert("Errore nel salvataggio del PC.");
+            alert("Failed to save PC Box.");
         }
     };
 
@@ -139,10 +127,10 @@ const App = () => {
             }
             setMoney(amount);
             setShowMoneyModal(false);
-            alert('Soldi aggiornati con successo!');
+            alert('Money updated successfully!');
         } catch (err) {
             console.error(err);
-            alert('Errore aggiornamento soldi.');
+            alert('Failed to update money.');
         }
     };
 
@@ -159,7 +147,7 @@ const App = () => {
                             <button
                                 onClick={openMoneyModal}
                                 className="p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
-                                title="Modifica soldi"
+                                title="Edit money"
                             >
                                 <Edit3 size={14} />
                             </button>
@@ -168,7 +156,7 @@ const App = () => {
                                 download
                                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-full text-xs font-bold transition-all"
                             >
-                                <Save size={14} /> SCARICA .SAV
+                                <Save size={14} /> DOWNLOAD .SAV
                             </a>
                         </div>
                     )}
@@ -177,21 +165,18 @@ const App = () => {
 
             <main className="w-full max-w-6xl p-4 md:p-8 pb-32">
                 {!isLoaded ? (
-                    /* Schermata Upload */
                     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
                         <div className="w-20 h-20 bg-blue-600/20 rounded-3xl flex items-center justify-center mb-6 border border-blue-500/30">
                             <Upload className="text-blue-500" size={32} />
                         </div>
-                        <h2 className="text-3xl font-bold mb-2">Benvenuto Allenatore</h2>
+                        <h2 className="text-3xl font-bold mb-2">Welcome Trainer</h2>
                         <label className="bg-blue-600 hover:bg-blue-500 px-10 py-4 rounded-2xl cursor-pointer font-bold transition-all shadow-lg active:scale-95">
-                            SELEZIONA SALVATAGGIO
+                            SELECT SAVE FILE
                             <input type="file" className="hidden" onChange={handleUpload} accept=".sav" />
                         </label>
                     </div>
                 ) : (
-                    /* Contenuto Dinamico */
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        {/* 2. LOGICA DI SWITCH TRA LE TAB */}
                         {activeTab === 'party' && (
                             <PartyGrid
                                 key={`party-${refreshKey}`}
@@ -201,7 +186,6 @@ const App = () => {
                         {activeTab === 'pc' && <PCGrid
                             key={`pc-${refreshKey}`}
                             onEditPokemon={(pk) => {
-                                // Normalizziamo l'oggetto per il Modal (aggiungendo box/slot se mancano)
                                 setSelectedPokemon({ ...pk, isPC: true });
                             }}
                         />}
@@ -214,7 +198,7 @@ const App = () => {
                 <div className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
                     <div className="w-full max-w-sm bg-[#0f172a] border border-white/10 rounded-[2rem] p-6 space-y-5">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-bold">Modifica Soldi</h3>
+                            <h3 className="text-lg font-bold">Edit Money</h3>
                             <button onClick={() => setShowMoneyModal(false)} className="text-slate-500 hover:text-white">
                                 <X size={18} />
                             </button>
@@ -231,13 +215,13 @@ const App = () => {
                                 onClick={() => setShowMoneyModal(false)}
                                 className="flex-1 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700"
                             >
-                                Annulla
+                                Cancel
                             </button>
                             <button
                                 onClick={handleUpdateMoney}
                                 className="flex-1 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 font-bold"
                             >
-                                Applica
+                                Apply
                             </button>
                         </div>
                     </div>
@@ -252,12 +236,11 @@ const App = () => {
                 />
             )}
 
-            {/* Navigazione Inferiore */}
             {isLoaded && (
                 <nav className="fixed bottom-6 w-[90%] max-w-md bg-[#1e293b]/95 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-2 shadow-2xl flex justify-around z-50">
                     <TabItem icon={<LayoutGrid size={20}/>} label="Party" active={activeTab === 'party'} onClick={() => setActiveTab('party')} />
                     <TabItem icon={<Users size={20}/>} label="PC Box" active={activeTab === 'pc'} onClick={() => setActiveTab('pc')} />
-                    <TabItem icon={<Briefcase size={20}/>} label="Borsa" active={activeTab === 'bag'} onClick={() => setActiveTab('bag')} />
+                    <TabItem icon={<Briefcase size={20}/>} label="Bag" active={activeTab === 'bag'} onClick={() => setActiveTab('bag')} />
                 </nav>
             )}
 
@@ -265,7 +248,6 @@ const App = () => {
     );
 };
 
-/* Sotto-componente per i tasti della Nav */
 const TabItem = ({ icon, label, active, onClick }) => (
     <button
         onClick={onClick}

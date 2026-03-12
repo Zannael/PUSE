@@ -26,7 +26,7 @@ const BagView = () => {
     const hasKnownItemName = (name) => {
         if (!name) return false;
         const low = name.toLowerCase();
-        return !low.startsWith('item ') && !low.startsWith('id ') && name !== '--- VUOTO ---';
+        return !low.startsWith('item ') && !low.startsWith('id ') && name !== '--- EMPTY ---';
     };
 
     const itemIconUrl = (itemId) => `${API_BASE}/item-icon/${itemId}`;
@@ -37,7 +37,7 @@ const BagView = () => {
                 const res = await fetch(`${API_BASE}/items`);
                 const data = await res.json();
                 setAllItems(data);
-            } catch (err) { console.error("Errore DB strumenti", err); }
+            } catch (err) { console.error("Items DB error", err); }
         };
         fetchItems();
     }, [API_BASE]);
@@ -53,7 +53,7 @@ const BagView = () => {
             const data = await res.json();
             setQuickPockets(data?.pockets || {});
         } catch (err) {
-            console.error("Errore quick pockets", err);
+            console.error("Quick pockets error", err);
             setQuickPockets({});
         } finally {
             setQuickLoading(false);
@@ -106,11 +106,11 @@ const BagView = () => {
             if (data.results && data.results.length > 0) {
                 setCandidates(data.results);
             } else {
-                alert("Nessun settore trovato.");
+                alert("No sector found.");
             }
         } catch (err) {
             console.error(err);
-            alert("Errore backend");
+            alert("Backend error");
         }
         finally { setLoading(false); }
     };
@@ -124,7 +124,7 @@ const BagView = () => {
                 { cache: "no-store" }
             );
             if (!res.ok) {
-                throw new Error("Errore caricamento tasca");
+                throw new Error("Pocket loading error");
             }
             const data = await res.json();
             setItems(data);
@@ -148,8 +148,7 @@ const BagView = () => {
         });
     };
 
-    // Aggiungi questi stati all'inizio di BagView
-    const [editingItem, setEditingItem] = useState(null); // Lo slot che stiamo modificando
+    const [editingItem, setEditingItem] = useState(null);
     const [editQty, setEditQty] = useState(0);
     const [editItemId, setEditItemId] = useState(0);
     const [modalSearch, setModalSearch] = useState("");
@@ -161,7 +160,6 @@ const BagView = () => {
         const quantityToWrite = isTmPocket || isTmHmItemId(editItemId) ? 1 : editQty;
 
         try {
-            // 1. Aggiorna lo slot nella memoria del server
             const res = await fetch(`${API_BASE}/bag/item/update`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -174,16 +172,14 @@ const BagView = () => {
             });
 
             if (!res.ok) {
-                throw new Error("Errore update slot");
+                throw new Error("Slot update error");
             }
 
-            // 2. Forza il ricalcolo checksum e la scrittura del file .sav su disco
             const saveRes = await fetch(`${API_BASE}/save-all`, { method: "POST" });
             if (!saveRes.ok) {
-                throw new Error("Errore save-all");
+                throw new Error("Save-all error");
             }
 
-            // 3. Aggiorna subito la UI locale
             const newName = allItems.find((it) => it.id === editItemId)?.name || `Item ${editItemId}`;
             setItems((prev) => prev.map((it) => {
                 if (it.offset !== editingItem.offset) return it;
@@ -191,34 +187,32 @@ const BagView = () => {
                     ...it,
                     id: editItemId,
                     qty: quantityToWrite,
-                    name: editItemId === 0 ? '--- VUOTO ---' : newName
+                    name: editItemId === 0 ? '--- EMPTY ---' : newName
                 };
             }));
 
-            // 4. Reload dal backend per conferma stato reale
             if (selectedCand) {
                 await loadPocket(selectedCand);
             }
 
             setEditingItem(null);
             setModalSearch("");
-            alert("Modifica applicata e file aggiornato!");
+            alert("Edit applied and file updated!");
         } catch (err) {
             console.error(err);
-            alert("Errore durante l'aggiornamento e salvataggio.");
+            alert("Error while updating and saving.");
         }
     };
 
-// Funzione per il "Commit" finale (Checkum + Scrittura file)
     const handleFinalSave = async () => {
         try {
             const res = await fetch(`${API_BASE}/save-all`, { method: "POST" });
             if (res.ok) {
-                alert("Borsa salvata e checksum ricalcolato con successo!");
+                alert("Bag saved and checksum recalculated successfully!");
             }
         } catch (err) {
             console.error(err);
-            alert("Errore nel salvataggio finale");
+            alert("Final save error");
         }
     };
 
@@ -236,7 +230,7 @@ const BagView = () => {
                             value={query}
                             onChange={handleQueryChange}
                             onFocus={() => query.length > 1 && setIsDropdownOpen(true)}
-                            placeholder="Cerca strumento per nome..."
+                            placeholder="Search item by name..."
                             className="w-full bg-[#1e293b] border border-white/10 rounded-[2rem] pl-14 pr-32 py-5 outline-none focus:border-blue-500/50 transition-all text-lg shadow-2xl"
                         />
                         <div className="absolute right-3 flex items-center gap-2">
@@ -250,7 +244,7 @@ const BagView = () => {
                                 disabled={loading || !searchId}
                                 className="bg-blue-600 hover:bg-blue-500 disabled:opacity-30 text-white font-bold px-6 py-3 rounded-full transition-all active:scale-95 shadow-lg"
                             >
-                                {loading ? "..." : "VAI"}
+                                {loading ? "..." : "GO"}
                             </button>
                         </div>
                     </div>
@@ -293,14 +287,14 @@ const BagView = () => {
                     <div className="flex items-center justify-between gap-4">
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Quick Pockets</p>
-                            <p className="text-xs text-slate-400 mt-1">Accesso rapido validato con fallback. La ricerca per item resta il metodo piu stabile.</p>
+                            <p className="text-xs text-slate-400 mt-1">Quick access validated with fallback. Item search remains the most stable method.</p>
                         </div>
                         <button
                             onClick={loadQuickPockets}
                             disabled={quickLoading}
                             className="px-3 py-2 text-[11px] font-bold rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-50"
                         >
-                            {quickLoading ? "..." : "Aggiorna"}
+                            {quickLoading ? "..." : "Refresh"}
                         </button>
                     </div>
 
@@ -322,10 +316,10 @@ const BagView = () => {
                                 >
                                     <p className="text-xs font-black uppercase tracking-wider text-slate-300">{cfg.label}</p>
                                     <p className="text-[10px] font-mono text-slate-500 mt-2">
-                                        {ready ? `anchor ${pocket.anchor_offset}` : "non trovato"}
+                                        {ready ? `anchor ${pocket.anchor_offset}` : "not found"}
                                     </p>
                                     <p className="text-[10px] mt-1 text-slate-400">
-                                        {ready ? `${pocket.source} | ${pocket.confidence}` : "usa ricerca manuale"}
+                                        {ready ? `${pocket.source} | ${pocket.confidence}` : "use manual search"}
                                     </p>
                                 </button>
                             );
@@ -346,7 +340,7 @@ const BagView = () => {
                         >
                             <div className="flex justify-between items-center relative z-10">
                                 <div>
-                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Settore {cand.sector} (ID {cand.sect_id})</p>
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Sector {cand.sector} (ID {cand.sect_id})</p>
                                     <p className="text-sm font-mono text-slate-300 mt-1">{cand.anchor_offset}</p>
                                     <p className="text-[10px] font-mono text-slate-400 mt-1">
                                         {cand.quality || 'n/a'} | slots: {cand.slot_count ?? '-'} | score: {cand.score ?? '-'}
@@ -357,11 +351,10 @@ const BagView = () => {
                                 </div>
                                 {cand.is_active && <span className="bg-emerald-500 text-[10px] font-black px-2 py-0.5 rounded text-emerald-950">ACTIVE</span>}
                             </div>
-                            {/* INDICATORE TASCA PRINCIPALE */}
                             {cand.is_main_pocket && (
                                 <div className="mt-4 flex items-center gap-2 text-blue-400">
                                     <Star size={12} fill="currentColor" />
-                                    <span className="text-[10px] font-black uppercase tracking-tighter">Tasca Strumenti Principali</span>
+                                    <span className="text-[10px] font-black uppercase tracking-tighter">Main Items Pocket</span>
                                 </div>
                             )}
                         </button>
@@ -380,7 +373,7 @@ const BagView = () => {
                                 </button>
                                 <div>
                                     <h3 className="font-bold uppercase tracking-tight flex items-center gap-2">
-                                        <Package size={18} className="text-blue-400" /> Contenuto Tasca
+                                        <Package size={18} className="text-blue-400" /> Pocket Contents
                                     </h3>
                                     <p className="text-[10px] text-slate-500 font-mono">{selectedCand.anchor_offset}</p>
                                     {selectedCand.pocket_type && (
@@ -390,7 +383,7 @@ const BagView = () => {
                             </div>
                             <input
                                 type="text"
-                                placeholder="Filtra strumenti..."
+                                placeholder="Filter items..."
                                 value={itemFilter}
                                 onChange={(e) => setItemFilter(e.target.value)}
                                 className="bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-xs outline-none focus:border-blue-500/50"
@@ -417,10 +410,9 @@ const BagView = () => {
                                         </div>
                                         <div className="overflow-hidden">
                                             <p className="text-sm font-bold truncate text-slate-200">{item.name}</p>
-                                            <p className="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-tighter">Quantità: {item.qty}</p>
+                                            <p className="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-tighter">Quantity: {item.qty}</p>
                                         </div>
                                     </div>
-                                    {/* PULSANTE EDIT AGGIORNATO */}
                                     <button
                                         onClick={() => {
                                             setEditingItem(item);
@@ -436,24 +428,21 @@ const BagView = () => {
                         </div>
                     </div>
 
-                    {/* TASTO SALVATAGGIO FINALE */}
                     <div className="flex justify-end p-4">
                         <button
                             onClick={handleFinalSave}
                             className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-4 rounded-2xl flex items-center gap-2 shadow-xl transition-all active:scale-95"
                         >
-                            <Save size={20} /> SALVA MODIFICHE BORSA
+                            <Save size={20} /> SAVE BAG CHANGES
                         </button>
                     </div>
 
-                    {/* MODAL DI EDITING */}
-                    {/* MODAL DI EDITING */}
                     {editingItem && (
                         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
                             <div className="bg-[#0f172a] border border-white/10 p-8 rounded-[2.5rem] w-full max-w-md shadow-2xl space-y-6">
                                 <div className="flex justify-between items-center">
                                     <h3 className="text-xl font-bold flex items-center gap-2">
-                                        <Edit3 className="text-blue-400" /> Modifica Slot
+                                        <Edit3 className="text-blue-400" /> Edit Slot
                                     </h3>
                                     <button onClick={() => { setEditingItem(null); setModalSearch(""); }} className="text-slate-500 hover:text-white">
                                         <X />
@@ -461,9 +450,8 @@ const BagView = () => {
                                 </div>
 
                                 <div className="space-y-4">
-                                    {/* Modifica Quantità */}
                                     <div>
-                                        <label className="text-[10px] font-black text-slate-500 uppercase">Quantità (0-999)</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase">Quantity (0-999)</label>
                                         <input
                                             type="number"
                                             value={editQty}
@@ -472,18 +460,17 @@ const BagView = () => {
                                             className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 mt-1 text-emerald-400 font-bold outline-none focus:border-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
                                         />
                                         {(selectedCand?.pocket_type === 'tm' || isTmHmItemId(editItemId)) && (
-                                            <p className="text-[10px] text-slate-500 mt-1">TM/HM riusabili: quantità forzata a 1.</p>
+                                            <p className="text-[10px] text-slate-500 mt-1">Reusable TM/HM: quantity forced to 1.</p>
                                         )}
                                     </div>
 
-                                    {/* Modifica Tipo Oggetto */}
                                     <div>
-                                        <label className="text-[10px] font-black text-slate-500 uppercase">Cerca Strumento</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase">Search Item</label>
                                         <input
                                             type="text"
                                             value={modalSearch}
                                             onChange={(e) => setModalSearch(e.target.value)}
-                                            placeholder="Cerca nuovo oggetto..."
+                                            placeholder="Search new item..."
                                             className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 mt-1 text-sm outline-none focus:border-blue-500"
                                         />
 
@@ -519,8 +506,8 @@ const BagView = () => {
                                 </div>
 
                                 <div className="flex gap-3 pt-4">
-                                    <button onClick={() => { setEditingItem(null); setModalSearch(""); }} className="flex-1 px-6 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold transition-all">ANNULLA</button>
-                                    <button onClick={handleUpdateSlot} className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold shadow-lg transition-all active:scale-95">APPLICA</button>
+                                    <button onClick={() => { setEditingItem(null); setModalSearch(""); }} className="flex-1 px-6 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold transition-all">CANCEL</button>
+                                    <button onClick={handleUpdateSlot} className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold shadow-lg transition-all active:scale-95">APPLY</button>
                                 </div>
                             </div>
                         </div>

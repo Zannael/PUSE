@@ -13,7 +13,7 @@ const PartyGrid = ({ onEditPokemon }) => {
             const data = await res.json();
             setParty(data);
         } catch (err) {
-            console.error("Errore recupero party", err);
+            console.error("Party fetch error", err);
         } finally {
             setLoading(false);
         }
@@ -26,7 +26,7 @@ const PartyGrid = ({ onEditPokemon }) => {
     if (loading) return (
         <div className="flex flex-col items-center justify-center py-20 text-slate-500">
             <Loader2 className="animate-spin mb-4" size={48} />
-            <p>Sincronizzazione squadra...</p>
+            <p>Syncing party...</p>
         </div>
     );
 
@@ -36,7 +36,7 @@ const PartyGrid = ({ onEditPokemon }) => {
                 <PokemonCard
                     key={pk.index}
                     pokemon={pk}
-                    onEdit={() => onEditPokemon(pk)} // Passa l'evento alla card
+                    onEdit={() => onEditPokemon(pk)}
                 />
             ))}
         </div>
