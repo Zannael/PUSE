@@ -42,7 +42,7 @@ def _cors_origins_from_env():
 _load_env_file()
 
 app = FastAPI()
-# Configurazione CORS
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins_from_env(),
@@ -51,7 +51,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- 1. SPOSTA TUTTE LE DEFINIZIONI DELLO STATO ALL'INIZIO ---
+# --- 1. Keep all shared state definitions at the top ---
 current_save = {
     "data": None,
     "filename": None,
@@ -65,7 +65,7 @@ current_save = {
     }
 }
 
-# Assicurati che BASE_DIR e icons_path siano definiti come prima
+# Keep BASE_DIR and icon paths defined before endpoint handlers
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SEARCH_DIRS = [
     os.path.join(BASE_DIR, "icons", "pokemon"),
@@ -84,12 +84,12 @@ item_icon_resolver = ItemIconResolver(ITEM_ICONS_DIR)
 
 @app.get("/pokemon-icon/{species_id}")
 async def get_pokemon_icon(species_id: int):
-    # 1. Controlla la cache
+    # 1. Check cache
     if species_id in icon_cache:
         return FileResponse(icon_cache[species_id])
 
-    # 2. Configura i parametri di ricerca
-    id_str = f"{species_id:03}"  # Assicura almeno 3 cifre (es: 1 -> 001)
+    # 2. Configure search parameters
+    id_str = f"{species_id:03}"  # Ensure at least 3 digits (e.g., 1 -> 001)
     prefix = f"gFrontSprite{id_str}"
     search_dirs = [
         os.path.join(BASE_DIR, "icons", "pokemon"),
@@ -98,7 +98,7 @@ async def get_pokemon_icon(species_id: int):
 
     found_path = None
 
-    # 3. Scansione cartelle con la logica del remainder
+    # 3. Scan folders with remainder-based filtering
     for folder in search_dirs:
         if not os.path.exists(folder):
             continue
@@ -108,11 +108,11 @@ async def get_pokemon_icon(species_id: int):
 
         for path in candidates:
             filename = os.path.basename(path)
-            # Calcola cosa resta dopo il prefisso
+            # Compute what remains after the prefix
             remainder = filename[len(prefix):]
 
-            # FILTRO CRITICO: se il primo carattere dopo l'ID è un numero,
-            # allora è un ID diverso (es: cercavo 113, ho trovato 1137)
+            # Critical filter: if the first character after the ID is a digit,
+            # it is a different ID (e.g., searching 113 but found 1137)
             if remainder and remainder[0].isdigit():
                 continue
 
@@ -133,13 +133,13 @@ async def get_pokemon_icon(species_id: int):
 @app.get("/item-icon/{item_id}")
 async def get_item_icon(item_id: int):
     if item_id <= 0:
-        raise HTTPException(status_code=404, detail="Icona item non trovata")
+        raise HTTPException(status_code=404, detail="Item icon not found")
 
     if item_id in item_icon_cache:
         cached = item_icon_cache[item_id]
         if cached:
             return FileResponse(cached)
-        raise HTTPException(status_code=404, detail="Icona item non trovata")
+        raise HTTPException(status_code=404, detail="Item icon not found")
 
     item_name = bag_mod.DB_ITEMS.get(item_id)
     icon_path = item_icon_resolver.resolve(item_name or "")
@@ -147,13 +147,13 @@ async def get_item_icon(item_id: int):
 
     if icon_path:
         return FileResponse(icon_path)
-    raise HTTPException(status_code=404, detail="Icona item non trovata")
+    raise HTTPException(status_code=404, detail="Item icon not found")
 
 
-# --- 2. INIZIALIZZAZIONE UNIFICATA DEI DATABASE ---
+# --- 2. Unified database initialization ---
 @app.on_event("startup")
 def load_databases():
-    print("Caricamento database in corso...")
+    print("Loading databases...")
     party_mod.load_static_data()
     bag_mod.load_item_names_from_file()
     bag_mod.load_tm_names_from_file()
@@ -161,76 +161,75 @@ def load_databases():
 
     if not any(os.path.isdir(p) for p in SEARCH_DIRS):
         print(
-            "[WARN] Pokemon icon directory non trovata. "
-            "La UI funzionera' comunque senza sprite. "
-            "Per abilitarli, clona: "
+            "[WARN] Pokemon icon directory not found. "
+            "UI will still work without sprites. "
+            "To enable them, clone: "
             "https://github.com/Skeli789/Dynamic-Pokemon-Expansion/tree/master/graphics/pokeicon "
             f"in '{SEARCH_DIRS[0]}'."
         )
 
     if not item_icon_resolver.available:
         print(
-            "[WARN] Item icon directory non trovata o vuota. "
-            "La UI funzionera' comunque senza icone strumenti. "
-            "Per abilitarle usa il pack items di Leon's ROM Base in "
+            "[WARN] Item icon directory not found or empty. "
+            "UI will still work without item icons. "
+            "To enable them, use Leon's ROM Base item pack in "
             f"'{ITEM_ICONS_DIR}'."
         )
 
 
 @app.post("/upload")
 async def upload_save(file: UploadFile = File(...)):
-    """Carica il file .sav in memoria"""
+    """Load the .sav file into memory."""
     content = await file.read()
     current_save["data"] = bytearray(content)
     current_save["filename"] = file.filename
-    return {"message": f"File {file.filename} caricato con successo!"}
+    return {"message": f"File {file.filename} loaded successfully!"}
 
 
 @app.get("/money")
 async def get_money():
-    """Legge i soldi dal salvataggio caricato"""
+    """Read money from the loaded save file."""
     if current_save["data"] is None:
-        raise HTTPException(status_code=400, detail="Carica prima un file .sav")
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
 
-    # Riutilizziamo la funzione list_sections del tuo script
+    # Reuse list_sections from the money module
     secs = money_mod.list_sections(current_save["data"])
     trainer_secs = [s for s in secs if s["id"] == money_mod.TRAINER_SECTION_ID]
 
     if not trainer_secs:
-        raise HTTPException(status_code=404, detail="Sezione Trainer non trovata")
+        raise HTTPException(status_code=404, detail="Trainer section not found")
 
-    # Ordiniamo per l'ultimo salvataggio attivo (saveidx più alto)
+    # Sort by most recent active save slot (highest saveidx)
     trainer_secs.sort(key=lambda x: x['saveidx'], reverse=True)
     payload = trainer_secs[0]["data"]
 
-    # Leggiamo il valore u32 all'offset prestabilito
+    # Read u32 money value at the expected offset
     money = money_mod.ru32(payload, money_mod.FALLBACK_OFF_MONEY)
     return {"money": money}
 
 
 @app.post("/money/update")
 async def update_money(amount: int):
-    """Aggiorna i soldi e ricalcola i checksum"""
+    """Update money value and recalculate checksums."""
     if current_save["data"] is None:
-        raise HTTPException(status_code=400, detail="Carica prima un file .sav")
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
 
     try:
-        # Riutilizziamo la tua funzione patch_money_everywhere
-        # Questa funzione gestisce già i checksum e il BCD
+        # Reuse patch_money_everywhere; it already handles checksums and BCD
         new_data = money_mod.patch_money_everywhere(current_save["data"], amount)
         current_save["data"] = bytearray(new_data)
-        return {"message": f"Soldi aggiornati a {amount}", "new_money": amount}
+        return {"message": f"Money updated to {amount}", "new_money": amount}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/download")
 async def download_save():
-    """Scarica il file .sav modificato"""
+    """Download the modified .sav file."""
     if current_save["data"] is None:
-        raise HTTPException(status_code=400, detail="Nessun dato disponibile")
+        raise HTTPException(status_code=400, detail="No data available")
 
-    # Creiamo un file temporaneo da inviare al browser
+    # Create a temporary file to send to the browser
     temp_file = "edited_save.sav"
     with open(temp_file, "wb") as f:
         f.write(current_save["data"])
@@ -238,7 +237,7 @@ async def download_save():
     return FileResponse(temp_file, filename=current_save["filename"])
 
 
-# --- MODELLI DATI PER VALIDAZIONE ---
+# --- Validation data models ---
 class StatUpdate(BaseModel):
     hp: int
     atk: int
@@ -262,9 +261,9 @@ class AbilitySwitch(BaseModel):
 class ItemUpdate(BaseModel):
     item_id: int
 
-# --- LOGICA HELPER ---
+# --- Helper logic ---
 def get_active_trainer_offset():
-    """Trova l'offset della sezione Trainer attiva (saveidx più alto)"""
+    """Find offset of active Trainer section (highest saveidx)."""
     if not current_save["data"]:
         return None
     sections = money_mod.list_sections(current_save["data"])
@@ -275,13 +274,13 @@ def get_active_trainer_offset():
     return trainer_secs[0]['off']
 
 
-# --- ENDPOINTS ---
+# --- Endpoints ---
 
 @app.get("/party")
 async def get_party():
     off = get_active_trainer_offset()
     if off is None:
-        raise HTTPException(status_code=404, detail="Salvataggio non valido")
+        raise HTTPException(status_code=404, detail="Invalid save file")
 
     sec_data = current_save["data"][off: off + party_mod.SECTION_SIZE]
     team_count = party_mod.ru32(sec_data, 0x34)
@@ -298,15 +297,15 @@ async def get_party():
             "species_name": party_mod.DB_SPECIES.get(pk.get_species_id(), "Unknown"),
             "level": sec_data[mon_off + 0x54],
             "nature": pk.get_nature_name(),
-            "nature_id": pk.get_nature_id(),  # <--- AGGIUNGI QUESTO
+            "nature_id": pk.get_nature_id(),
             "is_hidden_ability": bool(pk.get_hidden_ability_flag()),
             "ivs": pk.get_ivs(),
             "evs": pk.get_evs(),
             "species_id": pk.get_species_id(),
-            "moves": pk.get_moves_ids(), # <-- AGGIUNGI QUESTA RIGA,
-            "ability_slot": pk.get_standard_ability_slot(),  # 0 o 1
+            "moves": pk.get_moves_ids(),
+            "ability_slot": pk.get_standard_ability_slot(),  # 0 or 1
             "current_ability_index": 2 if pk.get_hidden_ability_flag() else pk.get_standard_ability_slot(),
-            "item_id": pk.get_item_id(),  # <-- AGGIUNGI QUESTO
+            "item_id": pk.get_item_id(),
         })
     return party
 
@@ -320,7 +319,7 @@ async def update_party_item(idx: int, data: ItemUpdate):
     pk.set_item(data.item_id)
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
-    return {"status": "Strumento aggiornato"}
+    return {"status": "Item updated"}
 
 
 @app.post("/party/{idx}/ability-switch")
@@ -332,34 +331,34 @@ async def switch_ability(idx: int, data: AbilitySwitch):
     pk.set_ability_slot(data.ability_index)
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
-    return {"status": "Abilità/PID aggiornati", "new_index": data.ability_index}
+    return {"status": "Ability/PID updated", "new_index": data.ability_index}
 
 
 @app.post("/party/{idx}/ivs")
 async def update_ivs(idx: int, stats: StatUpdate):
-    """Aggiorna gli IV (0-31) mantenendo i bit HA e Egg"""
+    """Update IVs (0-31) while preserving HA and Egg bits."""
     off = get_active_trainer_offset()
     mon_off = off + 0x38 + (idx * 100)
 
-    # Carichiamo il pokemon dal buffer
+    # Load pokemon from buffer
     pk_data = current_save["data"][mon_off: mon_off + 100]
     pk = party_mod.Pokemon(pk_data)
 
-    # Applichiamo i nuovi IV (mappando i nomi delle chiavi del frontend a quelli del backend)
+    # Apply new IVs (mapping frontend keys to backend keys)
     new_ivs = {
         'HP': stats.hp, 'Atk': stats.atk, 'Def': stats.dfe,
         'Spd': stats.spe, 'SpA': stats.spa, 'SpD': stats.spd
     }
     pk.set_ivs(new_ivs)
 
-    # Pack e aggiornamento buffer locale
+    # Pack and write back to local buffer
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
-    return {"status": "IVs aggiornati in memoria"}
+    return {"status": "IVs updated in memory"}
 
 
 @app.post("/party/{idx}/nature")
 async def update_nature(idx: int, data: NatureUpdate):
-    """Modifica la natura ricalcolando il PID"""
+    """Update nature and recalculate PID."""
     off = get_active_trainer_offset()
     mon_off = off + 0x38 + (idx * 100)
 
@@ -367,14 +366,14 @@ async def update_nature(idx: int, data: NatureUpdate):
     pk.set_nature(data.nature_id)
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
-    return {"status": f"Natura cambiata in {party_mod.DB_NATURES.get(data.nature_id)}"}
+    return {"status": f"Nature changed to {party_mod.DB_NATURES.get(data.nature_id)}"}
 
-# Carica il database oggetti all'avvio
+# Load item database at startup
 bag_mod.load_item_names_from_file()
 bag_mod.load_tm_names_from_file()
 
 class BagItemUpdate(BaseModel):
-    offset: int  # L'indirizzo fisico nella memoria
+    offset: int  # Physical memory address
     item_id: int
     quantity: int
     encoding: str | None = None
@@ -382,21 +381,21 @@ class BagItemUpdate(BaseModel):
 
 @app.get("/items")
 async def get_all_items():
-    """Restituisce la lista completa degli strumenti (ID e Nome) per il frontend"""
-    # Trasformiamo il dizionario in una lista di oggetti per il frontend
+    """Return full item list (ID and name) for the frontend."""
+    # Convert dictionary into frontend object list
     return [{"id": k, "name": v} for k, v in bag_mod.DB_ITEMS.items() if k != 0]
 
 
 @app.get("/bag/scan/{search_item_id}")
 async def scan_bag(search_item_id: int):
-    """Cerca le tasche della borsa partendo da un ID oggetto noto"""
+    """Scan bag pockets starting from a known item ID."""
     if not current_save["data"]:
-        raise HTTPException(status_code=400, detail="Carica un file .sav")
+        raise HTTPException(status_code=400, detail="Upload a .sav file")
 
     candidates = bag_mod.scan_for_item_candidates(current_save["data"], search_item_id)
 
     if not candidates:
-        return {"message": "Nessuna tasca trovata", "results": []}  # Già corretto qui
+        return {"message": "No pockets found", "results": []}
 
     max_idx = max((c['save_idx'] for c in candidates), default=-1)
     pocket_type = bag_mod.pocket_type_for_item_id(search_item_id)
@@ -417,30 +416,30 @@ async def scan_bag(search_item_id: int):
             "pocket_type": pocket_type,
         })
 
-    # MODIFICA QUI: Ritorna l'oggetto con la chiave 'results'
+    # Return object with 'results' key
     return {"results": results}
 
 
 @app.get("/bag/pockets/bootstrap")
 async def bag_pockets_bootstrap():
-    """Risoluzione rapida tasche principali (con validazione + fallback scan)."""
+    """Quick main-pocket resolution (validation + fallback scan)."""
     if not current_save["data"]:
-        raise HTTPException(status_code=400, detail="Carica un file .sav")
+        raise HTTPException(status_code=400, detail="Upload a .sav file")
 
     pockets = bag_mod.resolve_quick_pockets(current_save["data"])
     return {"pockets": pockets}
 
 @app.get("/bag/pocket")
 async def get_pocket_items(anchor_offset: int):
-    """Mappa tutti gli strumenti in una tasca dato un offset di riferimento"""
-    # Mappa la lista avanti e indietro per trovare tutti gli slot
+    """Map all items in a pocket given an anchor offset."""
+    # Walk list forward and backward to find all slots
     items = bag_mod.map_pocket_from_anchor(current_save["data"], anchor_offset)
     return items
 
 
 @app.post("/bag/item/update")
 async def update_bag_item(update: BagItemUpdate):
-    """Modifica ID o quantità di uno slot specifico in memoria"""
+    """Update item ID or quantity for a specific slot in memory."""
     bag_mod.write_slot(
         current_save["data"],
         update.offset,
@@ -448,21 +447,21 @@ async def update_bag_item(update: BagItemUpdate):
         update.quantity,
         encoding=update.encoding,
     )
-    return {"status": "Slot borsa aggiornato"}
+    return {"status": "Bag slot updated"}
 
 
 @app.get("/pc/load")
 async def load_pc():
-    """Analizza il PC e carica i Pokémon in memoria"""
+    """Analyze PC data and load Pokemon into memory."""
     if not current_save["data"]:
-        raise HTTPException(status_code=400, detail="Carica un file .sav")
+        raise HTTPException(status_code=400, detail="Upload a .sav file")
 
-    # Estrazione settori attivi
+    # Extract active sectors
     sectors = box_mod.get_active_pc_sectors(current_save["data"])
     if not sectors:
-        raise HTTPException(status_code=404, detail="Settori PC non trovati")
+        raise HTTPException(status_code=404, detail="PC sectors not found")
 
-    # Ricostruzione buffer standard e preset
+    # Rebuild standard and preset buffers
     pc_buf, headers, originals, preset_buf = box_mod.rebuild_buffer(current_save["data"], sectors)
 
     current_save["pc_context"].update({
@@ -471,7 +470,7 @@ async def load_pc():
         "mons": []
     })
 
-    # Caricamento oggetti Pokémon (Box 1-25)
+    # Load Pokemon entries (Boxes 1-25)
     curr = 0
     for box in range(1, 26):
         for slot in range(1, 31):
@@ -482,7 +481,7 @@ async def load_pc():
                 current_save["pc_context"]["mons"].append(m)
             curr += box_mod.MON_SIZE_PC
 
-    # Caricamento Preset (Box 26)
+    # Load preset entries (Box 26)
     if len(preset_buf) > 0:
         p_curr = box_mod.OFFSET_PRESET_START
         for slot in range(1, box_mod.PRESET_CAPACITY + 1):
@@ -493,13 +492,13 @@ async def load_pc():
                 current_save["pc_context"]["mons"].append(m)
             p_curr += box_mod.MON_SIZE_PC
 
-    return {"count": len(current_save["pc_context"]["mons"]), "message": "PC caricato"}
+    return {"count": len(current_save["pc_context"]["mons"]), "message": "PC loaded"}
 
 
 @app.get("/pc/box/{box_id}")
 async def get_box(box_id: int):
-    """Restituisce i Pokémon di un box con tutti i dati necessari all'editing"""
-    # Filtriamo i pokemon caricati nel contesto per il box selezionato
+    """Return all Pokemon in a box with edit-ready data."""
+    # Filter loaded Pokemon in context by selected box
     mons = [m for m in current_save["pc_context"]["mons"] if m.box == box_id]
 
     return [{
@@ -510,11 +509,11 @@ async def get_box(box_id: int):
         "species_id": m.species_id,
         "item_id": m.get_item_id(),
         "exp": m.exp,
-        "nature_id": m.nature_id if hasattr(m, 'nature_id') else int(box_mod.ru32(m.raw, 0) % 25), # Fallback PID
-        "ivs": m.get_ivs(),  # AGGIUNTO
-        "evs": m.get_evs(),  # AGGIUNTO
-        "moves": m.get_moves(), # Restituisce gli ID numerici
-        "current_ability_index": 2 if m.get_hidden_ability_flag() else 0 # Semplificato per PC
+        "nature_id": m.nature_id if hasattr(m, 'nature_id') else int(box_mod.ru32(m.raw, 0) % 25), # PID fallback
+        "ivs": m.get_ivs(),
+        "evs": m.get_evs(),
+        "moves": m.get_moves(), # Returns numeric IDs
+        "current_ability_index": 2 if m.get_hidden_ability_flag() else 0 # Simplified for PC
     } for m in mons]
 
 
@@ -527,18 +526,18 @@ class PCUpdate(BaseModel):
 
 @app.post("/pc/edit")
 async def edit_pc_mon(upd: PCUpdate):
-    # Cerca il pokemon nello stato globale
+    # Find target Pokemon in global state
     target = next((m for m in current_save["pc_context"]["mons"]
                    if m.box == upd.box and m.slot == upd.slot), None)
 
     if not target:
-        raise HTTPException(status_code=404, detail="Pokémon non trovato")
+        raise HTTPException(status_code=404, detail="Pokemon not found")
 
-    # Applica modifiche all'oggetto
+    # Apply object updates
     if upd.moves: target.set_moves(upd.moves)
     if upd.item_id is not None: target.set_item_id(upd.item_id)
 
-    # Rifletti le modifiche nel buffer di competenza
+    # Reflect updates in the corresponding buffer
     if target.box == 26:
         buf = current_save["pc_context"]["preset_buffer"]
         off = target.buffer_offset
@@ -547,10 +546,10 @@ async def edit_pc_mon(upd: PCUpdate):
         off = ((target.box - 1) * 30 + (target.slot - 1)) * box_mod.MON_SIZE_PC
 
     buf[off: off + box_mod.MON_SIZE_PC] = target.raw
-    return {"status": "Modifica salvata nel buffer temporaneo"}
+    return {"status": "Update saved to temporary buffer"}
 
 
-# --- NUOVI MODELLI PER IL PARTY ---
+# --- Additional models for party updates ---
 class EvUpdate(BaseModel):
     hp: int
     atk: int
@@ -572,7 +571,7 @@ class ItemUpdate(BaseModel):
     item_id: int
 
 
-# --- NUOVI ENDPOINTS PARTY ---
+# --- Additional party endpoints ---
 
 @app.post("/party/{idx}/evs")
 async def update_evs(idx: int, stats: EvUpdate):
@@ -586,7 +585,7 @@ async def update_evs(idx: int, stats: EvUpdate):
     }
     pk.set_evs(new_evs)
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
-    return {"status": "EVs aggiornati"}
+    return {"status": "EVs updated"}
 
 
 @app.post("/party/{idx}/ability")
@@ -595,11 +594,11 @@ async def update_ability(idx: int, data: AbilityUpdate):
     mon_off = off + 0x38 + (idx * 100)
     pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
 
-    # In Unbound il flag HA è gestito internamente al byte IVs/Ability
+    # In Unbound, the HA flag is handled inside the IVs/Ability byte
     pk.set_hidden_ability_flag(1 if data.is_hidden else 0)
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
-    return {"status": "Abilità aggiornata"}
+    return {"status": "Ability updated"}
 
 
 @app.post("/party/{idx}/moves")
@@ -611,16 +610,16 @@ async def update_party_moves(idx: int, data: MovesUpdate):
     pk.set_moves(data.moves)
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
-    return {"status": "Mosse aggiornate"}
+    return {"status": "Moves updated"}
 
 
 @app.get("/moves")
 async def get_all_moves():
-    """Restituisce la lista mosse per il dropdown"""
+    """Return move list for dropdown."""
     return [{"id": k, "name": v} for k, v in box_mod.DB_MOVES.items()]
 
 
-# Aggiungi questo modello per un update completo del PC
+# Model for full PC update payload
 class PCFullUpdate(BaseModel):
     box: int
     slot: int
@@ -635,14 +634,14 @@ class PCFullUpdate(BaseModel):
 
 @app.post("/pc/edit-full")
 async def edit_pc_mon_full(upd: PCFullUpdate):
-    # Trova il pokemon nel contesto caricato
+    # Find pokemon in loaded context
     target = next((m for m in current_save["pc_context"]["mons"]
                    if m.box == upd.box and m.slot == upd.slot), None)
 
     if not target:
-        raise HTTPException(status_code=404, detail="Pokémon non trovato nel PC")
+        raise HTTPException(status_code=404, detail="Pokemon not found in PC")
 
-    # Applica modifiche usando i metodi della classe UnboundPCMon (v16)
+    # Apply updates using UnboundPCMon methods (v16)
     if upd.moves: target.set_moves(upd.moves)
     if upd.item_id is not None: target.set_item_id(upd.item_id)
     if upd.ivs: target.set_ivs(upd.ivs)
@@ -650,27 +649,27 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
     if upd.nature_id is not None: target.set_nature(upd.nature_id)
     if upd.exp is not None: target.set_exp(upd.exp)
 
-    # Sincronizza il buffer (Stream 1-25 o Preset 26)
+    # Sync buffer (stream 1-25 or preset 26)
     if target.box == 26:
         buf = current_save["pc_context"]["preset_buffer"]
         off = target.buffer_offset
     else:
         buf = current_save["pc_context"]["pc_buffer"]
-        # Calcolo offset lineare nello stream
+        # Compute linear stream offset
         off = ((target.box - 1) * 30 + (target.slot - 1)) * box_mod.MON_SIZE_PC
 
     buf[off: off + box_mod.MON_SIZE_PC] = target.raw
-    return {"status": "Modifiche PC applicate al buffer"}
+    return {"status": "PC updates applied to buffer"}
 
 
 @app.post("/save-all")
 async def commit_to_file():
     if not current_save["data"]:
-        raise HTTPException(status_code=400, detail="Nessun dato")
+        raise HTTPException(status_code=400, detail="No data")
 
     sections = money_mod.list_sections(current_save["data"])
 
-    # 1. Ricalcolo Checksum Sezioni Trainer (ID 1)
+    # 1. Recalculate trainer section checksums (ID 1)
     for sec in sections:
         if sec['id'] == party_mod.TRAINER_SECTION_ID:
             off = sec['off']
@@ -681,16 +680,16 @@ async def commit_to_file():
             new_chk = bag_mod.gba_checksum(payload)
             party_mod.wu16(current_save["data"], off + 0xFF6, new_chk)
 
-    # 2. Ricalcolo Checksum BORSA (Tutti i settori della borsa)
-    # Pokémon Unbound usa i settori 13, 14, 15 etc. per le tasche.
-    # Applichiamo il ricalcolo a ogni settore che viene identificato come "Borsa" o "PC Items"
+    # 2. Recalculate bag checksums (all bag-related sectors)
+    # Pokemon Unbound uses sectors 13, 14, 15, etc. for pockets.
+    # Apply checksum recalculation to each bag/PC-items sector.
     for sec in sections:
-        # Il settore 13 è quello degli oggetti principali (fisso 0x454)
-        # Gli altri settori (Bacche, MT) usano la lunghezza standard nel footer.
+        # Sector 13 is the main items sector (fixed 0x454).
+        # Other sectors (Berries, TMs) use standard footer length.
         if sec['id'] >= 13 and sec['id'] <= 16:
             bag_mod.recalculate_checksum(current_save["data"], sec['off'])
 
-    # 3. Salvataggio PC e Scrittura File su disco
+    # 3. Persist PC buffers and write output save file
     ctx = current_save["pc_context"]
     if ctx.get("pc_buffer") is not None:
         box_mod.write_save_HYBRID(
@@ -702,11 +701,11 @@ async def commit_to_file():
         with open(SAVE_FILE_NAME, "wb") as f:
             f.write(current_save["data"])
 
-    return {"message": "Salvataggio completato e checksum ricalcolati!"}
+    return {"message": "Save completed and checksums recalculated!"}
 
 @app.get("/download")
 async def download_save():
     if not os.path.exists(SAVE_FILE_NAME):
-        raise HTTPException(status_code=400, detail="File non ancora generato")
+        raise HTTPException(status_code=400, detail="File not generated yet")
 
     return FileResponse(SAVE_FILE_NAME, filename=current_save["filename"])
