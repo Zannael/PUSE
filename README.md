@@ -96,7 +96,7 @@ docker compose up --build
 - Pokemon icon sprites are optional and not required to run the app.
 - If missing, the backend logs a warning and returns a tiny fallback image, so UI keeps working.
 - Source for icon assets:
-  - `https://github.com/Skeli789/Dynamic-Pokemon-Expansion/tree/master/graphics/pokeicon`
+  - `https://github.com/Skeli789/Dynamic-Pokemon-Expansion/tree/master/graphics/frontspr`
 - To enable sprites locally, clone/copy that folder into:
   - `backend/icons/pokemon/`
 
