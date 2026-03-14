@@ -1,27 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PokemonCard from './PokemonCard';
 import { Loader2 } from 'lucide-react';
 
-const PartyGrid = ({ onEditPokemon }) => {
+const PartyGrid = ({ client, onEditPokemon }) => {
     const [party, setParty] = useState([]);
     const [loading, setLoading] = useState(true);
-    const API_BASE = import.meta.env.VITE_API_BASE_URL;
-
-    const fetchParty = async () => {
+    const fetchParty = useCallback(async () => {
         try {
-            const res = await fetch(`${API_BASE}/party`);
-            const data = await res.json();
+            const data = await client.getParty();
             setParty(data);
         } catch (err) {
             console.error("Party fetch error", err);
         } finally {
             setLoading(false);
         }
-    };
+    }, [client]);
 
     useEffect(() => {
         fetchParty();
-    }, []);
+    }, [fetchParty]);
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center py-20 text-slate-500">
@@ -36,6 +33,7 @@ const PartyGrid = ({ onEditPokemon }) => {
                 <PokemonCard
                     key={pk.index}
                     pokemon={pk}
+                    getPokemonIconUrl={client.getPokemonIconUrl}
                     onEdit={() => onEditPokemon(pk)}
                 />
             ))}

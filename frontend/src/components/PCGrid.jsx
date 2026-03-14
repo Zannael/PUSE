@@ -1,36 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Package } from 'lucide-react';
 
 const TOTAL_BOXES = 26;
 
-const PCGrid = ({ onEditPokemon }) => {
+const PCGrid = ({ client, onEditPokemon }) => {
     const [boxId, setBoxId] = useState(1);
     const [pokemon, setPokemon] = useState([]);
     const [loading, setLoading] = useState(false);
     const [pcLoaded, setPcLoaded] = useState(false);
-    const API_BASE = import.meta.env.VITE_API_BASE_URL;
-
-    const fetchBox = async (id) => {
+    const fetchBox = useCallback(async (id) => {
         setLoading(true);
         try {
             if (!pcLoaded) {
-                await fetch(`${API_BASE}/pc/load`);
+                await client.loadPc();
                 setPcLoaded(true);
             }
 
-            const res = await fetch(`${API_BASE}/pc/box/${id}`);
-            const data = await res.json();
+            const data = await client.getPcBox(id);
             setPokemon(data);
         } catch (err) {
             console.error("Box loading error", err);
         } finally {
             setLoading(false);
         }
-    };
+    }, [client, pcLoaded]);
 
     useEffect(() => {
         fetchBox(boxId);
-    }, [boxId]);
+    }, [boxId, fetchBox]);
+
+    useEffect(() => {
+        setPcLoaded(false);
+    }, [client]);
 
     const handlePrevBox = () => {
         setBoxId(prev => (prev === 1 ? TOTAL_BOXES : prev - 1));
@@ -81,7 +82,7 @@ const PCGrid = ({ onEditPokemon }) => {
                         >
                             <div className="relative w-full aspect-square bg-slate-800/50 rounded-2xl flex items-center justify-center mb-3 overflow-hidden">
                                 <img
-                                    src={`${API_BASE}/pokemon-icon/${pk.species_id}`}
+                                    src={client.getPokemonIconUrl(pk.species_id)}
                                     alt={pk.nickname}
                                     className="w-16 h-16 object-contain pixelated group-hover:scale-110 transition-transform"
                                 />

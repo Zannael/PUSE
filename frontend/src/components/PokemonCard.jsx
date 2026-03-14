@@ -1,7 +1,7 @@
 import React from 'react';
 import { Zap, Shield, Heart, Target, Wind, Activity } from 'lucide-react';
 
-const PokemonCard = ({ pokemon, onEdit }) => {
+const PokemonCard = ({ pokemon, onEdit, getPokemonIconUrl }) => {
     // Funzione per il colore delle barre IV (0-31)
     const getIvColor = (val) => {
         if (val === 31) return 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]';
@@ -18,8 +18,6 @@ const PokemonCard = ({ pokemon, onEdit }) => {
         { label: 'SpD', val: pokemon.ivs.SpD, icon: <Activity size={12}/> },
         { label: 'Spe', val: pokemon.ivs.Spd || pokemon.ivs.Spe, icon: <Wind size={12}/> },
     ];
-    const API_BASE = import.meta.env.VITE_API_BASE_URL;
-
     return (
         <div
             onClick={() => onEdit(pokemon)}
@@ -33,7 +31,7 @@ const PokemonCard = ({ pokemon, onEdit }) => {
                         className="relative w-20 h-20 bg-slate-800/80 rounded-3xl flex items-center justify-center border border-white/10 overflow-hidden ring-1 ring-white/5">
                         <img
                             // Interroga il backend passando solo l'ID numerico
-                            src={`${API_BASE}/pokemon-icon/${pokemon.species_id}`}
+                            src={getPokemonIconUrl(pokemon.species_id)}
                             alt={pokemon.species_name}
                             className="w-full h-full object-contain pixelated scale-125"
                             onError={(e) => {

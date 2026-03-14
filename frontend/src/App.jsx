@@ -1,36 +1,36 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Upload, LayoutGrid, Users, Briefcase, Save, Edit3, X } from 'lucide-react';
 import PartyGrid from './components/PartyGrid';
 import PCGrid from './components/PCGrid';
 import BagView from "./components/BagView.jsx";
 import {PokemonEditorModal} from "./components/PokemonEditorModal.jsx";
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+import { createApiClient, getInitialRuntimeMode, persistRuntimeMode, RUNTIME_MODES } from './services/apiClient.js';
 
 const App = () => {
+    const [runtimeMode, setRuntimeMode] = useState(getInitialRuntimeMode);
     const [activeTab, setActiveTab] = useState('party');
     const [isLoaded, setIsLoaded] = useState(false);
     const [money, setMoney] = useState(0);
     const [showMoneyModal, setShowMoneyModal] = useState(false);
     const [moneyInput, setMoneyInput] = useState('0');
+    const client = useMemo(() => createApiClient(runtimeMode), [runtimeMode]);
+
+    useEffect(() => {
+        persistRuntimeMode(runtimeMode);
+    }, [runtimeMode]);
 
     const handleUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        const formData = new FormData();
-        formData.append("file", file);
 
         try {
-            const res = await fetch(`${API_BASE}/upload`, { method: "POST", body: formData });
-            if (res.ok) {
-                const mRes = await fetch(`${API_BASE}/money`);
-                const mData = await mRes.json();
-                setMoney(mData.money);
-                setMoneyInput(String(mData.money ?? 0));
-                setIsLoaded(true);
-            }
+            await client.uploadSave(file);
+            const mData = await client.getMoney();
+            setMoney(mData.money);
+            setMoneyInput(String(mData.money ?? 0));
+            setIsLoaded(true);
         } catch {
-            alert("Upload failed.");
+            alert("Upload failed for current runtime mode.");
         }
     };
 
@@ -44,36 +44,13 @@ const App = () => {
                 spa: updatedPk.ivs.SpA, spd: updatedPk.ivs.SpD, spe: updatedPk.ivs.Spe || updatedPk.ivs.Spd
             };
 
-            await fetch(`${API_BASE}/party/${updatedPk.index}/ivs`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(statsBase)
-            });
-            await fetch(`${API_BASE}/party/${updatedPk.index}/evs`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(statsBase)
-            });
-
-            await fetch(`${API_BASE}/party/${updatedPk.index}/moves`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ moves: updatedPk.moves })
-            });
-
-            await fetch(`${API_BASE}/party/${updatedPk.index}/ability-switch`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ability_index: updatedPk.current_ability_index })
-            });
-
-            await fetch(`${API_BASE}/party/${updatedPk.index}/nature`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nature_id: updatedPk.nature_id })
-            });
-
-            await fetch(`${API_BASE}/party/${updatedPk.index}/item`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ item_id: updatedPk.item_id })
-            });
-
-            await fetch(`${API_BASE}/save-all`, { method: 'POST' });
+            await client.updatePartyIvs(updatedPk.index, statsBase);
+            await client.updatePartyEvs(updatedPk.index, statsBase);
+            await client.updatePartyMoves(updatedPk.index, { moves: updatedPk.moves });
+            await client.updatePartyAbilitySwitch(updatedPk.index, { ability_index: updatedPk.current_ability_index });
+            await client.updatePartyNature(updatedPk.index, { nature_id: updatedPk.nature_id });
+            await client.updatePartyItem(updatedPk.index, { item_id: updatedPk.item_id });
+            await client.saveAll();
 
             setSelectedPokemon(null);
             setRefreshKey(prev => prev + 1);
@@ -96,18 +73,11 @@ const App = () => {
                 exp: updatedPk.exp
             };
 
-            const res = await fetch(`${API_BASE}/pc/edit-full`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (res.ok) {
-                await fetch(`${API_BASE}/save-all`, { method: 'POST' });
-                setSelectedPokemon(null);
-                setRefreshKey(prev => prev + 1);
-                alert("PC Box updated successfully!");
-            }
+            await client.editPcFull(payload);
+            await client.saveAll();
+            setSelectedPokemon(null);
+            setRefreshKey(prev => prev + 1);
+            alert("PC Box updated successfully!");
         } catch {
             alert("Failed to save PC Box.");
         }
@@ -121,10 +91,7 @@ const App = () => {
     const handleUpdateMoney = async () => {
         const amount = Math.max(0, parseInt(moneyInput, 10) || 0);
         try {
-            const res = await fetch(`${API_BASE}/money/update?amount=${amount}`, { method: 'POST' });
-            if (!res.ok) {
-                throw new Error('money update failed');
-            }
+            await client.updateMoney(amount);
             setMoney(amount);
             setShowMoneyModal(false);
             alert('Money updated successfully!');
@@ -134,11 +101,30 @@ const App = () => {
         }
     };
 
+    const handleDownload = () => {
+        try {
+            client.downloadSave();
+        } catch (err) {
+            console.error(err);
+            alert('Download is not available in this runtime mode yet.');
+        }
+    };
+
     return (
         <div className="min-h-screen bg-[#0f172a] text-slate-100 flex flex-col items-center">
             <header className="w-full bg-[#1e293b]/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
                 <div className="max-w-6xl mx-auto p-4 flex justify-between items-center">
-                    <h1 className="text-xl font-black text-blue-400 tracking-tighter uppercase">Unbound Editor</h1>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-xl font-black text-blue-400 tracking-tighter uppercase">Unbound Editor</h1>
+                        <select
+                            value={runtimeMode}
+                            onChange={(e) => setRuntimeMode(e.target.value)}
+                            className="bg-slate-900 border border-white/10 rounded-xl px-2 py-1 text-[10px] uppercase tracking-widest text-slate-300"
+                        >
+                            <option value={RUNTIME_MODES.backend}>Backend mode</option>
+                            <option value={RUNTIME_MODES.local}>Local mode</option>
+                        </select>
+                    </div>
                     {isLoaded && (
                         <div className="flex items-center gap-4">
                             <div className="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full text-emerald-400 font-mono text-sm">
@@ -151,13 +137,12 @@ const App = () => {
                             >
                                 <Edit3 size={14} />
                             </button>
-                            <a
-                                href={`${API_BASE}/download`}
-                                download
+                            <button
+                                onClick={handleDownload}
                                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-full text-xs font-bold transition-all"
                             >
                                 <Save size={14} /> DOWNLOAD .SAV
-                            </a>
+                            </button>
                         </div>
                     )}
                 </div>
@@ -180,16 +165,18 @@ const App = () => {
                         {activeTab === 'party' && (
                             <PartyGrid
                                 key={`party-${refreshKey}`}
+                                client={client}
                                 onEditPokemon={(pk) => setSelectedPokemon(pk)}
                             />
                         )}
                         {activeTab === 'pc' && <PCGrid
                             key={`pc-${refreshKey}`}
+                            client={client}
                             onEditPokemon={(pk) => {
                                 setSelectedPokemon({ ...pk, isPC: true });
                             }}
                         />}
-                        {activeTab === 'bag' && <BagView />}
+                        {activeTab === 'bag' && <BagView client={client} />}
                     </div>
                 )}
             </main>
@@ -230,6 +217,7 @@ const App = () => {
 
             {selectedPokemon && (
                 <PokemonEditorModal
+                    client={client}
                     pokemon={selectedPokemon}
                     onClose={() => setSelectedPokemon(null)}
                     onSave={selectedPokemon?.isPC ? handleSavePC : handleSavePokemon}
