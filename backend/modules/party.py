@@ -85,6 +85,49 @@ def calc_current_level(rate_idx, current_exp):
     return 100
 
 
+def guess_growth_rate(current_exp, visual_level):
+    visual = max(1, min(100, int(visual_level)))
+    ranked = []
+
+    for rate in range(6):
+        inferred = calc_current_level(rate, current_exp)
+        exp_at_visual = get_exp_at_level(rate, visual)
+        exp_at_next = get_exp_at_level(rate, min(100, visual + 1))
+        in_band = exp_at_visual <= current_exp < exp_at_next
+
+        if in_band:
+            exp_distance = 0
+        else:
+            if current_exp < exp_at_visual:
+                exp_distance = exp_at_visual - current_exp
+            else:
+                exp_distance = max(0, current_exp - exp_at_next + 1)
+
+        ranked.append({
+            "rate": rate,
+            "in_band": in_band,
+            "level_delta": abs(inferred - visual),
+            "exp_distance": exp_distance,
+        })
+
+    ranked.sort(key=lambda x: (0 if x["in_band"] else 1, x["level_delta"], x["exp_distance"], x["rate"]))
+    best = ranked[0]
+    runner = ranked[1] if len(ranked) > 1 else None
+
+    confidence = "low"
+    if best["in_band"] and best["level_delta"] == 0:
+        if not runner:
+            confidence = "high"
+        elif (not runner["in_band"]) or runner["level_delta"] > 0:
+            confidence = "high"
+        else:
+            confidence = "medium"
+    elif best["level_delta"] <= 1:
+        confidence = "medium"
+
+    return best["rate"], confidence
+
+
 # --- UTILS DI CODIFICA ---
 CHARMAP = {
     0x00: " ", 0xAB: "!", 0xAC: "?", 0xAD: ".", 0xAE: "-", 0xFF: "",

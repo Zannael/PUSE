@@ -5,6 +5,7 @@ import PCGrid from './components/PCGrid';
 import BagView from "./components/BagView.jsx";
 import {PokemonEditorModal} from "./components/PokemonEditorModal.jsx";
 import { createApiClient, getInitialRuntimeMode, persistRuntimeMode, RUNTIME_MODES } from './services/apiClient.js';
+import { getExpAtLevel } from './core/growth.js';
 
 const App = () => {
     const [runtimeMode, setRuntimeMode] = useState(getInitialRuntimeMode);
@@ -50,6 +51,9 @@ const App = () => {
             await client.updatePartyAbilitySwitch(updatedPk.index, { ability_index: updatedPk.current_ability_index });
             await client.updatePartyNature(updatedPk.index, { nature_id: updatedPk.nature_id });
             await client.updatePartyItem(updatedPk.index, { item_id: updatedPk.item_id });
+            if (updatedPk.level_edit) {
+                await client.updatePartyLevel(updatedPk.index, updatedPk.level_edit);
+            }
             await client.saveAll();
 
             setSelectedPokemon(null);
@@ -72,6 +76,12 @@ const App = () => {
                 nature_id: updatedPk.nature_id,
                 exp: updatedPk.exp
             };
+
+            if (updatedPk.level_edit) {
+                const targetLevel = Math.max(1, Math.min(100, Number(updatedPk.level_edit.target_level || 1)));
+                const growthRate = Math.max(0, Math.min(5, Number(updatedPk.level_edit.growth_rate || 0)));
+                payload.exp = getExpAtLevel(growthRate, targetLevel);
+            }
 
             await client.editPcFull(payload);
             await client.saveAll();

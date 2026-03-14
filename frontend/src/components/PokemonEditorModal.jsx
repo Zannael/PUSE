@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, Zap, Save, Search } from 'lucide-react';
+import { calcCurrentLevel, GROWTH_OPTIONS } from '../core/growth.js';
 
 export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
+    const isPcMon = Boolean(pokemon?.isPC);
+    const initialGrowthMode = isPcMon ? '0' : 'auto';
+    const initialLevel = pokemon?.level ?? (isPcMon ? calcCurrentLevel(0, Number(pokemon?.exp || 0)) : 1);
+
     const [activeTab, setActiveTab] = useState('stats');
     const [localPk, setLocalPk] = useState({ ...pokemon });
     const [allMoves, setAllMoves] = useState([]);
@@ -9,6 +14,9 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
     const [allItems, setAllItems] = useState([]);
     const [itemSearch, setItemSearch] = useState('');
     const [brokenItemIcons, setBrokenItemIcons] = useState(() => new Set());
+    const [levelInput, setLevelInput] = useState(String(initialLevel));
+    const [levelGrowthMode, setLevelGrowthMode] = useState(initialGrowthMode);
+    const [levelDirty, setLevelDirty] = useState(false);
 
     const hasKnownItemName = (name) => {
         if (!name) return false;
@@ -51,6 +59,19 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
             .then(data => setAllItems(data));
     }, [client]);
 
+    const handleSaveClick = () => {
+        const payload = { ...localPk };
+        if (levelDirty) {
+            const parsedLevel = Math.max(1, Math.min(100, parseInt(levelInput, 10) || localPk.level || 1));
+            payload.level = parsedLevel;
+            payload.level_edit = {
+                target_level: parsedLevel,
+                growth_rate: levelGrowthMode === 'auto' ? null : parseInt(levelGrowthMode, 10),
+            };
+        }
+        onSave(payload);
+    };
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
             <div className="bg-[#0f172a] border border-white/10 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -87,7 +108,7 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
                 <div className="flex bg-[#1e293b]/50 p-2 gap-2 border-b border-white/5">
                     <EditorTab active={activeTab === 'stats'} label="IVs & EVs" onClick={() => setActiveTab('stats')} />
                     <EditorTab active={activeTab === 'moves'} label="Moves & Ability" onClick={() => setActiveTab('moves')} />
-                    <EditorTab active={activeTab === 'info'} label="Nature & Item" onClick={() => setActiveTab('info')} />
+                    <EditorTab active={activeTab === 'info'} label="LV, Nature & Item" onClick={() => setActiveTab('info')} />
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-8">
@@ -191,6 +212,53 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
 
                             <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
+                                    Level Editor
+                                </label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div className="bg-slate-900/70 border border-white/10 rounded-xl p-3">
+                                        <p className="text-[10px] uppercase font-black text-slate-500 mb-2">Target Level</p>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max="100"
+                                            value={levelInput}
+                                            onChange={(e) => {
+                                                setLevelInput(e.target.value);
+                                                setLevelDirty(true);
+                                            }}
+                                            className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-blue-400 font-bold outline-none focus:border-blue-500/50"
+                                        />
+                                    </div>
+                                    <div className="bg-slate-900/70 border border-white/10 rounded-xl p-3">
+                                        <p className="text-[10px] uppercase font-black text-slate-500 mb-2">Growth Curve</p>
+                                        <select
+                                            value={levelGrowthMode}
+                                            onChange={(e) => {
+                                                setLevelGrowthMode(e.target.value);
+                                                setLevelDirty(true);
+                                            }}
+                                            className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-xs text-slate-300 outline-none focus:border-blue-500/50"
+                                        >
+                                            {!isPcMon && <option value="auto">Auto detect (recommended)</option>}
+                                            {GROWTH_OPTIONS.map((opt) => (
+                                                <option key={opt.id} value={String(opt.id)}>{opt.id} - {opt.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                                {isPcMon ? (
+                                    <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-[10px] text-amber-200">
+                                        PC boxes do not store a visual level byte like party Pokemon. Choose the growth curve manually first, then set target level.
+                                    </div>
+                                ) : (
+                                    <p className="text-[10px] text-slate-500 italic text-center">
+                                        Auto mode infers the growth curve from current EXP and displayed level. Use manual mode only if needed.
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
                                     Pokemon Nature
                                 </label>
                                 <select
@@ -286,7 +354,7 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
                 </div>
 
                 <div className="p-6 bg-[#1e293b]/80 border-t border-white/5 flex justify-end">
-                    <button onClick={() => onSave(localPk)}
+                    <button onClick={handleSaveClick}
                             className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-3 rounded-2xl flex items-center gap-2 shadow-lg active:scale-95 transition-all">
                         <Save size={18}/> SAVE CHANGES
                     </button>

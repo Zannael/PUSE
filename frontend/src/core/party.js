@@ -12,6 +12,8 @@ const OFF_CHECKSUM = 0x1C;
 const OFF_DATA_START = 0x20;
 const OFF_LEVEL_VISUAL = 0x54;
 
+const GROWTH_RATE_COUNT = 6;
+
 const NATURES = {
     0: 'Hardy (Ardita)', 1: 'Lonely (Schiva)', 2: 'Brave (Audace)', 3: 'Adamant (Decisa)',
     4: 'Naughty (Birbona)', 5: 'Bold (Sicura)', 6: 'Docile (Docile)', 7: 'Relaxed (Placida)',
@@ -197,10 +199,104 @@ function getItemId(rawMon) {
     return ru16(sub.B, 2);
 }
 
+function getExp(rawMon) {
+    const sub = substructViews(rawMon);
+    return ru32(sub.B, 4);
+}
+
 function setItemId(rawMon, itemId) {
     const sub = substructViews(rawMon);
     wu16(sub.B, 2, Number(itemId));
     writeSubstructs(rawMon, sub);
+}
+
+function setExp(rawMon, exp) {
+    const sub = substructViews(rawMon);
+    wu32(sub.B, 4, Number(exp >>> 0));
+    writeSubstructs(rawMon, sub);
+}
+
+function getExpAtLevel(rateIdx, level) {
+    let n = Number(level || 1);
+    if (n <= 1) return 0;
+    if (n > 100) n = 100;
+
+    if (rateIdx === 0) {
+        return n ** 3;
+    }
+
+    if (rateIdx === 1) {
+        if (n <= 50) return Math.floor((n ** 3 * (100 - n)) / 50);
+        if (n <= 68) return Math.floor((n ** 3 * (150 - n)) / 100);
+        if (n <= 98) return Math.floor((n ** 3 * ((1911 - 10 * n) / 3)) / 500);
+        return Math.floor((n ** 3 * (160 - n)) / 100);
+    }
+
+    if (rateIdx === 2) {
+        if (n <= 15) return Math.floor(n ** 3 * ((Math.floor((n + 1) / 3) + 24) / 50));
+        if (n <= 36) return Math.floor(n ** 3 * ((n + 14) / 50));
+        return Math.floor(n ** 3 * ((Math.floor(n / 2) + 32) / 50));
+    }
+
+    if (rateIdx === 3) {
+        return Math.floor(1.2 * (n ** 3) - 15 * (n ** 2) + 100 * n - 140);
+    }
+
+    if (rateIdx === 4) {
+        return Math.floor((4 * (n ** 3)) / 5);
+    }
+
+    if (rateIdx === 5) {
+        return Math.floor((5 * (n ** 3)) / 4);
+    }
+
+    return n ** 3;
+}
+
+function calcCurrentLevel(rateIdx, currentExp) {
+    for (let level = 1; level <= 100; level += 1) {
+        if (currentExp < getExpAtLevel(rateIdx, level + 1)) {
+            return level;
+        }
+    }
+    return 100;
+}
+
+function guessGrowthRate(currentExp, visualLevel) {
+    const visual = Math.max(1, Math.min(100, Number(visualLevel || 1)));
+    const ranked = [];
+
+    for (let rate = 0; rate < GROWTH_RATE_COUNT; rate += 1) {
+        const inferred = calcCurrentLevel(rate, currentExp);
+        const expAtVisual = getExpAtLevel(rate, visual);
+        const expAtNext = getExpAtLevel(rate, Math.min(100, visual + 1));
+        const inBand = currentExp >= expAtVisual && currentExp < expAtNext;
+
+        let expDistance = 0;
+        if (!inBand) {
+            if (currentExp < expAtVisual) {
+                expDistance = expAtVisual - currentExp;
+            } else {
+                expDistance = Math.max(0, currentExp - expAtNext + 1);
+            }
+        }
+
+        ranked.push({
+            rate,
+            inBand,
+            levelDelta: Math.abs(inferred - visual),
+            expDistance,
+        });
+    }
+
+    ranked.sort((a, b) => {
+        if (a.inBand !== b.inBand) return a.inBand ? -1 : 1;
+        if (a.levelDelta !== b.levelDelta) return a.levelDelta - b.levelDelta;
+        if (a.expDistance !== b.expDistance) return a.expDistance - b.expDistance;
+        return a.rate - b.rate;
+    });
+
+    return ranked[0]?.rate ?? 0;
 }
 
 function findActiveTrainerSection(buffer) {
@@ -232,6 +328,7 @@ export function getParty(buffer, speciesById) {
             nickname: decodeText(rawMon.slice(OFF_NICK, OFF_NICK + 10)),
             species_name: speciesById.get(speciesId) || 'Unknown',
             level: ru8(rawMon, OFF_LEVEL_VISUAL),
+            exp: getExp(rawMon),
             nature: NATURES[natureId] || 'Sconosciuta',
             nature_id: natureId,
             is_hidden_ability: hidden,
@@ -311,5 +408,24 @@ export function updatePartyItem(buffer, monIndex, payload) {
 export function updatePartyAbilitySwitch(buffer, monIndex, payload) {
     mutatePartyMon(buffer, monIndex, (rawMon) => {
         setAbilitySlot(rawMon, Number(payload.ability_index || 0));
+    });
+}
+
+export function updatePartyLevel(buffer, monIndex, payload) {
+    mutatePartyMon(buffer, monIndex, (rawMon) => {
+        const targetLevel = Math.max(1, Math.min(100, Number(payload?.target_level || 1)));
+        const currentExp = getExp(rawMon);
+        const visualLevel = ru8(rawMon, OFF_LEVEL_VISUAL);
+
+        let growthRate;
+        if (payload?.growth_rate === undefined || payload?.growth_rate === null || payload?.growth_rate === '') {
+            growthRate = guessGrowthRate(currentExp, visualLevel);
+        } else {
+            growthRate = Math.max(0, Math.min(5, Number(payload.growth_rate)));
+        }
+
+        const targetExp = getExpAtLevel(growthRate, targetLevel);
+        setExp(rawMon, targetExp);
+        wu8(rawMon, OFF_LEVEL_VISUAL, targetLevel);
     });
 }

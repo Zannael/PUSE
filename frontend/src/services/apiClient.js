@@ -15,6 +15,7 @@ import {
     updatePartyEvs as patchPartyEvs,
     updatePartyItem as patchPartyItem,
     updatePartyIvs as patchPartyIvs,
+    updatePartyLevel as patchPartyLevel,
     updatePartyMoves as patchPartyMoves,
     updatePartyNature as patchPartyNature,
 } from '../core/party.js';
@@ -173,6 +174,13 @@ const backendClient = {
             body: JSON.stringify(payload),
         });
     },
+    async updatePartyLevel(index, payload) {
+        await backendJson(`/party/${index}/level`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+    },
     async updatePartyItem(index, payload) {
         await backendJson(`/party/${index}/item`, {
             method: "POST",
@@ -268,6 +276,10 @@ const localClient = {
     updatePartyNature(index, payload) {
         updateBuffer((next) => patchPartyNature(next, Number(index), payload || {}));
         return Promise.resolve({ status: 'Nature updated in memory' });
+    },
+    updatePartyLevel(index, payload) {
+        updateBuffer((next) => patchPartyLevel(next, Number(index), payload || {}));
+        return Promise.resolve({ status: 'Level updated in memory' });
     },
     updatePartyItem(index, payload) {
         updateBuffer((next) => patchPartyItem(next, Number(index), payload || {}));

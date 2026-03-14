@@ -261,6 +261,11 @@ class AbilitySwitch(BaseModel):
 class ItemUpdate(BaseModel):
     item_id: int
 
+
+class PartyLevelUpdate(BaseModel):
+    target_level: int
+    growth_rate: int | None = None
+
 # --- Helper logic ---
 def get_active_trainer_offset():
     """Find offset of active Trainer section (highest saveidx)."""
@@ -296,6 +301,7 @@ async def get_party():
             "nickname": pk.nickname,
             "species_name": party_mod.DB_SPECIES.get(pk.get_species_id(), "Unknown"),
             "level": sec_data[mon_off + 0x54],
+            "exp": pk.get_exp(),
             "nature": pk.get_nature_name(),
             "nature_id": pk.get_nature_id(),
             "is_hidden_ability": bool(pk.get_hidden_ability_flag()),
@@ -367,6 +373,41 @@ async def update_nature(idx: int, data: NatureUpdate):
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
     return {"status": f"Nature changed to {party_mod.DB_NATURES.get(data.nature_id)}"}
+
+
+@app.post("/party/{idx}/level")
+async def update_party_level(idx: int, data: PartyLevelUpdate):
+    off = get_active_trainer_offset()
+    if off is None:
+        raise HTTPException(status_code=404, detail="Invalid save file")
+
+    mon_off = off + 0x38 + (idx * 100)
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+
+    target_level = max(1, min(100, int(data.target_level)))
+    visual_level = current_save["data"][mon_off + 0x54]
+    current_exp = pk.get_exp()
+
+    if data.growth_rate is not None:
+        if data.growth_rate < 0 or data.growth_rate > 5:
+            raise HTTPException(status_code=400, detail="growth_rate must be between 0 and 5")
+        growth_rate, confidence = data.growth_rate, "manual"
+    else:
+        growth_rate, confidence = party_mod.guess_growth_rate(current_exp, visual_level)
+
+    new_exp = party_mod.get_exp_at_level(growth_rate, target_level)
+    pk.set_exp(new_exp)
+    pk.set_visual_level(target_level)
+
+    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    return {
+        "status": "Level updated",
+        "target_level": target_level,
+        "exp": new_exp,
+        "growth_rate": growth_rate,
+        "growth_name": party_mod.GROWTH_NAMES.get(growth_rate, "Unknown"),
+        "confidence": confidence,
+    }
 
 # Load item database at startup
 bag_mod.load_item_names_from_file()
