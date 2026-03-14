@@ -6,6 +6,10 @@ const BagView = ({ client }) => {
         (id >= 289 && id <= 346) ||
         (id >= 375 && id <= 444);
 
+    const isKeyItemId = (id) =>
+        (id >= 259 && id <= 288) ||
+        (id >= 348 && id <= 374);
+
     const [searchId, setSearchId] = useState(44);
     const [query, setQuery] = useState("");
     const [allItems, setAllItems] = useState([]);
@@ -150,7 +154,8 @@ const BagView = ({ client }) => {
         if (!editingItem) return;
 
         const isTmPocket = selectedCand?.pocket_type === 'tm';
-        const quantityToWrite = isTmPocket || isTmHmItemId(editItemId) ? 1 : editQty;
+        const isKeyPocket = selectedCand?.pocket_type === 'key';
+        const quantityToWrite = (isTmPocket || isTmHmItemId(editItemId) || isKeyPocket || isKeyItemId(editItemId)) ? 1 : editQty;
 
         try {
             await client.updateBagItem({
@@ -281,9 +286,10 @@ const BagView = ({ client }) => {
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                         {[
                             { key: "main", label: "Main Pocket" },
+                            { key: "key", label: "Key Items (Dangerous)" },
                             { key: "ball", label: "Ball Pocket" },
                             { key: "berry", label: "Berry Pouch" },
                             { key: "tm", label: "TM Case" },
@@ -316,7 +322,7 @@ const BagView = ({ client }) => {
                     </div>
 
                     <p className="text-[11px] text-slate-500">
-                        Tip: if Main Pocket or TM Case is missing here, run a manual item search (for example Potion or a TM/HM) and open the detected candidate.
+                        Tip: if a pocket is missing here (including Key Items), run a manual item search (for example Potion, Porta-PC, or a TM/HM) and open the detected candidate.
                     </p>
                 </div>
             )}
@@ -449,11 +455,11 @@ const BagView = ({ client }) => {
                                             type="number"
                                             value={editQty}
                                             onChange={(e) => setEditQty(Math.min(999, parseInt(e.target.value) || 0))}
-                                            disabled={selectedCand?.pocket_type === 'tm' || isTmHmItemId(editItemId)}
+                                            disabled={selectedCand?.pocket_type === 'tm' || isTmHmItemId(editItemId) || selectedCand?.pocket_type === 'key' || isKeyItemId(editItemId)}
                                             className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 mt-1 text-emerald-400 font-bold outline-none focus:border-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
                                         />
-                                        {(selectedCand?.pocket_type === 'tm' || isTmHmItemId(editItemId)) && (
-                                            <p className="text-[10px] text-slate-500 mt-1">Reusable TM/HM: quantity forced to 1.</p>
+                                        {(selectedCand?.pocket_type === 'tm' || isTmHmItemId(editItemId) || selectedCand?.pocket_type === 'key' || isKeyItemId(editItemId)) && (
+                                            <p className="text-[10px] text-slate-500 mt-1">TM/HM and Key Items use quantity 1.</p>
                                         )}
                                     </div>
 

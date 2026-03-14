@@ -5,6 +5,7 @@
 import struct
 import sys
 import shutil
+import json
 
 from core.data_loader import load_id_name_file, data_path
 
@@ -30,20 +31,57 @@ MAX_STRICT_POCKET_SLOTS = 80
 MAX_STRICT_DUP_RATIO = 0.35
 MAX_MEDIUM_DUP_RATIO = 0.60
 
-# Ball IDs (vanilla + Apricorn/Special) from Unbound item table.
-BALL_ITEM_IDS = {
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-    52, 53, 60, 61, 62,
-    622, 623, 624, 625, 626, 627, 628, 629, 630, 631,
-}
+def _fallback_pocket_sets():
+    ball = {
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+        52, 53, 54, 59, 60,
+        622, 623, 624, 625, 626, 627, 628, 629, 630, 631,
+    }
+    berry = set(range(133, 176)) | set(range(539, 563))
+    tm = set(range(289, 347)) | set(range(375, 437))
+    hm = set(range(437, 445))
+    key = set(range(259, 289)) | set(range(348, 375))
+    return ball, berry, tm, hm, (tm | hm), key
 
-BERY_GEN3_IDS = set(range(133, 176))
-BERRY_GEN4P_IDS = set(range(540, 563))
-BERRY_ITEM_IDS = BERY_GEN3_IDS | BERRY_GEN4P_IDS
 
-TM_ITEM_IDS = set(range(289, 347)) | set(range(375, 437))
-HM_ITEM_IDS = set(range(437, 445))
-TMHM_ITEM_IDS = TM_ITEM_IDS | HM_ITEM_IDS
+def _set_from_json_list(value):
+    if not isinstance(value, list):
+        return set()
+    out = set()
+    for v in value:
+        try:
+            out.add(int(v))
+        except Exception:
+            continue
+    return out
+
+
+def _load_pocket_sets_from_map():
+    map_path = data_path("item_pocket_map.json")
+    if not map_path.exists():
+        return _fallback_pocket_sets()
+
+    try:
+        payload = json.loads(map_path.read_text(encoding="utf-8", errors="ignore"))
+    except Exception:
+        return _fallback_pocket_sets()
+
+    pockets = payload.get("pockets", {})
+
+    ball = _set_from_json_list(pockets.get("ball", {}).get("ids", []))
+    berry = _set_from_json_list(pockets.get("berry", {}).get("ids", []))
+    tm = _set_from_json_list(pockets.get("tm", {}).get("ids", []))
+    hm = _set_from_json_list(pockets.get("hm", {}).get("ids", []))
+    key = _set_from_json_list(pockets.get("key", {}).get("ids", []))
+
+    if not ball or not berry or not (tm or hm) or not key:
+        return _fallback_pocket_sets()
+
+    tmhm = tm | hm
+    return ball, berry, tm, hm, tmhm, key
+
+
+BALL_ITEM_IDS, BERRY_ITEM_IDS, TM_ITEM_IDS, HM_ITEM_IDS, TMHM_ITEM_IDS, KEY_ITEM_IDS = _load_pocket_sets_from_map()
 
 KNOWN_POCKET_ANCHORS = {
     "ball": 0x1E31C,
@@ -55,6 +93,8 @@ MAIN_POCKET_PROBE_IDS = [13, 84, 197, 94, 24, 26, 16, 493, 603, 606, 72]
 
 
 def pocket_type_for_item_id(item_id):
+    if item_id in KEY_ITEM_IDS:
+        return "key"
     if item_id in BALL_ITEM_IDS:
         return "ball"
     if item_id in BERRY_ITEM_IDS:
@@ -111,28 +151,12 @@ def _candidate_from_anchor(data, anchor_offset):
 
 
 def _resolve_family_pocket(data, pocket_type, known_anchor, probe_item_id, valid_ids, min_slots):
-    candidate, items = _candidate_from_anchor(data, known_anchor)
-    if candidate and candidate['quality'] != 'reject':
-        slot_count, family_hits = _slot_family_stats(items, valid_ids)
-        if slot_count >= min_slots and family_hits >= max(min_slots - 2, int(slot_count * 0.7)):
-            purity = family_hits / slot_count if slot_count > 0 else 0
-            return {
-                'pocket_type': pocket_type,
-                'anchor_offset': known_anchor,
-                'quality': candidate['quality'],
-                'score': candidate['score'],
-                'slot_count': candidate['pocket_slots'],
-                'dup_count': candidate['pocket_dups'],
-                'family_purity': round(purity, 3),
-                'source': 'validated_static',
-                'confidence': 'high',
-                'detection_note': f'static anchor validated with strong family purity ({round(purity * 100)}%)',
-            }
-
-        if slot_count > 0:
-            purity = family_hits / slot_count
-            sparse_floor = max(4, min_slots // 3)
-            if slot_count >= sparse_floor and purity >= 0.90:
+    if known_anchor is not None:
+        candidate, items = _candidate_from_anchor(data, known_anchor)
+        if candidate and candidate['quality'] != 'reject':
+            slot_count, family_hits = _slot_family_stats(items, valid_ids)
+            if slot_count >= min_slots and family_hits >= max(min_slots - 2, int(slot_count * 0.7)):
+                purity = family_hits / slot_count if slot_count > 0 else 0
                 return {
                     'pocket_type': pocket_type,
                     'anchor_offset': known_anchor,
@@ -141,10 +165,27 @@ def _resolve_family_pocket(data, pocket_type, known_anchor, probe_item_id, valid
                     'slot_count': candidate['pocket_slots'],
                     'dup_count': candidate['pocket_dups'],
                     'family_purity': round(purity, 3),
-                    'source': 'validated_sparse',
-                    'confidence': 'medium' if slot_count >= min_slots // 2 else 'low',
-                    'detection_note': f'sparse pocket accepted: {slot_count} slots, family purity {round(purity * 100)}%',
+                    'source': 'validated_static',
+                    'confidence': 'high',
+                    'detection_note': f'static anchor validated with strong family purity ({round(purity * 100)}%)',
                 }
+
+            if slot_count > 0:
+                purity = family_hits / slot_count
+                sparse_floor = max(4, min_slots // 3)
+                if slot_count >= sparse_floor and purity >= 0.90:
+                    return {
+                        'pocket_type': pocket_type,
+                        'anchor_offset': known_anchor,
+                        'quality': candidate['quality'],
+                        'score': candidate['score'],
+                        'slot_count': candidate['pocket_slots'],
+                        'dup_count': candidate['pocket_dups'],
+                        'family_purity': round(purity, 3),
+                        'source': 'validated_sparse',
+                        'confidence': 'medium' if slot_count >= min_slots // 2 else 'low',
+                        'detection_note': f'sparse pocket accepted: {slot_count} slots, family purity {round(purity * 100)}%',
+                    }
 
     scanned = scan_for_item_candidates(data, probe_item_id)
     if scanned:
@@ -169,6 +210,8 @@ def _resolve_family_pocket(data, pocket_type, known_anchor, probe_item_id, valid
         score_bonus = 450
     elif pocket_type == 'tm':
         score_bonus = 480
+    elif pocket_type == 'key':
+        score_bonus = 520
 
     sparse_scan = _scan_global_idset_pockets(
         data,
@@ -315,6 +358,14 @@ def resolve_quick_pockets(data):
         307,
         TMHM_ITEM_IDS,
         min_slots=20,
+    )
+    quick['key'] = _resolve_family_pocket(
+        data,
+        'key',
+        None,
+        368,
+        KEY_ITEM_IDS,
+        min_slots=4,
     )
 
     return quick
@@ -844,6 +895,16 @@ def scan_for_item_candidates(data, item_id):
             min_slots=12,
         )
     )
+    strict_candidates.extend(
+        _scan_global_idset_candidates(
+            data,
+            item_id,
+            active_save_idx,
+            KEY_ITEM_IDS,
+            score_bonus=520,
+            min_slots=4,
+        )
+    )
 
     # Manteniamo sia strict che medium: lo stesso item puo' esistere in tasche diverse
     # nello stesso settore (es. tasca strumenti + tasca ball).
@@ -861,6 +922,10 @@ def scan_for_item_candidates(data, item_id):
         elif item_id in TM_ITEM_IDS:
             sector_candidates = _scan_global_idset_pockets(
                 data, active_save_idx, TMHM_ITEM_IDS, score_bonus=480, min_slots=12
+            )
+        elif item_id in KEY_ITEM_IDS:
+            sector_candidates = _scan_global_idset_pockets(
+                data, active_save_idx, KEY_ITEM_IDS, score_bonus=520, min_slots=4
             )
 
     if not sector_candidates:
@@ -1025,8 +1090,8 @@ def write_slot(data, offset, item_id, quantity, encoding=None):
         swapped, _ = _best_pocket_for_anchor(data, offset)
         encoding = "qty_id" if swapped else "id_qty"
 
-    # TM/HM riusabili: qty effettiva deve restare >= 1.
-    if item_id in TMHM_ITEM_IDS and quantity <= 0:
+    # TM/HM e Key Items: qty effettiva deve restare >= 1.
+    if (item_id in TMHM_ITEM_IDS or item_id in KEY_ITEM_IDS) and quantity <= 0:
         quantity = 1
 
     if encoding == "qty_id":

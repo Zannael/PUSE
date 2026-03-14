@@ -11,6 +11,10 @@
 - Party level editing with growth-curve support (auto detection + manual override).
 - PC level editing in the Pokemon editor modal (manual growth-curve selection).
 - Shared frontend growth utilities for deterministic level-to-EXP conversion.
+- Key Items pocket quick-detection and editing support (backend + local mode).
+- Initial pocket mapping data file for item-family classification (`key`, `tm`, `hm`, `ball`, `berry`, `main`).
+- ROM item probe utility for early reverse-engineering checks against `.gba` files.
+- ROM item table extractor for Unbound (`44`-byte item structs, pocket-code metadata export).
 
 ### Changed
 
@@ -21,6 +25,9 @@
 - README updated for frontend-first runtime model, simplified local run instructions, and compact maintainer deployment notes.
 - Pokemon editor tab renamed from `Nature & Item` to `LV, Nature & Item`.
 - Backend party payload now includes `exp` to support level workflows.
+- Bag editor now forces quantity to `1` for TM/HM and Key Items to keep pocket writes consistent.
+- Added reverse-engineering notes documenting discovered ROM item-table anchors and pocket byte mapping.
+- Bag pocket family classification now uses ROM-derived item pocket metadata (backend and local mode), with fallback constants if metadata is unavailable.
 
 ### Fixed
 

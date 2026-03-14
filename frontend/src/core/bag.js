@@ -1,5 +1,6 @@
 import { ru16, ru32, wu16 } from './binary.js';
 import { OFF_ID, OFF_SAVE_IDX, SECTION_SIZE } from './sections.js';
+import pocketMap from './itemPocketMap.json' with { type: 'json' };
 
 const OFF_VALID_LEN = 0xFF0;
 
@@ -13,23 +14,44 @@ const MAX_STRICT_POCKET_SLOTS = 80;
 const MAX_STRICT_DUP_RATIO = 0.35;
 const MAX_MEDIUM_DUP_RATIO = 0.6;
 
-const BALL_ITEM_IDS = new Set([
+function toIdSet(list) {
+    if (!Array.isArray(list)) return new Set();
+    return new Set(list.map((v) => Number(v)).filter((v) => Number.isInteger(v) && v > 0));
+}
+
+const mapPockets = pocketMap?.pockets || {};
+
+const BALL_ITEM_IDS = toIdSet(mapPockets.ball?.ids);
+const BERRY_ITEM_IDS = toIdSet(mapPockets.berry?.ids);
+const TM_ITEM_IDS = toIdSet(mapPockets.tm?.ids);
+const HM_ITEM_IDS = toIdSet(mapPockets.hm?.ids);
+const KEY_ITEM_IDS = toIdSet(mapPockets.key?.ids);
+
+const FALLBACK_BALL_IDS = [
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-    52, 53, 60, 61, 62,
+    52, 53, 54, 59, 60,
     622, 623, 624, 625, 626, 627, 628, 629, 630, 631,
-]);
-
-const BERRY_ITEM_IDS = new Set([
+];
+const FALLBACK_BERRY_IDS = [
     ...Array.from({ length: 43 }, (_, i) => 133 + i),
-    ...Array.from({ length: 23 }, (_, i) => 540 + i),
-]);
-
-const TM_ITEM_IDS = new Set([
+    ...Array.from({ length: 24 }, (_, i) => 539 + i),
+];
+const FALLBACK_TM_IDS = [
     ...Array.from({ length: 58 }, (_, i) => 289 + i),
     ...Array.from({ length: 62 }, (_, i) => 375 + i),
-]);
+];
+const FALLBACK_HM_IDS = Array.from({ length: 8 }, (_, i) => 437 + i);
+const FALLBACK_KEY_IDS = [
+    ...Array.from({ length: 30 }, (_, i) => 259 + i),
+    ...Array.from({ length: 27 }, (_, i) => 348 + i),
+];
 
-const HM_ITEM_IDS = new Set(Array.from({ length: 8 }, (_, i) => 437 + i));
+if (BALL_ITEM_IDS.size === 0) FALLBACK_BALL_IDS.forEach((id) => BALL_ITEM_IDS.add(id));
+if (BERRY_ITEM_IDS.size === 0) FALLBACK_BERRY_IDS.forEach((id) => BERRY_ITEM_IDS.add(id));
+if (TM_ITEM_IDS.size === 0) FALLBACK_TM_IDS.forEach((id) => TM_ITEM_IDS.add(id));
+if (HM_ITEM_IDS.size === 0) FALLBACK_HM_IDS.forEach((id) => HM_ITEM_IDS.add(id));
+if (KEY_ITEM_IDS.size === 0) FALLBACK_KEY_IDS.forEach((id) => KEY_ITEM_IDS.add(id));
+
 const TMHM_ITEM_IDS = new Set([...TM_ITEM_IDS, ...HM_ITEM_IDS]);
 
 const KNOWN_POCKET_ANCHORS = {
@@ -368,6 +390,7 @@ function pickBestCandidate(candidates) {
 }
 
 export function pocketTypeForItemId(itemId) {
+    if (KEY_ITEM_IDS.has(itemId)) return 'key';
     if (BALL_ITEM_IDS.has(itemId)) return 'ball';
     if (BERRY_ITEM_IDS.has(itemId)) return 'berry';
     if (TM_ITEM_IDS.has(itemId)) return 'tm';
@@ -445,6 +468,7 @@ export function scanForItemCandidates(buffer, itemId) {
     strictCandidates.push(...scanGlobalIdSetCandidates(buffer, itemId, activeSaveIdx, BALL_ITEM_IDS, 500, 4));
     strictCandidates.push(...scanGlobalIdSetCandidates(buffer, itemId, activeSaveIdx, BERRY_ITEM_IDS, 450, 8));
     strictCandidates.push(...scanGlobalIdSetCandidates(buffer, itemId, activeSaveIdx, TMHM_ITEM_IDS, 480, 12));
+    strictCandidates.push(...scanGlobalIdSetCandidates(buffer, itemId, activeSaveIdx, KEY_ITEM_IDS, 520, 4));
 
     let out = [...strictCandidates, ...mediumCandidates];
 
@@ -455,6 +479,8 @@ export function scanForItemCandidates(buffer, itemId) {
             out = scanGlobalIdSetPockets(buffer, activeSaveIdx, BERRY_ITEM_IDS, 450, 8);
         } else if (TM_ITEM_IDS.has(itemId)) {
             out = scanGlobalIdSetPockets(buffer, activeSaveIdx, TMHM_ITEM_IDS, 480, 12);
+        } else if (KEY_ITEM_IDS.has(itemId)) {
+            out = scanGlobalIdSetPockets(buffer, activeSaveIdx, KEY_ITEM_IDS, 520, 4);
         }
     }
 
@@ -801,6 +827,25 @@ function resolveMainPocket(buffer) {
     };
 }
 
+function resolveKeyPocket(buffer) {
+    const top = pickBestCandidate(scanForItemCandidates(buffer, 368));
+    if (!top) {
+        return null;
+    }
+
+    return {
+        pocket_type: 'key',
+        anchor_offset: top.offset,
+        quality: top.quality,
+        score: top.score,
+        slot_count: top.pocket_slots,
+        dup_count: top.pocket_dups,
+        source: 'scan_probe:368',
+        confidence: top.quality === 'strict' ? 'high' : 'medium',
+        detection_note: 'key pocket resolved with probe item id 368 (Porta-PC)',
+    };
+}
+
 export function resolveQuickPockets(buffer) {
     if (!buffer || buffer.length === 0) {
         return {};
@@ -812,6 +857,7 @@ export function resolveQuickPockets(buffer) {
     quick.ball = resolveFamilyPocket(buffer, 'ball', KNOWN_POCKET_ANCHORS.ball, 4, BALL_ITEM_IDS, 8);
     quick.berry = resolveFamilyPocket(buffer, 'berry', KNOWN_POCKET_ANCHORS.berry, 149, BERRY_ITEM_IDS, 12);
     quick.tm = resolveFamilyPocket(buffer, 'tm', KNOWN_POCKET_ANCHORS.tm, 307, TMHM_ITEM_IDS, 20);
+    quick.key = resolveKeyPocket(buffer);
 
     return quick;
 }
@@ -824,7 +870,7 @@ export function writeSlot(buffer, offset, itemId, quantity, encoding = null) {
     }
 
     let qty = quantity;
-    if (TMHM_ITEM_IDS.has(itemId) && qty <= 0) {
+    if ((TMHM_ITEM_IDS.has(itemId) || KEY_ITEM_IDS.has(itemId)) && qty <= 0) {
         qty = 1;
     }
 
