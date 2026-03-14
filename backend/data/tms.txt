@@ -1,120 +1,120 @@
-TM01: Focus Punch
-TM02: Dragon Claw
-TM03: Water Pulse
-TM04: Calm Mind
-TM05: Roar
-TM06: Toxic
-TM07: Hail
-TM08: Bulk Up
-TM09: Bullet Seed
-TM10: Hidden Power
-TM11: Sunny Day
-TM12: Taunt
-TM13: Ice Beam
-TM14: Blizzard
-TM15: Hyper Beam
-TM16: Light Screen
-TM17: Protect
-TM18: Rain Dance
-TM19: Giga Drain
-TM20: Safeguard
-TM21: Frustration
-TM22: Solar Beam
-TM23: Iron Tail
-TM24: Thunderbolt
-TM25: Thunder
-TM26: Earthquake
-TM27: Return
-TM28: Dig
-TM29: Psychic
-TM30: Shadow Ball
-TM31: Brick Break
-TM32: Double Team
-TM33: Reflect
-TM34: Shock Wave
-TM35: Flamethrower
-TM36: Sludge Bomb
-TM37: Sandstorm
-TM38: Fire Blast
-TM39: Rock Tomb
-TM40: Aerial Ace
-TM41: Torment
-TM42: Facade
-TM43: Secret Power
-TM44: Rest
-TM45: Attract
-TM46: Thief
-TM47: Steel Wing
-TM48: Skill Swap
-TM49: Leech Fang
-TM50: Overheat
-TM51: Roost
-TM52: Focus Blast
-TM53: Energy Ball
-TM54: False Swipe
-TM55: Brine
-TM56: Hone Claws
-TM57: Charge Beam
-TM58: Endure
-TM59: Dragon Pulse
-TM60: Drain Punch
-TM61: Will-O-Wisp
-TM62: Silver Wind
-TM63: Venoshock
-TM64: Explosion
-TM65: Shadow Claw
-TM66: Payback
-TM67: Recycle
-TM68: Giga Impact
-TM69: Rock Polish
-TM70: Flash
-TM71: Stone Edge
-TM72: Avalanche
-TM73: Thunder Wave
-TM74: Gyro Ball
-TM75: Swords Dance
-TM76: Stealth Rock
-TM77: Flame Charge
-TM78: Low Sweep
-TM79: Dark Pulse
-TM80: Rock Slide
-TM81: X-Scissor
-TM82: Sleep Talk
-TM83: Scald
-TM84: Poison Jab
-TM85: Dream Eater
-TM86: Grass Knot
-TM87: Swagger
-TM88: Pluck
-TM89: U-Turn
-TM90: Substitute
-TM91: Flash Cannon
-TM92: Volt Switch
-TM93: Dragon Tail
-TM94: Incinerate
-TM95: Struggle Bug
-TM96: Bulldoze
-TM97: Frost Breath
-TM98: Work Up
-TM99: Wild Charge
-TM100: Infestation
-TM101: Power-Up Hit
-TM102: Dazzle Gleam
-TM103: Sludge Wave
-TM104: Psyshock
-TM105: Brutal Swing
-TM106: Smart Strike
-TM107: Acrobatics
-TM108: Snarl
-TM109: Defog
-TM110: Drain Kiss
-TM111: Smack Down
-TM112: Round
-TM113: Echoed Voice
-TM114: Natural Gift
-TM115: Quash
-TM116: Trick Room
-TM117: Fling
-TM118: Aurora Veil
-TM119: Sky Drop
-TM120: Nature Power
+TM01: Focus Punch - Fighting
+TM02: Dragon Claw - Dragon
+TM03: Water Pulse - Water
+TM04: Calm Mind - Psychic
+TM05: Roar - Normal
+TM06: Toxic - Poison
+TM07: Hail - Ice
+TM08: Bulk Up - Fighting
+TM09: Bullet Seed - Grass
+TM10: Hidden Power - Normal
+TM11: Sunny Day - Fire
+TM12: Taunt - Dark
+TM13: Ice Beam - Ice
+TM14: Blizzard - Ice
+TM15: Hyper Beam - Normal
+TM16: Light Screen - Psychic
+TM17: Protect - Normal
+TM18: Rain Dance - Water
+TM19: Giga Drain - Grass
+TM20: Safeguard - Normal
+TM21: Frustration - Normal
+TM22: Solar Beam - Grass
+TM23: Iron Tail - Steel
+TM24: Thunderbolt - Electric
+TM25: Thunder - Electric
+TM26: Earthquake - Ground
+TM27: Return - Normal
+TM28: Dig - Ground
+TM29: Psychic - Psychic
+TM30: Shadow Ball - Ghost
+TM31: Brick Break - Fighting
+TM32: Double Team - Normal
+TM33: Reflect - Psychic
+TM34: Shock Wave - Electric
+TM35: Flamethrower - Fire
+TM36: Sludge Bomb - Poison
+TM37: Sandstorm - Rock
+TM38: Fire Blast - Fire
+TM39: Rock Tomb - Rock
+TM40: Aerial Ace - Flying
+TM41: Torment - Dark
+TM42: Facade - Normal
+TM43: Secret Power - Normal
+TM44: Rest - Psychic
+TM45: Attract - Normal
+TM46: Thief - Dark
+TM47: Steel Wing - Steel
+TM48: Skill Swap - Psychic
+TM49: Leech Fang - Bug
+TM50: Overheat - Fire
+TM51: Roost - Flying
+TM52: Focus Blast - Fighting
+TM53: Energy Ball - Grass
+TM54: False Swipe - Normal
+TM55: Brine - Water
+TM56: Hone Claws - Dark
+TM57: Charge Beam - Electric
+TM58: Endure - Normal
+TM59: Dragon Pulse - Dragon
+TM60: Drain Punch - Fighting
+TM61: Will-O-Wisp - Fire
+TM62: Silver Wind - Bug
+TM63: Venoshock - Poison
+TM64: Explosion - Normal
+TM65: Shadow Claw - Ghost
+TM66: Payback - Dark
+TM67: Recycle - Normal
+TM68: Giga Impact - Normal
+TM69: Rock Polish - Rock
+TM70: Flash - Normal
+TM71: Stone Edge - Rock
+TM72: Avalanche - Ice
+TM73: Thunder Wave - Electric
+TM74: Gyro Ball - Steel
+TM75: Swords Dance - Normal
+TM76: Stealth Rock - Rock
+TM77: Flame Charge - Fire
+TM78: Low Sweep - Fighting
+TM79: Dark Pulse - Dark
+TM80: Rock Slide - Rock
+TM81: X-Scissor - Bug
+TM82: Sleep Talk - Normal
+TM83: Scald - Water
+TM84: Poison Jab - Poison
+TM85: Dream Eater - Psychic
+TM86: Grass Knot - Grass
+TM87: Swagger - Normal
+TM88: Pluck - Flying
+TM89: U-Turn - Bug
+TM90: Substitute - Normal
+TM91: Flash Cannon - Steel
+TM92: Volt Switch - Electric
+TM93: Dragon Tail - Dragon
+TM94: Incinerate - Fire
+TM95: Struggle Bug - Bug
+TM96: Bulldoze - Ground
+TM97: Frost Breath - Ice
+TM98: Work Up - Normal
+TM99: Wild Charge - Electric
+TM100: Infestation - Bug
+TM101: Power-Up Hit - Fighting
+TM102: Dazzle Gleam - Fairy
+TM103: Sludge Wave - Poison
+TM104: Psyshock - Psychic
+TM105: Brutal Swing - Dark
+TM106: Smart Strike - Steel
+TM107: Acrobatics - Flying
+TM108: Snarl - Dark
+TM109: Defog - Flying
+TM110: Drain Kiss - Fairy
+TM111: Smack Down - Rock
+TM112: Round - Normal
+TM113: Echoed Voice - Normal
+TM114: Natural Gift - Normal
+TM115: Quash - Dark
+TM116: Trick Room - Psychic
+TM117: Fling - Dark
+TM118: Aurora Veil - Ice
+TM119: Sky Drop - Flying
+TM120: Nature Power - Normal

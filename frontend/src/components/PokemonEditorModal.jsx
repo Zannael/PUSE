@@ -1,18 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { X, Zap, Save, Search } from 'lucide-react';
 
-export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
+export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
     const [activeTab, setActiveTab] = useState('stats');
     const [localPk, setLocalPk] = useState({ ...pokemon });
     const [allMoves, setAllMoves] = useState([]);
     const [searchTerm, setSearchTerm] = useState(['', '', '', '']);
-    const API_BASE = import.meta.env.VITE_API_BASE_URL;
+    const [allItems, setAllItems] = useState([]);
+    const [itemSearch, setItemSearch] = useState('');
+    const [brokenItemIcons, setBrokenItemIcons] = useState(() => new Set());
+
+    const hasKnownItemName = (name) => {
+        if (!name) return false;
+        const low = name.toLowerCase();
+        return !low.startsWith('item ') && !low.startsWith('id ') && name !== '--- EMPTY ---';
+    };
+
+    const currentItem = allItems.find(i => i.id === localPk.item_id);
+    const currentItemName = currentItem?.name || `ID ${localPk.item_id}`;
+    const canShowItemIcon =
+        localPk.item_id > 0 &&
+        !!currentItem &&
+        hasKnownItemName(currentItem.name) &&
+        !brokenItemIcons.has(localPk.item_id);
 
     useEffect(() => {
-        fetch(`${API_BASE}/moves`)
-            .then(res => res.json())
+        client.getMoves()
             .then(data => setAllMoves(data));
-    }, [API_BASE]);
+    }, [client]);
 
     const updateStat = (type, stat, val) => {
         setLocalPk(prev => ({
@@ -31,14 +46,10 @@ export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
         setSearchTerm(newSearch);
     };
 
-    const [allItems, setAllItems] = useState([]);
-    const [itemSearch, setItemSearch] = useState('');
-
     useEffect(() => {
-        fetch(`${API_BASE}/items`)
-            .then(res => res.json())
+        client.getItems()
             .then(data => setAllItems(data));
-    }, [API_BASE]);
+    }, [client]);
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
@@ -46,10 +57,28 @@ export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
 
                 <div className="p-6 bg-[#1e293b] flex justify-between items-center border-b border-white/5">
                     <div className="flex items-center gap-4">
-                        <img src={`${API_BASE}/pokemon-icon/${localPk.species_id}`} className="w-12 h-12 pixelated" alt="icon"/>
+                        <img src={client.getPokemonIconUrl(localPk.species_id)} className="w-12 h-12 pixelated" alt="icon"/>
                         <div>
                             <h2 className="text-xl font-bold">{localPk.nickname}</h2>
                             <p className="text-xs text-slate-500 uppercase font-black">Pokemon Editor</p>
+                        </div>
+                        <div className="w-10 h-10 bg-slate-900 rounded-xl border border-white/10 flex items-center justify-center overflow-hidden">
+                            {canShowItemIcon ? (
+                                <img
+                                    src={client.getItemIconUrl(localPk.item_id)}
+                                    alt={currentItemName}
+                                    className="w-7 h-7 object-contain"
+                                    onError={() => {
+                                        setBrokenItemIcons((prev) => {
+                                            const next = new Set(prev);
+                                            next.add(localPk.item_id);
+                                            return next;
+                                        });
+                                    }}
+                                />
+                            ) : (
+                                <span className="text-[9px] font-mono text-slate-500">#{localPk.item_id}</span>
+                            )}
                         </div>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full"><X /></button>
@@ -226,10 +255,26 @@ export const PokemonEditorModal = ({ pokemon, onClose, onSave }) => {
                                         <div className="flex flex-col">
                                             <span className="text-[10px] text-slate-500 uppercase font-black">Current Item</span>
                                             <span className="text-emerald-400 font-bold text-sm">
-                            {allItems.find(i => i.id === localPk.item_id)?.name || "ID " + localPk.item_id}
+                            {currentItemName}
                         </span>
                                         </div>
                                         <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-500">
+                                            {canShowItemIcon ? (
+                                                <img
+                                                    src={client.getItemIconUrl(localPk.item_id)}
+                                                    alt={currentItemName}
+                                                    className="w-7 h-7 object-contain"
+                                                    onError={() => {
+                                                        setBrokenItemIcons((prev) => {
+                                                            const next = new Set(prev);
+                                                            next.add(localPk.item_id);
+                                                            return next;
+                                                        });
+                                                    }}
+                                                />
+                                            ) : (
+                                                <span className="text-[9px] font-mono text-slate-500">#{localPk.item_id}</span>
+                                            )}
                                         </div>
                                     </div>
                                 )}
