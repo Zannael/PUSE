@@ -1,6 +1,6 @@
 # PUSE - A Pokemon Unbound (online) Save Editor
 
-> Live app: **[Add your GitHub Pages URL here](https://<user>.github.io/<repo>/)**
+> Live app: **[no link yet!](https://github.com/Zannael/PUSE)**
 
 Web-based save editor for Pokemon Unbound (v 2.1.1.1.) with a frontend-first architecture.
 The app supports local in-browser save editing (recommended) and backend mode (fully compatible) if you prefer Python for debugging/developing purposes.
