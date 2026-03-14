@@ -8,6 +8,9 @@
 - In-browser local save editing engine (`frontend/src/core/*`) for party, PC, bag, money, checksums, and save export.
 - GitHub Pages deployment workflow (`.github/workflows/deploy-pages.yml`) with SPA fallback support.
 - Maintainer/developer docs: save editing guide and frontend local migration spec.
+- Party level editing with growth-curve support (auto detection + manual override).
+- PC level editing in the Pokemon editor modal (manual growth-curve selection).
+- Shared frontend growth utilities for deterministic level-to-EXP conversion.
 
 ### Changed
 
@@ -16,6 +19,8 @@
 - Item icon resolution now prioritizes `backend/icons/items/Base Items/` before other item icon folders.
 - TM item naming data updated to include type suffixes (for example `TM01: Focus Punch - Fighting`).
 - README updated for frontend-first runtime model, simplified local run instructions, and compact maintainer deployment notes.
+- Pokemon editor tab renamed from `Nature & Item` to `LV, Nature & Item`.
+- Backend party payload now includes `exp` to support level workflows.
 
 ### Fixed
 

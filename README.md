@@ -40,7 +40,7 @@ Edit moves and ability slot selection.
 
 ![Pokemon edit moves](backend/readme_images/pokemon_edit_moves.png)
 
-Edit nature and held item in the same modal flow.
+Edit level, nature and held item in the same modal flow.
 
 ![Pokemon edit nature and item](backend/readme_images/pokemon_edit_nature_item.png)
 
