@@ -2,7 +2,31 @@
 
 ## Unreleased
 
-- No changes yet.
+### Added
+
+- Frontend runtime mode abstraction with `backend` and `local` modes.
+- In-browser local save editing engine (`frontend/src/core/*`) for party, PC, bag, money, checksums, and save export.
+- GitHub Pages deployment workflow (`.github/workflows/deploy-pages.yml`) with SPA fallback support.
+- Maintainer/developer docs: save editing guide and frontend local migration spec.
+
+### Changed
+
+- App now routes UI operations through a unified API client (`frontend/src/services/apiClient.js`) instead of direct `fetch` calls in components.
+- Bag quick pocket detection improved with richer confidence metadata and clearer fallback guidance in UI.
+- Item icon resolution now prioritizes `backend/icons/items/Base Items/` before other item icon folders.
+- TM item naming data updated to include type suffixes (for example `TM01: Focus Punch - Fighting`).
+- README updated for frontend-first runtime model, simplified local run instructions, and compact maintainer deployment notes.
+
+### Fixed
+
+- Held item icon visibility in Pokemon editor modal (header + current item panel), with robust fallback for missing/broken icons.
+- TM/HM icon matching logic:
+  - HM resolves by numeric icon naming (`hm01`, `hm02`, ...).
+  - TM prefers type-based icons (`tm-fighting`, `tm-water`, ...), then falls back to numeric variants if available.
+
+### Removed
+
+- Legacy `backend/icons.py` test utility script.
 
 ## v1.0.0 - 2026-03-12
 
