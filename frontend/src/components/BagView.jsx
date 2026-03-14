@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, Package, Edit3, Filter, X, ArrowLeft, Star, Save } from 'lucide-react';
+import { Search, Package, Edit3, X, ArrowLeft, Star, Save, CircleHelp } from 'lucide-react';
 
-const BagView = () => {
+const BagView = ({ client }) => {
     const isTmHmItemId = (id) =>
         (id >= 289 && id <= 346) ||
         (id >= 375 && id <= 444);
@@ -21,7 +21,6 @@ const BagView = () => {
     const [quickLoading, setQuickLoading] = useState(false);
 
     const dropdownRef = useRef(null);
-    const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
     const hasKnownItemName = (name) => {
         if (!name) return false;
@@ -29,28 +28,30 @@ const BagView = () => {
         return !low.startsWith('item ') && !low.startsWith('id ') && name !== '--- EMPTY ---';
     };
 
-    const itemIconUrl = (itemId) => `${API_BASE}/item-icon/${itemId}`;
+    const itemIconUrl = (itemId) => client.getItemIconUrl(itemId);
+
+    const getConfidenceTooltip = (pocket) => {
+        if (!pocket) return "";
+        const slots = pocket.slot_count ?? '-';
+        const purity = typeof pocket.family_purity === 'number' ? `${Math.round(pocket.family_purity * 100)}%` : 'n/a';
+        const note = pocket.detection_note || 'Pocket resolved with fallback heuristics.';
+        return `Confidence: ${pocket.confidence || 'n/a'} | Slots: ${slots} | Family purity: ${purity}. ${note}`;
+    };
 
     useEffect(() => {
         const fetchItems = async () => {
             try {
-                const res = await fetch(`${API_BASE}/items`);
-                const data = await res.json();
+                const data = await client.getItems();
                 setAllItems(data);
             } catch (err) { console.error("Items DB error", err); }
         };
         fetchItems();
-    }, [API_BASE]);
+    }, [client]);
 
     const loadQuickPockets = useCallback(async () => {
         setQuickLoading(true);
         try {
-            const res = await fetch(`${API_BASE}/bag/pockets/bootstrap`);
-            if (!res.ok) {
-                setQuickPockets({});
-                return;
-            }
-            const data = await res.json();
+            const data = await client.getBagPocketsBootstrap();
             setQuickPockets(data?.pockets || {});
         } catch (err) {
             console.error("Quick pockets error", err);
@@ -58,7 +59,7 @@ const BagView = () => {
         } finally {
             setQuickLoading(false);
         }
-    }, [API_BASE]);
+    }, [client]);
 
     useEffect(() => {
         loadQuickPockets();
@@ -101,8 +102,7 @@ const BagView = () => {
         setItems([]);
         setCandidates([]);
         try {
-            const res = await fetch(`${API_BASE}/bag/scan/${searchId}`);
-            const data = await res.json();
+            const data = await client.scanBag(searchId);
             if (data.results && data.results.length > 0) {
                 setCandidates(data.results);
             } else {
@@ -119,14 +119,7 @@ const BagView = () => {
         setSelectedCand(cand);
         setLoading(true);
         try {
-            const res = await fetch(
-                `${API_BASE}/bag/pocket?anchor_offset=${cand.anchor_offset}&_ts=${Date.now()}`,
-                { cache: "no-store" }
-            );
-            if (!res.ok) {
-                throw new Error("Pocket loading error");
-            }
-            const data = await res.json();
+            const data = await client.getBagPocket(cand.anchor_offset);
             setItems(data);
         } catch (err) { console.error(err); }
         finally { setLoading(false); }
@@ -160,25 +153,13 @@ const BagView = () => {
         const quantityToWrite = isTmPocket || isTmHmItemId(editItemId) ? 1 : editQty;
 
         try {
-            const res = await fetch(`${API_BASE}/bag/item/update`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    offset: editingItem.offset,
-                    item_id: editItemId,
-                    quantity: quantityToWrite,
-                    encoding: editingItem.encoding || null
-                })
+            await client.updateBagItem({
+                offset: editingItem.offset,
+                item_id: editItemId,
+                quantity: quantityToWrite,
+                encoding: editingItem.encoding || null
             });
-
-            if (!res.ok) {
-                throw new Error("Slot update error");
-            }
-
-            const saveRes = await fetch(`${API_BASE}/save-all`, { method: "POST" });
-            if (!saveRes.ok) {
-                throw new Error("Save-all error");
-            }
+            await client.saveAll();
 
             const newName = allItems.find((it) => it.id === editItemId)?.name || `Item ${editItemId}`;
             setItems((prev) => prev.map((it) => {
@@ -206,10 +187,8 @@ const BagView = () => {
 
     const handleFinalSave = async () => {
         try {
-            const res = await fetch(`${API_BASE}/save-all`, { method: "POST" });
-            if (res.ok) {
-                alert("Bag saved and checksum recalculated successfully!");
-            }
+            await client.saveAll();
+            alert("Bag saved and checksum recalculated successfully!");
         } catch (err) {
             console.error(err);
             alert("Final save error");
@@ -278,6 +257,10 @@ const BagView = () => {
                             ))}
                         </div>
                     )}
+
+                    <p className="text-[11px] text-slate-500 mt-3 px-2">
+                        Search bar pocket scan works with items you currently have in that pocket. After a pocket is found/opened, you can still add new items there.
+                    </p>
                 </div>
             )}
 
@@ -287,7 +270,7 @@ const BagView = () => {
                     <div className="flex items-center justify-between gap-4">
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Quick Pockets</p>
-                            <p className="text-xs text-slate-400 mt-1">Quick access validated with fallback. Item search remains the most stable method.</p>
+                            <p className="text-xs text-slate-400 mt-1">Quick pockets are fastest on mature saves. On early saves (few items/TMs), auto-detection can miss pockets: use the search bar as the reliable fallback.</p>
                         </div>
                         <button
                             onClick={loadQuickPockets}
@@ -316,15 +299,25 @@ const BagView = () => {
                                 >
                                     <p className="text-xs font-black uppercase tracking-wider text-slate-300">{cfg.label}</p>
                                     <p className="text-[10px] font-mono text-slate-500 mt-2">
-                                        {ready ? `anchor ${pocket.anchor_offset}` : "not found"}
+                                        {ready ? `anchor ${pocket.anchor_offset}` : "not found (common on early saves)"}
                                     </p>
                                     <p className="text-[10px] mt-1 text-slate-400">
-                                        {ready ? `${pocket.source} | ${pocket.confidence}` : "use manual search"}
+                                        {ready ? `${pocket.source} | ${pocket.confidence}` : "use search bar"}
                                     </p>
+                                    {ready && (
+                                        <p className="mt-1 text-[10px] text-slate-500 flex items-center gap-1" title={getConfidenceTooltip(pocket)}>
+                                            <CircleHelp size={11} />
+                                            Why this confidence?
+                                        </p>
+                                    )}
                                 </button>
                             );
                         })}
                     </div>
+
+                    <p className="text-[11px] text-slate-500">
+                        Tip: if Main Pocket or TM Case is missing here, run a manual item search (for example Potion or a TM/HM) and open the detected candidate.
+                    </p>
                 </div>
             )}
 

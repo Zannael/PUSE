@@ -51,6 +51,8 @@ KNOWN_POCKET_ANCHORS = {
     "berry": 0x1E5E4,
 }
 
+MAIN_POCKET_PROBE_IDS = [13, 84, 197, 94, 24, 26, 16, 493, 603, 606, 72]
+
 
 def pocket_type_for_item_id(item_id):
     if item_id in BALL_ITEM_IDS:
@@ -113,6 +115,7 @@ def _resolve_family_pocket(data, pocket_type, known_anchor, probe_item_id, valid
     if candidate and candidate['quality'] != 'reject':
         slot_count, family_hits = _slot_family_stats(items, valid_ids)
         if slot_count >= min_slots and family_hits >= max(min_slots - 2, int(slot_count * 0.7)):
+            purity = family_hits / slot_count if slot_count > 0 else 0
             return {
                 'pocket_type': pocket_type,
                 'anchor_offset': known_anchor,
@@ -120,9 +123,28 @@ def _resolve_family_pocket(data, pocket_type, known_anchor, probe_item_id, valid
                 'score': candidate['score'],
                 'slot_count': candidate['pocket_slots'],
                 'dup_count': candidate['pocket_dups'],
+                'family_purity': round(purity, 3),
                 'source': 'validated_static',
                 'confidence': 'high',
+                'detection_note': f'static anchor validated with strong family purity ({round(purity * 100)}%)',
             }
+
+        if slot_count > 0:
+            purity = family_hits / slot_count
+            sparse_floor = max(4, min_slots // 3)
+            if slot_count >= sparse_floor and purity >= 0.90:
+                return {
+                    'pocket_type': pocket_type,
+                    'anchor_offset': known_anchor,
+                    'quality': candidate['quality'],
+                    'score': candidate['score'],
+                    'slot_count': candidate['pocket_slots'],
+                    'dup_count': candidate['pocket_dups'],
+                    'family_purity': round(purity, 3),
+                    'source': 'validated_sparse',
+                    'confidence': 'medium' if slot_count >= min_slots // 2 else 'low',
+                    'detection_note': f'sparse pocket accepted: {slot_count} slots, family purity {round(purity * 100)}%',
+                }
 
     scanned = scan_for_item_candidates(data, probe_item_id)
     if scanned:
@@ -137,9 +159,128 @@ def _resolve_family_pocket(data, pocket_type, known_anchor, probe_item_id, valid
             'dup_count': top.get('pocket_dups'),
             'source': 'scan_fallback',
             'confidence': conf,
+            'detection_note': f'found by probing item id {probe_item_id}',
+        }
+
+    active_save_idx = _compute_active_save_idx(data, BAG_SECTOR_IDS)
+    sparse_floor = max(4, min_slots // 3)
+    score_bonus = 500
+    if pocket_type == 'berry':
+        score_bonus = 450
+    elif pocket_type == 'tm':
+        score_bonus = 480
+
+    sparse_scan = _scan_global_idset_pockets(
+        data,
+        active_save_idx,
+        valid_ids,
+        score_bonus=score_bonus,
+        min_slots=sparse_floor,
+    )
+    if sparse_scan:
+        top = sparse_scan[0]
+        return {
+            'pocket_type': pocket_type,
+            'anchor_offset': top['offset'],
+            'quality': top.get('quality'),
+            'score': top.get('score'),
+            'slot_count': top.get('pocket_slots'),
+            'dup_count': top.get('pocket_dups'),
+            'family_purity': 1.0,
+            'source': 'scan_sparse',
+            'confidence': 'medium' if top.get('pocket_slots', 0) >= min_slots // 2 else 'low',
+            'detection_note': f'sparse global scan matched {top.get("pocket_slots", 0)} family slots',
         }
 
     return None
+
+
+def _compute_active_save_idx(data, sector_ids=None):
+    total_sectors = len(data) // SECTION_SIZE
+    max_idx = 0
+
+    for sec_idx in range(total_sectors):
+        sec_off = sec_idx * SECTION_SIZE
+        sect_id = ru16(data, sec_off + OFF_ID)
+        if sector_ids and sect_id not in sector_ids:
+            continue
+
+        save_idx = ru32(data, sec_off + OFF_SAVE_IDX)
+        if save_idx <= 0 or save_idx == 0xFFFFFFFF:
+            continue
+        if save_idx > max_idx:
+            max_idx = save_idx
+
+    if max_idx > 0:
+        return max_idx
+
+    for sec_idx in range(total_sectors):
+        sec_off = sec_idx * SECTION_SIZE
+        save_idx = ru32(data, sec_off + OFF_SAVE_IDX)
+        if save_idx <= 0 or save_idx == 0xFFFFFFFF:
+            continue
+        if save_idx > max_idx:
+            max_idx = save_idx
+
+    return max_idx
+
+
+def _pick_best_candidate(candidates):
+    if not candidates:
+        return None
+
+    def sort_key(c):
+        return (
+            c.get('save_idx', 0),
+            1 if c.get('quality') == 'strict' else 0,
+            c.get('score', -10**9),
+            c.get('pocket_slots', 0),
+            -c.get('offset', 0),
+        )
+
+    return max(candidates, key=sort_key)
+
+
+def _resolve_main_pocket(data):
+    best = None
+    best_probe = None
+
+    for probe_item_id in MAIN_POCKET_PROBE_IDS:
+        candidates = scan_for_item_candidates(data, probe_item_id)
+        top = _pick_best_candidate(candidates)
+        if not top:
+            continue
+
+        if top.get('quality') == 'strict' and top.get('pocket_slots', 0) >= 6:
+            best = top
+            best_probe = probe_item_id
+            break
+
+        if not best:
+            best = top
+            best_probe = probe_item_id
+            continue
+
+        contender = _pick_best_candidate([best, top])
+        if contender is top:
+            best = top
+            best_probe = probe_item_id
+
+    if not best:
+        return None
+
+    conf = 'high' if best.get('quality') == 'strict' else 'medium'
+    return {
+        'pocket_type': 'main',
+        'anchor_offset': best['offset'],
+        'quality': best.get('quality'),
+        'score': best.get('score'),
+        'slot_count': best.get('pocket_slots'),
+        'dup_count': best.get('pocket_dups'),
+        'source': f'scan_probe:{best_probe}',
+        'confidence': conf,
+        'detection_note': f'main pocket resolved with probe item id {best_probe}',
+    }
 
 
 def resolve_quick_pockets(data):
@@ -148,22 +289,8 @@ def resolve_quick_pockets(data):
 
     quick = {}
 
-    # Main pocket: dynamic by scan only (active copy may shift absolute offset).
-    main_candidates = scan_for_item_candidates(data, 72)
-    if main_candidates:
-        top = main_candidates[0]
-        quick['main'] = {
-            'pocket_type': 'main',
-            'anchor_offset': top['offset'],
-            'quality': top.get('quality'),
-            'score': top.get('score'),
-            'slot_count': top.get('pocket_slots'),
-            'dup_count': top.get('pocket_dups'),
-            'source': 'scan_only',
-            'confidence': 'high' if top.get('quality') == 'strict' else 'medium',
-        }
-    else:
-        quick['main'] = None
+    # Main pocket: dynamic by probe family scan (active copy may shift absolute offset).
+    quick['main'] = _resolve_main_pocket(data)
 
     quick['ball'] = _resolve_family_pocket(
         data,
@@ -623,13 +750,7 @@ def scan_for_item_candidates(data, item_id):
     strict_candidates = []
     medium_candidates = []
     total_sectors = len(data) // SECTION_SIZE
-    active_save_idx = 0
-
-    for sec_idx in range(total_sectors):
-        sec_off = sec_idx * SECTION_SIZE
-        save_idx = ru32(data, sec_off + OFF_SAVE_IDX)
-        if save_idx > active_save_idx:
-            active_save_idx = save_idx
+    active_save_idx = _compute_active_save_idx(data, BAG_SECTOR_IDS)
 
     for sec_idx in range(total_sectors):
         sec_off = sec_idx * SECTION_SIZE
