@@ -5,6 +5,8 @@ const cache = {
     loaded: false,
 };
 
+const DATA_BASE_URL = `${import.meta.env.BASE_URL}data`;
+
 function parseIdNameText(content) {
     const map = new Map();
     content.split(/\r?\n/).forEach((line) => {
@@ -63,10 +65,10 @@ export async function loadCatalog() {
     }
 
     const [itemsText, movesText, pokemonText, tmsText] = await Promise.all([
-        fetchText('/data/items.txt'),
-        fetchText('/data/moves.txt'),
-        fetchText('/data/pokemon.txt'),
-        fetchText('/data/tms.txt'),
+        fetchText(`${DATA_BASE_URL}/items.txt`),
+        fetchText(`${DATA_BASE_URL}/moves.txt`),
+        fetchText(`${DATA_BASE_URL}/pokemon.txt`),
+        fetchText(`${DATA_BASE_URL}/tms.txt`),
     ]);
 
     cache.itemsById = parseIdNameText(itemsText);
