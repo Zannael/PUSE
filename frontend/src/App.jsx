@@ -38,15 +38,28 @@ const App = () => {
     const [selectedPokemon, setSelectedPokemon] = useState(null);
     const [refreshKey, setRefreshKey] = useState(0);
 
+    const clamp = (value, min, max) => {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return min;
+        return Math.max(min, Math.min(max, n));
+    };
+
+    const mapStatsForApi = (stats, max) => ({
+        hp: clamp(stats?.HP, 0, max),
+        atk: clamp(stats?.Atk, 0, max),
+        dfe: clamp(stats?.Def, 0, max),
+        spa: clamp(stats?.SpA, 0, max),
+        spd: clamp(stats?.SpD, 0, max),
+        spe: clamp(stats?.Spe ?? stats?.Spd, 0, max),
+    });
+
     const handleSavePokemon = async (updatedPk) => {
         try {
-            const statsBase = {
-                hp: updatedPk.ivs.HP, atk: updatedPk.ivs.Atk, dfe: updatedPk.ivs.Def,
-                spa: updatedPk.ivs.SpA, spd: updatedPk.ivs.SpD, spe: updatedPk.ivs.Spe || updatedPk.ivs.Spd
-            };
+            const ivPayload = mapStatsForApi(updatedPk.ivs, 31);
+            const evPayload = mapStatsForApi(updatedPk.evs, 252);
 
-            await client.updatePartyIvs(updatedPk.index, statsBase);
-            await client.updatePartyEvs(updatedPk.index, statsBase);
+            await client.updatePartyIvs(updatedPk.index, ivPayload);
+            await client.updatePartyEvs(updatedPk.index, evPayload);
             await client.updatePartyMoves(updatedPk.index, { moves: updatedPk.moves });
             await client.updatePartyAbilitySwitch(updatedPk.index, { ability_index: updatedPk.current_ability_index });
             await client.updatePartyNature(updatedPk.index, { nature_id: updatedPk.nature_id });
