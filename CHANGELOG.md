@@ -19,6 +19,10 @@
 - Bag editing now uses an explicit save flow: slot edits are applied in memory, and `SAVE BAG CHANGES` is required to write updates to the `.sav` file.
 - Bag UX now keeps save actions visible at the top of pocket view and warns users when navigating back/changing sections with unsaved bag edits.
 - Pokemon editor Info tab now shows Species controls before level/nature/item controls for faster access.
+- Fixed PC Box move packing/parsing to use the correct CFRU compact 40-bit layout in both backend and local mode.
+- Fixed local-mode 32-bit overflow during 40-bit move bit-packing by switching to `BigInt`, resolving slot corruption cases (for example `DragonAscent`/`V-create` turning into wrong moves in frontend or in-game).
+- Added ROM-truth move extraction tooling (`backend/tools/extract_unbound_moves_table.py`) and diagnostic output (`backend/data/move_table_from_rom.json`).
+- Move catalogs are now synchronized from ROM truth with `backend/data/moves.txt` as canonical runtime source (mirrored to `frontend/public/data/moves.txt` for local mode parity).
 
 ## v1.1.0 - 2026-03-16
 

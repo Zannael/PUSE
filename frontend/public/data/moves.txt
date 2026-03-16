@@ -6,9 +6,9 @@
 6:Pay Day
 7:Fire Punch
 8:Ice Punch
-9:Thunder Punch
+9:ThunderPunch
 10:Scratch
-11:Vice Grip
+11:Vise Grip
 12:Guillotine
 13:Razor Wind
 14:Swords Dance
@@ -74,14 +74,14 @@
 74:Growth
 75:Razor Leaf
 76:Solar Beam
-77:Poison Powder
+77:PoisonPowder
 78:Stun Spore
 79:Sleep Powder
 80:Petal Dance
 81:String Shot
 82:Dragon Rage
 83:Fire Spin
-84:Thunder Shock
+84:ThunderShock
 85:Thunderbolt
 86:Thunder Wave
 87:Thunder
@@ -117,7 +117,7 @@
 117:Bide
 118:Metronome
 119:Mirror Move
-120:Self-Destruct
+120:Selfdestruct
 121:Egg Bomb
 122:Lick
 123:Smog
@@ -133,7 +133,7 @@
 133:Amnesia
 134:Kinesis
 135:Soft-Boiled
-136:High Jump Kick
+136:Hi Jump Kick
 137:Glare
 138:Dream Eater
 139:Poison Gas
@@ -220,9 +220,9 @@
 220:Pain Split
 221:Sacred Fire
 222:Magnitude
-223:Dynamic Punch
+223:DynamicPunch
 224:Megahorn
-225:Dragon Breath
+225:DragonBreath
 226:Baton Pass
 227:Encore
 228:Pursuit
@@ -242,8 +242,8 @@
 242:Crunch
 243:Mirror Coat
 244:Psych Up
-245:Extreme Speed
-246:Ancient Power
+245:ExtremeSpeed
+246:AncientPower
 247:Shadow Ball
 248:Future Sight
 249:Rock Smash
@@ -262,7 +262,7 @@
 262:Memento
 263:Facade
 264:Focus Punch
-265:Smelling Salts
+265:SmellingSalt
 266:Follow Me
 267:Nature Power
 268:Charge
@@ -294,7 +294,7 @@
 294:Tail Glow
 295:Luster Purge
 296:Mist Ball
-297:Feather Dance
+297:FeatherDance
 298:Teeter Dance
 299:Blaze Kick
 300:Mud Sport
@@ -317,7 +317,7 @@
 317:Rock Tomb
 318:Silver Wind
 319:Metal Sound
-320:Grass Whistle
+320:Grasswhistle
 321:Tickle
 322:Cosmic Power
 323:Water Spout
@@ -655,7 +655,7 @@
 655:Simple Beam
 656:Soak
 657:Telekinesis
-658:Trick-or-Treat
+658:TrickoTreat
 659:Venom Drench
 660:Woods Curse
 661:Mind Blown
@@ -664,7 +664,7 @@
 664:Electrify
 665:Embargo
 666:Fairy Lock
-667:Light of Ruin
+667:Light o Ruin
 668:Trump Card
 669:After You
 670:Instruct
@@ -675,7 +675,7 @@
 675:Sky Drop
 676:Celebrate
 677:Hold Hands
-678:Dmax Cannon
+678:DMax Cannon
 679:Snipe Shot
 680:Jaw Lock
 681:Stuff Cheeks
@@ -721,7 +721,7 @@
 721:TerrainPulse
 722:SkitterSmack
 723:Jealous Burn
-724:Lash out
+724:Lash Out
 725:Poltergeist
 726:Corrode Gas
 727:Coaching

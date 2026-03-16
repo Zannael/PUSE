@@ -250,41 +250,31 @@ class UnboundPCMon:
 
     # --- GESTIONE MOSSE (BIT-PACKED CFRU COMPACT) ---
     def get_moves(self):
-        moves = []
-        m1_raw = (self.raw[0x26] << 8) | self.raw[0x27]
-        moves.append(m1_raw & 0x1FF)
-        m2_raw = (self.raw[0x29] << 8) | self.raw[0x28]
-        moves.append((m2_raw >> 2) & 0x1FF)
-        m3_raw = (self.raw[0x2A] << 8) | self.raw[0x29]
-        moves.append((m3_raw >> 4) & 0x1FF)
-        m4_raw = (self.raw[0x2B] << 8) | self.raw[0x2A]
-        moves.append((m4_raw >> 6) & 0x1FF)
-        return moves
+        packed = 0
+        for i in range(5):
+            packed |= self.raw[0x27 + i] << (8 * i)
+        return [
+            (packed >> 0) & 0x3FF,
+            (packed >> 10) & 0x3FF,
+            (packed >> 20) & 0x3FF,
+            (packed >> 30) & 0x3FF,
+        ]
 
     def set_moves(self, moves_list):
         curr_moves = list(moves_list)
         while len(curr_moves) < 4: curr_moves.append(0)
 
-        def write_bits(idx_low, idx_high, shift, value, is_be=False):
-            if is_be:
-                existing = (self.raw[idx_low] << 8) | self.raw[idx_high]
-            else:
-                existing = (self.raw[idx_high] << 8) | self.raw[idx_low]
-            mask = 0x1FF << shift
-            existing &= ~mask
-            new_bits = (value & 0x1FF) << shift
-            final = existing | new_bits
-            if is_be:
-                self.raw[idx_low] = (final >> 8) & 0xFF
-                self.raw[idx_high] = final & 0xFF
-            else:
-                self.raw[idx_high] = (final >> 8) & 0xFF
-                self.raw[idx_low] = final & 0xFF
+        packed = 0
+        for i in range(5):
+            packed |= self.raw[0x27 + i] << (8 * i)
 
-        write_bits(0x26, 0x27, 0, curr_moves[0], is_be=True)
-        write_bits(0x28, 0x29, 2, curr_moves[1], is_be=False)
-        write_bits(0x29, 0x2A, 4, curr_moves[2], is_be=False)
-        write_bits(0x2A, 0x2B, 6, curr_moves[3], is_be=False)
+        for idx, move_id in enumerate(curr_moves[:4]):
+            shift = idx * 10
+            packed &= ~(0x3FF << shift)
+            packed |= (int(move_id) & 0x3FF) << shift
+
+        for i in range(5):
+            self.raw[0x27 + i] = (packed >> (8 * i)) & 0xFF
 
 
 # --- GESTIONE BUFFER & FILE ---

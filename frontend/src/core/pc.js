@@ -69,37 +69,16 @@ function isValidMon(raw) {
 }
 
 function getMoves(raw) {
-    const moves = [];
-    const m1Raw = (raw[0x26] << 8) | raw[0x27];
-    moves.push(m1Raw & 0x1FF);
-    const m2Raw = (raw[0x29] << 8) | raw[0x28];
-    moves.push((m2Raw >>> 2) & 0x1FF);
-    const m3Raw = (raw[0x2A] << 8) | raw[0x29];
-    moves.push((m3Raw >>> 4) & 0x1FF);
-    const m4Raw = (raw[0x2B] << 8) | raw[0x2A];
-    moves.push((m4Raw >>> 6) & 0x1FF);
-    return moves;
-}
-
-function writeBits(raw, idxLow, idxHigh, shift, value, isBe = false) {
-    let existing;
-    if (isBe) {
-        existing = (raw[idxLow] << 8) | raw[idxHigh];
-    } else {
-        existing = (raw[idxHigh] << 8) | raw[idxLow];
+    let packed = 0n;
+    for (let i = 0; i < 5; i += 1) {
+        packed |= BigInt(raw[0x27 + i]) << BigInt(8 * i);
     }
-
-    const mask = 0x1FF << shift;
-    existing &= ~mask;
-    const next = existing | ((value & 0x1FF) << shift);
-
-    if (isBe) {
-        raw[idxLow] = (next >>> 8) & 0xFF;
-        raw[idxHigh] = next & 0xFF;
-    } else {
-        raw[idxHigh] = (next >>> 8) & 0xFF;
-        raw[idxLow] = next & 0xFF;
-    }
+    return [
+        Number((packed >> 0n) & 0x3FFn),
+        Number((packed >> 10n) & 0x3FFn),
+        Number((packed >> 20n) & 0x3FFn),
+        Number((packed >> 30n) & 0x3FFn),
+    ];
 }
 
 function setMoves(raw, movesList) {
@@ -108,10 +87,20 @@ function setMoves(raw, movesList) {
         curr.push(0);
     }
 
-    writeBits(raw, 0x26, 0x27, 0, curr[0], true);
-    writeBits(raw, 0x28, 0x29, 2, curr[1], false);
-    writeBits(raw, 0x29, 0x2A, 4, curr[2], false);
-    writeBits(raw, 0x2A, 0x2B, 6, curr[3], false);
+    let packed = 0n;
+    for (let i = 0; i < 5; i += 1) {
+        packed |= BigInt(raw[0x27 + i]) << BigInt(8 * i);
+    }
+
+    for (let i = 0; i < 4; i += 1) {
+        const shift = BigInt(i * 10);
+        packed &= ~(0x3FFn << shift);
+        packed |= (BigInt(Number(curr[i]) & 0x3FF)) << shift;
+    }
+
+    for (let i = 0; i < 5; i += 1) {
+        raw[0x27 + i] = Number((packed >> BigInt(8 * i)) & 0xFFn);
+    }
 }
 
 function getIvs(raw) {
