@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, Package, Edit3, X, ArrowLeft, Star, Save, CircleHelp } from 'lucide-react';
+import { ITEM_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 
 const BagView = ({ client }) => {
     const isTmHmItemId = (id) =>
@@ -249,7 +250,9 @@ const BagView = ({ client }) => {
                                                     alt={item.name}
                                                     className="w-8 h-8 object-contain"
                                                     onError={(e) => {
-                                                        e.currentTarget.style.display = 'none';
+                                                        if (e.currentTarget.src !== ITEM_ICON_FALLBACK_URL) {
+                                                            e.currentTarget.src = ITEM_ICON_FALLBACK_URL;
+                                                        }
                                                     }}
                                                 />
                                             ) : (
@@ -400,7 +403,9 @@ const BagView = ({ client }) => {
                                                     alt={item.name}
                                                     className="w-8 h-8 object-contain"
                                                     onError={(e) => {
-                                                        e.currentTarget.style.display = 'none';
+                                                        if (e.currentTarget.src !== ITEM_ICON_FALLBACK_URL) {
+                                                            e.currentTarget.src = ITEM_ICON_FALLBACK_URL;
+                                                        }
                                                     }}
                                                 />
                                             ) : (
@@ -492,7 +497,9 @@ const BagView = ({ client }) => {
                                                                 alt={it.name}
                                                                 className="w-5 h-5 object-contain"
                                                                 onError={(e) => {
-                                                                    e.currentTarget.style.display = 'none';
+                                                                    if (e.currentTarget.src !== ITEM_ICON_FALLBACK_URL) {
+                                                                        e.currentTarget.src = ITEM_ICON_FALLBACK_URL;
+                                                                    }
                                                                 }}
                                                             />
                                                         )}

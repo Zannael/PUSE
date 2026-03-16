@@ -114,6 +114,19 @@ docker compose up --build
 - To enable sprites locally, clone/copy that folder into:
   - `backend/icons/pokemon/`
 
+### Frontend icon delivery (GitHub Pages / local mode)
+
+- In frontend local mode, icons are resolved without backend endpoints:
+  - Pokemon icons: `Skeli789/Dynamic-Pokemon-Expansion`
+  - Item icons: `PokeAPI/sprites`
+- Manifests are generated and committed under:
+  - `frontend/src/data/pokemon-icon-manifest.json`
+  - `frontend/src/data/item-icon-manifest.json`
+- To refresh mappings after changing pinned commits or source lists:
+  - Run `npm run icons:manifest` inside `frontend/`
+  - (Optional CI/local guard) run `npm run icons:check`
+- Unmapped IDs gracefully fall back to local placeholders in `frontend/public/icons/`.
+
 ## Optional Item Icons
 
 - Item icons are optional and not required to run the app.
@@ -145,6 +158,7 @@ docker compose up --build
 - Frontend deploy is handled by `.github/workflows/deploy-pages.yml`.
 - One-time setup: in GitHub, go to `Settings -> Pages -> Source` and choose **GitHub Actions**.
 - On push to `main` (or manual run), the workflow builds `frontend/dist` in local mode, sets `VITE_BASE_PATH=/<repo>/`, and copies `index.html` to `404.html` for SPA fallback.
+- Icons in local mode are served from pinned CDN commits via generated manifests, so no backend icon folders are required on GitHub Pages.
 
 ## Safety Notes
 

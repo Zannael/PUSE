@@ -1,5 +1,6 @@
 import React from 'react';
 import { Zap, Shield, Heart, Target, Wind, Activity } from 'lucide-react';
+import { POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 
 const PokemonCard = ({ pokemon, onEdit, getPokemonIconUrl }) => {
     // Funzione per il colore delle barre IV (0-31)
@@ -35,7 +36,9 @@ const PokemonCard = ({ pokemon, onEdit, getPokemonIconUrl }) => {
                             alt={pokemon.species_name}
                             className="w-full h-full object-contain pixelated scale-125"
                             onError={(e) => {
-                                e.target.src = 'https://via.placeholder.com/64?text=?';
+                                if (e.currentTarget.src !== POKEMON_ICON_FALLBACK_URL) {
+                                    e.currentTarget.src = POKEMON_ICON_FALLBACK_URL;
+                                }
                             }}
                         />
                     </div>

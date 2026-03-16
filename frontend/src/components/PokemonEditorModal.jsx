@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Zap, Save, Search } from 'lucide-react';
 import { calcCurrentLevel, GROWTH_OPTIONS } from '../core/growth.js';
+import { ITEM_ICON_FALLBACK_URL, POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 
 export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
     const isPcMon = Boolean(pokemon?.isPC);
@@ -13,7 +14,6 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
     const [searchTerm, setSearchTerm] = useState(['', '', '', '']);
     const [allItems, setAllItems] = useState([]);
     const [itemSearch, setItemSearch] = useState('');
-    const [brokenItemIcons, setBrokenItemIcons] = useState(() => new Set());
     const [levelInput, setLevelInput] = useState(String(initialLevel));
     const [levelGrowthMode, setLevelGrowthMode] = useState(initialGrowthMode);
     const [levelDirty, setLevelDirty] = useState(false);
@@ -29,8 +29,7 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
     const canShowItemIcon =
         localPk.item_id > 0 &&
         !!currentItem &&
-        hasKnownItemName(currentItem.name) &&
-        !brokenItemIcons.has(localPk.item_id);
+        hasKnownItemName(currentItem.name);
 
     useEffect(() => {
         client.getMoves()
@@ -78,7 +77,16 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
 
                 <div className="p-6 bg-[#1e293b] flex justify-between items-center border-b border-white/5">
                     <div className="flex items-center gap-4">
-                        <img src={client.getPokemonIconUrl(localPk.species_id)} className="w-12 h-12 pixelated" alt="icon"/>
+                        <img
+                            src={client.getPokemonIconUrl(localPk.species_id)}
+                            className="w-12 h-12 pixelated"
+                            alt="icon"
+                            onError={(e) => {
+                                if (e.currentTarget.src !== POKEMON_ICON_FALLBACK_URL) {
+                                    e.currentTarget.src = POKEMON_ICON_FALLBACK_URL;
+                                }
+                            }}
+                        />
                         <div>
                             <h2 className="text-xl font-bold">{localPk.nickname}</h2>
                             <p className="text-xs text-slate-500 uppercase font-black">Pokemon Editor</p>
@@ -89,12 +97,10 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
                                     src={client.getItemIconUrl(localPk.item_id)}
                                     alt={currentItemName}
                                     className="w-7 h-7 object-contain"
-                                    onError={() => {
-                                        setBrokenItemIcons((prev) => {
-                                            const next = new Set(prev);
-                                            next.add(localPk.item_id);
-                                            return next;
-                                        });
+                                    onError={(e) => {
+                                        if (e.currentTarget.src !== ITEM_ICON_FALLBACK_URL) {
+                                            e.currentTarget.src = ITEM_ICON_FALLBACK_URL;
+                                        }
                                     }}
                                 />
                             ) : (
@@ -332,12 +338,10 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
                                                     src={client.getItemIconUrl(localPk.item_id)}
                                                     alt={currentItemName}
                                                     className="w-7 h-7 object-contain"
-                                                    onError={() => {
-                                                        setBrokenItemIcons((prev) => {
-                                                            const next = new Set(prev);
-                                                            next.add(localPk.item_id);
-                                                            return next;
-                                                        });
+                                                    onError={(e) => {
+                                                        if (e.currentTarget.src !== ITEM_ICON_FALLBACK_URL) {
+                                                            e.currentTarget.src = ITEM_ICON_FALLBACK_URL;
+                                                        }
                                                     }}
                                                 />
                                             ) : (

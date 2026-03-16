@@ -1,4 +1,8 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
+import {
+    resolveItemIconUrl,
+    resolvePokemonIconUrl,
+} from '../core/iconResolver.js';
 import { saveAll as commitSaveAll } from '../core/commit.js';
 import { getItemsList, getMovesList, getSpeciesMap, loadCatalog } from '../core/catalog.js';
 import {
@@ -88,13 +92,6 @@ function downloadBlob(blob, filename) {
     URL.revokeObjectURL(url);
 }
 
-function iconUrl(path) {
-    if (!API_BASE) {
-        return '';
-    }
-    return `${API_BASE}${path}`;
-}
-
 let itemNameMapCache = null;
 
 async function getItemNameMap() {
@@ -108,10 +105,10 @@ async function getItemNameMap() {
 
 const backendClient = {
     getPokemonIconUrl(speciesId) {
-        return iconUrl(`/pokemon-icon/${speciesId}`);
+        return resolvePokemonIconUrl(speciesId, API_BASE);
     },
     getItemIconUrl(itemId) {
-        return iconUrl(`/item-icon/${itemId}`);
+        return resolveItemIconUrl(itemId, API_BASE);
     },
     async uploadSave(file) {
         const formData = new FormData();
@@ -230,10 +227,10 @@ const backendClient = {
 
 const localClient = {
     getPokemonIconUrl(speciesId) {
-        return iconUrl(`/pokemon-icon/${speciesId}`);
+        return resolvePokemonIconUrl(speciesId, API_BASE);
     },
     getItemIconUrl(itemId) {
-        return iconUrl(`/item-icon/${itemId}`);
+        return resolveItemIconUrl(itemId, API_BASE);
     },
     uploadSave(file) {
         itemNameMapCache = null;

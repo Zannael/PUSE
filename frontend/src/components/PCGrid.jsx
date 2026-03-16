@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Package } from 'lucide-react';
+import { POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 
 const TOTAL_BOXES = 26;
 
@@ -85,6 +86,11 @@ const PCGrid = ({ client, onEditPokemon }) => {
                                     src={client.getPokemonIconUrl(pk.species_id)}
                                     alt={pk.nickname}
                                     className="w-16 h-16 object-contain pixelated group-hover:scale-110 transition-transform"
+                                    onError={(e) => {
+                                        if (e.currentTarget.src !== POKEMON_ICON_FALLBACK_URL) {
+                                            e.currentTarget.src = POKEMON_ICON_FALLBACK_URL;
+                                        }
+                                    }}
                                 />
                             </div>
                             <div className="text-center">
