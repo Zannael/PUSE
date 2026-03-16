@@ -37,6 +37,18 @@ const App = () => {
 
     const [selectedPokemon, setSelectedPokemon] = useState(null);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [bagHasUnsavedChanges, setBagHasUnsavedChanges] = useState(false);
+
+    const handleTabChange = (nextTab) => {
+        if (nextTab === activeTab) return;
+        if (activeTab === 'bag' && nextTab !== 'bag' && bagHasUnsavedChanges) {
+            const shouldLeave = window.confirm(
+                'You have unsaved bag edits. Leave anyway?\n\nYour changes stay in memory, but the .sav file is not updated until you click SAVE BAG CHANGES in Bag.'
+            );
+            if (!shouldLeave) return;
+        }
+        setActiveTab(nextTab);
+    };
 
     const clamp = (value, min, max) => {
         const n = Number(value);
@@ -64,6 +76,9 @@ const App = () => {
             await client.updatePartyAbilitySwitch(updatedPk.index, { ability_index: updatedPk.current_ability_index });
             await client.updatePartyNature(updatedPk.index, { nature_id: updatedPk.nature_id });
             await client.updatePartyItem(updatedPk.index, { item_id: updatedPk.item_id });
+            if (updatedPk.species_id !== selectedPokemon?.species_id) {
+                await client.updatePartySpecies(updatedPk.index, { species_id: updatedPk.species_id });
+            }
             if (updatedPk.level_edit) {
                 await client.updatePartyLevel(updatedPk.index, updatedPk.level_edit);
             }
@@ -89,6 +104,10 @@ const App = () => {
                 nature_id: updatedPk.nature_id,
                 exp: updatedPk.exp
             };
+
+            if (updatedPk.species_id !== selectedPokemon?.species_id) {
+                payload.species_id = updatedPk.species_id;
+            }
 
             if (updatedPk.level_edit) {
                 const targetLevel = Math.max(1, Math.min(100, Number(updatedPk.level_edit.target_level || 1)));
@@ -199,7 +218,7 @@ const App = () => {
                                 setSelectedPokemon({ ...pk, isPC: true });
                             }}
                         />}
-                        {activeTab === 'bag' && <BagView client={client} />}
+                        {activeTab === 'bag' && <BagView client={client} initialUnsaved={bagHasUnsavedChanges} onDirtyChange={setBagHasUnsavedChanges} />}
                     </div>
                 )}
             </main>
@@ -249,9 +268,9 @@ const App = () => {
 
             {isLoaded && (
                 <nav className="fixed bottom-6 w-[90%] max-w-md bg-[#1e293b]/95 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-2 shadow-2xl flex justify-around z-50">
-                    <TabItem icon={<LayoutGrid size={20}/>} label="Party" active={activeTab === 'party'} onClick={() => setActiveTab('party')} />
-                    <TabItem icon={<Users size={20}/>} label="PC Box" active={activeTab === 'pc'} onClick={() => setActiveTab('pc')} />
-                    <TabItem icon={<Briefcase size={20}/>} label="Bag" active={activeTab === 'bag'} onClick={() => setActiveTab('bag')} />
+                    <TabItem icon={<LayoutGrid size={20}/>} label="Party" active={activeTab === 'party'} onClick={() => handleTabChange('party')} />
+                    <TabItem icon={<Users size={20}/>} label="PC Box" active={activeTab === 'pc'} onClick={() => handleTabChange('pc')} />
+                    <TabItem icon={<Briefcase size={20}/>} label="Bag" active={activeTab === 'bag'} onClick={() => handleTabChange('bag')} />
                 </nav>
             )}
 

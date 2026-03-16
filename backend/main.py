@@ -262,6 +262,10 @@ class ItemUpdate(BaseModel):
     item_id: int
 
 
+class SpeciesUpdate(BaseModel):
+    species_id: int
+
+
 class PartyLevelUpdate(BaseModel):
     target_level: int
     growth_rate: int | None = None
@@ -328,6 +332,22 @@ async def update_party_item(idx: int, data: ItemUpdate):
     return {"status": "Item updated"}
 
 
+@app.post("/party/{idx}/species")
+async def update_party_species(idx: int, data: SpeciesUpdate):
+    if data.species_id <= 0 or data.species_id not in party_mod.DB_SPECIES:
+        raise HTTPException(status_code=400, detail="Invalid species_id")
+
+    off = get_active_trainer_offset()
+    mon_off = off + 0x38 + (idx * 100)
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+
+    pk.set_species_id(data.species_id)
+    pk.recalculate_party_stats(clamp_hp=True)
+
+    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    return {"status": "Species updated", "species_id": data.species_id}
+
+
 @app.post("/party/{idx}/ability-switch")
 async def switch_ability(idx: int, data: AbilitySwitch):
     off = get_active_trainer_offset()
@@ -356,6 +376,7 @@ async def update_ivs(idx: int, stats: StatUpdate):
         'Spd': stats.spe, 'SpA': stats.spa, 'SpD': stats.spd
     }
     pk.set_ivs(new_ivs)
+    pk.recalculate_party_stats(clamp_hp=True)
 
     # Pack and write back to local buffer
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
@@ -370,6 +391,7 @@ async def update_nature(idx: int, data: NatureUpdate):
 
     pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
     pk.set_nature(data.nature_id)
+    pk.recalculate_party_stats(clamp_hp=True)
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
     return {"status": f"Nature changed to {party_mod.DB_NATURES.get(data.nature_id)}"}
@@ -398,6 +420,7 @@ async def update_party_level(idx: int, data: PartyLevelUpdate):
     new_exp = party_mod.get_exp_at_level(growth_rate, target_level)
     pk.set_exp(new_exp)
     pk.set_visual_level(target_level)
+    pk.recalculate_party_stats(clamp_hp=True)
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
     return {
@@ -425,6 +448,12 @@ async def get_all_items():
     """Return full item list (ID and name) for the frontend."""
     # Convert dictionary into frontend object list
     return [{"id": k, "name": v} for k, v in bag_mod.DB_ITEMS.items() if k != 0]
+
+
+@app.get("/species")
+async def get_all_species():
+    """Return full species list (ID and name) for the frontend."""
+    return [{"id": k, "name": v} for k, v in party_mod.DB_SPECIES.items() if k != 0]
 
 
 @app.get("/bag/scan/{search_item_id}")
@@ -625,6 +654,7 @@ async def update_evs(idx: int, stats: EvUpdate):
         'Spd': stats.spe, 'SpA': stats.spa, 'SpD': stats.spd
     }
     pk.set_evs(new_evs)
+    pk.recalculate_party_stats(clamp_hp=True)
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
     return {"status": "EVs updated"}
 
@@ -667,6 +697,7 @@ class PCFullUpdate(BaseModel):
     nickname: str = None
     moves: List[int] = None
     item_id: int = None
+    species_id: int = None
     ivs: dict = None
     evs: dict = None
     nature_id: int = None
@@ -685,6 +716,10 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
     # Apply updates using UnboundPCMon methods (v16)
     if upd.moves: target.set_moves(upd.moves)
     if upd.item_id is not None: target.set_item_id(upd.item_id)
+    if upd.species_id is not None:
+        if upd.species_id <= 0 or upd.species_id not in box_mod.DB_SPECIES:
+            raise HTTPException(status_code=400, detail="Invalid species_id")
+        target.set_species_id(upd.species_id)
     if upd.ivs: target.set_ivs(upd.ivs)
     if upd.evs: target.set_evs(upd.evs)
     if upd.nature_id is not None: target.set_nature(upd.nature_id)

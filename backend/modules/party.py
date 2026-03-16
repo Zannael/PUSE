@@ -7,6 +7,7 @@ import sys
 import shutil
 import os
 import math
+import json
 
 from core.data_loader import load_id_name_file
 
@@ -25,11 +26,19 @@ OFF_NICK = 0x08
 OFF_DATA_START = 0x20
 OFF_CHECKSUM = 0x1C
 OFF_LEVEL_VISUAL = 0x54
+OFF_CURR_HP = 0x56
+OFF_MAX_HP = 0x58
+OFF_ATK = 0x5A
+OFF_DEF = 0x5C
+OFF_SPE = 0x5E
+OFF_SPA = 0x60
+OFF_SPD = 0x62
 
 # --- DATABASE GLOBALE ---
 DB_ITEMS = {}
 DB_MOVES = {}
 DB_SPECIES = {}
+DB_SPECIES_BASE_STATS = {}
 
 DB_NATURES = {
     0: "Hardy (Ardita)", 1: "Lonely (Schiva)", 2: "Brave (Audace)", 3: "Adamant (Decisa)",
@@ -174,15 +183,78 @@ def load_static_data():
     DB_ITEMS.clear()
     DB_MOVES.clear()
     DB_SPECIES.clear()
+    DB_SPECIES_BASE_STATS.clear()
 
     DB_ITEMS.update(load_id_name_file("items.txt"))
     DB_MOVES.update(load_id_name_file("moves.txt"))
     DB_SPECIES.update(load_id_name_file("pokemon.txt"))
 
+    base_stats_path = os.path.join(os.path.dirname(__file__), "..", "data", "species_base_stats.json")
+    if os.path.exists(base_stats_path):
+        with open(base_stats_path, "r", encoding="utf-8") as fh:
+            raw_stats = json.loads(fh.read())
+        for sid, stats in raw_stats.items():
+            if not str(sid).isdigit():
+                continue
+            DB_SPECIES_BASE_STATS[int(sid)] = {
+                "hp": int(stats.get("hp", 0)),
+                "atk": int(stats.get("atk", 0)),
+                "def": int(stats.get("def", 0)),
+                "spe": int(stats.get("spe", 0)),
+                "spa": int(stats.get("spa", 0)),
+                "spd": int(stats.get("spd", 0)),
+            }
+
     print(
         f"[INFO] Dati statici caricati: "
-        f"{len(DB_ITEMS)} oggetti, {len(DB_MOVES)} mosse, {len(DB_SPECIES)} specie."
+        f"{len(DB_ITEMS)} oggetti, {len(DB_MOVES)} mosse, {len(DB_SPECIES)} specie, "
+        f"{len(DB_SPECIES_BASE_STATS)} base stats."
     )
+
+
+def nature_modifier(nature_id, stat_key):
+    inc_dec = {
+        0: (None, None),
+        1: ("atk", "def"),
+        2: ("atk", "spe"),
+        3: ("atk", "spa"),
+        4: ("atk", "spd"),
+        5: ("def", "atk"),
+        6: (None, None),
+        7: ("def", "spe"),
+        8: ("def", "spa"),
+        9: ("def", "spd"),
+        10: ("spe", "atk"),
+        11: ("spe", "def"),
+        12: (None, None),
+        13: ("spe", "spa"),
+        14: ("spe", "spd"),
+        15: ("spa", "atk"),
+        16: ("spa", "def"),
+        17: ("spa", "spe"),
+        18: (None, None),
+        19: ("spa", "spd"),
+        20: ("spd", "atk"),
+        21: ("spd", "def"),
+        22: ("spd", "spe"),
+        23: ("spd", "spa"),
+        24: (None, None),
+    }
+    inc, dec = inc_dec.get(int(nature_id) % 25, (None, None))
+    if stat_key == inc:
+        return 1.1
+    if stat_key == dec:
+        return 0.9
+    return 1.0
+
+
+def calc_hp_stat(base, iv, ev, level):
+    return ((2 * base + iv + (ev // 4)) * level) // 100 + level + 10
+
+
+def calc_other_stat(base, iv, ev, level, nature_mult):
+    neutral = ((2 * base + iv + (ev // 4)) * level) // 100 + 5
+    return int(math.floor(neutral * nature_mult))
 
 
 # Compat legacy name.
@@ -309,6 +381,11 @@ class Pokemon:
         wu16(b, 2, item_id)
         self.substructs['B'] = b
 
+    def set_species_id(self, species_id):
+        b = bytearray(self.substructs['B'])
+        wu16(b, 0, species_id)
+        self.substructs['B'] = b
+
     def set_moves(self, moves):
         a = bytearray(self.substructs['A'])
         for i in range(4):
@@ -322,6 +399,38 @@ class Pokemon:
 
     def set_visual_level(self, lvl):
         wu8(self.raw, OFF_LEVEL_VISUAL, lvl)
+
+    def recalculate_party_stats(self, clamp_hp=True):
+        species_id = self.get_species_id()
+        base = DB_SPECIES_BASE_STATS.get(species_id)
+        if not base:
+            return
+
+        level = max(1, int(self.raw[OFF_LEVEL_VISUAL]))
+        ivs = self.get_ivs()
+        evs = self.get_evs()
+        nature_id = self.get_nature_id()
+
+        new_max_hp = calc_hp_stat(base["hp"], ivs["HP"], evs["HP"], level)
+        new_atk = calc_other_stat(base["atk"], ivs["Atk"], evs["Atk"], level, nature_modifier(nature_id, "atk"))
+        new_def = calc_other_stat(base["def"], ivs["Def"], evs["Def"], level, nature_modifier(nature_id, "def"))
+        new_spe = calc_other_stat(base["spe"], ivs["Spd"], evs["Spd"], level, nature_modifier(nature_id, "spe"))
+        new_spa = calc_other_stat(base["spa"], ivs["SpA"], evs["SpA"], level, nature_modifier(nature_id, "spa"))
+        new_spd = calc_other_stat(base["spd"], ivs["SpD"], evs["SpD"], level, nature_modifier(nature_id, "spd"))
+
+        old_hp = ru16(self.raw, OFF_CURR_HP)
+        if clamp_hp:
+            new_hp = min(old_hp, new_max_hp)
+        else:
+            new_hp = new_max_hp
+
+        wu16(self.raw, OFF_CURR_HP, max(0, int(new_hp)))
+        wu16(self.raw, OFF_MAX_HP, max(1, int(new_max_hp)))
+        wu16(self.raw, OFF_ATK, max(1, int(new_atk)))
+        wu16(self.raw, OFF_DEF, max(1, int(new_def)))
+        wu16(self.raw, OFF_SPE, max(1, int(new_spe)))
+        wu16(self.raw, OFF_SPA, max(1, int(new_spa)))
+        wu16(self.raw, OFF_SPD, max(1, int(new_spd)))
 
     def pack_data(self):
         new_payload = self.substructs['B'] + self.substructs['A'] + self.substructs['D'] + self.substructs['C']

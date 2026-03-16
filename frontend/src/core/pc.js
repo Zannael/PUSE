@@ -327,6 +327,9 @@ export function editPcMonFull(context, payload) {
     if (payload.item_id !== undefined && payload.item_id !== null) {
         wu16(raw, OFF_ITEM, Number(payload.item_id));
     }
+    if (payload.species_id !== undefined && payload.species_id !== null) {
+        wu16(raw, OFF_SPECIES, Number(payload.species_id));
+    }
     if (payload.ivs) {
         setIvs(raw, payload.ivs);
     }

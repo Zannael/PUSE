@@ -4,7 +4,7 @@ import {
     resolvePokemonIconUrl,
 } from '../core/iconResolver.js';
 import { saveAll as commitSaveAll } from '../core/commit.js';
-import { getItemsList, getMovesList, getSpeciesMap, loadCatalog } from '../core/catalog.js';
+import { getItemsList, getMovesList, getSpeciesList, getSpeciesMap, loadCatalog } from '../core/catalog.js';
 import {
     formatScanResults,
     mapPocketFromAnchor,
@@ -22,6 +22,7 @@ import {
     updatePartyLevel as patchPartyLevel,
     updatePartyMoves as patchPartyMoves,
     updatePartyNature as patchPartyNature,
+    updatePartySpecies as patchPartySpecies,
 } from '../core/party.js';
 import {
     clearPcContext,
@@ -101,6 +102,15 @@ async function getItemNameMap() {
     const items = await getItemsList();
     itemNameMapCache = new Map(items.map((it) => [it.id, it.name]));
     return itemNameMapCache;
+}
+
+async function ensureValidSpeciesId(speciesId) {
+    const nextId = Number(speciesId);
+    const speciesMap = await getSpeciesMap();
+    if (!Number.isInteger(nextId) || nextId <= 0 || !speciesMap.has(nextId)) {
+        throw new Error('Invalid species_id');
+    }
+    return nextId;
 }
 
 const backendClient = {
@@ -185,6 +195,13 @@ const backendClient = {
             body: JSON.stringify(payload),
         });
     },
+    async updatePartySpecies(index, payload) {
+        await backendJson(`/party/${index}/species`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+    },
     loadPc() {
         return backendJson("/pc/load");
     },
@@ -203,6 +220,9 @@ const backendClient = {
     },
     getItems() {
         return backendJson("/items");
+    },
+    getSpecies() {
+        return backendJson("/species");
     },
     scanBag(searchId) {
         return backendJson(`/bag/scan/${searchId}`);
@@ -282,6 +302,11 @@ const localClient = {
         updateBuffer((next) => patchPartyItem(next, Number(index), payload || {}));
         return Promise.resolve({ status: 'Item updated in memory' });
     },
+    async updatePartySpecies(index, payload) {
+        const speciesId = await ensureValidSpeciesId(payload?.species_id);
+        updateBuffer((next) => patchPartySpecies(next, Number(index), { species_id: speciesId }));
+        return Promise.resolve({ status: 'Species updated in memory' });
+    },
     loadPc() {
         const context = loadPcContext(getBuffer());
         setPcContext(context);
@@ -296,13 +321,17 @@ const localClient = {
         const speciesMap = await getSpeciesMap();
         return readPcBox(context, Number(boxId), speciesMap);
     },
-    editPcFull(payload) {
+    async editPcFull(payload) {
         let context = getPcContext();
         if (!context) {
             context = loadPcContext(getBuffer());
             setPcContext(context);
         }
-        editPcMonFull(context, payload || {});
+        const nextPayload = { ...(payload || {}) };
+        if (nextPayload.species_id !== undefined && nextPayload.species_id !== null) {
+            nextPayload.species_id = await ensureValidSpeciesId(nextPayload.species_id);
+        }
+        editPcMonFull(context, nextPayload);
         return Promise.resolve({ status: 'PC edit buffered' });
     },
     getMoves() {
@@ -310,6 +339,9 @@ const localClient = {
     },
     getItems() {
         return getItemsList();
+    },
+    getSpecies() {
+        return getSpeciesList();
     },
     scanBag(searchId) {
         const candidates = scanForItemCandidates(getBuffer(), Number(searchId));

@@ -222,6 +222,10 @@ class UnboundPCMon:
         wu16(self.raw, OFF_ITEM, item_id)
         self.item_id = item_id
 
+    def set_species_id(self, species_id):
+        wu16(self.raw, OFF_SPECIES, species_id)
+        self.species_id = species_id
+
     # --- METODI PER GUI (Compatibilità) ---
     def get_hidden_ability_flag(self):
         return (ru32(self.raw, OFF_IVS) >> 31) & 1

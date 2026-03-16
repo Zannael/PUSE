@@ -13,7 +13,9 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
     const [allMoves, setAllMoves] = useState([]);
     const [searchTerm, setSearchTerm] = useState(['', '', '', '']);
     const [allItems, setAllItems] = useState([]);
+    const [allSpecies, setAllSpecies] = useState([]);
     const [itemSearch, setItemSearch] = useState('');
+    const [speciesSearch, setSpeciesSearch] = useState('');
     const [levelInput, setLevelInput] = useState(String(initialLevel));
     const [levelGrowthMode, setLevelGrowthMode] = useState(initialGrowthMode);
     const [levelDirty, setLevelDirty] = useState(false);
@@ -26,6 +28,8 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
 
     const currentItem = allItems.find(i => i.id === localPk.item_id);
     const currentItemName = currentItem?.name || `ID ${localPk.item_id}`;
+    const currentSpecies = allSpecies.find(s => s.id === localPk.species_id);
+    const currentSpeciesName = currentSpecies?.name || `Species ${localPk.species_id}`;
     const canShowItemIcon =
         localPk.item_id > 0 &&
         !!currentItem &&
@@ -56,6 +60,11 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
     useEffect(() => {
         client.getItems()
             .then(data => setAllItems(data));
+    }, [client]);
+
+    useEffect(() => {
+        client.getSpecies()
+            .then(data => setAllSpecies(data));
     }, [client]);
 
     const handleSaveClick = () => {
@@ -215,6 +224,67 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
 
                     {activeTab === 'info' && (
                         <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
+
+                            <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
+                                    Species
+                                </label>
+
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-3 text-slate-500" size={16} />
+                                    <input
+                                        type="text"
+                                        placeholder="Search species (e.g. 'Garchomp' or ID...)"
+                                        value={speciesSearch}
+                                        onChange={(e) => setSpeciesSearch(e.target.value)}
+                                        className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm outline-none focus:border-blue-500/50"
+                                    />
+                                </div>
+
+                                {speciesSearch.length > 1 ? (
+                                    <div className="max-h-48 overflow-y-auto bg-slate-900 rounded-xl border border-blue-500/30 divide-y divide-white/5">
+                                        {allSpecies
+                                            .filter(species =>
+                                                species.name.toLowerCase().includes(speciesSearch.toLowerCase()) ||
+                                                species.id.toString() === speciesSearch
+                                            )
+                                            .slice(0, 15)
+                                            .map(species => (
+                                                <button
+                                                    key={species.id}
+                                                    onClick={() => {
+                                                        setLocalPk({...localPk, species_id: species.id});
+                                                        setSpeciesSearch('');
+                                                    }}
+                                                    className="w-full text-left px-4 py-3 text-sm hover:bg-blue-600 transition-colors flex justify-between items-center group"
+                                                >
+                                                    <span className="group-hover:text-white">{species.name}</span>
+                                                    <span className="text-blue-400 font-mono text-[10px] bg-blue-500/10 px-2 py-0.5 rounded">ID {species.id}</span>
+                                                </button>
+                                            ))
+                                        }
+                                    </div>
+                                ) : (
+                                    <div className="flex justify-between items-center bg-slate-900/50 p-4 rounded-xl border border-blue-500/20">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] text-slate-500 uppercase font-black">Current Species</span>
+                                            <span className="text-blue-400 font-bold text-sm">
+                                                {currentSpeciesName}
+                                            </span>
+                                        </div>
+                                        <img
+                                            src={client.getPokemonIconUrl(localPk.species_id)}
+                                            alt={currentSpeciesName}
+                                            className="w-10 h-10 pixelated"
+                                            onError={(e) => {
+                                                if (e.currentTarget.src !== POKEMON_ICON_FALLBACK_URL) {
+                                                    e.currentTarget.src = POKEMON_ICON_FALLBACK_URL;
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
 
                             <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">

@@ -1,5 +1,6 @@
 import { ru8, ru16, ru32, wu8, wu16, wu32 } from './binary.js';
 import { findActiveSectionById } from './sections.js';
+import speciesBaseStats from './speciesBaseStats.json' with { type: 'json' };
 
 const TRAINER_SECTION_ID = 1;
 const PARTY_COUNT_OFFSET = 0x34;
@@ -11,6 +12,13 @@ const OFF_NICK = 0x08;
 const OFF_CHECKSUM = 0x1C;
 const OFF_DATA_START = 0x20;
 const OFF_LEVEL_VISUAL = 0x54;
+const OFF_CURR_HP = 0x56;
+const OFF_MAX_HP = 0x58;
+const OFF_ATK = 0x5A;
+const OFF_DEF = 0x5C;
+const OFF_SPE = 0x5E;
+const OFF_SPA = 0x60;
+const OFF_SPD = 0x62;
 
 const GROWTH_RATE_COUNT = 6;
 
@@ -210,10 +218,94 @@ function setItemId(rawMon, itemId) {
     writeSubstructs(rawMon, sub);
 }
 
+function setSpeciesId(rawMon, speciesId) {
+    const sub = substructViews(rawMon);
+    wu16(sub.B, 0, Number(speciesId));
+    writeSubstructs(rawMon, sub);
+}
+
 function setExp(rawMon, exp) {
     const sub = substructViews(rawMon);
     wu32(sub.B, 4, Number(exp >>> 0));
     writeSubstructs(rawMon, sub);
+}
+
+function natureModifier(natureId, statKey) {
+    const incDec = {
+        0: [null, null],
+        1: ['atk', 'def'],
+        2: ['atk', 'spe'],
+        3: ['atk', 'spa'],
+        4: ['atk', 'spd'],
+        5: ['def', 'atk'],
+        6: [null, null],
+        7: ['def', 'spe'],
+        8: ['def', 'spa'],
+        9: ['def', 'spd'],
+        10: ['spe', 'atk'],
+        11: ['spe', 'def'],
+        12: [null, null],
+        13: ['spe', 'spa'],
+        14: ['spe', 'spd'],
+        15: ['spa', 'atk'],
+        16: ['spa', 'def'],
+        17: ['spa', 'spe'],
+        18: [null, null],
+        19: ['spa', 'spd'],
+        20: ['spd', 'atk'],
+        21: ['spd', 'def'],
+        22: ['spd', 'spe'],
+        23: ['spd', 'spa'],
+        24: [null, null],
+    };
+    const [inc, dec] = incDec[Number(natureId) % 25] || [null, null];
+    if (statKey === inc) {
+        return 1.1;
+    }
+    if (statKey === dec) {
+        return 0.9;
+    }
+    return 1.0;
+}
+
+function calcHpStat(base, iv, ev, level) {
+    return Math.floor(((2 * base + iv + Math.floor(ev / 4)) * level) / 100) + level + 10;
+}
+
+function calcOtherStat(base, iv, ev, level, natureMult) {
+    const neutral = Math.floor(((2 * base + iv + Math.floor(ev / 4)) * level) / 100) + 5;
+    return Math.floor(neutral * natureMult);
+}
+
+function recalculatePartyStats(rawMon, clampHp = true) {
+    const speciesId = getSpeciesId(rawMon);
+    const base = speciesBaseStats?.[String(speciesId)];
+    if (!base) {
+        return;
+    }
+
+    const level = Math.max(1, Number(ru8(rawMon, OFF_LEVEL_VISUAL) || 1));
+    const ivs = getIvs(rawMon);
+    const evs = getEvs(rawMon);
+    const natureId = getNatureId(rawMon);
+
+    const maxHp = calcHpStat(Number(base.hp), ivs.HP, evs.HP, level);
+    const atk = calcOtherStat(Number(base.atk), ivs.Atk, evs.Atk, level, natureModifier(natureId, 'atk'));
+    const def = calcOtherStat(Number(base.def), ivs.Def, evs.Def, level, natureModifier(natureId, 'def'));
+    const spe = calcOtherStat(Number(base.spe), ivs.Spd, evs.Spd, level, natureModifier(natureId, 'spe'));
+    const spa = calcOtherStat(Number(base.spa), ivs.SpA, evs.SpA, level, natureModifier(natureId, 'spa'));
+    const spd = calcOtherStat(Number(base.spd), ivs.SpD, evs.SpD, level, natureModifier(natureId, 'spd'));
+
+    const oldHp = ru16(rawMon, OFF_CURR_HP);
+    const hp = clampHp ? Math.min(oldHp, maxHp) : maxHp;
+
+    wu16(rawMon, OFF_CURR_HP, Math.max(0, hp));
+    wu16(rawMon, OFF_MAX_HP, Math.max(1, maxHp));
+    wu16(rawMon, OFF_ATK, Math.max(1, atk));
+    wu16(rawMon, OFF_DEF, Math.max(1, def));
+    wu16(rawMon, OFF_SPE, Math.max(1, spe));
+    wu16(rawMon, OFF_SPA, Math.max(1, spa));
+    wu16(rawMon, OFF_SPD, Math.max(1, spd));
 }
 
 function getExpAtLevel(rateIdx, level) {
@@ -371,6 +463,7 @@ export function updatePartyIvs(buffer, monIndex, payload) {
             SpA: Number(payload.spa || 0),
             SpD: Number(payload.spd || 0),
         });
+        recalculatePartyStats(rawMon, true);
     });
 }
 
@@ -384,6 +477,7 @@ export function updatePartyEvs(buffer, monIndex, payload) {
             SpA: Number(payload.spa || 0),
             SpD: Number(payload.spd || 0),
         });
+        recalculatePartyStats(rawMon, true);
     });
 }
 
@@ -396,12 +490,20 @@ export function updatePartyMoves(buffer, monIndex, payload) {
 export function updatePartyNature(buffer, monIndex, payload) {
     mutatePartyMon(buffer, monIndex, (rawMon) => {
         setNature(rawMon, Number(payload.nature_id || 0));
+        recalculatePartyStats(rawMon, true);
     });
 }
 
 export function updatePartyItem(buffer, monIndex, payload) {
     mutatePartyMon(buffer, monIndex, (rawMon) => {
         setItemId(rawMon, Number(payload.item_id || 0));
+    });
+}
+
+export function updatePartySpecies(buffer, monIndex, payload) {
+    mutatePartyMon(buffer, monIndex, (rawMon) => {
+        setSpeciesId(rawMon, Number(payload.species_id || 0));
+        recalculatePartyStats(rawMon, true);
     });
 }
 
@@ -427,5 +529,6 @@ export function updatePartyLevel(buffer, monIndex, payload) {
         const targetExp = getExpAtLevel(growthRate, targetLevel);
         setExp(rawMon, targetExp);
         wu8(rawMon, OFF_LEVEL_VISUAL, targetLevel);
+        recalculatePartyStats(rawMon, true);
     });
 }
