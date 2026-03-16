@@ -89,6 +89,17 @@ KNOWN_POCKET_ANCHORS = {
     "berry": 0x1E5E4,
 }
 
+KNOWN_POCKET_REL_OFFSETS = {
+    "ball": 0x31C,
+    "tm": 0x3E4,
+    "berry": 0x5E4,
+}
+
+TM_CASE_ITEM_ID = 364
+BERRY_POUCH_ITEM_ID = 365
+
+EMPTY_BOOTSTRAP_SLOT_COUNT = 8
+
 MAIN_POCKET_PROBE_IDS = [13, 84, 197, 94, 24, 26, 16, 493, 603, 606, 72]
 
 
@@ -326,6 +337,108 @@ def _resolve_main_pocket(data):
     }
 
 
+def _resolve_template_base_offset(data, key_pocket=None):
+    if key_pocket and key_pocket.get('anchor_offset') is not None:
+        anchor = int(key_pocket['anchor_offset'])
+        return (anchor // SECTION_SIZE) * SECTION_SIZE
+
+    fallback = KNOWN_POCKET_ANCHORS.get('ball')
+    if fallback is None:
+        return None
+    return int(fallback) - KNOWN_POCKET_REL_OFFSETS['ball']
+
+
+def _extract_key_item_ids(data, key_pocket):
+    if not key_pocket or key_pocket.get('anchor_offset') is None:
+        return set()
+
+    items = map_pocket_from_anchor(data, int(key_pocket['anchor_offset']))
+    return {it['id'] for it in items if it.get('id', 0) != 0}
+
+
+def _anchor_region_is_empty(data, anchor_offset, slots=EMPTY_BOOTSTRAP_SLOT_COUNT):
+    if anchor_offset is None:
+        return False
+
+    end_off = anchor_offset + (slots * 4)
+    if anchor_offset < 0 or end_off > len(data):
+        return False
+
+    for i in range(slots):
+        off = anchor_offset + (i * 4)
+        iid = ru16(data, off)
+        qty = ru16(data, off + 2)
+        if iid != 0 or qty != 0:
+            return False
+    return True
+
+
+def _build_empty_candidate(pocket_type, anchor_offset):
+    return {
+        'pocket_type': pocket_type,
+        'anchor_offset': anchor_offset,
+        'quality': 'empty',
+        'score': 0,
+        'slot_count': 0,
+        'dup_count': 0,
+        'source': 'empty_unlocked',
+        'confidence': 'low',
+        'is_empty_candidate': True,
+        'empty_encoding': 'id_qty',
+        'empty_slot_offsets': [anchor_offset + (i * 4) for i in range(EMPTY_BOOTSTRAP_SLOT_COUNT)],
+        'detection_note': 'empty pocket enabled because unlock key item is present',
+    }
+
+
+def _with_gate_metadata(pocket, ready, locked, requires_key_item=None, unlock_via=None, locked_reason=None):
+    target = dict(pocket or {})
+    target['ready'] = bool(ready)
+    target['locked'] = bool(locked)
+    target['requires_key_item'] = requires_key_item
+    target['unlock_via'] = unlock_via
+    target['locked_reason'] = locked_reason
+    return target
+
+
+def _gate_unlockable_pocket(data, pocket, pocket_type, required_item_id, key_ids_present, template_base_offset):
+    slot_count = int((pocket or {}).get('slot_count') or 0)
+
+    if pocket and slot_count > 0:
+        return _with_gate_metadata(
+            pocket,
+            ready=True,
+            locked=False,
+            requires_key_item=required_item_id,
+            unlock_via='non_empty_pocket',
+        )
+
+    if required_item_id in key_ids_present:
+        candidate = pocket
+        if candidate is None and template_base_offset is not None:
+            rel = KNOWN_POCKET_REL_OFFSETS[pocket_type]
+            anchor = template_base_offset + rel
+            if _anchor_region_is_empty(data, anchor):
+                candidate = _build_empty_candidate(pocket_type, anchor)
+
+        if candidate is not None:
+            return _with_gate_metadata(
+                candidate,
+                ready=True,
+                locked=False,
+                requires_key_item=required_item_id,
+                unlock_via='key_item',
+            )
+
+    return _with_gate_metadata(
+        pocket,
+        ready=False,
+        locked=True,
+        requires_key_item=required_item_id,
+        unlock_via=None,
+        locked_reason='missing_unlock_key_item',
+    )
+
+
 def resolve_quick_pockets(data):
     if not data:
         return {}
@@ -343,22 +456,6 @@ def resolve_quick_pockets(data):
         BALL_ITEM_IDS,
         min_slots=8,
     )
-    quick['berry'] = _resolve_family_pocket(
-        data,
-        'berry',
-        KNOWN_POCKET_ANCHORS['berry'],
-        149,
-        BERRY_ITEM_IDS,
-        min_slots=12,
-    )
-    quick['tm'] = _resolve_family_pocket(
-        data,
-        'tm',
-        KNOWN_POCKET_ANCHORS['tm'],
-        307,
-        TMHM_ITEM_IDS,
-        min_slots=20,
-    )
     quick['key'] = _resolve_family_pocket(
         data,
         'key',
@@ -366,6 +463,43 @@ def resolve_quick_pockets(data):
         368,
         KEY_ITEM_IDS,
         min_slots=4,
+    )
+
+    berry_raw = _resolve_family_pocket(
+        data,
+        'berry',
+        KNOWN_POCKET_ANCHORS['berry'],
+        149,
+        BERRY_ITEM_IDS,
+        min_slots=12,
+    )
+    tm_raw = _resolve_family_pocket(
+        data,
+        'tm',
+        KNOWN_POCKET_ANCHORS['tm'],
+        307,
+        TMHM_ITEM_IDS,
+        min_slots=20,
+    )
+
+    key_ids_present = _extract_key_item_ids(data, quick.get('key'))
+    template_base_offset = _resolve_template_base_offset(data, quick.get('key'))
+
+    quick['tm'] = _gate_unlockable_pocket(
+        data,
+        tm_raw,
+        'tm',
+        TM_CASE_ITEM_ID,
+        key_ids_present,
+        template_base_offset,
+    )
+    quick['berry'] = _gate_unlockable_pocket(
+        data,
+        berry_raw,
+        'berry',
+        BERRY_POUCH_ITEM_ID,
+        key_ids_present,
+        template_base_offset,
     )
 
     return quick

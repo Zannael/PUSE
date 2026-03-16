@@ -60,6 +60,16 @@ const KNOWN_POCKET_ANCHORS = {
     berry: 0x1E5E4,
 };
 
+const KNOWN_POCKET_REL_OFFSETS = {
+    ball: 0x31C,
+    tm: 0x3E4,
+    berry: 0x5E4,
+};
+
+const TM_CASE_ITEM_ID = 364;
+const BERRY_POUCH_ITEM_ID = 365;
+const EMPTY_BOOTSTRAP_SLOT_COUNT = 8;
+
 const MAIN_POCKET_PROBE_IDS = [13, 84, 197, 94, 24, 26, 16, 493, 603, 606, 72];
 
 function decodeSlot(buffer, offset, swapped = false) {
@@ -846,6 +856,93 @@ function resolveKeyPocket(buffer) {
     };
 }
 
+function resolveTemplateBaseOffset(keyPocket) {
+    if (keyPocket && Number.isInteger(keyPocket.anchor_offset)) {
+        return Math.floor(keyPocket.anchor_offset / SECTION_SIZE) * SECTION_SIZE;
+    }
+    return KNOWN_POCKET_ANCHORS.ball - KNOWN_POCKET_REL_OFFSETS.ball;
+}
+
+function extractKeyItemIds(buffer, keyPocket) {
+    if (!keyPocket || !Number.isInteger(keyPocket.anchor_offset)) {
+        return new Set();
+    }
+    const items = mapPocketFromAnchor(buffer, keyPocket.anchor_offset, new Map());
+    return new Set(items.filter((it) => it.id !== 0).map((it) => it.id));
+}
+
+function anchorRegionIsEmpty(buffer, anchorOffset, slots = EMPTY_BOOTSTRAP_SLOT_COUNT) {
+    if (!Number.isInteger(anchorOffset) || anchorOffset < 0) {
+        return false;
+    }
+    if (anchorOffset + slots * 4 > buffer.length) {
+        return false;
+    }
+
+    for (let i = 0; i < slots; i += 1) {
+        const off = anchorOffset + i * 4;
+        const iid = ru16(buffer, off);
+        const qty = ru16(buffer, off + 2);
+        if (iid !== 0 || qty !== 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function buildEmptyCandidate(pocketType, anchorOffset) {
+    return {
+        pocket_type: pocketType,
+        anchor_offset: anchorOffset,
+        quality: 'empty',
+        score: 0,
+        slot_count: 0,
+        dup_count: 0,
+        source: 'empty_unlocked',
+        confidence: 'low',
+        is_empty_candidate: true,
+        empty_encoding: 'id_qty',
+        empty_slot_offsets: Array.from({ length: EMPTY_BOOTSTRAP_SLOT_COUNT }, (_, i) => anchorOffset + i * 4),
+        detection_note: 'empty pocket enabled because unlock key item is present',
+    };
+}
+
+function withGateMetadata(pocket, ready, locked, requiresKeyItem = null, unlockVia = null, lockedReason = null) {
+    return {
+        ...(pocket || {}),
+        ready: Boolean(ready),
+        locked: Boolean(locked),
+        requires_key_item: requiresKeyItem,
+        unlock_via: unlockVia,
+        locked_reason: lockedReason,
+    };
+}
+
+function gateUnlockablePocket(buffer, pocket, pocketType, requiredItemId, keyIdsPresent, templateBaseOffset) {
+    const slotCount = Number((pocket || {}).slot_count || 0);
+
+    if (pocket && slotCount > 0) {
+        return withGateMetadata(pocket, true, false, requiredItemId, 'non_empty_pocket', null);
+    }
+
+    if (keyIdsPresent.has(requiredItemId)) {
+        let candidate = pocket;
+        if (!candidate && Number.isInteger(templateBaseOffset)) {
+            const rel = KNOWN_POCKET_REL_OFFSETS[pocketType];
+            const anchor = templateBaseOffset + rel;
+            if (anchorRegionIsEmpty(buffer, anchor)) {
+                candidate = buildEmptyCandidate(pocketType, anchor);
+            }
+        }
+
+        if (candidate) {
+            return withGateMetadata(candidate, true, false, requiredItemId, 'key_item', null);
+        }
+    }
+
+    return withGateMetadata(pocket, false, true, requiredItemId, null, 'missing_unlock_key_item');
+}
+
 export function resolveQuickPockets(buffer) {
     if (!buffer || buffer.length === 0) {
         return {};
@@ -853,11 +950,17 @@ export function resolveQuickPockets(buffer) {
 
     const quick = {};
     quick.main = resolveMainPocket(buffer);
+    quick.key = resolveKeyPocket(buffer);
 
     quick.ball = resolveFamilyPocket(buffer, 'ball', KNOWN_POCKET_ANCHORS.ball, 4, BALL_ITEM_IDS, 8);
-    quick.berry = resolveFamilyPocket(buffer, 'berry', KNOWN_POCKET_ANCHORS.berry, 149, BERRY_ITEM_IDS, 12);
-    quick.tm = resolveFamilyPocket(buffer, 'tm', KNOWN_POCKET_ANCHORS.tm, 307, TMHM_ITEM_IDS, 20);
-    quick.key = resolveKeyPocket(buffer);
+    const berryRaw = resolveFamilyPocket(buffer, 'berry', KNOWN_POCKET_ANCHORS.berry, 149, BERRY_ITEM_IDS, 12);
+    const tmRaw = resolveFamilyPocket(buffer, 'tm', KNOWN_POCKET_ANCHORS.tm, 307, TMHM_ITEM_IDS, 20);
+
+    const keyIdsPresent = extractKeyItemIds(buffer, quick.key);
+    const templateBaseOffset = resolveTemplateBaseOffset(quick.key);
+
+    quick.tm = gateUnlockablePocket(buffer, tmRaw, 'tm', TM_CASE_ITEM_ID, keyIdsPresent, templateBaseOffset);
+    quick.berry = gateUnlockablePocket(buffer, berryRaw, 'berry', BERRY_POUCH_ITEM_ID, keyIdsPresent, templateBaseOffset);
 
     return quick;
 }

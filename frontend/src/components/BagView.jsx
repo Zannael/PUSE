@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, Package, Edit3, X, ArrowLeft, Star, Save, CircleHelp } from 'lucide-react';
 import { ITEM_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 
-const BagView = ({ client }) => {
+const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
     const isTmHmItemId = (id) =>
         (id >= 289 && id <= 346) ||
         (id >= 375 && id <= 444);
@@ -24,8 +24,19 @@ const BagView = ({ client }) => {
     const [itemFilter, setItemFilter] = useState("");
     const [quickPockets, setQuickPockets] = useState({});
     const [quickLoading, setQuickLoading] = useState(false);
+    const [hasUnsavedBagChanges, setHasUnsavedBagChanges] = useState(Boolean(initialUnsaved));
 
     const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        setHasUnsavedBagChanges(Boolean(initialUnsaved));
+    }, [initialUnsaved]);
+
+    useEffect(() => {
+        if (typeof onDirtyChange === 'function') {
+            onDirtyChange(hasUnsavedBagChanges);
+        }
+    }, [hasUnsavedBagChanges, onDirtyChange]);
 
     const hasKnownItemName = (name) => {
         if (!name) return false;
@@ -37,6 +48,9 @@ const BagView = ({ client }) => {
 
     const getConfidenceTooltip = (pocket) => {
         if (!pocket) return "";
+        if (pocket.locked) {
+            return `Locked: ${pocket.locked_reason || 'missing unlock key item'}`;
+        }
         const slots = pocket.slot_count ?? '-';
         const purity = typeof pocket.family_purity === 'number' ? `${Math.round(pocket.family_purity * 100)}%` : 'n/a';
         const note = pocket.detection_note || 'Pocket resolved with fallback heuristics.';
@@ -131,8 +145,11 @@ const BagView = ({ client }) => {
     };
 
     const openQuickPocket = (pocket) => {
-        if (!pocket || !pocket.anchor_offset) return;
-        loadPocket({
+        if (!pocket) return;
+        const ready = typeof pocket.ready === 'boolean' ? pocket.ready : !!pocket.anchor_offset;
+        if (!ready || !pocket.anchor_offset) return;
+
+        const quickCandidate = {
             anchor_offset: pocket.anchor_offset,
             quality: pocket.quality,
             score: pocket.score,
@@ -140,16 +157,49 @@ const BagView = ({ client }) => {
             pocket_type: pocket.pocket_type,
             source: pocket.source,
             confidence: pocket.confidence,
+            ready,
+            locked: !!pocket.locked,
+            locked_reason: pocket.locked_reason || null,
+            requires_key_item: pocket.requires_key_item ?? null,
+            unlock_via: pocket.unlock_via || null,
+            is_empty_candidate: !!pocket.is_empty_candidate,
+            empty_slot_offsets: pocket.empty_slot_offsets || [],
+            empty_encoding: pocket.empty_encoding || 'id_qty',
             is_active: true,
             sect_id: null,
             sector: null,
-        });
+        };
+
+        if (quickCandidate.is_empty_candidate && quickCandidate.empty_slot_offsets.length > 0) {
+            setSelectedCand(quickCandidate);
+            setItems(
+                quickCandidate.empty_slot_offsets.map((offset) => ({
+                    id: 0,
+                    qty: 0,
+                    offset,
+                    name: '--- EMPTY ---',
+                    encoding: quickCandidate.empty_encoding,
+                }))
+            );
+            return;
+        }
+
+        loadPocket(quickCandidate);
     };
 
     const [editingItem, setEditingItem] = useState(null);
     const [editQty, setEditQty] = useState(0);
     const [editItemId, setEditItemId] = useState(0);
     const [modalSearch, setModalSearch] = useState("");
+
+    const confirmNavigateWithUnsaved = () => {
+        if (!hasUnsavedBagChanges) {
+            return true;
+        }
+        return window.confirm(
+            'You have unsaved bag edits. Continue?\n\nYour changes stay in memory, but the .sav file is not updated until you click SAVE BAG CHANGES.'
+        );
+    };
 
     const handleUpdateSlot = async () => {
         if (!editingItem) return;
@@ -165,7 +215,6 @@ const BagView = ({ client }) => {
                 quantity: quantityToWrite,
                 encoding: editingItem.encoding || null
             });
-            await client.saveAll();
 
             const newName = allItems.find((it) => it.id === editItemId)?.name || `Item ${editItemId}`;
             setItems((prev) => prev.map((it) => {
@@ -184,16 +233,18 @@ const BagView = ({ client }) => {
 
             setEditingItem(null);
             setModalSearch("");
-            alert("Edit applied and file updated!");
+            setHasUnsavedBagChanges(true);
+            alert("Edit applied in memory. Click SAVE BAG CHANGES to write to file.");
         } catch (err) {
             console.error(err);
-            alert("Error while updating and saving.");
+            alert("Error while updating slot.");
         }
     };
 
     const handleFinalSave = async () => {
         try {
             await client.saveAll();
+            setHasUnsavedBagChanges(false);
             alert("Bag saved and checksum recalculated successfully!");
         } catch (err) {
             console.error(err);
@@ -203,6 +254,21 @@ const BagView = ({ client }) => {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
+            {hasUnsavedBagChanges && (
+                <div className="max-w-2xl mx-auto w-full rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <p className="text-xs text-amber-200">
+                        You have unsaved bag edits. Save now to update the .sav file.
+                    </p>
+                    <button
+                        onClick={handleFinalSave}
+                        disabled={loading}
+                        className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold px-4 py-2 rounded-xl flex items-center justify-center gap-2"
+                    >
+                        <Save size={15} /> SAVE BAG CHANGES
+                    </button>
+                </div>
+            )}
+
             {/* SEARCH BAR */}
             {!selectedCand && (
                 <div className="relative max-w-2xl mx-auto w-full" ref={dropdownRef}>
@@ -298,7 +364,15 @@ const BagView = ({ client }) => {
                             { key: "tm", label: "TM Case" },
                         ].map((cfg) => {
                             const pocket = quickPockets?.[cfg.key] || null;
-                            const ready = !!pocket?.anchor_offset;
+                            const ready = pocket ? (typeof pocket.ready === 'boolean' ? pocket.ready : !!pocket.anchor_offset) : false;
+                            const locked = !!pocket?.locked;
+                            const statusText = !pocket
+                                ? 'use search bar'
+                                : locked
+                                    ? 'locked (missing key item)'
+                                    : ready
+                                        ? `${pocket.source} | ${pocket.confidence}`
+                                        : 'not found (use search)';
                             return (
                                 <button
                                     key={cfg.key}
@@ -311,13 +385,16 @@ const BagView = ({ client }) => {
                                         {ready ? `anchor ${pocket.anchor_offset}` : "not found (common on early saves)"}
                                     </p>
                                     <p className="text-[10px] mt-1 text-slate-400">
-                                        {ready ? `${pocket.source} | ${pocket.confidence}` : "use search bar"}
+                                        {statusText}
                                     </p>
                                     {ready && (
                                         <p className="mt-1 text-[10px] text-slate-500 flex items-center gap-1" title={getConfidenceTooltip(pocket)}>
                                             <CircleHelp size={11} />
                                             Why this confidence?
                                         </p>
+                                    )}
+                                    {ready && pocket?.unlock_via && (
+                                        <p className="text-[10px] mt-1 text-slate-500">unlock via: {pocket.unlock_via}</p>
                                     )}
                                 </button>
                             );
@@ -370,7 +447,13 @@ const BagView = ({ client }) => {
                     <div className="bg-[#1e293b] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl animate-in zoom-in-95">
                         <div className="p-6 border-b border-white/5 bg-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
                             <div className="flex items-center gap-4">
-                                <button onClick={() => setSelectedCand(null)} className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-400 transition-colors">
+                                <button
+                                    onClick={() => {
+                                        if (!confirmNavigateWithUnsaved()) return;
+                                        setSelectedCand(null);
+                                    }}
+                                    className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-400 transition-colors"
+                                >
                                     <ArrowLeft size={20} />
                                 </button>
                                 <div>
@@ -383,14 +466,29 @@ const BagView = ({ client }) => {
                                     )}
                                 </div>
                             </div>
-                            <input
-                                type="text"
-                                placeholder="Filter items..."
-                                value={itemFilter}
-                                onChange={(e) => setItemFilter(e.target.value)}
-                                className="bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-xs outline-none focus:border-blue-500/50"
-                            />
+                            <div className="flex items-center gap-2 w-full md:w-auto">
+                                <input
+                                    type="text"
+                                    placeholder="Filter items..."
+                                    value={itemFilter}
+                                    onChange={(e) => setItemFilter(e.target.value)}
+                                    className="bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-xs outline-none focus:border-blue-500/50 w-full md:w-auto"
+                                />
+                                <button
+                                    onClick={handleFinalSave}
+                                    disabled={!hasUnsavedBagChanges || loading}
+                                    className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-4 py-2 rounded-xl flex items-center gap-2 shadow-lg transition-all active:scale-95"
+                                >
+                                    <Save size={16} /> SAVE BAG CHANGES
+                                </button>
+                            </div>
                         </div>
+
+                        {hasUnsavedBagChanges && (
+                            <div className="px-6 py-2 bg-amber-500/10 border-b border-amber-500/20 text-[11px] text-amber-200">
+                                Unsaved bag edits pending: click SAVE BAG CHANGES to update the .sav file.
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[1px] bg-white/5">
                             {items.filter(i => i.name.toLowerCase().includes(itemFilter.toLowerCase())).map((item, idx) => (
@@ -430,15 +528,6 @@ const BagView = ({ client }) => {
                                 </div>
                             ))}
                         </div>
-                    </div>
-
-                    <div className="flex justify-end p-4">
-                        <button
-                            onClick={handleFinalSave}
-                            className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-4 rounded-2xl flex items-center gap-2 shadow-xl transition-all active:scale-95"
-                        >
-                            <Save size={20} /> SAVE BAG CHANGES
-                        </button>
                     </div>
 
                     {editingItem && (
