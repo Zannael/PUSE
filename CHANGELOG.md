@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Planned
+
+- Add Pokemon identity controls in editor (shiny toggle, gender toggle).
+- Add species change support in Pokemon editor (party + PC).
+- Add create/insert workflows to add Pokemon to party and PC boxes.
+- Improve bag pocket detection reliability for early/sparse save files.
+- Investigate save flags editing feasibility for difficulty mode and NG+ state.
+- Add clearer changelog/update visibility in project docs.
+
+## v1.1.0 - 2026-03-16
+
 ### Added
 
 - Frontend runtime mode abstraction with `backend` and `local` modes.
