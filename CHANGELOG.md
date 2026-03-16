@@ -5,11 +5,20 @@
 ### Planned
 
 - Add Pokemon identity controls in editor (shiny toggle, gender toggle).
-- Add species change support in Pokemon editor (party + PC).
 - Add create/insert workflows to add Pokemon to party and PC boxes.
-- Improve bag pocket detection reliability for early/sparse save files.
 - Investigate save flags editing feasibility for difficulty mode and NG+ state.
 - Add clearer changelog/update visibility in project docs.
+
+### Changed
+
+- Bag quick-pocket safety now gates TM Case and Berry Pouch editing by unlock state: non-empty pockets are editable, while empty pockets are editable only when the corresponding key item is present (`TM Case` / `Berry Pouch`).
+- Quick-pocket responses now include readiness/lock metadata (`ready`, `locked`, `locked_reason`, `unlock_via`) and can expose safe empty-slot bootstrap candidates only for unlocked TM/Berry flows.
+- Pokemon species editing is now available in the editor for both Party and PC flows, with matching behavior in `backend` and `local` runtime modes.
+- Party stat bytes are now recalculated after species/stat-affecting edits (species, IVs, EVs, nature, level) using ROM-derived base stats and nature modifiers, with current HP clamped to the new max HP.
+- Added Unbound ROM species base-stat extraction tooling (`backend/tools/extract_unbound_species_base_stats.py`) and generated base-stat datasets for backend/frontend parity.
+- Bag editing now uses an explicit save flow: slot edits are applied in memory, and `SAVE BAG CHANGES` is required to write updates to the `.sav` file.
+- Bag UX now keeps save actions visible at the top of pocket view and warns users when navigating back/changing sections with unsaved bag edits.
+- Pokemon editor Info tab now shows Species controls before level/nature/item controls for faster access.
 
 ## v1.1.0 - 2026-03-16
 
