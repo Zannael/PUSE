@@ -11,7 +11,6 @@
 - Add ROM-truth sprites for Pokémons and items with ROM-based sprites extraction.
 - Investigate save flags editing feasibility for difficulty mode and NG+ state.
 - Add clearer changelog/update visibility in project docs.
-- Extend identity controls to PC editing flow with the same PID safety and backend/local parity guarantees.
 - Extend Trainer Profile editing to include identity metadata: name (with character encoding validation), gender/style flags, and appearance parameters (hair color/skin tone).
 - Implement "Costume Box" unlocker and wardrobe editing.
 
@@ -38,14 +37,14 @@
 - Fixed local-mode 32-bit overflow during 40-bit move bit-packing by switching to `BigInt`, resolving slot corruption cases (for example `DragonAscent`/`V-create` turning into wrong moves in frontend or in-game).
 - Added species drift safety checks for non-species edit flows and tightened save paths to send only changed fields, reducing unintended side effects.
 
-#### Party Identity and PID Safety
+#### Party and PC Identity with PID Safety
 
-- Implemented Party identity editing controls in the Pokemon editor (shiny toggle + gender toggle), with PID side-effect warnings in UI.
-- Added party identity update flow in both runtime modes (`backend` and `local`) to preserve parity.
-- Identity PID solving now preserves nature and standard ability-slot parity while applying shiny/gender targets when valid.
+- Implemented identity editing controls in the Pokemon editor for both Party and PC flows (shiny toggle + gender toggle), with PID side-effect warnings in UI.
+- Added identity update flows for Party and PC in both runtime modes (`backend` and `local`) to preserve parity.
+- Identity PID solving now preserves nature and standard ability-slot parity while applying shiny/gender targets when valid across Party and PC edits.
 - Added species identity metadata (`gender_threshold`) extracted from ROM truth and mirrored to frontend local mode.
 - Added explicit validation for incompatible gender requests (fixed male/fixed female/genderless species), returning clear errors instead of silent mutation.
-- Added PID-focused regression coverage (`frontend/scripts/identity-regression.mjs`) for shiny/gender toggles, HA preservation, invalid-gender guards, and mixed PID edit sequences across backend/local parity.
+- Added PID-focused regression coverage (`frontend/scripts/identity-regression.mjs`) for Party and PC shiny/gender toggles, HA preservation, invalid-gender guards, and mixed PID edit sequences across backend/local parity.
 
 #### Bag UX and Safety
 
