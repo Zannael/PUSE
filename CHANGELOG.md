@@ -23,6 +23,11 @@
 - Fixed local-mode 32-bit overflow during 40-bit move bit-packing by switching to `BigInt`, resolving slot corruption cases (for example `DragonAscent`/`V-create` turning into wrong moves in frontend or in-game).
 - Added ROM-truth move extraction tooling (`backend/tools/extract_unbound_moves_table.py`) and diagnostic output (`backend/data/move_table_from_rom.json`).
 - Move catalogs are now synchronized from ROM truth with `backend/data/moves.txt` as canonical runtime source (mirrored to `frontend/public/data/moves.txt` for local mode parity).
+- Added ROM-truth species extraction tooling (`backend/tools/extract_unbound_species_table.py`) and diagnostic output (`backend/data/species_table_from_rom.json`), with canonical runtime species data mirrored to local mode.
+- Species UI payloads now expose form-aware metadata (`species_label`, `species_variant_index`, `species_variant_count`, `is_form_variant`) so duplicate-name forms are distinguishable (for example `Goodra (Form 1)` / `Goodra (Form 2)`).
+- Added species drift safety checks for PC non-species edits and tightened save flows to send only changed fields, reducing unintended side effects.
+- Added nickname editing support for Party and PC flows in both backend and local modes, including save-path parity.
+- Species editor now includes nickname controls and a guided rename behavior when changing species, so users can keep custom nicknames or automatically align nicknames with the selected species.
 
 ## v1.1.0 - 2026-03-16
 
