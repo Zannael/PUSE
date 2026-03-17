@@ -335,6 +335,27 @@ def _assert_species_unchanged(pk, expected_species_id: int, op_label: str):
         )
 
 
+def _resolve_current_ability(current_index: int, ability_1_id, ability_1_name, ability_2_id, ability_2_name, ability_hidden_id, ability_hidden_name):
+    effective_id = None
+    effective_name = None
+    label = "Unknown Ability"
+
+    if current_index == 0:
+        effective_id = ability_1_id if ability_1_id not in (None, 0) else ability_2_id
+        effective_name = ability_1_name if ability_1_name else ability_2_name
+        label = effective_name or "Slot 1 (Standard)"
+    elif current_index == 1:
+        effective_id = ability_2_id if ability_2_id not in (None, 0) else ability_1_id
+        effective_name = ability_2_name if ability_2_name else ability_1_name
+        label = effective_name or "Slot 2 (Standard)"
+    elif current_index == 2:
+        effective_id = ability_hidden_id if ability_hidden_id not in (None, 0) else None
+        effective_name = ability_hidden_name
+        label = effective_name or "Hidden Ability"
+
+    return effective_id, effective_name, label
+
+
 class PartyLevelUpdate(BaseModel):
     target_level: int
     growth_rate: int | None = None
@@ -369,6 +390,20 @@ async def get_party():
         mon_off = 0x38 + (i * 100)
         pk = party_mod.Pokemon(sec_data[mon_off: mon_off + 100])
         smeta = _species_meta(pk.get_species_id())
+        ability_1_id, ability_2_id, ability_hidden_id = party_mod.get_species_ability_ids(pk.get_species_id())
+        ability_1_name = party_mod.get_ability_name(ability_1_id)
+        ability_2_name = party_mod.get_ability_name(ability_2_id)
+        ability_hidden_name = party_mod.get_ability_name(ability_hidden_id)
+        current_ability_index = 2 if pk.get_hidden_ability_flag() else pk.get_standard_ability_slot()
+        effective_ability_id, ability_name_current, ability_label_current = _resolve_current_ability(
+            current_ability_index,
+            ability_1_id,
+            ability_1_name,
+            ability_2_id,
+            ability_2_name,
+            ability_hidden_id,
+            ability_hidden_name,
+        )
 
         party.append({
             "index": i,
@@ -395,7 +430,17 @@ async def get_party():
             "species_growth_rate": party_mod.get_species_growth_rate(pk.get_species_id()),
             "moves": pk.get_moves_ids(),
             "ability_slot": pk.get_standard_ability_slot(),  # 0 or 1
-            "current_ability_index": 2 if pk.get_hidden_ability_flag() else pk.get_standard_ability_slot(),
+            "current_ability_index": current_ability_index,
+            "ability_1_id": ability_1_id,
+            "ability_1_name": ability_1_name,
+            "ability_2_id": ability_2_id,
+            "ability_2_name": ability_2_name,
+            "ability_hidden_id": ability_hidden_id,
+            "ability_hidden_name": ability_hidden_name,
+            "effective_ability_id": effective_ability_id,
+            "effective_ability_name": ability_name_current,
+            "ability_name_current": ability_name_current,
+            "ability_label_current": ability_label_current,
             "item_id": pk.get_item_id(),
         })
     return party
@@ -725,31 +770,60 @@ async def get_box(box_id: int):
     # Filter loaded Pokemon in context by selected box
     mons = [m for m in current_save["pc_context"]["mons"] if m.box == box_id]
 
-    return [{
-        "species_name": _species_meta(m.species_id)["species_label"],
-        "species_display_name": _species_meta(m.species_id)["species_display_name"],
-        "species_label": _species_meta(m.species_id)["species_label"],
-        "species_variant_index": _species_meta(m.species_id)["species_variant_index"],
-        "species_variant_count": _species_meta(m.species_id)["species_variant_count"],
-        "is_form_variant": _species_meta(m.species_id)["is_form_variant"],
-        "box": m.box,
-        "slot": m.slot,
-        "nickname": m.nickname,
-        "species_id": m.species_id,
-        "species_growth_rate": box_mod.get_species_growth_rate(m.species_id),
-        "item_id": m.get_item_id(),
-        "exp": m.exp,
-        "nature_id": m.get_nature_id(),
-        "pid": m.get_pid(),
-        "is_shiny": m.is_shiny(),
-        "gender": m.get_gender(),
-        "gender_mode": m.get_gender_mode(),
-        "gender_editable": m.get_gender_mode() == "dynamic",
-        "ivs": m.get_ivs(),
-        "evs": m.get_evs(),
-        "moves": m.get_moves(), # Returns numeric IDs
-        "current_ability_index": 2 if m.get_hidden_ability_flag() else (m.get_pid() & 1)
-    } for m in mons]
+    out = []
+    for m in mons:
+        smeta = _species_meta(m.species_id)
+        ability_1_id, ability_2_id, ability_hidden_id = box_mod.get_species_ability_ids(m.species_id)
+        ability_1_name = box_mod.get_ability_name(ability_1_id)
+        ability_2_name = box_mod.get_ability_name(ability_2_id)
+        ability_hidden_name = box_mod.get_ability_name(ability_hidden_id)
+        current_ability_index = 2 if m.get_hidden_ability_flag() else (m.get_pid() & 1)
+        effective_ability_id, ability_name_current, ability_label_current = _resolve_current_ability(
+            current_ability_index,
+            ability_1_id,
+            ability_1_name,
+            ability_2_id,
+            ability_2_name,
+            ability_hidden_id,
+            ability_hidden_name,
+        )
+
+        out.append({
+            "species_name": smeta["species_label"],
+            "species_display_name": smeta["species_display_name"],
+            "species_label": smeta["species_label"],
+            "species_variant_index": smeta["species_variant_index"],
+            "species_variant_count": smeta["species_variant_count"],
+            "is_form_variant": smeta["is_form_variant"],
+            "box": m.box,
+            "slot": m.slot,
+            "nickname": m.nickname,
+            "species_id": m.species_id,
+            "species_growth_rate": box_mod.get_species_growth_rate(m.species_id),
+            "item_id": m.get_item_id(),
+            "exp": m.exp,
+            "nature_id": m.get_nature_id(),
+            "pid": m.get_pid(),
+            "is_shiny": m.is_shiny(),
+            "gender": m.get_gender(),
+            "gender_mode": m.get_gender_mode(),
+            "gender_editable": m.get_gender_mode() == "dynamic",
+            "ivs": m.get_ivs(),
+            "evs": m.get_evs(),
+            "moves": m.get_moves(),
+            "current_ability_index": current_ability_index,
+            "ability_1_id": ability_1_id,
+            "ability_1_name": ability_1_name,
+            "ability_2_id": ability_2_id,
+            "ability_2_name": ability_2_name,
+            "ability_hidden_id": ability_hidden_id,
+            "ability_hidden_name": ability_hidden_name,
+            "effective_ability_id": effective_ability_id,
+            "effective_ability_name": ability_name_current,
+            "ability_name_current": ability_name_current,
+            "ability_label_current": ability_label_current,
+        })
+    return out
 
 
 class PCUpdate(BaseModel):
@@ -867,6 +941,12 @@ async def update_party_moves(idx: int, data: MovesUpdate):
 async def get_all_moves():
     """Return move list for dropdown."""
     return [{"id": k, "name": v} for k, v in box_mod.DB_MOVES.items()]
+
+
+@app.get("/abilities")
+async def get_all_abilities():
+    """Return ability list for dropdown/catalog usage."""
+    return [{"id": k, "name": v} for k, v in sorted(party_mod.DB_ABILITIES.items(), key=lambda x: x[0])]
 
 
 # Model for full PC update payload

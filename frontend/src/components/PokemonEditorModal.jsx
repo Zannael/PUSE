@@ -221,23 +221,30 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
 
                                 <div className="flex bg-slate-900 p-1 rounded-xl gap-1">
                                     {[
-                                        {id: 0, label: 'Slot 1 (Standard)'},
-                                        {id: 1, label: 'Slot 2 (Standard)'},
-                                        {id: 2, label: 'Hidden (HA)'}
+                                        {id: 0, label: localPk.ability_1_name || 'Slot 1 (Standard)', disabled: !localPk.ability_1_id},
+                                        {id: 1, label: localPk.ability_2_name || 'Slot 2 (Standard)', disabled: !localPk.ability_2_id},
+                                        {id: 2, label: localPk.ability_hidden_name ? `Hidden (${localPk.ability_hidden_name})` : 'Hidden (HA)', disabled: !localPk.ability_hidden_id}
                                     ].map((opt) => (
                                         <button
                                             key={opt.id}
-                                            onClick={() => setLocalPk({...localPk, current_ability_index: opt.id})}
+                                            onClick={() => {
+                                                if (opt.disabled) return;
+                                                setLocalPk({...localPk, current_ability_index: opt.id});
+                                            }}
+                                            disabled={opt.disabled}
                                             className={`flex-1 py-2 rounded-lg text-[10px] font-bold transition-all ${
                                                 localPk.current_ability_index === opt.id
                                                     ? 'bg-blue-600 text-white shadow-lg'
                                                     : 'text-slate-500 hover:text-slate-300'
-                                            }`}
+                                            } ${opt.disabled ? 'opacity-50 cursor-not-allowed hover:text-slate-500' : ''}`}
                                         >
                                             {opt.label}
                                         </button>
                                     ))}
                                 </div>
+                                <p className="text-[10px] text-center text-slate-400">
+                                    Current: <span className="font-bold text-blue-300">{localPk.ability_label_current || 'Unknown Ability'}</span>
+                                </p>
                                 <p className="text-[9px] text-center text-slate-500 italic">
                                     {localPk.current_ability_index === 2
                                         ? "Hidden ability ignores the Pokemon PID."

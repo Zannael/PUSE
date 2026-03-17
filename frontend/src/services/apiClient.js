@@ -4,7 +4,7 @@ import {
     resolvePokemonIconUrl,
 } from '../core/iconResolver.js';
 import { saveAll as commitSaveAll } from '../core/commit.js';
-import { getItemsList, getMovesList, getSpeciesFormMetaMap, getSpeciesList, getSpeciesMap, loadCatalog } from '../core/catalog.js';
+import { getAbilitiesList, getItemsList, getMovesList, getSpeciesFormMetaMap, getSpeciesList, getSpeciesMap, loadCatalog } from '../core/catalog.js';
 import {
     formatScanResults,
     mapPocketFromAnchor,
@@ -234,6 +234,9 @@ const backendClient = {
     getMoves() {
         return backendJson("/moves");
     },
+    getAbilities() {
+        return backendJson("/abilities");
+    },
     getItems() {
         return backendJson("/items");
     },
@@ -362,6 +365,9 @@ const localClient = {
     },
     getMoves() {
         return getMovesList();
+    },
+    getAbilities() {
+        return getAbilitiesList();
     },
     getItems() {
         return getItemsList();

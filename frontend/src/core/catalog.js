@@ -3,6 +3,7 @@ import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
 const cache = {
     itemsById: null,
     movesById: null,
+    abilitiesById: null,
     speciesById: null,
     speciesMetaById: null,
     loaded: false,
@@ -67,15 +68,17 @@ export async function loadCatalog() {
         return;
     }
 
-    const [itemsText, movesText, pokemonText, tmsText] = await Promise.all([
+    const [itemsText, movesText, abilitiesText, pokemonText, tmsText] = await Promise.all([
         fetchText(`${DATA_BASE_URL}/items.txt`),
         fetchText(`${DATA_BASE_URL}/moves.txt`),
+        fetchText(`${DATA_BASE_URL}/abilities.txt`),
         fetchText(`${DATA_BASE_URL}/pokemon.txt`),
         fetchText(`${DATA_BASE_URL}/tms.txt`),
     ]);
 
     cache.itemsById = parseIdNameText(itemsText);
     cache.movesById = parseIdNameText(movesText);
+    cache.abilitiesById = parseIdNameText(abilitiesText);
     cache.speciesById = parseIdNameText(pokemonText);
     cache.speciesMetaById = buildSpeciesFormMeta(cache.speciesById);
     applyTmOverlay(cache.itemsById, tmsText);
@@ -114,6 +117,14 @@ export async function getMovesList() {
     }
     ensureLoaded();
     return mapToList(cache.movesById, { includeZero: true });
+}
+
+export async function getAbilitiesList() {
+    if (!cache.loaded) {
+        await loadCatalog();
+    }
+    ensureLoaded();
+    return mapToList(cache.abilitiesById, { includeZero: false });
 }
 
 export async function getSpeciesList() {

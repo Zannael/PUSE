@@ -42,9 +42,11 @@ OFF_IVS = 0x36
 # --- DATABASE GLOBALE ---
 DB_ITEMS = {}
 DB_MOVES = {}
+DB_ABILITIES = {}
 DB_SPECIES = {}
 DB_SPECIES_IDENTITY_META = {}
 DB_SPECIES_GROWTH_RATES = {}
+DB_SPECIES_ABILITIES_META = {}
 
 GENDER_THRESHOLD_MALE_ONLY = 0
 GENDER_THRESHOLD_FEMALE_ONLY = 254
@@ -61,12 +63,15 @@ def load_static_data():
     DB_SPECIES.clear()
     DB_ITEMS.clear()
     DB_MOVES.clear()
+    DB_ABILITIES.clear()
     DB_SPECIES_IDENTITY_META.clear()
     DB_SPECIES_GROWTH_RATES.clear()
+    DB_SPECIES_ABILITIES_META.clear()
 
     DB_SPECIES.update(load_id_name_file("pokemon.txt"))
     DB_ITEMS.update(load_id_name_file("items.txt"))
     DB_MOVES.update(load_id_name_file("moves.txt"))
+    DB_ABILITIES.update(load_id_name_file("abilities.txt"))
 
     identity_meta_path = os.path.join(os.path.dirname(__file__), "..", "data", "species_identity_meta.json")
     if os.path.exists(identity_meta_path):
@@ -96,10 +101,29 @@ def load_static_data():
             if 0 <= rate_int <= 5:
                 DB_SPECIES_GROWTH_RATES[int(sid)] = rate_int
 
+    species_abilities_path = os.path.join(os.path.dirname(__file__), "..", "data", "species_abilities_meta.json")
+    if os.path.exists(species_abilities_path):
+        with open(species_abilities_path, "r", encoding="utf-8") as fh:
+            raw_abilities = json.loads(fh.read())
+        for sid, meta in raw_abilities.items():
+            if not str(sid).isdigit() or not isinstance(meta, dict):
+                continue
+            a1 = meta.get("ability_1_id")
+            a2 = meta.get("ability_2_id")
+            ha = meta.get("hidden_ability_id")
+            if a1 is None or a2 is None or ha is None:
+                continue
+            DB_SPECIES_ABILITIES_META[int(sid)] = {
+                "ability_1_id": int(a1) & 0xFF,
+                "ability_2_id": int(a2) & 0xFF,
+                "hidden_ability_id": int(ha),
+            }
+
     print(
         f"[INFO] Dati statici caricati: "
-        f"{len(DB_SPECIES)} specie, {len(DB_ITEMS)} oggetti, {len(DB_MOVES)} mosse, "
-        f"{len(DB_SPECIES_IDENTITY_META)} identity meta, {len(DB_SPECIES_GROWTH_RATES)} growth rates."
+        f"{len(DB_SPECIES)} specie, {len(DB_ITEMS)} oggetti, {len(DB_MOVES)} mosse, {len(DB_ABILITIES)} abilita, "
+        f"{len(DB_SPECIES_IDENTITY_META)} identity meta, {len(DB_SPECIES_GROWTH_RATES)} growth rates, "
+        f"{len(DB_SPECIES_ABILITIES_META)} species abilities meta."
     )
 
 
@@ -110,6 +134,23 @@ def get_species_growth_rate(species_id):
     if 0 <= int(rate) <= 5:
         return int(rate)
     return None
+
+
+def get_species_ability_ids(species_id):
+    meta = DB_SPECIES_ABILITIES_META.get(int(species_id), {})
+    a1 = meta.get("ability_1_id")
+    a2 = meta.get("ability_2_id")
+    ha = meta.get("hidden_ability_id")
+    a1 = int(a1) if a1 is not None else None
+    a2 = int(a2) if a2 is not None else None
+    ha = int(ha) if ha is not None else None
+    return a1, a2, ha
+
+
+def get_ability_name(ability_id):
+    if ability_id is None:
+        return None
+    return DB_ABILITIES.get(int(ability_id))
 
 
 # Compat legacy name.

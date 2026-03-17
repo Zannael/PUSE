@@ -102,7 +102,20 @@ function pickPcCandidates(pcMons) {
 }
 
 function compareCore(a, b) {
-  const keys = ['species_id', 'nature_id', 'current_ability_index', 'is_shiny', 'gender'];
+  const keys = [
+    'species_id',
+    'nature_id',
+    'current_ability_index',
+    'is_shiny',
+    'gender',
+    'ability_1_id',
+    'ability_1_name',
+    'ability_2_id',
+    'ability_2_name',
+    'ability_hidden_id',
+    'ability_hidden_name',
+    'ability_label_current',
+  ];
   return keys.every((k) => a?.[k] === b?.[k]);
 }
 

@@ -1,0 +1,1533 @@
+{
+  "source_rom": "local_artifacts/Unbound.gba",
+  "table_base": 10707881,
+  "entry_size": 17,
+  "ability_count": 254,
+  "inferred_count": 254,
+  "abilities": [
+    {
+      "ability_id": 1,
+      "offset": 10707881,
+      "name": "Stench",
+      "raw_hex": "cde8d9e2d7dcffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 2,
+      "offset": 10707898,
+      "name": "Drizzle",
+      "raw_hex": "bee6ddeeeee0d9ffffffffffffffffffff"
+    },
+    {
+      "ability_id": 3,
+      "offset": 10707915,
+      "name": "Speed Boost",
+      "raw_hex": "cde4d9d9d800bce3e3e7e8ffffffffffff"
+    },
+    {
+      "ability_id": 4,
+      "offset": 10707932,
+      "name": "Battle Armor",
+      "raw_hex": "bcd5e8e8e0d900bbe6e1e3e6ffffffffff"
+    },
+    {
+      "ability_id": 5,
+      "offset": 10707949,
+      "name": "Sturdy",
+      "raw_hex": "cde8e9e6d8edffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 6,
+      "offset": 10707966,
+      "name": "Damp",
+      "raw_hex": "bed5e1e4ffffffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 7,
+      "offset": 10707983,
+      "name": "Limber",
+      "raw_hex": "c6dde1d6d9e6ffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 8,
+      "offset": 10708000,
+      "name": "Sand Veil",
+      "raw_hex": "cdd5e2d800d0d9dde0ffffffffffffffff"
+    },
+    {
+      "ability_id": 9,
+      "offset": 10708017,
+      "name": "Static",
+      "raw_hex": "cde8d5e8ddd7ffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 10,
+      "offset": 10708034,
+      "name": "Volt Absorb",
+      "raw_hex": "d0e3e0e800bbd6e7e3e6d6ffffffffffff"
+    },
+    {
+      "ability_id": 11,
+      "offset": 10708051,
+      "name": "Water Absorb",
+      "raw_hex": "d1d5e8d9e600bbd6e7e3e6d6ffffffffff"
+    },
+    {
+      "ability_id": 12,
+      "offset": 10708068,
+      "name": "Oblivious",
+      "raw_hex": "c9d6e0ddeadde3e9e7ffffffffffffffff"
+    },
+    {
+      "ability_id": 13,
+      "offset": 10708085,
+      "name": "Cloud Nine",
+      "raw_hex": "bde0e3e9d800c8dde2d9ffffffffffffff"
+    },
+    {
+      "ability_id": 14,
+      "offset": 10708102,
+      "name": "Compound Eyes",
+      "raw_hex": "bde3e1e4e3e9e2d800bfedd9e7ffffffff"
+    },
+    {
+      "ability_id": 15,
+      "offset": 10708119,
+      "name": "Insomnia",
+      "raw_hex": "c3e2e7e3e1e2ddd5ffffffffffffffffff"
+    },
+    {
+      "ability_id": 16,
+      "offset": 10708136,
+      "name": "Color Change",
+      "raw_hex": "bde3e0e3e600bddcd5e2dbd9ffffffffff"
+    },
+    {
+      "ability_id": 17,
+      "offset": 10708153,
+      "name": "Immunity",
+      "raw_hex": "c3e1e1e9e2dde8edffffffffffffffffff"
+    },
+    {
+      "ability_id": 18,
+      "offset": 10708170,
+      "name": "Flash Fire",
+      "raw_hex": "c0e0d5e7dc00c0dde6d9ffffffffffffff"
+    },
+    {
+      "ability_id": 19,
+      "offset": 10708187,
+      "name": "Shield Dust",
+      "raw_hex": "cddcddd9e0d800bee9e7e8ffffffffffff"
+    },
+    {
+      "ability_id": 20,
+      "offset": 10708204,
+      "name": "Own Tempo",
+      "raw_hex": "c9ebe200ced9e1e4e3ffffffffffffffff"
+    },
+    {
+      "ability_id": 21,
+      "offset": 10708221,
+      "name": "Suction Cups",
+      "raw_hex": "cde9d7e8dde3e200bde9e4e7ffffffffff"
+    },
+    {
+      "ability_id": 22,
+      "offset": 10708238,
+      "name": "Intimidate",
+      "raw_hex": "c3e2e8dde1ddd8d5e8d9ffffffffffffff"
+    },
+    {
+      "ability_id": 23,
+      "offset": 10708255,
+      "name": "Shadow Tag",
+      "raw_hex": "cddcd5d8e3eb00ced5dbffffffffffffff"
+    },
+    {
+      "ability_id": 24,
+      "offset": 10708272,
+      "name": "Rough Skin",
+      "raw_hex": "cce3e9dbdc00cddfdde2ffffffffffffff"
+    },
+    {
+      "ability_id": 25,
+      "offset": 10708289,
+      "name": "Wonder Guard",
+      "raw_hex": "d1e3e2d8d9e600c1e9d5e6d8ffffffffff"
+    },
+    {
+      "ability_id": 26,
+      "offset": 10708306,
+      "name": "Levitate",
+      "raw_hex": "c6d9eadde8d5e8d9ffffffffffffffffff"
+    },
+    {
+      "ability_id": 27,
+      "offset": 10708323,
+      "name": "Effect Spore",
+      "raw_hex": "bfdadad9d7e800cde4e3e6d9ffffffffff"
+    },
+    {
+      "ability_id": 28,
+      "offset": 10708340,
+      "name": "Synchronize",
+      "raw_hex": "cdede2d7dce6e3e2ddeed9ffffffffffff"
+    },
+    {
+      "ability_id": 29,
+      "offset": 10708357,
+      "name": "Clear Body",
+      "raw_hex": "bde0d9d5e600bce3d8edffffffffffffff"
+    },
+    {
+      "ability_id": 30,
+      "offset": 10708374,
+      "name": "Natural Cure",
+      "raw_hex": "c8d5e8e9e6d5e000bde9e6d9ffffffffff"
+    },
+    {
+      "ability_id": 31,
+      "offset": 10708391,
+      "name": "Lightning Rod",
+      "raw_hex": "c6dddbdce8e2dde2db00cce3d8ffffffff"
+    },
+    {
+      "ability_id": 32,
+      "offset": 10708408,
+      "name": "Serene Grace",
+      "raw_hex": "cdd9e6d9e2d900c1e6d5d7d9ffffffffff"
+    },
+    {
+      "ability_id": 33,
+      "offset": 10708425,
+      "name": "Swift Swim",
+      "raw_hex": "cdebdddae800cdebdde1ffffffffffffff"
+    },
+    {
+      "ability_id": 34,
+      "offset": 10708442,
+      "name": "Chlorophyll",
+      "raw_hex": "bddce0e3e6e3e4dcede0e0ffffffffffff"
+    },
+    {
+      "ability_id": 35,
+      "offset": 10708459,
+      "name": "Illuminate",
+      "raw_hex": "c3e0e0e9e1dde2d5e8d9ffffffffffffff"
+    },
+    {
+      "ability_id": 36,
+      "offset": 10708476,
+      "name": "Trace",
+      "raw_hex": "cee6d5d7d9ffffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 37,
+      "offset": 10708493,
+      "name": "Huge Power",
+      "raw_hex": "c2e9dbd900cae3ebd9e6ffffffffffffff"
+    },
+    {
+      "ability_id": 38,
+      "offset": 10708510,
+      "name": "Poison Point",
+      "raw_hex": "cae3dde7e3e200cae3dde2e8ffffffffff"
+    },
+    {
+      "ability_id": 39,
+      "offset": 10708527,
+      "name": "Inner Focus",
+      "raw_hex": "c3e2e2d9e600c0e3d7e9e7ffffffffffff"
+    },
+    {
+      "ability_id": 40,
+      "offset": 10708544,
+      "name": "Magma Armor",
+      "raw_hex": "c7d5dbe1d500bbe6e1e3e6ffffffffffff"
+    },
+    {
+      "ability_id": 41,
+      "offset": 10708561,
+      "name": "Water Veil",
+      "raw_hex": "d1d5e8d9e600d0d9dde0ffffffffffffff"
+    },
+    {
+      "ability_id": 42,
+      "offset": 10708578,
+      "name": "Magnet Pull",
+      "raw_hex": "c7d5dbe2d9e800cae9e0e0ffffffffffff"
+    },
+    {
+      "ability_id": 43,
+      "offset": 10708595,
+      "name": "Soundproof",
+      "raw_hex": "cde3e9e2d8e4e6e3e3daffffffffffffff"
+    },
+    {
+      "ability_id": 44,
+      "offset": 10708612,
+      "name": "Rain Dish",
+      "raw_hex": "ccd5dde200bedde7dcffffffffffffffff"
+    },
+    {
+      "ability_id": 45,
+      "offset": 10708629,
+      "name": "Sand Stream",
+      "raw_hex": "cdd5e2d800cde8e6d9d5e1ffffffffffff"
+    },
+    {
+      "ability_id": 46,
+      "offset": 10708646,
+      "name": "Pressure",
+      "raw_hex": "cae6d9e7e7e9e6d9ffffffffffffffffff"
+    },
+    {
+      "ability_id": 47,
+      "offset": 10708663,
+      "name": "Thick Fat",
+      "raw_hex": "cedcddd7df00c0d5e8ffffffffffffffff"
+    },
+    {
+      "ability_id": 48,
+      "offset": 10708680,
+      "name": "Early Bird",
+      "raw_hex": "bfd5e6e0ed00bcdde6d8ffffffffffffff"
+    },
+    {
+      "ability_id": 49,
+      "offset": 10708697,
+      "name": "Flame Body",
+      "raw_hex": "c0e0d5e1d900bce3d8edffffffffffffff"
+    },
+    {
+      "ability_id": 50,
+      "offset": 10708714,
+      "name": "Run Away",
+      "raw_hex": "cce9e200bbebd5edffffffffffffffffff"
+    },
+    {
+      "ability_id": 51,
+      "offset": 10708731,
+      "name": "Keen Eye",
+      "raw_hex": "c5d9d9e200bfedd9ffffffffffffffffff"
+    },
+    {
+      "ability_id": 52,
+      "offset": 10708748,
+      "name": "Hyper Cutter",
+      "raw_hex": "c2ede4d9e600bde9e8e8d9e6ffffffffff"
+    },
+    {
+      "ability_id": 53,
+      "offset": 10708765,
+      "name": "Pickup",
+      "raw_hex": "caddd7dfe9e4ffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 54,
+      "offset": 10708782,
+      "name": "Truant",
+      "raw_hex": "cee6e9d5e2e8ffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 55,
+      "offset": 10708799,
+      "name": "Hustle",
+      "raw_hex": "c2e9e7e8e0d9ffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 56,
+      "offset": 10708816,
+      "name": "Cute Charm",
+      "raw_hex": "bde9e8d900bddcd5e6e1ffffffffffffff"
+    },
+    {
+      "ability_id": 57,
+      "offset": 10708833,
+      "name": "Plus",
+      "raw_hex": "cae0e9e7ffffffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 58,
+      "offset": 10708850,
+      "name": "Minus",
+      "raw_hex": "c7dde2e9e7ffffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 59,
+      "offset": 10708867,
+      "name": "Forecast",
+      "raw_hex": "c0e3e6d9d7d5e7e8ffffffffffffffffff"
+    },
+    {
+      "ability_id": 60,
+      "offset": 10708884,
+      "name": "Sticky Hold",
+      "raw_hex": "cde8ddd7dfed00c2e3e0d8ffffffffffff"
+    },
+    {
+      "ability_id": 61,
+      "offset": 10708901,
+      "name": "Shed Skin",
+      "raw_hex": "cddcd9d800cddfdde2ffffffffffffffff"
+    },
+    {
+      "ability_id": 62,
+      "offset": 10708918,
+      "name": "Guts",
+      "raw_hex": "c1e9e8e7ffffffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 63,
+      "offset": 10708935,
+      "name": "Marvel Scale",
+      "raw_hex": "c7d5e6ead9e000cdd7d5e0d9ffffffffff"
+    },
+    {
+      "ability_id": 64,
+      "offset": 10708952,
+      "name": "Liquid Ooze",
+      "raw_hex": "c6dde5e9ddd800c9e3eed9ffffffffffff"
+    },
+    {
+      "ability_id": 65,
+      "offset": 10708969,
+      "name": "Overgrow",
+      "raw_hex": "c9ead9e6dbe6e3ebffffffffffffffffff"
+    },
+    {
+      "ability_id": 66,
+      "offset": 10708986,
+      "name": "Blaze",
+      "raw_hex": "bce0d5eed9ffffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 67,
+      "offset": 10709003,
+      "name": "Torrent",
+      "raw_hex": "cee3e6e6d9e2e8ffffffffffffffffffff"
+    },
+    {
+      "ability_id": 68,
+      "offset": 10709020,
+      "name": "Swarm",
+      "raw_hex": "cdebd5e6e1ffffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 69,
+      "offset": 10709037,
+      "name": "Rock Head",
+      "raw_hex": "cce3d7df00c2d9d5d8ffffffffffffffff"
+    },
+    {
+      "ability_id": 70,
+      "offset": 10709054,
+      "name": "Drought",
+      "raw_hex": "bee6e3e9dbdce8ffffffffffffffffffff"
+    },
+    {
+      "ability_id": 71,
+      "offset": 10709071,
+      "name": "Arena Trap",
+      "raw_hex": "bbe6d9e2d500cee6d5e4ffffffffffffff"
+    },
+    {
+      "ability_id": 72,
+      "offset": 10709088,
+      "name": "Transistor",
+      "raw_hex": "cee6d5e2e7dde7e8e3e6ffffffffffffff"
+    },
+    {
+      "ability_id": 73,
+      "offset": 10709105,
+      "name": "Dragon's Maw",
+      "raw_hex": "bee6d5dbe3e2b4e700c7d5ebffffffffff"
+    },
+    {
+      "ability_id": 74,
+      "offset": 10709122,
+      "name": "Neutralize Gas",
+      "raw_hex": "c8d9e9e8e6d5e0ddeed900c1d5e7ffffff"
+    },
+    {
+      "ability_id": 75,
+      "offset": 10709139,
+      "name": "Shell Armor",
+      "raw_hex": "cddcd9e0e000bbe6e1e3e6ffffffffffff"
+    },
+    {
+      "ability_id": 76,
+      "offset": 10709156,
+      "name": "Hunger Switch",
+      "raw_hex": "c2e9e2dbd9e600cdebdde8d7dcffffffff"
+    },
+    {
+      "ability_id": 77,
+      "offset": 10709173,
+      "name": "Unused",
+      "raw_hex": "cfe2e9e7d9d8ffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 78,
+      "offset": 10709190,
+      "name": "Sweet Veil",
+      "raw_hex": "cdebd9d9e800d0d9dde0ffffffffffffff"
+    },
+    {
+      "ability_id": 79,
+      "offset": 10709207,
+      "name": "Skill Link",
+      "raw_hex": "cddfdde0e000c6dde2dfffffffffffffff"
+    },
+    {
+      "ability_id": 80,
+      "offset": 10709224,
+      "name": "Motor Drive",
+      "raw_hex": "c7e3e8e3e600bee6ddead9ffffffffffff"
+    },
+    {
+      "ability_id": 81,
+      "offset": 10709241,
+      "name": "Multiscale",
+      "raw_hex": "c7e9e0e8dde7d7d5e0d9ffffffffffffff"
+    },
+    {
+      "ability_id": 82,
+      "offset": 10709258,
+      "name": "Technician",
+      "raw_hex": "ced9d7dce2ddd7ddd5e2ffffffffffffff"
+    },
+    {
+      "ability_id": 83,
+      "offset": 10709275,
+      "name": "Scrappy",
+      "raw_hex": "cdd7e6d5e4e4edffffffffffffffffffff"
+    },
+    {
+      "ability_id": 84,
+      "offset": 10709292,
+      "name": "Super Luck",
+      "raw_hex": "cde9e4d9e600c6e9d7dfffffffffffffff"
+    },
+    {
+      "ability_id": 85,
+      "offset": 10709309,
+      "name": "Sniper",
+      "raw_hex": "cde2dde4d9e6ffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 86,
+      "offset": 10709326,
+      "name": "Regenerator",
+      "raw_hex": "ccd9dbd9e2d9e6d5e8e3e6ffffffffffff"
+    },
+    {
+      "ability_id": 87,
+      "offset": 10709343,
+      "name": "Prankster",
+      "raw_hex": "cae6d5e2dfe7e8d9e6ffffffffffffffff"
+    },
+    {
+      "ability_id": 88,
+      "offset": 10709360,
+      "name": "Adaptability",
+      "raw_hex": "bbd8d5e4e8d5d6dde0dde8edffffffffff"
+    },
+    {
+      "ability_id": 89,
+      "offset": 10709377,
+      "name": "Big Pecks",
+      "raw_hex": "bcdddb00cad9d7dfe7ffffffffffffffff"
+    },
+    {
+      "ability_id": 90,
+      "offset": 10709394,
+      "name": "Magic Bounce",
+      "raw_hex": "c7d5dbddd700bce3e9e2d7d9ffffffffff"
+    },
+    {
+      "ability_id": 91,
+      "offset": 10709411,
+      "name": "Reckless",
+      "raw_hex": "ccd9d7dfe0d9e7e7ffffffffffffffffff"
+    },
+    {
+      "ability_id": 92,
+      "offset": 10709428,
+      "name": "Sheer Force",
+      "raw_hex": "cddcd9d9e600c0e3e6d7d9ffffffffffff"
+    },
+    {
+      "ability_id": 93,
+      "offset": 10709445,
+      "name": "Iron Fist",
+      "raw_hex": "c3e6e3e200c0dde7e8ffffffffffffffff"
+    },
+    {
+      "ability_id": 94,
+      "offset": 10709462,
+      "name": "Rivalry",
+      "raw_hex": "ccddead5e0e6edffffffffffffffffffff"
+    },
+    {
+      "ability_id": 95,
+      "offset": 10709479,
+      "name": "Sand Force",
+      "raw_hex": "cdd5e2d800c0e3e6d7d9ffffffffffffff"
+    },
+    {
+      "ability_id": 96,
+      "offset": 10709496,
+      "name": "Solar Power",
+      "raw_hex": "cde3e0d5e600cae3ebd9e6ffffffffffff"
+    },
+    {
+      "ability_id": 97,
+      "offset": 10709513,
+      "name": "Heatproof",
+      "raw_hex": "c2d9d5e8e4e6e3e3daffffffffffffffff"
+    },
+    {
+      "ability_id": 98,
+      "offset": 10709530,
+      "name": "Dry Skin",
+      "raw_hex": "bee6ed00cddfdde2ffffffffffffffffff"
+    },
+    {
+      "ability_id": 99,
+      "offset": 10709547,
+      "name": "Tinted Lens",
+      "raw_hex": "cedde2e8d9d800c6d9e2e7ffffffffffff"
+    },
+    {
+      "ability_id": 100,
+      "offset": 10709564,
+      "name": "Unseen Fist",
+      "raw_hex": "cfe2e7d9d9e200c0dde7e8ffffffffffff"
+    },
+    {
+      "ability_id": 101,
+      "offset": 10709581,
+      "name": "Filter",
+      "raw_hex": "c0dde0e8d9e6ffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 102,
+      "offset": 10709598,
+      "name": "Infiltrator",
+      "raw_hex": "c3e2dadde0e8e6d5e8e3e6ffffffffffff"
+    },
+    {
+      "ability_id": 103,
+      "offset": 10709615,
+      "name": "Download",
+      "raw_hex": "bee3ebe2e0e3d5d8ffffffffffffffffff"
+    },
+    {
+      "ability_id": 104,
+      "offset": 10709632,
+      "name": "Poison Heal",
+      "raw_hex": "cae3dde7e3e200c2d9d5e0ffffffffffff"
+    },
+    {
+      "ability_id": 105,
+      "offset": 10709649,
+      "name": "Ice Body",
+      "raw_hex": "c3d7d900bce3d8edffffffffffffffffff"
+    },
+    {
+      "ability_id": 106,
+      "offset": 10709666,
+      "name": "Moody",
+      "raw_hex": "c7e3e3d8edffffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 107,
+      "offset": 10709683,
+      "name": "Hydration",
+      "raw_hex": "c2edd8e6d5e8dde3e2ffffffffffffffff"
+    },
+    {
+      "ability_id": 108,
+      "offset": 10709700,
+      "name": "Healer",
+      "raw_hex": "c2d9d5e0d9e6ffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 109,
+      "offset": 10709717,
+      "name": "Snow Cloak",
+      "raw_hex": "cde2e3eb00bde0e3d5dfffffffffffffff"
+    },
+    {
+      "ability_id": 110,
+      "offset": 10709734,
+      "name": "Tangled Feet",
+      "raw_hex": "ced5e2dbe0d9d800c0d9d9e8ffffffffff"
+    },
+    {
+      "ability_id": 111,
+      "offset": 10709751,
+      "name": "Snow Warning",
+      "raw_hex": "cde2e3eb00d1d5e6e2dde2dbffffffffff"
+    },
+    {
+      "ability_id": 112,
+      "offset": 10709768,
+      "name": "Quick Feet",
+      "raw_hex": "cbe9ddd7df00c0d9d9e8ffffffffffffff"
+    },
+    {
+      "ability_id": 113,
+      "offset": 10709785,
+      "name": "Sap Sipper",
+      "raw_hex": "cdd5e400cddde4e4d9e6ffffffffffffff"
+    },
+    {
+      "ability_id": 114,
+      "offset": 10709802,
+      "name": "Overcoat",
+      "raw_hex": "c9ead9e6d7e3d5e8ffffffffffffffffff"
+    },
+    {
+      "ability_id": 115,
+      "offset": 10709819,
+      "name": "Magic Guard",
+      "raw_hex": "c7d5dbddd700c1e9d5e6d8ffffffffffff"
+    },
+    {
+      "ability_id": 116,
+      "offset": 10709836,
+      "name": "Bulletproof",
+      "raw_hex": "bce9e0e0d9e8e4e6e3e3daffffffffffff"
+    },
+    {
+      "ability_id": 117,
+      "offset": 10709853,
+      "name": "Gale Wings",
+      "raw_hex": "c1d5e0d900d1dde2dbe7ffffffffffffff"
+    },
+    {
+      "ability_id": 118,
+      "offset": 10709870,
+      "name": "Moxie",
+      "raw_hex": "c7e3ecddd9ffffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 119,
+      "offset": 10709887,
+      "name": "Aftermath",
+      "raw_hex": "bbdae8d9e6e1d5e8dcffffffffffffffff"
+    },
+    {
+      "ability_id": 120,
+      "offset": 10709904,
+      "name": "Cursed Body",
+      "raw_hex": "bde9e6e7d9d800bce3d8edffffffffffff"
+    },
+    {
+      "ability_id": 121,
+      "offset": 10709921,
+      "name": "Gooey",
+      "raw_hex": "c1e3e3d9edffffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 122,
+      "offset": 10709938,
+      "name": "Mummy",
+      "raw_hex": "c7e9e1e1edffffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 123,
+      "offset": 10709955,
+      "name": "Grim Neigh",
+      "raw_hex": "c1e6dde100c8d9dddbdcffffffffffffff"
+    },
+    {
+      "ability_id": 124,
+      "offset": 10709972,
+      "name": "Sand Rush",
+      "raw_hex": "cdd5e2d800cce9e7dcffffffffffffffff"
+    },
+    {
+      "ability_id": 125,
+      "offset": 10709989,
+      "name": "Analytic",
+      "raw_hex": "bbe2d5e0ede8ddd7ffffffffffffffffff"
+    },
+    {
+      "ability_id": 126,
+      "offset": 10710006,
+      "name": "No Guard",
+      "raw_hex": "c8e300c1e9d5e6d8ffffffffffffffffff"
+    },
+    {
+      "ability_id": 127,
+      "offset": 10710023,
+      "name": "Mega Launcher",
+      "raw_hex": "c7d9dbd500c6d5e9e2d7dcd9e6ffffffff"
+    },
+    {
+      "ability_id": 128,
+      "offset": 10710040,
+      "name": "Tough Claws",
+      "raw_hex": "cee3e9dbdc00bde0d5ebe7ffffffffffff"
+    },
+    {
+      "ability_id": 129,
+      "offset": 10710057,
+      "name": "Strong Jaw",
+      "raw_hex": "cde8e6e3e2db00c4d5ebffffffffffffff"
+    },
+    {
+      "ability_id": 130,
+      "offset": 10710074,
+      "name": "Victory Star",
+      "raw_hex": "d0ddd7e8e3e6ed00cde8d5e6ffffffffff"
+    },
+    {
+      "ability_id": 131,
+      "offset": 10710091,
+      "name": "Storm Drain",
+      "raw_hex": "cde8e3e6e100bee6d5dde2ffffffffffff"
+    },
+    {
+      "ability_id": 132,
+      "offset": 10710108,
+      "name": "Dark Aura",
+      "raw_hex": "bed5e6df00bbe9e6d5ffffffffffffffff"
+    },
+    {
+      "ability_id": 133,
+      "offset": 10710125,
+      "name": "Fairy Aura",
+      "raw_hex": "c0d5dde6ed00bbe9e6d5ffffffffffffff"
+    },
+    {
+      "ability_id": 134,
+      "offset": 10710142,
+      "name": "Aura Break",
+      "raw_hex": "bbe9e6d500bce6d9d5dfffffffffffffff"
+    },
+    {
+      "ability_id": 135,
+      "offset": 10710159,
+      "name": "Refrigerate",
+      "raw_hex": "ccd9dae6dddbd9e6d5e8d9ffffffffffff"
+    },
+    {
+      "ability_id": 136,
+      "offset": 10710176,
+      "name": "Pixilate",
+      "raw_hex": "caddecdde0d5e8d9ffffffffffffffffff"
+    },
+    {
+      "ability_id": 137,
+      "offset": 10710193,
+      "name": "Aerilate",
+      "raw_hex": "bbd9e6dde0d5e8d9ffffffffffffffffff"
+    },
+    {
+      "ability_id": 138,
+      "offset": 10710210,
+      "name": "Normalize",
+      "raw_hex": "c8e3e6e1d5e0ddeed9ffffffffffffffff"
+    },
+    {
+      "ability_id": 139,
+      "offset": 10710227,
+      "name": "Unburden",
+      "raw_hex": "cfe2d6e9e6d8d9e2ffffffffffffffffff"
+    },
+    {
+      "ability_id": 140,
+      "offset": 10710244,
+      "name": "Simple",
+      "raw_hex": "cddde1e4e0d9ffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 141,
+      "offset": 10710261,
+      "name": "Unaware",
+      "raw_hex": "cfe2d5ebd5e6d9ffffffffffffffffffff"
+    },
+    {
+      "ability_id": 142,
+      "offset": 10710278,
+      "name": "Defiant",
+      "raw_hex": "bed9daddd5e2e8ffffffffffffffffffff"
+    },
+    {
+      "ability_id": 143,
+      "offset": 10710295,
+      "name": "Competitive",
+      "raw_hex": "bde3e1e4d9e8dde8ddead9ffffffffffff"
+    },
+    {
+      "ability_id": 144,
+      "offset": 10710312,
+      "name": "Defeatist",
+      "raw_hex": "bed9dad9d5e8dde7e8ffffffffffffffff"
+    },
+    {
+      "ability_id": 145,
+      "offset": 10710329,
+      "name": "Slow Start",
+      "raw_hex": "cde0e3eb00cde8d5e6e8ffffffffffffff"
+    },
+    {
+      "ability_id": 146,
+      "offset": 10710346,
+      "name": "Toxic Boost",
+      "raw_hex": "cee3ecddd700bce3e3e7e8ffffffffffff"
+    },
+    {
+      "ability_id": 147,
+      "offset": 10710363,
+      "name": "Flare Boost",
+      "raw_hex": "c0e0d5e6d900bce3e3e7e8ffffffffffff"
+    },
+    {
+      "ability_id": 148,
+      "offset": 10710380,
+      "name": "Fur Coat",
+      "raw_hex": "c0e9e600bde3d5e8ffffffffffffffffff"
+    },
+    {
+      "ability_id": 149,
+      "offset": 10710397,
+      "name": "Wonder Skin",
+      "raw_hex": "d1e3e2d8d9e600cddfdde2ffffffffffff"
+    },
+    {
+      "ability_id": 150,
+      "offset": 10710414,
+      "name": "Protean",
+      "raw_hex": "cae6e3e8d9d5e2ffffffffffffffffffff"
+    },
+    {
+      "ability_id": 151,
+      "offset": 10710431,
+      "name": "Parental Bond",
+      "raw_hex": "cad5e6d9e2e8d5e000bce3e2d8ffffffff"
+    },
+    {
+      "ability_id": 152,
+      "offset": 10710448,
+      "name": "Mold Breaker",
+      "raw_hex": "c7e3e0d800bce6d9d5dfd9e6ffffffffff"
+    },
+    {
+      "ability_id": 153,
+      "offset": 10710465,
+      "name": "As One",
+      "raw_hex": "bbe700c9e2d9ffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 154,
+      "offset": 10710482,
+      "name": "As One",
+      "raw_hex": "bbe700c9e2d9ffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 155,
+      "offset": 10710499,
+      "name": "Zen Mode",
+      "raw_hex": "d4d9e200c7e3d8d9ffffffffffffffffff"
+    },
+    {
+      "ability_id": 156,
+      "offset": 10710516,
+      "name": "Battle Bond",
+      "raw_hex": "bcd5e8e8e0d900bce3e2d8ffffffffffff"
+    },
+    {
+      "ability_id": 157,
+      "offset": 10710533,
+      "name": "Beast Boost",
+      "raw_hex": "bcd9d5e7e800bce3e3e7e8ffffffffffff"
+    },
+    {
+      "ability_id": 158,
+      "offset": 10710550,
+      "name": "Corrosion",
+      "raw_hex": "bde3e6e6e3e7dde3e2ffffffffffffffff"
+    },
+    {
+      "ability_id": 159,
+      "offset": 10710567,
+      "name": "Disguise",
+      "raw_hex": "bedde7dbe9dde7d9ffffffffffffffffff"
+    },
+    {
+      "ability_id": 160,
+      "offset": 10710584,
+      "name": "Emergency Exit",
+      "raw_hex": "bfe1d9e6dbd9e2d7ed00bfecdde8ffffff"
+    },
+    {
+      "ability_id": 161,
+      "offset": 10710601,
+      "name": "Fluffy",
+      "raw_hex": "c0e0e9dadaedffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 162,
+      "offset": 10710618,
+      "name": "Steely Spirit",
+      "raw_hex": "cde8d9d9e0ed00cde4dde6dde8ffffffff"
+    },
+    {
+      "ability_id": 163,
+      "offset": 10710635,
+      "name": "Perish Body",
+      "raw_hex": "cad9e6dde7dc00bce3d8edffffffffffff"
+    },
+    {
+      "ability_id": 164,
+      "offset": 10710652,
+      "name": "Wandering Soul",
+      "raw_hex": "d1d5e2d8d9e6dde2db00cde3e9e0ffffff"
+    },
+    {
+      "ability_id": 165,
+      "offset": 10710669,
+      "name": "Power Construct",
+      "raw_hex": "cae3ebd9e600bde3e2e7e8e6e9d7e8ffff"
+    },
+    {
+      "ability_id": 166,
+      "offset": 10710686,
+      "name": "Prism Armor",
+      "raw_hex": "cae6dde7e100bbe6e1e3e6ffffffffffff"
+    },
+    {
+      "ability_id": 167,
+      "offset": 10710703,
+      "name": "RKS System",
+      "raw_hex": "ccc5cd00cdede7e8d9e1ffffffffffffff"
+    },
+    {
+      "ability_id": 168,
+      "offset": 10710720,
+      "name": "Schooling",
+      "raw_hex": "cdd7dce3e3e0dde2dbffffffffffffffff"
+    },
+    {
+      "ability_id": 169,
+      "offset": 10710737,
+      "name": "Shadow Shield",
+      "raw_hex": "cddcd5d8e3eb00cddcddd9e0d8ffffffff"
+    },
+    {
+      "ability_id": 170,
+      "offset": 10710754,
+      "name": "Shields Down",
+      "raw_hex": "cddcddd9e0d8e700bee3ebe2ffffffffff"
+    },
+    {
+      "ability_id": 171,
+      "offset": 10710771,
+      "name": "Slush Rush",
+      "raw_hex": "cde0e9e7dc00cce9e7dcffffffffffffff"
+    },
+    {
+      "ability_id": 172,
+      "offset": 10710788,
+      "name": "Soul-Heart",
+      "raw_hex": "cde3e9e0aec2d9d5e6e8ffffffffffffff"
+    },
+    {
+      "ability_id": 173,
+      "offset": 10710805,
+      "name": "Stamina",
+      "raw_hex": "cde8d5e1dde2d5ffffffffffffffffffff"
+    },
+    {
+      "ability_id": 174,
+      "offset": 10710822,
+      "name": "Steelworker",
+      "raw_hex": "cde8d9d9e0ebe3e6dfd9e6ffffffffffff"
+    },
+    {
+      "ability_id": 175,
+      "offset": 10710839,
+      "name": "Full Metal Body",
+      "raw_hex": "c0e9e0e000c7d9e8d5e000bce3d8edffff"
+    },
+    {
+      "ability_id": 176,
+      "offset": 10710856,
+      "name": "Triage",
+      "raw_hex": "cee6ddd5dbd9ffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 177,
+      "offset": 10710873,
+      "name": "Water Bubble",
+      "raw_hex": "d1d5e8d9e600bce9d6d6e0d9ffffffffff"
+    },
+    {
+      "ability_id": 178,
+      "offset": 10710890,
+      "name": "Water Compact",
+      "raw_hex": "d1d5e8d9e600bde3e1e4d5d7e8ffffffff"
+    },
+    {
+      "ability_id": 179,
+      "offset": 10710907,
+      "name": "Stall",
+      "raw_hex": "cde8d5e0e0ffffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 180,
+      "offset": 10710924,
+      "name": "Multitype",
+      "raw_hex": "c7e9e0e8dde8ede4d9ffffffffffffffff"
+    },
+    {
+      "ability_id": 181,
+      "offset": 10710941,
+      "name": "Electric Surge",
+      "raw_hex": "bfe0d9d7e8e6ddd700cde9e6dbd9ffffff"
+    },
+    {
+      "ability_id": 182,
+      "offset": 10710958,
+      "name": "Grassy Surge",
+      "raw_hex": "c1e6d5e7e7ed00cde9e6dbd9ffffffffff"
+    },
+    {
+      "ability_id": 183,
+      "offset": 10710975,
+      "name": "Misty Surge",
+      "raw_hex": "c7dde7e8ed00cde9e6dbd9ffffffffffff"
+    },
+    {
+      "ability_id": 184,
+      "offset": 10710992,
+      "name": "Psychic Surge",
+      "raw_hex": "cae7edd7dcddd700cde9e6dbd9ffffffff"
+    },
+    {
+      "ability_id": 185,
+      "offset": 10711009,
+      "name": "Surge Surfer",
+      "raw_hex": "cde9e6dbd900cde9e6dad9e6ffffffffff"
+    },
+    {
+      "ability_id": 186,
+      "offset": 10711026,
+      "name": "Grass Pelt",
+      "raw_hex": "c1e6d5e7e700cad9e0e8ffffffffffffff"
+    },
+    {
+      "ability_id": 187,
+      "offset": 10711043,
+      "name": "Anger Point",
+      "raw_hex": "bbe2dbd9e600cae3dde2e8ffffffffffff"
+    },
+    {
+      "ability_id": 188,
+      "offset": 10711060,
+      "name": "Anticipation",
+      "raw_hex": "bbe2e8ddd7dde4d5e8dde3e2ffffffffff"
+    },
+    {
+      "ability_id": 189,
+      "offset": 10711077,
+      "name": "Forewarn",
+      "raw_hex": "c0e3e6d9ebd5e6e2ffffffffffffffffff"
+    },
+    {
+      "ability_id": 190,
+      "offset": 10711094,
+      "name": "Frisk",
+      "raw_hex": "c0e6dde7dfffffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 191,
+      "offset": 10711111,
+      "name": "Contrary",
+      "raw_hex": "bde3e2e8e6d5e6edffffffffffffffffff"
+    },
+    {
+      "ability_id": 192,
+      "offset": 10711128,
+      "name": "Unnerve",
+      "raw_hex": "cfe2e2d9e6ead9ffffffffffffffffffff"
+    },
+    {
+      "ability_id": 193,
+      "offset": 10711145,
+      "name": "Weak Armor",
+      "raw_hex": "d1d9d5df00bbe6e1e3e6ffffffffffffff"
+    },
+    {
+      "ability_id": 194,
+      "offset": 10711162,
+      "name": "Heavy Metal",
+      "raw_hex": "c2d9d5eaed00c7d9e8d5e0ffffffffffff"
+    },
+    {
+      "ability_id": 195,
+      "offset": 10711179,
+      "name": "Light Metal",
+      "raw_hex": "c6dddbdce800c7d9e8d5e0ffffffffffff"
+    },
+    {
+      "ability_id": 196,
+      "offset": 10711196,
+      "name": "Steadfast",
+      "raw_hex": "cde8d9d5d8dad5e7e8ffffffffffffffff"
+    },
+    {
+      "ability_id": 197,
+      "offset": 10711213,
+      "name": "Imposter",
+      "raw_hex": "c3e1e4e3e7e8d9e6ffffffffffffffffff"
+    },
+    {
+      "ability_id": 198,
+      "offset": 10711230,
+      "name": "Justified",
+      "raw_hex": "c4e9e7e8dddaddd9d8ffffffffffffffff"
+    },
+    {
+      "ability_id": 199,
+      "offset": 10711247,
+      "name": "Rattled",
+      "raw_hex": "ccd5e8e8e0d9d8ffffffffffffffffffff"
+    },
+    {
+      "ability_id": 200,
+      "offset": 10711264,
+      "name": "Merciless",
+      "raw_hex": "c7d9e6d7dde0d9e7e7ffffffffffffffff"
+    },
+    {
+      "ability_id": 201,
+      "offset": 10711281,
+      "name": "Aroma Veil",
+      "raw_hex": "bbe6e3e1d500d0d9dde0ffffffffffffff"
+    },
+    {
+      "ability_id": 202,
+      "offset": 10711298,
+      "name": "Flower Veil",
+      "raw_hex": "c0e0e3ebd9e600d0d9dde0ffffffffffff"
+    },
+    {
+      "ability_id": 203,
+      "offset": 10711315,
+      "name": "Leaf Guard",
+      "raw_hex": "c6d9d5da00c1e9d5e6d8ffffffffffffff"
+    },
+    {
+      "ability_id": 204,
+      "offset": 10711332,
+      "name": "Klutz",
+      "raw_hex": "c5e0e9e8eeffffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 205,
+      "offset": 10711349,
+      "name": "Flower Gift",
+      "raw_hex": "c0e0e3ebd9e600c1dddae8ffffffffffff"
+    },
+    {
+      "ability_id": 206,
+      "offset": 10711366,
+      "name": "Bad Dreams",
+      "raw_hex": "bcd5d800bee6d9d5e1e7ffffffffffffff"
+    },
+    {
+      "ability_id": 207,
+      "offset": 10711383,
+      "name": "Pickpocket",
+      "raw_hex": "caddd7dfe4e3d7dfd9e8ffffffffffffff"
+    },
+    {
+      "ability_id": 208,
+      "offset": 10711400,
+      "name": "Portal Power",
+      "raw_hex": "cae3e6e8d5e000cae3ebd9e6ffffffffff"
+    },
+    {
+      "ability_id": 209,
+      "offset": 10711417,
+      "name": "Poison Touch",
+      "raw_hex": "cae3dde7e3e200cee3e9d7dcffffffffff"
+    },
+    {
+      "ability_id": 210,
+      "offset": 10711434,
+      "name": "Magician",
+      "raw_hex": "c7d5dbddd7ddd5e2ffffffffffffffffff"
+    },
+    {
+      "ability_id": 211,
+      "offset": 10711451,
+      "name": "Stance Change",
+      "raw_hex": "cde8d5e2d7d900bddcd5e2dbd9ffffffff"
+    },
+    {
+      "ability_id": 212,
+      "offset": 10711468,
+      "name": "Primordial Sea",
+      "raw_hex": "cae6dde1e3e6d8ddd5e000cdd9d5ffffff"
+    },
+    {
+      "ability_id": 213,
+      "offset": 10711485,
+      "name": "Desolate Land",
+      "raw_hex": "bed9e7e3e0d5e8d900c6d5e2d8ffffffff"
+    },
+    {
+      "ability_id": 214,
+      "offset": 10711502,
+      "name": "Delta Stream",
+      "raw_hex": "bed9e0e8d500cde8e6d9d5e1ffffffffff"
+    },
+    {
+      "ability_id": 215,
+      "offset": 10711519,
+      "name": "Gorilla Tactics",
+      "raw_hex": "c1e3e6dde0e0d500ced5d7e8ddd7e7ffff"
+    },
+    {
+      "ability_id": 216,
+      "offset": 10711536,
+      "name": "Berserk",
+      "raw_hex": "bcd9e6e7d9e6dfffffffffffffffffffff"
+    },
+    {
+      "ability_id": 217,
+      "offset": 10711553,
+      "name": "Long Reach",
+      "raw_hex": "c6e3e2db00ccd9d5d7dcffffffffffffff"
+    },
+    {
+      "ability_id": 218,
+      "offset": 10711570,
+      "name": "Liquid Voice",
+      "raw_hex": "c6dde5e9ddd800d0e3ddd7d9ffffffffff"
+    },
+    {
+      "ability_id": 219,
+      "offset": 10711587,
+      "name": "Quick Draw",
+      "raw_hex": "cbe9ddd7df00bee6d5ebffffffffffffff"
+    },
+    {
+      "ability_id": 220,
+      "offset": 10711604,
+      "name": "Innards Out",
+      "raw_hex": "c3e2e2d5e6d8e700c9e9e8ffffffffffff"
+    },
+    {
+      "ability_id": 221,
+      "offset": 10711621,
+      "name": "Dazzling",
+      "raw_hex": "bed5eeeee0dde2dbffffffffffffffffff"
+    },
+    {
+      "ability_id": 222,
+      "offset": 10711638,
+      "name": "Gluttony",
+      "raw_hex": "c1e0e9e8e8e3e2edffffffffffffffffff"
+    },
+    {
+      "ability_id": 223,
+      "offset": 10711655,
+      "name": "Honey Gather",
+      "raw_hex": "c2e3e2d9ed00c1d5e8dcd9e6ffffffffff"
+    },
+    {
+      "ability_id": 224,
+      "offset": 10711672,
+      "name": "Friend Guard",
+      "raw_hex": "c0e6ddd9e2d800c1e9d5e6d8ffffffffff"
+    },
+    {
+      "ability_id": 225,
+      "offset": 10711689,
+      "name": "Harvest",
+      "raw_hex": "c2d5e6ead9e7e8ffffffffffffffffffff"
+    },
+    {
+      "ability_id": 226,
+      "offset": 10711706,
+      "name": "Telepathy",
+      "raw_hex": "ced9e0d9e4d5e8dcedffffffffffffffff"
+    },
+    {
+      "ability_id": 227,
+      "offset": 10711723,
+      "name": "Illusion",
+      "raw_hex": "c3e0e0e9e7dde3e2ffffffffffffffffff"
+    },
+    {
+      "ability_id": 228,
+      "offset": 10711740,
+      "name": "Cheek Pouch",
+      "raw_hex": "bddcd9d9df00cae3e9d7dcffffffffffff"
+    },
+    {
+      "ability_id": 229,
+      "offset": 10711757,
+      "name": "Symbiosis",
+      "raw_hex": "cdede1d6dde3e7dde7ffffffffffffffff"
+    },
+    {
+      "ability_id": 230,
+      "offset": 10711774,
+      "name": "Stakeout",
+      "raw_hex": "cde8d5dfd9e3e9e8ffffffffffffffffff"
+    },
+    {
+      "ability_id": 231,
+      "offset": 10711791,
+      "name": "Comatose",
+      "raw_hex": "bde3e1d5e8e3e7d9ffffffffffffffffff"
+    },
+    {
+      "ability_id": 232,
+      "offset": 10711808,
+      "name": "Dancer",
+      "raw_hex": "bed5e2d7d9e6ffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 233,
+      "offset": 10711825,
+      "name": "Battery",
+      "raw_hex": "bcd5e8e8d9e6edffffffffffffffffffff"
+    },
+    {
+      "ability_id": 234,
+      "offset": 10711842,
+      "name": "Receiver",
+      "raw_hex": "ccd9d7d9ddead9e6ffffffffffffffffff"
+    },
+    {
+      "ability_id": 235,
+      "offset": 10711859,
+      "name": "Odd Medicine",
+      "raw_hex": "c9d8d800c7d9d8ddd7dde2d9ffffffffff"
+    },
+    {
+      "ability_id": 236,
+      "offset": 10711876,
+      "name": "Neuroforce",
+      "raw_hex": "c8d9e9e6e3dae3e6d7d9ffffffffffffff"
+    },
+    {
+      "ability_id": 237,
+      "offset": 10711893,
+      "name": "Galvanize",
+      "raw_hex": "c1d5e0ead5e2ddeed9ffffffffffffffff"
+    },
+    {
+      "ability_id": 238,
+      "offset": 10711910,
+      "name": "Intrepid Sword",
+      "raw_hex": "c3e2e8e6d9e4ddd800cdebe3e6d8ffffff"
+    },
+    {
+      "ability_id": 239,
+      "offset": 10711927,
+      "name": "Valiant Shield",
+      "raw_hex": "d0d5e0ddd5e2e800cddcddd9e0d8ffffff"
+    },
+    {
+      "ability_id": 240,
+      "offset": 10711944,
+      "name": "Ball Fetch",
+      "raw_hex": "bcd5e0e000c0d9e8d7dcffffffffffffff"
+    },
+    {
+      "ability_id": 241,
+      "offset": 10711961,
+      "name": "Cotton Down",
+      "raw_hex": "bde3e8e8e3e200bee3ebe2ffffffffffff"
+    },
+    {
+      "ability_id": 242,
+      "offset": 10711978,
+      "name": "Mirror Armor",
+      "raw_hex": "c7dde6e6e3e600bbe6e1e3e6ffffffffff"
+    },
+    {
+      "ability_id": 243,
+      "offset": 10711995,
+      "name": "Gulp Missile",
+      "raw_hex": "c1e9e0e400c7dde7e7dde0d9ffffffffff"
+    },
+    {
+      "ability_id": 244,
+      "offset": 10712012,
+      "name": "Stalwart",
+      "raw_hex": "cde8d5e0ebd5e6e8ffffffffffffffffff"
+    },
+    {
+      "ability_id": 245,
+      "offset": 10712029,
+      "name": "Steam Engine",
+      "raw_hex": "cde8d9d5e100bfe2dbdde2d9ffffffffff"
+    },
+    {
+      "ability_id": 246,
+      "offset": 10712046,
+      "name": "Punk Rock",
+      "raw_hex": "cae9e2df00cce3d7dfffffffffffffffff"
+    },
+    {
+      "ability_id": 247,
+      "offset": 10712063,
+      "name": "Sand Spit",
+      "raw_hex": "cdd5e2d800cde4dde8ffffffffffffffff"
+    },
+    {
+      "ability_id": 248,
+      "offset": 10712080,
+      "name": "Ice Scales",
+      "raw_hex": "c3d7d900cdd7d5e0d9e7ffffffffffffff"
+    },
+    {
+      "ability_id": 249,
+      "offset": 10712097,
+      "name": "Ripen",
+      "raw_hex": "ccdde4d9e2ffffffffffffffffffffffff"
+    },
+    {
+      "ability_id": 250,
+      "offset": 10712114,
+      "name": "Ice Face",
+      "raw_hex": "c3d7d900c0d5d7d9ffffffffffffffffff"
+    },
+    {
+      "ability_id": 251,
+      "offset": 10712131,
+      "name": "Power Spot",
+      "raw_hex": "cae3ebd9e600cde4e3e8ffffffffffffff"
+    },
+    {
+      "ability_id": 252,
+      "offset": 10712148,
+      "name": "Mimicry",
+      "raw_hex": "c7dde1ddd7e6edffffffffffffffffffff"
+    },
+    {
+      "ability_id": 253,
+      "offset": 10712165,
+      "name": "Screen Cleaner",
+      "raw_hex": "cdd7e6d9d9e200bde0d9d5e2d9e6ffffff"
+    },
+    {
+      "ability_id": 254,
+      "offset": 10712182,
+      "name": "Pastel Veil",
+      "raw_hex": "cad5e7e8d9e000d0d9dde0ffffffffffff"
+    }
+  ]
+}

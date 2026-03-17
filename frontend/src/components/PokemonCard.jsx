@@ -55,6 +55,9 @@ const PokemonCard = ({ pokemon, onEdit, getPokemonIconUrl }) => {
                         <span className="text-[10px] bg-slate-700/50 text-slate-300 px-2.5 py-1 rounded-lg font-bold uppercase border border-white/5">
                             {pokemon.nature}
                         </span>
+                        <span className="text-[10px] bg-slate-700/50 text-slate-300 px-2.5 py-1 rounded-lg font-bold border border-white/5">
+                            {pokemon.ability_label_current || 'Ability'}
+                        </span>
                     </div>
                 </div>
 

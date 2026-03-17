@@ -4,6 +4,8 @@ import { OFF_ID, OFF_SAVE_IDX, SECTION_SIZE } from './sections.js';
 import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
 import speciesIdentityMeta from './speciesIdentityMeta.json' with { type: 'json' };
 import speciesGrowthRates from './speciesGrowthRates.json' with { type: 'json' };
+import speciesAbilitiesMeta from './speciesAbilitiesMeta.json' with { type: 'json' };
+import abilitiesCatalog from './abilitiesCatalog.json' with { type: 'json' };
 
 const POKEMON_STREAM_SECTORS = [5, 6, 7, 8, 9, 10, 11, 12];
 const PRESET_SECTOR_ID = 0;
@@ -220,6 +222,58 @@ function getSpeciesGrowthRate(speciesId) {
     return rate;
 }
 
+function getSpeciesAbilityMeta(speciesId) {
+    const meta = speciesAbilitiesMeta?.[String(Number(speciesId))];
+    if (!meta) {
+        return { ability_1_id: null, ability_2_id: null, hidden_ability_id: null };
+    }
+    const a1 = meta.ability_1_id === undefined || meta.ability_1_id === null ? null : Number(meta.ability_1_id);
+    const a2 = meta.ability_2_id === undefined || meta.ability_2_id === null ? null : Number(meta.ability_2_id);
+    const ha = meta.hidden_ability_id === undefined || meta.hidden_ability_id === null ? null : Number(meta.hidden_ability_id);
+    return {
+        ability_1_id: Number.isNaN(a1) ? null : a1,
+        ability_2_id: Number.isNaN(a2) ? null : a2,
+        hidden_ability_id: Number.isNaN(ha) ? null : ha,
+    };
+}
+
+function getAbilityNameById(abilityId) {
+    if (abilityId === null || abilityId === undefined) {
+        return null;
+    }
+    return abilitiesCatalog?.[String(Number(abilityId))] || null;
+}
+
+function resolveCurrentAbility(currentIndex, ability1Id, ability1Name, ability2Id, ability2Name, abilityHiddenId, abilityHiddenName) {
+    if (currentIndex === 0) {
+        const effectiveId = (ability1Id !== null && ability1Id !== 0) ? ability1Id : ability2Id;
+        const effectiveName = ability1Name || ability2Name;
+        return {
+            effective_ability_id: effectiveId,
+            effective_ability_name: effectiveName,
+            ability_name_current: effectiveName,
+            ability_label_current: effectiveName || 'Slot 1 (Standard)',
+        };
+    }
+    if (currentIndex === 1) {
+        const effectiveId = (ability2Id !== null && ability2Id !== 0) ? ability2Id : ability1Id;
+        const effectiveName = ability2Name || ability1Name;
+        return {
+            effective_ability_id: effectiveId,
+            effective_ability_name: effectiveName,
+            ability_name_current: effectiveName,
+            ability_label_current: effectiveName || 'Slot 2 (Standard)',
+        };
+    }
+    const effectiveId = (abilityHiddenId !== null && abilityHiddenId !== 0) ? abilityHiddenId : null;
+    return {
+        effective_ability_id: effectiveId,
+        effective_ability_name: abilityHiddenName,
+        ability_name_current: abilityHiddenName,
+        ability_label_current: abilityHiddenName || 'Hidden Ability',
+    };
+}
+
 function genderModeFromThreshold(threshold) {
     if (threshold === null || threshold === undefined) {
         return 'unknown';
@@ -390,6 +444,24 @@ function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
     const pid = ru32(raw, OFF_PID) >>> 0;
     const genderThreshold = getGenderThreshold(raw);
     const genderMode = genderModeFromThreshold(genderThreshold);
+    const abilityMeta = getSpeciesAbilityMeta(speciesId);
+    const abilitySlots = {
+        ability_1_id: abilityMeta.ability_1_id,
+        ability_2_id: abilityMeta.ability_2_id,
+    };
+    const ability1Name = getAbilityNameById(abilitySlots.ability_1_id);
+    const ability2Name = getAbilityNameById(abilitySlots.ability_2_id);
+    const abilityHiddenName = getAbilityNameById(abilityMeta.hidden_ability_id);
+    const currentAbilityIndex = getHiddenAbilityFlag(raw) ? 2 : (pid & 1);
+    const resolvedAbility = resolveCurrentAbility(
+        currentAbilityIndex,
+        abilitySlots.ability_1_id,
+        ability1Name,
+        abilitySlots.ability_2_id,
+        ability2Name,
+        abilityMeta.hidden_ability_id,
+        abilityHiddenName,
+    );
     const speciesMeta = getSpeciesFormMeta(speciesMetaById, speciesMap, speciesId);
     return {
         box,
@@ -414,7 +486,17 @@ function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
         ivs: getIvs(raw),
         evs: getEvs(raw),
         moves: getMoves(raw),
-        current_ability_index: getHiddenAbilityFlag(raw) ? 2 : (pid & 1),
+        current_ability_index: currentAbilityIndex,
+        ability_1_id: abilitySlots.ability_1_id,
+        ability_1_name: ability1Name,
+        ability_2_id: abilitySlots.ability_2_id,
+        ability_2_name: ability2Name,
+        ability_hidden_id: abilityMeta.hidden_ability_id,
+        ability_hidden_name: abilityHiddenName,
+        ability_name_current: resolvedAbility.ability_name_current,
+        ability_label_current: resolvedAbility.ability_label_current,
+        effective_ability_id: resolvedAbility.effective_ability_id,
+        effective_ability_name: resolvedAbility.effective_ability_name,
     };
 }
 
