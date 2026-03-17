@@ -1,0 +1,7610 @@
+{
+  "source_rom": "local_artifacts/Unbound.gba",
+  "table_base": 23505303,
+  "entry_size": 11,
+  "species_count": 1267,
+  "species": [
+    {
+      "species_id": 1,
+      "offset": 23505303,
+      "name": "Bulbasaur",
+      "raw_hex": "bce9e0d6d5e7d5e9e6ffff"
+    },
+    {
+      "species_id": 2,
+      "offset": 23505314,
+      "name": "Ivysaur",
+      "raw_hex": "c3eaede7d5e9e6ffffffff"
+    },
+    {
+      "species_id": 3,
+      "offset": 23505325,
+      "name": "Venusaur",
+      "raw_hex": "d0d9e2e9e7d5e9e6ffffff"
+    },
+    {
+      "species_id": 4,
+      "offset": 23505336,
+      "name": "Charmander",
+      "raw_hex": "bddcd5e6e1d5e2d8d9e6ff"
+    },
+    {
+      "species_id": 5,
+      "offset": 23505347,
+      "name": "Charmeleon",
+      "raw_hex": "bddcd5e6e1d9e0d9e3e2ff"
+    },
+    {
+      "species_id": 6,
+      "offset": 23505358,
+      "name": "Charizard",
+      "raw_hex": "bddcd5e6ddeed5e6d8ffff"
+    },
+    {
+      "species_id": 7,
+      "offset": 23505369,
+      "name": "Squirtle",
+      "raw_hex": "cde5e9dde6e8e0d9ffffff"
+    },
+    {
+      "species_id": 8,
+      "offset": 23505380,
+      "name": "Wartortle",
+      "raw_hex": "d1d5e6e8e3e6e8e0d9ffff"
+    },
+    {
+      "species_id": 9,
+      "offset": 23505391,
+      "name": "Blastoise",
+      "raw_hex": "bce0d5e7e8e3dde7d9ffff"
+    },
+    {
+      "species_id": 10,
+      "offset": 23505402,
+      "name": "Caterpie",
+      "raw_hex": "bdd5e8d9e6e4ddd9ffffff"
+    },
+    {
+      "species_id": 11,
+      "offset": 23505413,
+      "name": "Metapod",
+      "raw_hex": "c7d9e8d5e4e3d8ffffffff"
+    },
+    {
+      "species_id": 12,
+      "offset": 23505424,
+      "name": "Butterfree",
+      "raw_hex": "bce9e8e8d9e6dae6d9d9ff"
+    },
+    {
+      "species_id": 13,
+      "offset": 23505435,
+      "name": "Weedle",
+      "raw_hex": "d1d9d9d8e0d9ffffffffff"
+    },
+    {
+      "species_id": 14,
+      "offset": 23505446,
+      "name": "Kakuna",
+      "raw_hex": "c5d5dfe9e2d5ffffffffff"
+    },
+    {
+      "species_id": 15,
+      "offset": 23505457,
+      "name": "Beedrill",
+      "raw_hex": "bcd9d9d8e6dde0e0ffffff"
+    },
+    {
+      "species_id": 16,
+      "offset": 23505468,
+      "name": "Pidgey",
+      "raw_hex": "caddd8dbd9edffffffffff"
+    },
+    {
+      "species_id": 17,
+      "offset": 23505479,
+      "name": "Pidgeotto",
+      "raw_hex": "caddd8dbd9e3e8e8e3ffff"
+    },
+    {
+      "species_id": 18,
+      "offset": 23505490,
+      "name": "Pidgeot",
+      "raw_hex": "caddd8dbd9e3e8ffffffff"
+    },
+    {
+      "species_id": 19,
+      "offset": 23505501,
+      "name": "Rattata",
+      "raw_hex": "ccd5e8e8d5e8d5ffffffff"
+    },
+    {
+      "species_id": 20,
+      "offset": 23505512,
+      "name": "Raticate",
+      "raw_hex": "ccd5e8ddd7d5e8d9ffffff"
+    },
+    {
+      "species_id": 21,
+      "offset": 23505523,
+      "name": "Spearow",
+      "raw_hex": "cde4d9d5e6e3ebffffffff"
+    },
+    {
+      "species_id": 22,
+      "offset": 23505534,
+      "name": "Fearow",
+      "raw_hex": "c0d9d5e6e3ebffffffffff"
+    },
+    {
+      "species_id": 23,
+      "offset": 23505545,
+      "name": "Ekans",
+      "raw_hex": "bfdfd5e2e7ffffffffffff"
+    },
+    {
+      "species_id": 24,
+      "offset": 23505556,
+      "name": "Arbok",
+      "raw_hex": "bbe6d6e3dfffffffffffff"
+    },
+    {
+      "species_id": 25,
+      "offset": 23505567,
+      "name": "Pikachu",
+      "raw_hex": "cadddfd5d7dce9ffffffff"
+    },
+    {
+      "species_id": 26,
+      "offset": 23505578,
+      "name": "Raichu",
+      "raw_hex": "ccd5ddd7dce9ffffffffff"
+    },
+    {
+      "species_id": 27,
+      "offset": 23505589,
+      "name": "Sandshrew",
+      "raw_hex": "cdd5e2d8e7dce6d9ebffff"
+    },
+    {
+      "species_id": 28,
+      "offset": 23505600,
+      "name": "Sandslash",
+      "raw_hex": "cdd5e2d8e7e0d5e7dcffff"
+    },
+    {
+      "species_id": 29,
+      "offset": 23505611,
+      "name": "Nidoran?",
+      "raw_hex": "c8ddd8e3e6d5e2b6ffffff"
+    },
+    {
+      "species_id": 30,
+      "offset": 23505622,
+      "name": "Nidorina",
+      "raw_hex": "c8ddd8e3e6dde2d5ffffff"
+    },
+    {
+      "species_id": 31,
+      "offset": 23505633,
+      "name": "Nidoqueen",
+      "raw_hex": "c8ddd8e3e5e9d9d9e2ffff"
+    },
+    {
+      "species_id": 32,
+      "offset": 23505644,
+      "name": "Nidoran?",
+      "raw_hex": "c8ddd8e3e6d5e2b5ffffff"
+    },
+    {
+      "species_id": 33,
+      "offset": 23505655,
+      "name": "Nidorino",
+      "raw_hex": "c8ddd8e3e6dde2e3ffffff"
+    },
+    {
+      "species_id": 34,
+      "offset": 23505666,
+      "name": "Nidoking",
+      "raw_hex": "c8ddd8e3dfdde2dbffffff"
+    },
+    {
+      "species_id": 35,
+      "offset": 23505677,
+      "name": "Clefairy",
+      "raw_hex": "bde0d9dad5dde6edffffff"
+    },
+    {
+      "species_id": 36,
+      "offset": 23505688,
+      "name": "Clefable",
+      "raw_hex": "bde0d9dad5d6e0d9ffffff"
+    },
+    {
+      "species_id": 37,
+      "offset": 23505699,
+      "name": "Vulpix",
+      "raw_hex": "d0e9e0e4ddecffffffffff"
+    },
+    {
+      "species_id": 38,
+      "offset": 23505710,
+      "name": "Ninetales",
+      "raw_hex": "c8dde2d9e8d5e0d9e7ffff"
+    },
+    {
+      "species_id": 39,
+      "offset": 23505721,
+      "name": "Jigglypuff",
+      "raw_hex": "c4dddbdbe0ede4e9dadaff"
+    },
+    {
+      "species_id": 40,
+      "offset": 23505732,
+      "name": "Wigglytuff",
+      "raw_hex": "d1dddbdbe0ede8e9dadaff"
+    },
+    {
+      "species_id": 41,
+      "offset": 23505743,
+      "name": "Zubat",
+      "raw_hex": "d4e9d6d5e8ffffffffffff"
+    },
+    {
+      "species_id": 42,
+      "offset": 23505754,
+      "name": "Golbat",
+      "raw_hex": "c1e3e0d6d5e8ffffffffff"
+    },
+    {
+      "species_id": 43,
+      "offset": 23505765,
+      "name": "Oddish",
+      "raw_hex": "c9d8d8dde7dcffffffffff"
+    },
+    {
+      "species_id": 44,
+      "offset": 23505776,
+      "name": "Gloom",
+      "raw_hex": "c1e0e3e3e1ffffffffffff"
+    },
+    {
+      "species_id": 45,
+      "offset": 23505787,
+      "name": "Vileplume",
+      "raw_hex": "d0dde0d9e4e0e9e1d9ffff"
+    },
+    {
+      "species_id": 46,
+      "offset": 23505798,
+      "name": "Paras",
+      "raw_hex": "cad5e6d5e7ffffffffffff"
+    },
+    {
+      "species_id": 47,
+      "offset": 23505809,
+      "name": "Parasect",
+      "raw_hex": "cad5e6d5e7d9d7e8ffffff"
+    },
+    {
+      "species_id": 48,
+      "offset": 23505820,
+      "name": "Venonat",
+      "raw_hex": "d0d9e2e3e2d5e8ffffffff"
+    },
+    {
+      "species_id": 49,
+      "offset": 23505831,
+      "name": "Venomoth",
+      "raw_hex": "d0d9e2e3e1e3e8dcffffff"
+    },
+    {
+      "species_id": 50,
+      "offset": 23505842,
+      "name": "Diglett",
+      "raw_hex": "bedddbe0d9e8e8ffffffff"
+    },
+    {
+      "species_id": 51,
+      "offset": 23505853,
+      "name": "Dugtrio",
+      "raw_hex": "bee9dbe8e6dde3ffffffff"
+    },
+    {
+      "species_id": 52,
+      "offset": 23505864,
+      "name": "Meowth",
+      "raw_hex": "c7d9e3ebe8dcffffffffff"
+    },
+    {
+      "species_id": 53,
+      "offset": 23505875,
+      "name": "Persian",
+      "raw_hex": "cad9e6e7ddd5e2ffffffff"
+    },
+    {
+      "species_id": 54,
+      "offset": 23505886,
+      "name": "Psyduck",
+      "raw_hex": "cae7edd8e9d7dfffffffff"
+    },
+    {
+      "species_id": 55,
+      "offset": 23505897,
+      "name": "Golduck",
+      "raw_hex": "c1e3e0d8e9d7dfffffffff"
+    },
+    {
+      "species_id": 56,
+      "offset": 23505908,
+      "name": "Mankey",
+      "raw_hex": "c7d5e2dfd9edffffffffff"
+    },
+    {
+      "species_id": 57,
+      "offset": 23505919,
+      "name": "Primeape",
+      "raw_hex": "cae6dde1d9d5e4d9ffffff"
+    },
+    {
+      "species_id": 58,
+      "offset": 23505930,
+      "name": "Growlithe",
+      "raw_hex": "c1e6e3ebe0dde8dcd9ffff"
+    },
+    {
+      "species_id": 59,
+      "offset": 23505941,
+      "name": "Arcanine",
+      "raw_hex": "bbe6d7d5e2dde2d9ffffff"
+    },
+    {
+      "species_id": 60,
+      "offset": 23505952,
+      "name": "Poliwag",
+      "raw_hex": "cae3e0ddebd5dbffffffff"
+    },
+    {
+      "species_id": 61,
+      "offset": 23505963,
+      "name": "Poliwhirl",
+      "raw_hex": "cae3e0ddebdcdde6e0ffff"
+    },
+    {
+      "species_id": 62,
+      "offset": 23505974,
+      "name": "Poliwrath",
+      "raw_hex": "cae3e0ddebe6d5e8dcffff"
+    },
+    {
+      "species_id": 63,
+      "offset": 23505985,
+      "name": "Abra",
+      "raw_hex": "bbd6e6d5ffffffffffffff"
+    },
+    {
+      "species_id": 64,
+      "offset": 23505996,
+      "name": "Kadabra",
+      "raw_hex": "c5d5d8d5d6e6d5ffffffff"
+    },
+    {
+      "species_id": 65,
+      "offset": 23506007,
+      "name": "Alakazam",
+      "raw_hex": "bbe0d5dfd5eed5e1ffffff"
+    },
+    {
+      "species_id": 66,
+      "offset": 23506018,
+      "name": "Machop",
+      "raw_hex": "c7d5d7dce3e4ffffffffff"
+    },
+    {
+      "species_id": 67,
+      "offset": 23506029,
+      "name": "Machoke",
+      "raw_hex": "c7d5d7dce3dfd9ffffffff"
+    },
+    {
+      "species_id": 68,
+      "offset": 23506040,
+      "name": "Machamp",
+      "raw_hex": "c7d5d7dcd5e1e4ffffffff"
+    },
+    {
+      "species_id": 69,
+      "offset": 23506051,
+      "name": "Bellsprout",
+      "raw_hex": "bcd9e0e0e7e4e6e3e9e8ff"
+    },
+    {
+      "species_id": 70,
+      "offset": 23506062,
+      "name": "Weepinbell",
+      "raw_hex": "d1d9d9e4dde2d6d9e0e0ff"
+    },
+    {
+      "species_id": 71,
+      "offset": 23506073,
+      "name": "Victreebel",
+      "raw_hex": "d0ddd7e8e6d9d9d6d9e0ff"
+    },
+    {
+      "species_id": 72,
+      "offset": 23506084,
+      "name": "Tentacool",
+      "raw_hex": "ced9e2e8d5d7e3e3e0ffff"
+    },
+    {
+      "species_id": 73,
+      "offset": 23506095,
+      "name": "Tentacruel",
+      "raw_hex": "ced9e2e8d5d7e6e9d9e0ff"
+    },
+    {
+      "species_id": 74,
+      "offset": 23506106,
+      "name": "Geodude",
+      "raw_hex": "c1d9e3d8e9d8d9ffffffff"
+    },
+    {
+      "species_id": 75,
+      "offset": 23506117,
+      "name": "Graveler",
+      "raw_hex": "c1e6d5ead9e0d9e6ffffff"
+    },
+    {
+      "species_id": 76,
+      "offset": 23506128,
+      "name": "Golem",
+      "raw_hex": "c1e3e0d9e1ffffffffffff"
+    },
+    {
+      "species_id": 77,
+      "offset": 23506139,
+      "name": "Ponyta",
+      "raw_hex": "cae3e2ede8d5ffffffffff"
+    },
+    {
+      "species_id": 78,
+      "offset": 23506150,
+      "name": "Rapidash",
+      "raw_hex": "ccd5e4ddd8d5e7dcffffff"
+    },
+    {
+      "species_id": 79,
+      "offset": 23506161,
+      "name": "Slowpoke",
+      "raw_hex": "cde0e3ebe4e3dfd9ffffff"
+    },
+    {
+      "species_id": 80,
+      "offset": 23506172,
+      "name": "Slowbro",
+      "raw_hex": "cde0e3ebd6e6e3ffffffff"
+    },
+    {
+      "species_id": 81,
+      "offset": 23506183,
+      "name": "Magnemite",
+      "raw_hex": "c7d5dbe2d9e1dde8d9ffff"
+    },
+    {
+      "species_id": 82,
+      "offset": 23506194,
+      "name": "Magneton",
+      "raw_hex": "c7d5dbe2d9e8e3e2ffffff"
+    },
+    {
+      "species_id": 83,
+      "offset": 23506205,
+      "name": "Farfetch'd",
+      "raw_hex": "c0d5e6dad9e8d7dcb4d8ff"
+    },
+    {
+      "species_id": 84,
+      "offset": 23506216,
+      "name": "Doduo",
+      "raw_hex": "bee3d8e9e3ffffffffffff"
+    },
+    {
+      "species_id": 85,
+      "offset": 23506227,
+      "name": "Dodrio",
+      "raw_hex": "bee3d8e6dde3ffffffffff"
+    },
+    {
+      "species_id": 86,
+      "offset": 23506238,
+      "name": "Seel",
+      "raw_hex": "cdd9d9e0ffffffffffffff"
+    },
+    {
+      "species_id": 87,
+      "offset": 23506249,
+      "name": "Dewgong",
+      "raw_hex": "bed9ebdbe3e2dbffffffff"
+    },
+    {
+      "species_id": 88,
+      "offset": 23506260,
+      "name": "Grimer",
+      "raw_hex": "c1e6dde1d9e6ffffffffff"
+    },
+    {
+      "species_id": 89,
+      "offset": 23506271,
+      "name": "Muk",
+      "raw_hex": "c7e9dfffffffffffffffff"
+    },
+    {
+      "species_id": 90,
+      "offset": 23506282,
+      "name": "Shellder",
+      "raw_hex": "cddcd9e0e0d8d9e6ffffff"
+    },
+    {
+      "species_id": 91,
+      "offset": 23506293,
+      "name": "Cloyster",
+      "raw_hex": "bde0e3ede7e8d9e6ffffff"
+    },
+    {
+      "species_id": 92,
+      "offset": 23506304,
+      "name": "Gastly",
+      "raw_hex": "c1d5e7e8e0edffffffffff"
+    },
+    {
+      "species_id": 93,
+      "offset": 23506315,
+      "name": "Haunter",
+      "raw_hex": "c2d5e9e2e8d9e6ffffffff"
+    },
+    {
+      "species_id": 94,
+      "offset": 23506326,
+      "name": "Gengar",
+      "raw_hex": "c1d9e2dbd5e6ffffffffff"
+    },
+    {
+      "species_id": 95,
+      "offset": 23506337,
+      "name": "Onix",
+      "raw_hex": "c9e2ddecffffffffffffff"
+    },
+    {
+      "species_id": 96,
+      "offset": 23506348,
+      "name": "Drowzee",
+      "raw_hex": "bee6e3ebeed9d9ffffffff"
+    },
+    {
+      "species_id": 97,
+      "offset": 23506359,
+      "name": "Hypno",
+      "raw_hex": "c2ede4e2e3ffffffffffff"
+    },
+    {
+      "species_id": 98,
+      "offset": 23506370,
+      "name": "Krabby",
+      "raw_hex": "c5e6d5d6d6edffffffffff"
+    },
+    {
+      "species_id": 99,
+      "offset": 23506381,
+      "name": "Kingler",
+      "raw_hex": "c5dde2dbe0d9e6ffffffff"
+    },
+    {
+      "species_id": 100,
+      "offset": 23506392,
+      "name": "Voltorb",
+      "raw_hex": "d0e3e0e8e3e6d6ffffffff"
+    },
+    {
+      "species_id": 101,
+      "offset": 23506403,
+      "name": "Electrode",
+      "raw_hex": "bfe0d9d7e8e6e3d8d9ffff"
+    },
+    {
+      "species_id": 102,
+      "offset": 23506414,
+      "name": "Exeggcute",
+      "raw_hex": "bfecd9dbdbd7e9e8d9ffff"
+    },
+    {
+      "species_id": 103,
+      "offset": 23506425,
+      "name": "Exeggutor",
+      "raw_hex": "bfecd9dbdbe9e8e3e6ffff"
+    },
+    {
+      "species_id": 104,
+      "offset": 23506436,
+      "name": "Cubone",
+      "raw_hex": "bde9d6e3e2d9ffffffffff"
+    },
+    {
+      "species_id": 105,
+      "offset": 23506447,
+      "name": "Marowak",
+      "raw_hex": "c7d5e6e3ebd5dfffffffff"
+    },
+    {
+      "species_id": 106,
+      "offset": 23506458,
+      "name": "Hitmonlee",
+      "raw_hex": "c2dde8e1e3e2e0d9d9ffff"
+    },
+    {
+      "species_id": 107,
+      "offset": 23506469,
+      "name": "Hitmonchan",
+      "raw_hex": "c2dde8e1e3e2d7dcd5e2ff"
+    },
+    {
+      "species_id": 108,
+      "offset": 23506480,
+      "name": "Lickitung",
+      "raw_hex": "c6ddd7dfdde8e9e2dbffff"
+    },
+    {
+      "species_id": 109,
+      "offset": 23506491,
+      "name": "Koffing",
+      "raw_hex": "c5e3dadadde2dbffffffff"
+    },
+    {
+      "species_id": 110,
+      "offset": 23506502,
+      "name": "Weezing",
+      "raw_hex": "d1d9d9eedde2dbffffffff"
+    },
+    {
+      "species_id": 111,
+      "offset": 23506513,
+      "name": "Rhyhorn",
+      "raw_hex": "ccdceddce3e6e2ffffffff"
+    },
+    {
+      "species_id": 112,
+      "offset": 23506524,
+      "name": "Rhydon",
+      "raw_hex": "ccdcedd8e3e2ffffffffff"
+    },
+    {
+      "species_id": 113,
+      "offset": 23506535,
+      "name": "Chansey",
+      "raw_hex": "bddcd5e2e7d9edffffffff"
+    },
+    {
+      "species_id": 114,
+      "offset": 23506546,
+      "name": "Tangela",
+      "raw_hex": "ced5e2dbd9e0d5ffffffff"
+    },
+    {
+      "species_id": 115,
+      "offset": 23506557,
+      "name": "Kangaskhan",
+      "raw_hex": "c5d5e2dbd5e7dfdcd5e2ff"
+    },
+    {
+      "species_id": 116,
+      "offset": 23506568,
+      "name": "Horsea",
+      "raw_hex": "c2e3e6e7d9d5ffffffffff"
+    },
+    {
+      "species_id": 117,
+      "offset": 23506579,
+      "name": "Seadra",
+      "raw_hex": "cdd9d5d8e6d5ffffffffff"
+    },
+    {
+      "species_id": 118,
+      "offset": 23506590,
+      "name": "Goldeen",
+      "raw_hex": "c1e3e0d8d9d9e2ffffffff"
+    },
+    {
+      "species_id": 119,
+      "offset": 23506601,
+      "name": "Seaking",
+      "raw_hex": "cdd9d5dfdde2dbffffffff"
+    },
+    {
+      "species_id": 120,
+      "offset": 23506612,
+      "name": "Staryu",
+      "raw_hex": "cde8d5e6ede9ffffffffff"
+    },
+    {
+      "species_id": 121,
+      "offset": 23506623,
+      "name": "Starmie",
+      "raw_hex": "cde8d5e6e1ddd9ffffffff"
+    },
+    {
+      "species_id": 122,
+      "offset": 23506634,
+      "name": "Mr? Mime",
+      "raw_hex": "c7e6ad00c7dde1d9ffffff"
+    },
+    {
+      "species_id": 123,
+      "offset": 23506645,
+      "name": "Scyther",
+      "raw_hex": "cdd7ede8dcd9e6ffffffff"
+    },
+    {
+      "species_id": 124,
+      "offset": 23506656,
+      "name": "Jynx",
+      "raw_hex": "c4ede2ecffffffffffffff"
+    },
+    {
+      "species_id": 125,
+      "offset": 23506667,
+      "name": "Electabuzz",
+      "raw_hex": "bfe0d9d7e8d5d6e9eeeeff"
+    },
+    {
+      "species_id": 126,
+      "offset": 23506678,
+      "name": "Magmar",
+      "raw_hex": "c7d5dbe1d5e6ffffffffff"
+    },
+    {
+      "species_id": 127,
+      "offset": 23506689,
+      "name": "Pinsir",
+      "raw_hex": "cadde2e7dde6ffffffffff"
+    },
+    {
+      "species_id": 128,
+      "offset": 23506700,
+      "name": "Tauros",
+      "raw_hex": "ced5e9e6e3e7ffffffffff"
+    },
+    {
+      "species_id": 129,
+      "offset": 23506711,
+      "name": "Magikarp",
+      "raw_hex": "c7d5dbdddfd5e6e4ffffff"
+    },
+    {
+      "species_id": 130,
+      "offset": 23506722,
+      "name": "Gyarados",
+      "raw_hex": "c1edd5e6d5d8e3e7ffffff"
+    },
+    {
+      "species_id": 131,
+      "offset": 23506733,
+      "name": "Lapras",
+      "raw_hex": "c6d5e4e6d5e7ffffffffff"
+    },
+    {
+      "species_id": 132,
+      "offset": 23506744,
+      "name": "Ditto",
+      "raw_hex": "bedde8e8e3ffffffffffff"
+    },
+    {
+      "species_id": 133,
+      "offset": 23506755,
+      "name": "Eevee",
+      "raw_hex": "bfd9ead9d9ffffffffffff"
+    },
+    {
+      "species_id": 134,
+      "offset": 23506766,
+      "name": "Vaporeon",
+      "raw_hex": "d0d5e4e3e6d9e3e2ffffff"
+    },
+    {
+      "species_id": 135,
+      "offset": 23506777,
+      "name": "Jolteon",
+      "raw_hex": "c4e3e0e8d9e3e2ffffffff"
+    },
+    {
+      "species_id": 136,
+      "offset": 23506788,
+      "name": "Flareon",
+      "raw_hex": "c0e0d5e6d9e3e2ffffffff"
+    },
+    {
+      "species_id": 137,
+      "offset": 23506799,
+      "name": "Porygon",
+      "raw_hex": "cae3e6eddbe3e2ffffffff"
+    },
+    {
+      "species_id": 138,
+      "offset": 23506810,
+      "name": "Omanyte",
+      "raw_hex": "c9e1d5e2ede8d9ffffffff"
+    },
+    {
+      "species_id": 139,
+      "offset": 23506821,
+      "name": "Omastar",
+      "raw_hex": "c9e1d5e7e8d5e6ffffffff"
+    },
+    {
+      "species_id": 140,
+      "offset": 23506832,
+      "name": "Kabuto",
+      "raw_hex": "c5d5d6e9e8e3ffffffffff"
+    },
+    {
+      "species_id": 141,
+      "offset": 23506843,
+      "name": "Kabutops",
+      "raw_hex": "c5d5d6e9e8e3e4e7ffffff"
+    },
+    {
+      "species_id": 142,
+      "offset": 23506854,
+      "name": "Aerodactyl",
+      "raw_hex": "bbd9e6e3d8d5d7e8ede0ff"
+    },
+    {
+      "species_id": 143,
+      "offset": 23506865,
+      "name": "Snorlax",
+      "raw_hex": "cde2e3e6e0d5ecffffffff"
+    },
+    {
+      "species_id": 144,
+      "offset": 23506876,
+      "name": "Articuno",
+      "raw_hex": "bbe6e8ddd7e9e2e3ffffff"
+    },
+    {
+      "species_id": 145,
+      "offset": 23506887,
+      "name": "Zapdos",
+      "raw_hex": "d4d5e4d8e3e7ffffffffff"
+    },
+    {
+      "species_id": 146,
+      "offset": 23506898,
+      "name": "Moltres",
+      "raw_hex": "c7e3e0e8e6d9e7ffffffff"
+    },
+    {
+      "species_id": 147,
+      "offset": 23506909,
+      "name": "Dratini",
+      "raw_hex": "bee6d5e8dde2ddffffffff"
+    },
+    {
+      "species_id": 148,
+      "offset": 23506920,
+      "name": "Dragonair",
+      "raw_hex": "bee6d5dbe3e2d5dde6ffff"
+    },
+    {
+      "species_id": 149,
+      "offset": 23506931,
+      "name": "Dragonite",
+      "raw_hex": "bee6d5dbe3e2dde8d9ffff"
+    },
+    {
+      "species_id": 150,
+      "offset": 23506942,
+      "name": "Mewtwo",
+      "raw_hex": "c7d9ebe8ebe3ffffffffff"
+    },
+    {
+      "species_id": 151,
+      "offset": 23506953,
+      "name": "Mew",
+      "raw_hex": "c7d9ebffffffffffffffff"
+    },
+    {
+      "species_id": 152,
+      "offset": 23506964,
+      "name": "Chikorita",
+      "raw_hex": "bddcdddfe3e6dde8d5ffff"
+    },
+    {
+      "species_id": 153,
+      "offset": 23506975,
+      "name": "Bayleef",
+      "raw_hex": "bcd5ede0d9d9daffffffff"
+    },
+    {
+      "species_id": 154,
+      "offset": 23506986,
+      "name": "Meganium",
+      "raw_hex": "c7d9dbd5e2dde9e1ffffff"
+    },
+    {
+      "species_id": 155,
+      "offset": 23506997,
+      "name": "Cyndaquil",
+      "raw_hex": "bdede2d8d5e5e9dde0ffff"
+    },
+    {
+      "species_id": 156,
+      "offset": 23507008,
+      "name": "Quilava",
+      "raw_hex": "cbe9dde0d5ead5ffffffff"
+    },
+    {
+      "species_id": 157,
+      "offset": 23507019,
+      "name": "Typhlosion",
+      "raw_hex": "ceede4dce0e3e7dde3e2ff"
+    },
+    {
+      "species_id": 158,
+      "offset": 23507030,
+      "name": "Totodile",
+      "raw_hex": "cee3e8e3d8dde0d9ffffff"
+    },
+    {
+      "species_id": 159,
+      "offset": 23507041,
+      "name": "Croconaw",
+      "raw_hex": "bde6e3d7e3e2d5ebffffff"
+    },
+    {
+      "species_id": 160,
+      "offset": 23507052,
+      "name": "Feraligatr",
+      "raw_hex": "c0d9e6d5e0dddbd5e8e6ff"
+    },
+    {
+      "species_id": 161,
+      "offset": 23507063,
+      "name": "Sentret",
+      "raw_hex": "cdd9e2e8e6d9e8ffffffff"
+    },
+    {
+      "species_id": 162,
+      "offset": 23507074,
+      "name": "Furret",
+      "raw_hex": "c0e9e6e6d9e8ffffffffff"
+    },
+    {
+      "species_id": 163,
+      "offset": 23507085,
+      "name": "Hoothoot",
+      "raw_hex": "c2e3e3e8dce3e3e8ffffff"
+    },
+    {
+      "species_id": 164,
+      "offset": 23507096,
+      "name": "Noctowl",
+      "raw_hex": "c8e3d7e8e3ebe0ffffffff"
+    },
+    {
+      "species_id": 165,
+      "offset": 23507107,
+      "name": "Ledyba",
+      "raw_hex": "c6d9d8edd6d5ffffffffff"
+    },
+    {
+      "species_id": 166,
+      "offset": 23507118,
+      "name": "Ledian",
+      "raw_hex": "c6d9d8ddd5e2ffffffffff"
+    },
+    {
+      "species_id": 167,
+      "offset": 23507129,
+      "name": "Spinarak",
+      "raw_hex": "cde4dde2d5e6d5dfffffff"
+    },
+    {
+      "species_id": 168,
+      "offset": 23507140,
+      "name": "Ariados",
+      "raw_hex": "bbe6ddd5d8e3e7ffffffff"
+    },
+    {
+      "species_id": 169,
+      "offset": 23507151,
+      "name": "Crobat",
+      "raw_hex": "bde6e3d6d5e8ffffffffff"
+    },
+    {
+      "species_id": 170,
+      "offset": 23507162,
+      "name": "Chinchou",
+      "raw_hex": "bddcdde2d7dce3e9ffffff"
+    },
+    {
+      "species_id": 171,
+      "offset": 23507173,
+      "name": "Lanturn",
+      "raw_hex": "c6d5e2e8e9e6e2ffffffff"
+    },
+    {
+      "species_id": 172,
+      "offset": 23507184,
+      "name": "Pichu",
+      "raw_hex": "caddd7dce9ffffffffffff"
+    },
+    {
+      "species_id": 173,
+      "offset": 23507195,
+      "name": "Cleffa",
+      "raw_hex": "bde0d9dadad5ffffffffff"
+    },
+    {
+      "species_id": 174,
+      "offset": 23507206,
+      "name": "Igglybuff",
+      "raw_hex": "c3dbdbe0edd6e9dadaffff"
+    },
+    {
+      "species_id": 175,
+      "offset": 23507217,
+      "name": "Togepi",
+      "raw_hex": "cee3dbd9e4ddffffffffff"
+    },
+    {
+      "species_id": 176,
+      "offset": 23507228,
+      "name": "Togetic",
+      "raw_hex": "cee3dbd9e8ddd7ffffffff"
+    },
+    {
+      "species_id": 177,
+      "offset": 23507239,
+      "name": "Natu",
+      "raw_hex": "c8d5e8e9ffffffffffffff"
+    },
+    {
+      "species_id": 178,
+      "offset": 23507250,
+      "name": "Xatu",
+      "raw_hex": "d2d5e8e9ffffffffffffff"
+    },
+    {
+      "species_id": 179,
+      "offset": 23507261,
+      "name": "Mareep",
+      "raw_hex": "c7d5e6d9d9e4ffffffffff"
+    },
+    {
+      "species_id": 180,
+      "offset": 23507272,
+      "name": "Flaaffy",
+      "raw_hex": "c0e0d5d5dadaedffffffff"
+    },
+    {
+      "species_id": 181,
+      "offset": 23507283,
+      "name": "Ampharos",
+      "raw_hex": "bbe1e4dcd5e6e3e7ffffff"
+    },
+    {
+      "species_id": 182,
+      "offset": 23507294,
+      "name": "Bellossom",
+      "raw_hex": "bcd9e0e0e3e7e7e3e1ffff"
+    },
+    {
+      "species_id": 183,
+      "offset": 23507305,
+      "name": "Marill",
+      "raw_hex": "c7d5e6dde0e0ffffffffff"
+    },
+    {
+      "species_id": 184,
+      "offset": 23507316,
+      "name": "Azumarill",
+      "raw_hex": "bbeee9e1d5e6dde0e0ffff"
+    },
+    {
+      "species_id": 185,
+      "offset": 23507327,
+      "name": "Sudowoodo",
+      "raw_hex": "cde9d8e3ebe3e3d8e3ffff"
+    },
+    {
+      "species_id": 186,
+      "offset": 23507338,
+      "name": "Politoed",
+      "raw_hex": "cae3e0dde8e3d9d8ffffff"
+    },
+    {
+      "species_id": 187,
+      "offset": 23507349,
+      "name": "Hoppip",
+      "raw_hex": "c2e3e4e4dde4ffffffffff"
+    },
+    {
+      "species_id": 188,
+      "offset": 23507360,
+      "name": "Skiploom",
+      "raw_hex": "cddfdde4e0e3e3e1ffffff"
+    },
+    {
+      "species_id": 189,
+      "offset": 23507371,
+      "name": "Jumpluff",
+      "raw_hex": "c4e9e1e4e0e9dadaffffff"
+    },
+    {
+      "species_id": 190,
+      "offset": 23507382,
+      "name": "Aipom",
+      "raw_hex": "bbdde4e3e1ffffffffffff"
+    },
+    {
+      "species_id": 191,
+      "offset": 23507393,
+      "name": "Sunkern",
+      "raw_hex": "cde9e2dfd9e6e2ffffffff"
+    },
+    {
+      "species_id": 192,
+      "offset": 23507404,
+      "name": "Sunflora",
+      "raw_hex": "cde9e2dae0e3e6d5ffffff"
+    },
+    {
+      "species_id": 193,
+      "offset": 23507415,
+      "name": "Yanma",
+      "raw_hex": "d3d5e2e1d5ffffffffffff"
+    },
+    {
+      "species_id": 194,
+      "offset": 23507426,
+      "name": "Wooper",
+      "raw_hex": "d1e3e3e4d9e6ffffffffff"
+    },
+    {
+      "species_id": 195,
+      "offset": 23507437,
+      "name": "Quagsire",
+      "raw_hex": "cbe9d5dbe7dde6d9ffffff"
+    },
+    {
+      "species_id": 196,
+      "offset": 23507448,
+      "name": "Espeon",
+      "raw_hex": "bfe7e4d9e3e2ffffffffff"
+    },
+    {
+      "species_id": 197,
+      "offset": 23507459,
+      "name": "Umbreon",
+      "raw_hex": "cfe1d6e6d9e3e2ffffffff"
+    },
+    {
+      "species_id": 198,
+      "offset": 23507470,
+      "name": "Murkrow",
+      "raw_hex": "c7e9e6dfe6e3ebffffffff"
+    },
+    {
+      "species_id": 199,
+      "offset": 23507481,
+      "name": "Slowking",
+      "raw_hex": "cde0e3ebdfdde2dbffffff"
+    },
+    {
+      "species_id": 200,
+      "offset": 23507492,
+      "name": "Misdreavus",
+      "raw_hex": "c7dde7d8e6d9d5eae9e7ff"
+    },
+    {
+      "species_id": 201,
+      "offset": 23507503,
+      "name": "Unown",
+      "raw_hex": "cfe2e3ebe2ffffffffffff"
+    },
+    {
+      "species_id": 202,
+      "offset": 23507514,
+      "name": "Wobbuffet",
+      "raw_hex": "d1e3d6d6e9dadad9e8ffff"
+    },
+    {
+      "species_id": 203,
+      "offset": 23507525,
+      "name": "Girafarig",
+      "raw_hex": "c1dde6d5dad5e6dddbffff"
+    },
+    {
+      "species_id": 204,
+      "offset": 23507536,
+      "name": "Pineco",
+      "raw_hex": "cadde2d9d7e3ffffffffff"
+    },
+    {
+      "species_id": 205,
+      "offset": 23507547,
+      "name": "Forretress",
+      "raw_hex": "c0e3e6e6d9e8e6d9e7e7ff"
+    },
+    {
+      "species_id": 206,
+      "offset": 23507558,
+      "name": "Dunsparce",
+      "raw_hex": "bee9e2e7e4d5e6d7d9ffff"
+    },
+    {
+      "species_id": 207,
+      "offset": 23507569,
+      "name": "Gligar",
+      "raw_hex": "c1e0dddbd5e6ffffffffff"
+    },
+    {
+      "species_id": 208,
+      "offset": 23507580,
+      "name": "Steelix",
+      "raw_hex": "cde8d9d9e0ddecffffffff"
+    },
+    {
+      "species_id": 209,
+      "offset": 23507591,
+      "name": "Snubbull",
+      "raw_hex": "cde2e9d6d6e9e0e0ffffff"
+    },
+    {
+      "species_id": 210,
+      "offset": 23507602,
+      "name": "Granbull",
+      "raw_hex": "c1e6d5e2d6e9e0e0ffffff"
+    },
+    {
+      "species_id": 211,
+      "offset": 23507613,
+      "name": "Qwilfish",
+      "raw_hex": "cbebdde0dadde7dcffffff"
+    },
+    {
+      "species_id": 212,
+      "offset": 23507624,
+      "name": "Scizor",
+      "raw_hex": "cdd7ddeee3e6ffffffffff"
+    },
+    {
+      "species_id": 213,
+      "offset": 23507635,
+      "name": "Shuckle",
+      "raw_hex": "cddce9d7dfe0d9ffffffff"
+    },
+    {
+      "species_id": 214,
+      "offset": 23507646,
+      "name": "Heracross",
+      "raw_hex": "c2d9e6d5d7e6e3e7e7ffff"
+    },
+    {
+      "species_id": 215,
+      "offset": 23507657,
+      "name": "Sneasel",
+      "raw_hex": "cde2d9d5e7d9e0ffffffff"
+    },
+    {
+      "species_id": 216,
+      "offset": 23507668,
+      "name": "Teddiursa",
+      "raw_hex": "ced9d8d8dde9e6e7d5ffff"
+    },
+    {
+      "species_id": 217,
+      "offset": 23507679,
+      "name": "Ursaring",
+      "raw_hex": "cfe6e7d5e6dde2dbffffff"
+    },
+    {
+      "species_id": 218,
+      "offset": 23507690,
+      "name": "Slugma",
+      "raw_hex": "cde0e9dbe1d5ffffffffff"
+    },
+    {
+      "species_id": 219,
+      "offset": 23507701,
+      "name": "Magcargo",
+      "raw_hex": "c7d5dbd7d5e6dbe3ffffff"
+    },
+    {
+      "species_id": 220,
+      "offset": 23507712,
+      "name": "Swinub",
+      "raw_hex": "cdebdde2e9d6ffffffffff"
+    },
+    {
+      "species_id": 221,
+      "offset": 23507723,
+      "name": "Piloswine",
+      "raw_hex": "cadde0e3e7ebdde2d9ffff"
+    },
+    {
+      "species_id": 222,
+      "offset": 23507734,
+      "name": "Corsola",
+      "raw_hex": "bde3e6e7e3e0d5ffffffff"
+    },
+    {
+      "species_id": 223,
+      "offset": 23507745,
+      "name": "Remoraid",
+      "raw_hex": "ccd9e1e3e6d5ddd8ffffff"
+    },
+    {
+      "species_id": 224,
+      "offset": 23507756,
+      "name": "Octillery",
+      "raw_hex": "c9d7e8dde0e0d9e6edffff"
+    },
+    {
+      "species_id": 225,
+      "offset": 23507767,
+      "name": "Delibird",
+      "raw_hex": "bed9e0ddd6dde6d8ffffff"
+    },
+    {
+      "species_id": 226,
+      "offset": 23507778,
+      "name": "Mantine",
+      "raw_hex": "c7d5e2e8dde2d9ffffffff"
+    },
+    {
+      "species_id": 227,
+      "offset": 23507789,
+      "name": "Skarmory",
+      "raw_hex": "cddfd5e6e1e3e6edffffff"
+    },
+    {
+      "species_id": 228,
+      "offset": 23507800,
+      "name": "Houndour",
+      "raw_hex": "c2e3e9e2d8e3e9e6ffffff"
+    },
+    {
+      "species_id": 229,
+      "offset": 23507811,
+      "name": "Houndoom",
+      "raw_hex": "c2e3e9e2d8e3e3e1ffffff"
+    },
+    {
+      "species_id": 230,
+      "offset": 23507822,
+      "name": "Kingdra",
+      "raw_hex": "c5dde2dbd8e6d5ffffffff"
+    },
+    {
+      "species_id": 231,
+      "offset": 23507833,
+      "name": "Phanpy",
+      "raw_hex": "cadcd5e2e4edffffffffff"
+    },
+    {
+      "species_id": 232,
+      "offset": 23507844,
+      "name": "Donphan",
+      "raw_hex": "bee3e2e4dcd5e2ffffffff"
+    },
+    {
+      "species_id": 233,
+      "offset": 23507855,
+      "name": "Porygon2",
+      "raw_hex": "cae3e6eddbe3e2a3ffffff"
+    },
+    {
+      "species_id": 234,
+      "offset": 23507866,
+      "name": "Stantler",
+      "raw_hex": "cde8d5e2e8e0d9e6ffffff"
+    },
+    {
+      "species_id": 235,
+      "offset": 23507877,
+      "name": "Smeargle",
+      "raw_hex": "cde1d9d5e6dbe0d9ffffff"
+    },
+    {
+      "species_id": 236,
+      "offset": 23507888,
+      "name": "Tyrogue",
+      "raw_hex": "ceede6e3dbe9d9ffffffff"
+    },
+    {
+      "species_id": 237,
+      "offset": 23507899,
+      "name": "Hitmontop",
+      "raw_hex": "c2dde8e1e3e2e8e3e4ffff"
+    },
+    {
+      "species_id": 238,
+      "offset": 23507910,
+      "name": "Smoochum",
+      "raw_hex": "cde1e3e3d7dce9e1ffffff"
+    },
+    {
+      "species_id": 239,
+      "offset": 23507921,
+      "name": "Elekid",
+      "raw_hex": "bfe0d9dfddd8ffffffffff"
+    },
+    {
+      "species_id": 240,
+      "offset": 23507932,
+      "name": "Magby",
+      "raw_hex": "c7d5dbd6edffffffffffff"
+    },
+    {
+      "species_id": 241,
+      "offset": 23507943,
+      "name": "Miltank",
+      "raw_hex": "c7dde0e8d5e2dfffffffff"
+    },
+    {
+      "species_id": 242,
+      "offset": 23507954,
+      "name": "Blissey",
+      "raw_hex": "bce0dde7e7d9edffffffff"
+    },
+    {
+      "species_id": 243,
+      "offset": 23507965,
+      "name": "Raikou",
+      "raw_hex": "ccd5dddfe3e9ffffffffff"
+    },
+    {
+      "species_id": 244,
+      "offset": 23507976,
+      "name": "Entei",
+      "raw_hex": "bfe2e8d9ddffffffffffff"
+    },
+    {
+      "species_id": 245,
+      "offset": 23507987,
+      "name": "Suicune",
+      "raw_hex": "cde9ddd7e9e2d9ffffffff"
+    },
+    {
+      "species_id": 246,
+      "offset": 23507998,
+      "name": "Larvitar",
+      "raw_hex": "c6d5e6eadde8d5e6ffffff"
+    },
+    {
+      "species_id": 247,
+      "offset": 23508009,
+      "name": "Pupitar",
+      "raw_hex": "cae9e4dde8d5e6ffffffff"
+    },
+    {
+      "species_id": 248,
+      "offset": 23508020,
+      "name": "Tyranitar",
+      "raw_hex": "ceede6d5e2dde8d5e6ffff"
+    },
+    {
+      "species_id": 249,
+      "offset": 23508031,
+      "name": "Lugia",
+      "raw_hex": "c6e9dbddd5ffffffffffff"
+    },
+    {
+      "species_id": 250,
+      "offset": 23508042,
+      "name": "Ho-Oh",
+      "raw_hex": "c2e3aec9dcffffffffffff"
+    },
+    {
+      "species_id": 251,
+      "offset": 23508053,
+      "name": "Celebi",
+      "raw_hex": "bdd9e0d9d6ddffffffffff"
+    },
+    {
+      "species_id": 252,
+      "offset": 23508064,
+      "name": "Egg",
+      "raw_hex": "bfdbdbffffffffffffffff"
+    },
+    {
+      "species_id": 253,
+      "offset": 23508075,
+      "name": "MISSINGNO?",
+      "raw_hex": "c7c3cdcdc3c8c1c8c9adff"
+    },
+    {
+      "species_id": 254,
+      "offset": 23508086,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 255,
+      "offset": 23508097,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 256,
+      "offset": 23508108,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 257,
+      "offset": 23508119,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 258,
+      "offset": 23508130,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 259,
+      "offset": 23508141,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 260,
+      "offset": 23508152,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 261,
+      "offset": 23508163,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 262,
+      "offset": 23508174,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 263,
+      "offset": 23508185,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 264,
+      "offset": 23508196,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 265,
+      "offset": 23508207,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 266,
+      "offset": 23508218,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 267,
+      "offset": 23508229,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 268,
+      "offset": 23508240,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 269,
+      "offset": 23508251,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 270,
+      "offset": 23508262,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 271,
+      "offset": 23508273,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 272,
+      "offset": 23508284,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 273,
+      "offset": 23508295,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 274,
+      "offset": 23508306,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 275,
+      "offset": 23508317,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 276,
+      "offset": 23508328,
+      "name": "?",
+      "raw_hex": "acffffffffffffffffffff"
+    },
+    {
+      "species_id": 277,
+      "offset": 23508339,
+      "name": "Treecko",
+      "raw_hex": "cee6d9d9d7dfe3ffffffff"
+    },
+    {
+      "species_id": 278,
+      "offset": 23508350,
+      "name": "Grovyle",
+      "raw_hex": "c1e6e3eaede0d9ffffffff"
+    },
+    {
+      "species_id": 279,
+      "offset": 23508361,
+      "name": "Sceptile",
+      "raw_hex": "cdd7d9e4e8dde0d9ffffff"
+    },
+    {
+      "species_id": 280,
+      "offset": 23508372,
+      "name": "Torchic",
+      "raw_hex": "cee3e6d7dcddd7ffffffff"
+    },
+    {
+      "species_id": 281,
+      "offset": 23508383,
+      "name": "Combusken",
+      "raw_hex": "bde3e1d6e9e7dfd9e2ffff"
+    },
+    {
+      "species_id": 282,
+      "offset": 23508394,
+      "name": "Blaziken",
+      "raw_hex": "bce0d5eedddfd9e2ffffff"
+    },
+    {
+      "species_id": 283,
+      "offset": 23508405,
+      "name": "Mudkip",
+      "raw_hex": "c7e9d8dfdde4ffffffffff"
+    },
+    {
+      "species_id": 284,
+      "offset": 23508416,
+      "name": "Marshtomp",
+      "raw_hex": "c7d5e6e7dce8e3e1e4ffff"
+    },
+    {
+      "species_id": 285,
+      "offset": 23508427,
+      "name": "Swampert",
+      "raw_hex": "cdebd5e1e4d9e6e8ffffff"
+    },
+    {
+      "species_id": 286,
+      "offset": 23508438,
+      "name": "Poochyena",
+      "raw_hex": "cae3e3d7dcedd9e2d5ffff"
+    },
+    {
+      "species_id": 287,
+      "offset": 23508449,
+      "name": "Mightyena",
+      "raw_hex": "c7dddbdce8edd9e2d5ffff"
+    },
+    {
+      "species_id": 288,
+      "offset": 23508460,
+      "name": "Zigzagoon",
+      "raw_hex": "d4dddbeed5dbe3e3e2ffff"
+    },
+    {
+      "species_id": 289,
+      "offset": 23508471,
+      "name": "Linoone",
+      "raw_hex": "c6dde2e3e3e2d9ffffffff"
+    },
+    {
+      "species_id": 290,
+      "offset": 23508482,
+      "name": "Wurmple",
+      "raw_hex": "d1e9e6e1e4e0d9ffffffff"
+    },
+    {
+      "species_id": 291,
+      "offset": 23508493,
+      "name": "Silcoon",
+      "raw_hex": "cddde0d7e3e3e2ffffffff"
+    },
+    {
+      "species_id": 292,
+      "offset": 23508504,
+      "name": "Beautifly",
+      "raw_hex": "bcd9d5e9e8dddae0edffff"
+    },
+    {
+      "species_id": 293,
+      "offset": 23508515,
+      "name": "Cascoon",
+      "raw_hex": "bdd5e7d7e3e3e2ffffffff"
+    },
+    {
+      "species_id": 294,
+      "offset": 23508526,
+      "name": "Dustox",
+      "raw_hex": "bee9e7e8e3ecffffffffff"
+    },
+    {
+      "species_id": 295,
+      "offset": 23508537,
+      "name": "Lotad",
+      "raw_hex": "c6e3e8d5d8ffffffffffff"
+    },
+    {
+      "species_id": 296,
+      "offset": 23508548,
+      "name": "Lombre",
+      "raw_hex": "c6e3e1d6e6d9ffffffffff"
+    },
+    {
+      "species_id": 297,
+      "offset": 23508559,
+      "name": "Ludicolo",
+      "raw_hex": "c6e9d8ddd7e3e0e3ffffff"
+    },
+    {
+      "species_id": 298,
+      "offset": 23508570,
+      "name": "Seedot",
+      "raw_hex": "cdd9d9d8e3e8ffffffffff"
+    },
+    {
+      "species_id": 299,
+      "offset": 23508581,
+      "name": "Nuzleaf",
+      "raw_hex": "c8e9eee0d9d5daffffffff"
+    },
+    {
+      "species_id": 300,
+      "offset": 23508592,
+      "name": "Shiftry",
+      "raw_hex": "cddcdddae8e6edffffffff"
+    },
+    {
+      "species_id": 301,
+      "offset": 23508603,
+      "name": "Nincada",
+      "raw_hex": "c8dde2d7d5d8d5ffffffff"
+    },
+    {
+      "species_id": 302,
+      "offset": 23508614,
+      "name": "Ninjask",
+      "raw_hex": "c8dde2ded5e7dfffffffff"
+    },
+    {
+      "species_id": 303,
+      "offset": 23508625,
+      "name": "Shedinja",
+      "raw_hex": "cddcd9d8dde2ded5ffffff"
+    },
+    {
+      "species_id": 304,
+      "offset": 23508636,
+      "name": "Taillow",
+      "raw_hex": "ced5dde0e0e3ebffffffff"
+    },
+    {
+      "species_id": 305,
+      "offset": 23508647,
+      "name": "Swellow",
+      "raw_hex": "cdebd9e0e0e3ebffffffff"
+    },
+    {
+      "species_id": 306,
+      "offset": 23508658,
+      "name": "Shroomish",
+      "raw_hex": "cddce6e3e3e1dde7dcffff"
+    },
+    {
+      "species_id": 307,
+      "offset": 23508669,
+      "name": "Breloom",
+      "raw_hex": "bce6d9e0e3e3e1ffffffff"
+    },
+    {
+      "species_id": 308,
+      "offset": 23508680,
+      "name": "Spinda",
+      "raw_hex": "cde4dde2d8d5ffffffffff"
+    },
+    {
+      "species_id": 309,
+      "offset": 23508691,
+      "name": "Wingull",
+      "raw_hex": "d1dde2dbe9e0e0ffffffff"
+    },
+    {
+      "species_id": 310,
+      "offset": 23508702,
+      "name": "Pelipper",
+      "raw_hex": "cad9e0dde4e4d9e6ffffff"
+    },
+    {
+      "species_id": 311,
+      "offset": 23508713,
+      "name": "Surskit",
+      "raw_hex": "cde9e6e7dfdde8ffffffff"
+    },
+    {
+      "species_id": 312,
+      "offset": 23508724,
+      "name": "Masquerain",
+      "raw_hex": "c7d5e7e5e9d9e6d5dde2ff"
+    },
+    {
+      "species_id": 313,
+      "offset": 23508735,
+      "name": "Wailmer",
+      "raw_hex": "d1d5dde0e1d9e6ffffffff"
+    },
+    {
+      "species_id": 314,
+      "offset": 23508746,
+      "name": "Wailord",
+      "raw_hex": "d1d5dde0e3e6d8ffffffff"
+    },
+    {
+      "species_id": 315,
+      "offset": 23508757,
+      "name": "Skitty",
+      "raw_hex": "cddfdde8e8edffffffffff"
+    },
+    {
+      "species_id": 316,
+      "offset": 23508768,
+      "name": "Delcatty",
+      "raw_hex": "bed9e0d7d5e8e8edffffff"
+    },
+    {
+      "species_id": 317,
+      "offset": 23508779,
+      "name": "Kecleon",
+      "raw_hex": "c5d9d7e0d9e3e2ffffffff"
+    },
+    {
+      "species_id": 318,
+      "offset": 23508790,
+      "name": "Baltoy",
+      "raw_hex": "bcd5e0e8e3edffffffffff"
+    },
+    {
+      "species_id": 319,
+      "offset": 23508801,
+      "name": "Claydol",
+      "raw_hex": "bde0d5edd8e3e0ffffffff"
+    },
+    {
+      "species_id": 320,
+      "offset": 23508812,
+      "name": "Nosepass",
+      "raw_hex": "c8e3e7d9e4d5e7e7ffffff"
+    },
+    {
+      "species_id": 321,
+      "offset": 23508823,
+      "name": "Torkoal",
+      "raw_hex": "cee3e6dfe3d5e0ffffffff"
+    },
+    {
+      "species_id": 322,
+      "offset": 23508834,
+      "name": "Sableye",
+      "raw_hex": "cdd5d6e0d9edd9ffffffff"
+    },
+    {
+      "species_id": 323,
+      "offset": 23508845,
+      "name": "Barboach",
+      "raw_hex": "bcd5e6d6e3d5d7dcffffff"
+    },
+    {
+      "species_id": 324,
+      "offset": 23508856,
+      "name": "Whiscash",
+      "raw_hex": "d1dcdde7d7d5e7dcffffff"
+    },
+    {
+      "species_id": 325,
+      "offset": 23508867,
+      "name": "Luvdisc",
+      "raw_hex": "c6e9ead8dde7d7ffffffff"
+    },
+    {
+      "species_id": 326,
+      "offset": 23508878,
+      "name": "Corphish",
+      "raw_hex": "bde3e6e4dcdde7dcffffff"
+    },
+    {
+      "species_id": 327,
+      "offset": 23508889,
+      "name": "Crawdaunt",
+      "raw_hex": "bde6d5ebd8d5e9e2e8ffff"
+    },
+    {
+      "species_id": 328,
+      "offset": 23508900,
+      "name": "Feebas",
+      "raw_hex": "c0d9d9d6d5e7ffffffffff"
+    },
+    {
+      "species_id": 329,
+      "offset": 23508911,
+      "name": "Milotic",
+      "raw_hex": "c7dde0e3e8ddd7ffffffff"
+    },
+    {
+      "species_id": 330,
+      "offset": 23508922,
+      "name": "Carvanha",
+      "raw_hex": "bdd5e6ead5e2dcd5ffffff"
+    },
+    {
+      "species_id": 331,
+      "offset": 23508933,
+      "name": "Sharpedo",
+      "raw_hex": "cddcd5e6e4d9d8e3ffffff"
+    },
+    {
+      "species_id": 332,
+      "offset": 23508944,
+      "name": "Trapinch",
+      "raw_hex": "cee6d5e4dde2d7dcffffff"
+    },
+    {
+      "species_id": 333,
+      "offset": 23508955,
+      "name": "Vibrava",
+      "raw_hex": "d0ddd6e6d5ead5ffffffff"
+    },
+    {
+      "species_id": 334,
+      "offset": 23508966,
+      "name": "Flygon",
+      "raw_hex": "c0e0eddbe3e2ffffffffff"
+    },
+    {
+      "species_id": 335,
+      "offset": 23508977,
+      "name": "Makuhita",
+      "raw_hex": "c7d5dfe9dcdde8d5ffffff"
+    },
+    {
+      "species_id": 336,
+      "offset": 23508988,
+      "name": "Hariyama",
+      "raw_hex": "c2d5e6ddedd5e1d5ffffff"
+    },
+    {
+      "species_id": 337,
+      "offset": 23508999,
+      "name": "Electrike",
+      "raw_hex": "bfe0d9d7e8e6dddfd9ffff"
+    },
+    {
+      "species_id": 338,
+      "offset": 23509010,
+      "name": "Manectric",
+      "raw_hex": "c7d5e2d9d7e8e6ddd7ffff"
+    },
+    {
+      "species_id": 339,
+      "offset": 23509021,
+      "name": "Numel",
+      "raw_hex": "c8e9e1d9e0ffffffffffff"
+    },
+    {
+      "species_id": 340,
+      "offset": 23509032,
+      "name": "Camerupt",
+      "raw_hex": "bdd5e1d9e6e9e4e8ffffff"
+    },
+    {
+      "species_id": 341,
+      "offset": 23509043,
+      "name": "Spheal",
+      "raw_hex": "cde4dcd9d5e0ffffffffff"
+    },
+    {
+      "species_id": 342,
+      "offset": 23509054,
+      "name": "Sealeo",
+      "raw_hex": "cdd9d5e0d9e3ffffffffff"
+    },
+    {
+      "species_id": 343,
+      "offset": 23509065,
+      "name": "Walrein",
+      "raw_hex": "d1d5e0e6d9dde2ffffffff"
+    },
+    {
+      "species_id": 344,
+      "offset": 23509076,
+      "name": "Cacnea",
+      "raw_hex": "bdd5d7e2d9d5ffffffffff"
+    },
+    {
+      "species_id": 345,
+      "offset": 23509087,
+      "name": "Cacturne",
+      "raw_hex": "bdd5d7e8e9e6e2d9ffffff"
+    },
+    {
+      "species_id": 346,
+      "offset": 23509098,
+      "name": "Snorunt",
+      "raw_hex": "cde2e3e6e9e2e8ffffffff"
+    },
+    {
+      "species_id": 347,
+      "offset": 23509109,
+      "name": "Glalie",
+      "raw_hex": "c1e0d5e0ddd9ffffffffff"
+    },
+    {
+      "species_id": 348,
+      "offset": 23509120,
+      "name": "Lunatone",
+      "raw_hex": "c6e9e2d5e8e3e2d9ffffff"
+    },
+    {
+      "species_id": 349,
+      "offset": 23509131,
+      "name": "Solrock",
+      "raw_hex": "cde3e0e6e3d7dfffffffff"
+    },
+    {
+      "species_id": 350,
+      "offset": 23509142,
+      "name": "Azurill",
+      "raw_hex": "bbeee9e6dde0e0ffffffff"
+    },
+    {
+      "species_id": 351,
+      "offset": 23509153,
+      "name": "Spoink",
+      "raw_hex": "cde4e3dde2dfffffffffff"
+    },
+    {
+      "species_id": 352,
+      "offset": 23509164,
+      "name": "Grumpig",
+      "raw_hex": "c1e6e9e1e4dddbffffffff"
+    },
+    {
+      "species_id": 353,
+      "offset": 23509175,
+      "name": "Plusle",
+      "raw_hex": "cae0e9e7e0d9ffffffffff"
+    },
+    {
+      "species_id": 354,
+      "offset": 23509186,
+      "name": "Minun",
+      "raw_hex": "c7dde2e9e2ffffffffffff"
+    },
+    {
+      "species_id": 355,
+      "offset": 23509197,
+      "name": "Mawile",
+      "raw_hex": "c7d5ebdde0d9ffffffffff"
+    },
+    {
+      "species_id": 356,
+      "offset": 23509208,
+      "name": "Meditite",
+      "raw_hex": "c7d9d8dde8dde8d9ffffff"
+    },
+    {
+      "species_id": 357,
+      "offset": 23509219,
+      "name": "Medicham",
+      "raw_hex": "c7d9d8ddd7dcd5e1ffffff"
+    },
+    {
+      "species_id": 358,
+      "offset": 23509230,
+      "name": "Swablu",
+      "raw_hex": "cdebd5d6e0e9ffffffffff"
+    },
+    {
+      "species_id": 359,
+      "offset": 23509241,
+      "name": "Altaria",
+      "raw_hex": "bbe0e8d5e6ddd5ffffffff"
+    },
+    {
+      "species_id": 360,
+      "offset": 23509252,
+      "name": "Wynaut",
+      "raw_hex": "d1ede2d5e9e8ffffffffff"
+    },
+    {
+      "species_id": 361,
+      "offset": 23509263,
+      "name": "Duskull",
+      "raw_hex": "bee9e7dfe9e0e0ffffffff"
+    },
+    {
+      "species_id": 362,
+      "offset": 23509274,
+      "name": "Dusclops",
+      "raw_hex": "bee9e7d7e0e3e4e7ffffff"
+    },
+    {
+      "species_id": 363,
+      "offset": 23509285,
+      "name": "Roselia",
+      "raw_hex": "cce3e7d9e0ddd5ffffffff"
+    },
+    {
+      "species_id": 364,
+      "offset": 23509296,
+      "name": "Slakoth",
+      "raw_hex": "cde0d5dfe3e8dcffffffff"
+    },
+    {
+      "species_id": 365,
+      "offset": 23509307,
+      "name": "Vigoroth",
+      "raw_hex": "d0dddbe3e6e3e8dcffffff"
+    },
+    {
+      "species_id": 366,
+      "offset": 23509318,
+      "name": "Slaking",
+      "raw_hex": "cde0d5dfdde2dbffffffff"
+    },
+    {
+      "species_id": 367,
+      "offset": 23509329,
+      "name": "Gulpin",
+      "raw_hex": "c1e9e0e4dde2ffffffffff"
+    },
+    {
+      "species_id": 368,
+      "offset": 23509340,
+      "name": "Swalot",
+      "raw_hex": "cdebd5e0e3e8ffffffffff"
+    },
+    {
+      "species_id": 369,
+      "offset": 23509351,
+      "name": "Tropius",
+      "raw_hex": "cee6e3e4dde9e7ffffffff"
+    },
+    {
+      "species_id": 370,
+      "offset": 23509362,
+      "name": "Whismur",
+      "raw_hex": "d1dcdde7e1e9e6ffffffff"
+    },
+    {
+      "species_id": 371,
+      "offset": 23509373,
+      "name": "Loudred",
+      "raw_hex": "c6e3e9d8e6d9d8ffffffff"
+    },
+    {
+      "species_id": 372,
+      "offset": 23509384,
+      "name": "Exploud",
+      "raw_hex": "bfece4e0e3e9d8ffffffff"
+    },
+    {
+      "species_id": 373,
+      "offset": 23509395,
+      "name": "Clamperl",
+      "raw_hex": "bde0d5e1e4d9e6e0ffffff"
+    },
+    {
+      "species_id": 374,
+      "offset": 23509406,
+      "name": "Huntail",
+      "raw_hex": "c2e9e2e8d5dde0ffffffff"
+    },
+    {
+      "species_id": 375,
+      "offset": 23509417,
+      "name": "Gorebyss",
+      "raw_hex": "c1e3e6d9d6ede7e7ffffff"
+    },
+    {
+      "species_id": 376,
+      "offset": 23509428,
+      "name": "Absol",
+      "raw_hex": "bbd6e7e3e0ffffffffffff"
+    },
+    {
+      "species_id": 377,
+      "offset": 23509439,
+      "name": "Shuppet",
+      "raw_hex": "cddce9e4e4d9e8ffffffff"
+    },
+    {
+      "species_id": 378,
+      "offset": 23509450,
+      "name": "Banette",
+      "raw_hex": "bcd5e2d9e8e8d9ffffffff"
+    },
+    {
+      "species_id": 379,
+      "offset": 23509461,
+      "name": "Seviper",
+      "raw_hex": "cdd9eadde4d9e6ffffffff"
+    },
+    {
+      "species_id": 380,
+      "offset": 23509472,
+      "name": "Zangoose",
+      "raw_hex": "d4d5e2dbe3e3e7d9ffffff"
+    },
+    {
+      "species_id": 381,
+      "offset": 23509483,
+      "name": "Relicanth",
+      "raw_hex": "ccd9e0ddd7d5e2e8dcffff"
+    },
+    {
+      "species_id": 382,
+      "offset": 23509494,
+      "name": "Aron",
+      "raw_hex": "bbe6e3e2ffffffffffffff"
+    },
+    {
+      "species_id": 383,
+      "offset": 23509505,
+      "name": "Lairon",
+      "raw_hex": "c6d5dde6e3e2ffffffffff"
+    },
+    {
+      "species_id": 384,
+      "offset": 23509516,
+      "name": "Aggron",
+      "raw_hex": "bbdbdbe6e3e2ffffffffff"
+    },
+    {
+      "species_id": 385,
+      "offset": 23509527,
+      "name": "Castform",
+      "raw_hex": "bdd5e7e8dae3e6e1ffffff"
+    },
+    {
+      "species_id": 386,
+      "offset": 23509538,
+      "name": "Volbeat",
+      "raw_hex": "d0e3e0d6d9d5e8ffffffff"
+    },
+    {
+      "species_id": 387,
+      "offset": 23509549,
+      "name": "Illumise",
+      "raw_hex": "c3e0e0e9e1dde7d9ffffff"
+    },
+    {
+      "species_id": 388,
+      "offset": 23509560,
+      "name": "Lileep",
+      "raw_hex": "c6dde0d9d9e4ffffffffff"
+    },
+    {
+      "species_id": 389,
+      "offset": 23509571,
+      "name": "Cradily",
+      "raw_hex": "bde6d5d8dde0edffffffff"
+    },
+    {
+      "species_id": 390,
+      "offset": 23509582,
+      "name": "Anorith",
+      "raw_hex": "bbe2e3e6dde8dcffffffff"
+    },
+    {
+      "species_id": 391,
+      "offset": 23509593,
+      "name": "Armaldo",
+      "raw_hex": "bbe6e1d5e0d8e3ffffffff"
+    },
+    {
+      "species_id": 392,
+      "offset": 23509604,
+      "name": "Ralts",
+      "raw_hex": "ccd5e0e8e7ffffffffffff"
+    },
+    {
+      "species_id": 393,
+      "offset": 23509615,
+      "name": "Kirlia",
+      "raw_hex": "c5dde6e0ddd5ffffffffff"
+    },
+    {
+      "species_id": 394,
+      "offset": 23509626,
+      "name": "Gardevoir",
+      "raw_hex": "c1d5e6d8d9eae3dde6ffff"
+    },
+    {
+      "species_id": 395,
+      "offset": 23509637,
+      "name": "Bagon",
+      "raw_hex": "bcd5dbe3e2ffffffffffff"
+    },
+    {
+      "species_id": 396,
+      "offset": 23509648,
+      "name": "Shelgon",
+      "raw_hex": "cddcd9e0dbe3e2ffffffff"
+    },
+    {
+      "species_id": 397,
+      "offset": 23509659,
+      "name": "Salamence",
+      "raw_hex": "cdd5e0d5e1d9e2d7d9ffff"
+    },
+    {
+      "species_id": 398,
+      "offset": 23509670,
+      "name": "Beldum",
+      "raw_hex": "bcd9e0d8e9e1ffffffffff"
+    },
+    {
+      "species_id": 399,
+      "offset": 23509681,
+      "name": "Metang",
+      "raw_hex": "c7d9e8d5e2dbffffffffff"
+    },
+    {
+      "species_id": 400,
+      "offset": 23509692,
+      "name": "Metagross",
+      "raw_hex": "c7d9e8d5dbe6e3e7e7ffff"
+    },
+    {
+      "species_id": 401,
+      "offset": 23509703,
+      "name": "Regirock",
+      "raw_hex": "ccd9dbdde6e3d7dfffffff"
+    },
+    {
+      "species_id": 402,
+      "offset": 23509714,
+      "name": "Regice",
+      "raw_hex": "ccd9dbddd7d9ffffffffff"
+    },
+    {
+      "species_id": 403,
+      "offset": 23509725,
+      "name": "Registeel",
+      "raw_hex": "ccd9dbdde7e8d9d9e0ffff"
+    },
+    {
+      "species_id": 404,
+      "offset": 23509736,
+      "name": "Kyogre",
+      "raw_hex": "c5ede3dbe6d9ffffffffff"
+    },
+    {
+      "species_id": 405,
+      "offset": 23509747,
+      "name": "Groudon",
+      "raw_hex": "c1e6e3e9d8e3e2ffffffff"
+    },
+    {
+      "species_id": 406,
+      "offset": 23509758,
+      "name": "Rayquaza",
+      "raw_hex": "ccd5ede5e9d5eed5ffffff"
+    },
+    {
+      "species_id": 407,
+      "offset": 23509769,
+      "name": "Latias",
+      "raw_hex": "c6d5e8ddd5e7ffffffffff"
+    },
+    {
+      "species_id": 408,
+      "offset": 23509780,
+      "name": "Latios",
+      "raw_hex": "c6d5e8dde3e7ffffffffff"
+    },
+    {
+      "species_id": 409,
+      "offset": 23509791,
+      "name": "Jirachi",
+      "raw_hex": "c4dde6d5d7dcddffffffff"
+    },
+    {
+      "species_id": 410,
+      "offset": 23509802,
+      "name": "Deoxys",
+      "raw_hex": "bed9e3ecede7ffffffffff"
+    },
+    {
+      "species_id": 411,
+      "offset": 23509813,
+      "name": "Chimecho",
+      "raw_hex": "bddcdde1d9d7dce3ffffff"
+    },
+    {
+      "species_id": 412,
+      "offset": 23509824,
+      "name": "Bad Egg",
+      "raw_hex": "bcd5d800bfdbdbffffffff"
+    },
+    {
+      "species_id": 413,
+      "offset": 23509835,
+      "name": "Unown B",
+      "raw_hex": "cfe2e3ebe200bcffffffff"
+    },
+    {
+      "species_id": 414,
+      "offset": 23509846,
+      "name": "Unown C",
+      "raw_hex": "cfe2e3ebe200bdffffffff"
+    },
+    {
+      "species_id": 415,
+      "offset": 23509857,
+      "name": "Unown D",
+      "raw_hex": "cfe2e3ebe200beffffffff"
+    },
+    {
+      "species_id": 416,
+      "offset": 23509868,
+      "name": "Unown E",
+      "raw_hex": "cfe2e3ebe200bfffffffff"
+    },
+    {
+      "species_id": 417,
+      "offset": 23509879,
+      "name": "Unown F",
+      "raw_hex": "cfe2e3ebe200c0ffffffff"
+    },
+    {
+      "species_id": 418,
+      "offset": 23509890,
+      "name": "Unown G",
+      "raw_hex": "cfe2e3ebe200c1ffffffff"
+    },
+    {
+      "species_id": 419,
+      "offset": 23509901,
+      "name": "Unown H",
+      "raw_hex": "cfe2e3ebe200c2ffffffff"
+    },
+    {
+      "species_id": 420,
+      "offset": 23509912,
+      "name": "Unown I",
+      "raw_hex": "cfe2e3ebe200c3ffffffff"
+    },
+    {
+      "species_id": 421,
+      "offset": 23509923,
+      "name": "Unown J",
+      "raw_hex": "cfe2e3ebe200c4ffffffff"
+    },
+    {
+      "species_id": 422,
+      "offset": 23509934,
+      "name": "Unown K",
+      "raw_hex": "cfe2e3ebe200c5ffffffff"
+    },
+    {
+      "species_id": 423,
+      "offset": 23509945,
+      "name": "Unown L",
+      "raw_hex": "cfe2e3ebe200c6ffffffff"
+    },
+    {
+      "species_id": 424,
+      "offset": 23509956,
+      "name": "Unown M",
+      "raw_hex": "cfe2e3ebe200c7ffffffff"
+    },
+    {
+      "species_id": 425,
+      "offset": 23509967,
+      "name": "Unown N",
+      "raw_hex": "cfe2e3ebe200c8ffffffff"
+    },
+    {
+      "species_id": 426,
+      "offset": 23509978,
+      "name": "Unown O",
+      "raw_hex": "cfe2e3ebe200c9ffffffff"
+    },
+    {
+      "species_id": 427,
+      "offset": 23509989,
+      "name": "Unown P",
+      "raw_hex": "cfe2e3ebe200caffffffff"
+    },
+    {
+      "species_id": 428,
+      "offset": 23510000,
+      "name": "Unown Q",
+      "raw_hex": "cfe2e3ebe200cbffffffff"
+    },
+    {
+      "species_id": 429,
+      "offset": 23510011,
+      "name": "Unown R",
+      "raw_hex": "cfe2e3ebe200ccffffffff"
+    },
+    {
+      "species_id": 430,
+      "offset": 23510022,
+      "name": "Unown S",
+      "raw_hex": "cfe2e3ebe200cdffffffff"
+    },
+    {
+      "species_id": 431,
+      "offset": 23510033,
+      "name": "Unown T",
+      "raw_hex": "cfe2e3ebe200ceffffffff"
+    },
+    {
+      "species_id": 432,
+      "offset": 23510044,
+      "name": "Unown U",
+      "raw_hex": "cfe2e3ebe200cfffffffff"
+    },
+    {
+      "species_id": 433,
+      "offset": 23510055,
+      "name": "Unown V",
+      "raw_hex": "cfe2e3ebe200d0ffffffff"
+    },
+    {
+      "species_id": 434,
+      "offset": 23510066,
+      "name": "Unown W",
+      "raw_hex": "cfe2e3ebe200d1ffffffff"
+    },
+    {
+      "species_id": 435,
+      "offset": 23510077,
+      "name": "Unown X",
+      "raw_hex": "cfe2e3ebe200d2ffffffff"
+    },
+    {
+      "species_id": 436,
+      "offset": 23510088,
+      "name": "Unown Y",
+      "raw_hex": "cfe2e3ebe200d3ffffffff"
+    },
+    {
+      "species_id": 437,
+      "offset": 23510099,
+      "name": "Unown Z",
+      "raw_hex": "cfe2e3ebe200d4ffffffff"
+    },
+    {
+      "species_id": 438,
+      "offset": 23510110,
+      "name": "Unown ?",
+      "raw_hex": "cfe2e3ebe200abffffffff"
+    },
+    {
+      "species_id": 439,
+      "offset": 23510121,
+      "name": "Unown ?",
+      "raw_hex": "cfe2e3ebe200acffffffff"
+    },
+    {
+      "species_id": 440,
+      "offset": 23510132,
+      "name": "Turtwig",
+      "raw_hex": "cee9e6e8ebdddbffffffff"
+    },
+    {
+      "species_id": 441,
+      "offset": 23510143,
+      "name": "Grotle",
+      "raw_hex": "c1e6e3e8e0d9ffffffffff"
+    },
+    {
+      "species_id": 442,
+      "offset": 23510154,
+      "name": "Torterra",
+      "raw_hex": "cee3e6e8d9e6e6d5ffffff"
+    },
+    {
+      "species_id": 443,
+      "offset": 23510165,
+      "name": "Chimchar",
+      "raw_hex": "bddcdde1d7dcd5e6ffffff"
+    },
+    {
+      "species_id": 444,
+      "offset": 23510176,
+      "name": "Monferno",
+      "raw_hex": "c7e3e2dad9e6e2e3ffffff"
+    },
+    {
+      "species_id": 445,
+      "offset": 23510187,
+      "name": "Infernape",
+      "raw_hex": "c3e2dad9e6e2d5e4d9ffff"
+    },
+    {
+      "species_id": 446,
+      "offset": 23510198,
+      "name": "Piplup",
+      "raw_hex": "cadde4e0e9e4ffffffffff"
+    },
+    {
+      "species_id": 447,
+      "offset": 23510209,
+      "name": "Prinplup",
+      "raw_hex": "cae6dde2e4e0e9e4ffffff"
+    },
+    {
+      "species_id": 448,
+      "offset": 23510220,
+      "name": "Empoleon",
+      "raw_hex": "bfe1e4e3e0d9e3e2ffffff"
+    },
+    {
+      "species_id": 449,
+      "offset": 23510231,
+      "name": "Starly",
+      "raw_hex": "cde8d5e6e0edffffffffff"
+    },
+    {
+      "species_id": 450,
+      "offset": 23510242,
+      "name": "Staravia",
+      "raw_hex": "cde8d5e6d5eaddd5ffffff"
+    },
+    {
+      "species_id": 451,
+      "offset": 23510253,
+      "name": "Staraptor",
+      "raw_hex": "cde8d5e6d5e4e8e3e6ffff"
+    },
+    {
+      "species_id": 452,
+      "offset": 23510264,
+      "name": "Bidoof",
+      "raw_hex": "bcddd8e3e3daffffffffff"
+    },
+    {
+      "species_id": 453,
+      "offset": 23510275,
+      "name": "Bibarel",
+      "raw_hex": "bcddd6d5e6d9e0ffffffff"
+    },
+    {
+      "species_id": 454,
+      "offset": 23510286,
+      "name": "Kricketot",
+      "raw_hex": "c5e6ddd7dfd9e8e3e8ffff"
+    },
+    {
+      "species_id": 455,
+      "offset": 23510297,
+      "name": "Kricketune",
+      "raw_hex": "c5e6ddd7dfd9e8e9e2d9ff"
+    },
+    {
+      "species_id": 456,
+      "offset": 23510308,
+      "name": "Shinx",
+      "raw_hex": "cddcdde2ecffffffffffff"
+    },
+    {
+      "species_id": 457,
+      "offset": 23510319,
+      "name": "Luxio",
+      "raw_hex": "c6e9ecdde3ffffffffffff"
+    },
+    {
+      "species_id": 458,
+      "offset": 23510330,
+      "name": "Luxray",
+      "raw_hex": "c6e9ece6d5edffffffffff"
+    },
+    {
+      "species_id": 459,
+      "offset": 23510341,
+      "name": "Budew",
+      "raw_hex": "bce9d8d9ebffffffffffff"
+    },
+    {
+      "species_id": 460,
+      "offset": 23510352,
+      "name": "Roserade",
+      "raw_hex": "cce3e7d9e6d5d8d9ffffff"
+    },
+    {
+      "species_id": 461,
+      "offset": 23510363,
+      "name": "Cranidos",
+      "raw_hex": "bde6d5e2ddd8e3e7ffffff"
+    },
+    {
+      "species_id": 462,
+      "offset": 23510374,
+      "name": "Rampardos",
+      "raw_hex": "ccd5e1e4d5e6d8e3e7ffff"
+    },
+    {
+      "species_id": 463,
+      "offset": 23510385,
+      "name": "Shieldon",
+      "raw_hex": "cddcddd9e0d8e3e2ffffff"
+    },
+    {
+      "species_id": 464,
+      "offset": 23510396,
+      "name": "Bastiodon",
+      "raw_hex": "bcd5e7e8dde3d8e3e2ffff"
+    },
+    {
+      "species_id": 465,
+      "offset": 23510407,
+      "name": "Burmy",
+      "raw_hex": "bce9e6e1edffffffffffff"
+    },
+    {
+      "species_id": 466,
+      "offset": 23510418,
+      "name": "Wormadam",
+      "raw_hex": "d1e3e6e1d5d8d5e1ffffff"
+    },
+    {
+      "species_id": 467,
+      "offset": 23510429,
+      "name": "Mothim",
+      "raw_hex": "c7e3e8dcdde1ffffffffff"
+    },
+    {
+      "species_id": 468,
+      "offset": 23510440,
+      "name": "Combee",
+      "raw_hex": "bde3e1d6d9d9ffffffffff"
+    },
+    {
+      "species_id": 469,
+      "offset": 23510451,
+      "name": "Vespiquen",
+      "raw_hex": "d0d9e7e4dde5e9d9e2ffff"
+    },
+    {
+      "species_id": 470,
+      "offset": 23510462,
+      "name": "Pachirisu",
+      "raw_hex": "cad5d7dcdde6dde7e9ffff"
+    },
+    {
+      "species_id": 471,
+      "offset": 23510473,
+      "name": "Buizel",
+      "raw_hex": "bce9ddeed9e0ffffffffff"
+    },
+    {
+      "species_id": 472,
+      "offset": 23510484,
+      "name": "Floatzel",
+      "raw_hex": "c0e0e3d5e8eed9e0ffffff"
+    },
+    {
+      "species_id": 473,
+      "offset": 23510495,
+      "name": "Cherubi",
+      "raw_hex": "bddcd9e6e9d6ddffffffff"
+    },
+    {
+      "species_id": 474,
+      "offset": 23510506,
+      "name": "Cherrim",
+      "raw_hex": "bddcd9e6e6dde1ffffffff"
+    },
+    {
+      "species_id": 475,
+      "offset": 23510517,
+      "name": "Shellos",
+      "raw_hex": "cddcd9e0e0e3e7ffffffff"
+    },
+    {
+      "species_id": 476,
+      "offset": 23510528,
+      "name": "Gastrodon",
+      "raw_hex": "c1d5e7e8e6e3d8e3e2ffff"
+    },
+    {
+      "species_id": 477,
+      "offset": 23510539,
+      "name": "Ambipom",
+      "raw_hex": "bbe1d6dde4e3e1ffffffff"
+    },
+    {
+      "species_id": 478,
+      "offset": 23510550,
+      "name": "Drifloon",
+      "raw_hex": "bee6dddae0e3e3e2ffffff"
+    },
+    {
+      "species_id": 479,
+      "offset": 23510561,
+      "name": "Drifblim",
+      "raw_hex": "bee6dddad6e0dde1ffffff"
+    },
+    {
+      "species_id": 480,
+      "offset": 23510572,
+      "name": "Buneary",
+      "raw_hex": "bce9e2d9d5e6edffffffff"
+    },
+    {
+      "species_id": 481,
+      "offset": 23510583,
+      "name": "Lopunny",
+      "raw_hex": "c6e3e4e9e2e2edffffffff"
+    },
+    {
+      "species_id": 482,
+      "offset": 23510594,
+      "name": "Mismagius",
+      "raw_hex": "c7dde7e1d5dbdde9e7ffff"
+    },
+    {
+      "species_id": 483,
+      "offset": 23510605,
+      "name": "Honchkrow",
+      "raw_hex": "c2e3e2d7dcdfe6e3ebffff"
+    },
+    {
+      "species_id": 484,
+      "offset": 23510616,
+      "name": "Glameow",
+      "raw_hex": "c1e0d5e1d9e3ebffffffff"
+    },
+    {
+      "species_id": 485,
+      "offset": 23510627,
+      "name": "Purugly",
+      "raw_hex": "cae9e6e9dbe0edffffffff"
+    },
+    {
+      "species_id": 486,
+      "offset": 23510638,
+      "name": "Chingling",
+      "raw_hex": "bddcdde2dbe0dde2dbffff"
+    },
+    {
+      "species_id": 487,
+      "offset": 23510649,
+      "name": "Stunky",
+      "raw_hex": "cde8e9e2dfedffffffffff"
+    },
+    {
+      "species_id": 488,
+      "offset": 23510660,
+      "name": "Skuntank",
+      "raw_hex": "cddfe9e2e8d5e2dfffffff"
+    },
+    {
+      "species_id": 489,
+      "offset": 23510671,
+      "name": "Bronzor",
+      "raw_hex": "bce6e3e2eee3e6ffffffff"
+    },
+    {
+      "species_id": 490,
+      "offset": 23510682,
+      "name": "Bronzong",
+      "raw_hex": "bce6e3e2eee3e2dbffffff"
+    },
+    {
+      "species_id": 491,
+      "offset": 23510693,
+      "name": "Bonsly",
+      "raw_hex": "bce3e2e7e0edffffffffff"
+    },
+    {
+      "species_id": 492,
+      "offset": 23510704,
+      "name": "Mime Jr?",
+      "raw_hex": "c7dde1d900c4e6adffffff"
+    },
+    {
+      "species_id": 493,
+      "offset": 23510715,
+      "name": "Happiny",
+      "raw_hex": "c2d5e4e4dde2edffffffff"
+    },
+    {
+      "species_id": 494,
+      "offset": 23510726,
+      "name": "Chatot",
+      "raw_hex": "bddcd5e8e3e8ffffffffff"
+    },
+    {
+      "species_id": 495,
+      "offset": 23510737,
+      "name": "Spiritomb",
+      "raw_hex": "cde4dde6dde8e3e1d6ffff"
+    },
+    {
+      "species_id": 496,
+      "offset": 23510748,
+      "name": "Gible",
+      "raw_hex": "c1ddd6e0d9ffffffffffff"
+    },
+    {
+      "species_id": 497,
+      "offset": 23510759,
+      "name": "Gabite",
+      "raw_hex": "c1d5d6dde8d9ffffffffff"
+    },
+    {
+      "species_id": 498,
+      "offset": 23510770,
+      "name": "Garchomp",
+      "raw_hex": "c1d5e6d7dce3e1e4ffffff"
+    },
+    {
+      "species_id": 499,
+      "offset": 23510781,
+      "name": "Munchlax",
+      "raw_hex": "c7e9e2d7dce0d5ecffffff"
+    },
+    {
+      "species_id": 500,
+      "offset": 23510792,
+      "name": "Riolu",
+      "raw_hex": "ccdde3e0e9ffffffffffff"
+    },
+    {
+      "species_id": 501,
+      "offset": 23510803,
+      "name": "Lucario",
+      "raw_hex": "c6e9d7d5e6dde3ffffffff"
+    },
+    {
+      "species_id": 502,
+      "offset": 23510814,
+      "name": "Hippopotas",
+      "raw_hex": "c2dde4e4e3e4e3e8d5e7ff"
+    },
+    {
+      "species_id": 503,
+      "offset": 23510825,
+      "name": "Hippowdon",
+      "raw_hex": "c2dde4e4e3ebd8e3e2ffff"
+    },
+    {
+      "species_id": 504,
+      "offset": 23510836,
+      "name": "Skorupi",
+      "raw_hex": "cddfe3e6e9e4ddffffffff"
+    },
+    {
+      "species_id": 505,
+      "offset": 23510847,
+      "name": "Drapion",
+      "raw_hex": "bee6d5e4dde3e2ffffffff"
+    },
+    {
+      "species_id": 506,
+      "offset": 23510858,
+      "name": "Croagunk",
+      "raw_hex": "bde6e3d5dbe9e2dfffffff"
+    },
+    {
+      "species_id": 507,
+      "offset": 23510869,
+      "name": "Toxicroak",
+      "raw_hex": "cee3ecddd7e6e3d5dfffff"
+    },
+    {
+      "species_id": 508,
+      "offset": 23510880,
+      "name": "Carnivine",
+      "raw_hex": "bdd5e6e2ddeadde2d9ffff"
+    },
+    {
+      "species_id": 509,
+      "offset": 23510891,
+      "name": "Finneon",
+      "raw_hex": "c0dde2e2d9e3e2ffffffff"
+    },
+    {
+      "species_id": 510,
+      "offset": 23510902,
+      "name": "Lumineon",
+      "raw_hex": "c6e9e1dde2d9e3e2ffffff"
+    },
+    {
+      "species_id": 511,
+      "offset": 23510913,
+      "name": "Mantyke",
+      "raw_hex": "c7d5e2e8eddfd9ffffffff"
+    },
+    {
+      "species_id": 512,
+      "offset": 23510924,
+      "name": "Snover",
+      "raw_hex": "cde2e3ead9e6ffffffffff"
+    },
+    {
+      "species_id": 513,
+      "offset": 23510935,
+      "name": "Abomasnow",
+      "raw_hex": "bbd6e3e1d5e7e2e3ebffff"
+    },
+    {
+      "species_id": 514,
+      "offset": 23510946,
+      "name": "Weavile",
+      "raw_hex": "d1d9d5eadde0d9ffffffff"
+    },
+    {
+      "species_id": 515,
+      "offset": 23510957,
+      "name": "Magnezone",
+      "raw_hex": "c7d5dbe2d9eee3e2d9ffff"
+    },
+    {
+      "species_id": 516,
+      "offset": 23510968,
+      "name": "Lickilicky",
+      "raw_hex": "c6ddd7dfdde0ddd7dfedff"
+    },
+    {
+      "species_id": 517,
+      "offset": 23510979,
+      "name": "Rhyperior",
+      "raw_hex": "ccdcede4d9e6dde3e6ffff"
+    },
+    {
+      "species_id": 518,
+      "offset": 23510990,
+      "name": "Tangrowth",
+      "raw_hex": "ced5e2dbe6e3ebe8dcffff"
+    },
+    {
+      "species_id": 519,
+      "offset": 23511001,
+      "name": "Electivire",
+      "raw_hex": "bfe0d9d7e8ddeadde6d9ff"
+    },
+    {
+      "species_id": 520,
+      "offset": 23511012,
+      "name": "Magmortar",
+      "raw_hex": "c7d5dbe1e3e6e8d5e6ffff"
+    },
+    {
+      "species_id": 521,
+      "offset": 23511023,
+      "name": "Togekiss",
+      "raw_hex": "cee3dbd9dfdde7e7ffffff"
+    },
+    {
+      "species_id": 522,
+      "offset": 23511034,
+      "name": "Yanmega",
+      "raw_hex": "d3d5e2e1d9dbd5ffffffff"
+    },
+    {
+      "species_id": 523,
+      "offset": 23511045,
+      "name": "Leafeon",
+      "raw_hex": "c6d9d5dad9e3e2ffffffff"
+    },
+    {
+      "species_id": 524,
+      "offset": 23511056,
+      "name": "Glaceon",
+      "raw_hex": "c1e0d5d7d9e3e2ffffffff"
+    },
+    {
+      "species_id": 525,
+      "offset": 23511067,
+      "name": "Gliscor",
+      "raw_hex": "c1e0dde7d7e3e6ffffffff"
+    },
+    {
+      "species_id": 526,
+      "offset": 23511078,
+      "name": "Mamoswine",
+      "raw_hex": "c7d5e1e3e7ebdde2d9ffff"
+    },
+    {
+      "species_id": 527,
+      "offset": 23511089,
+      "name": "Porygon-Z",
+      "raw_hex": "cae3e6eddbe3e2aed4ffff"
+    },
+    {
+      "species_id": 528,
+      "offset": 23511100,
+      "name": "Gallade",
+      "raw_hex": "c1d5e0e0d5d8d9ffffffff"
+    },
+    {
+      "species_id": 529,
+      "offset": 23511111,
+      "name": "Probopass",
+      "raw_hex": "cae6e3d6e3e4d5e7e7ffff"
+    },
+    {
+      "species_id": 530,
+      "offset": 23511122,
+      "name": "Dusknoir",
+      "raw_hex": "bee9e7dfe2e3dde6ffffff"
+    },
+    {
+      "species_id": 531,
+      "offset": 23511133,
+      "name": "Froslass",
+      "raw_hex": "c0e6e3e7e0d5e7e7ffffff"
+    },
+    {
+      "species_id": 532,
+      "offset": 23511144,
+      "name": "Rotom",
+      "raw_hex": "cce3e8e3e1ffffffffffff"
+    },
+    {
+      "species_id": 533,
+      "offset": 23511155,
+      "name": "Uxie",
+      "raw_hex": "cfecddd9ffffffffffffff"
+    },
+    {
+      "species_id": 534,
+      "offset": 23511166,
+      "name": "Mesprit",
+      "raw_hex": "c7d9e7e4e6dde8ffffffff"
+    },
+    {
+      "species_id": 535,
+      "offset": 23511177,
+      "name": "Azelf",
+      "raw_hex": "bbeed9e0daffffffffffff"
+    },
+    {
+      "species_id": 536,
+      "offset": 23511188,
+      "name": "Dialga",
+      "raw_hex": "beddd5e0dbd5ffffffffff"
+    },
+    {
+      "species_id": 537,
+      "offset": 23511199,
+      "name": "Palkia",
+      "raw_hex": "cad5e0dfddd5ffffffffff"
+    },
+    {
+      "species_id": 538,
+      "offset": 23511210,
+      "name": "Heatran",
+      "raw_hex": "c2d9d5e8e6d5e2ffffffff"
+    },
+    {
+      "species_id": 539,
+      "offset": 23511221,
+      "name": "Regigigas",
+      "raw_hex": "ccd9dbdddbdddbd5e7ffff"
+    },
+    {
+      "species_id": 540,
+      "offset": 23511232,
+      "name": "Giratina",
+      "raw_hex": "c1dde6d5e8dde2d5ffffff"
+    },
+    {
+      "species_id": 541,
+      "offset": 23511243,
+      "name": "Cresselia",
+      "raw_hex": "bde6d9e7e7d9e0ddd5ffff"
+    },
+    {
+      "species_id": 542,
+      "offset": 23511254,
+      "name": "Phione",
+      "raw_hex": "cadcdde3e2d9ffffffffff"
+    },
+    {
+      "species_id": 543,
+      "offset": 23511265,
+      "name": "Manaphy",
+      "raw_hex": "c7d5e2d5e4dcedffffffff"
+    },
+    {
+      "species_id": 544,
+      "offset": 23511276,
+      "name": "Darkrai",
+      "raw_hex": "bed5e6dfe6d5ddffffffff"
+    },
+    {
+      "species_id": 545,
+      "offset": 23511287,
+      "name": "Shaymin",
+      "raw_hex": "cddcd5ede1dde2ffffffff"
+    },
+    {
+      "species_id": 546,
+      "offset": 23511298,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 547,
+      "offset": 23511309,
+      "name": "Victini",
+      "raw_hex": "d0ddd7e8dde2ddffffffff"
+    },
+    {
+      "species_id": 548,
+      "offset": 23511320,
+      "name": "Snivy",
+      "raw_hex": "cde2ddeaedffffffffffff"
+    },
+    {
+      "species_id": 549,
+      "offset": 23511331,
+      "name": "Servine",
+      "raw_hex": "cdd9e6eadde2d9ffffffff"
+    },
+    {
+      "species_id": 550,
+      "offset": 23511342,
+      "name": "Serperior",
+      "raw_hex": "cdd9e6e4d9e6dde3e6ffff"
+    },
+    {
+      "species_id": 551,
+      "offset": 23511353,
+      "name": "Tepig",
+      "raw_hex": "ced9e4dddbffffffffffff"
+    },
+    {
+      "species_id": 552,
+      "offset": 23511364,
+      "name": "Pignite",
+      "raw_hex": "cadddbe2dde8d9ffffffff"
+    },
+    {
+      "species_id": 553,
+      "offset": 23511375,
+      "name": "Emboar",
+      "raw_hex": "bfe1d6e3d5e6ffffffffff"
+    },
+    {
+      "species_id": 554,
+      "offset": 23511386,
+      "name": "Oshawott",
+      "raw_hex": "c9e7dcd5ebe3e8e8ffffff"
+    },
+    {
+      "species_id": 555,
+      "offset": 23511397,
+      "name": "Dewott",
+      "raw_hex": "bed9ebe3e8e8ffffffffff"
+    },
+    {
+      "species_id": 556,
+      "offset": 23511408,
+      "name": "Samurott",
+      "raw_hex": "cdd5e1e9e6e3e8e8ffffff"
+    },
+    {
+      "species_id": 557,
+      "offset": 23511419,
+      "name": "Patrat",
+      "raw_hex": "cad5e8e6d5e8ffffffffff"
+    },
+    {
+      "species_id": 558,
+      "offset": 23511430,
+      "name": "Watchog",
+      "raw_hex": "d1d5e8d7dce3dbffffffff"
+    },
+    {
+      "species_id": 559,
+      "offset": 23511441,
+      "name": "Lillipup",
+      "raw_hex": "c6dde0e0dde4e9e4ffffff"
+    },
+    {
+      "species_id": 560,
+      "offset": 23511452,
+      "name": "Herdier",
+      "raw_hex": "c2d9e6d8ddd9e6ffffffff"
+    },
+    {
+      "species_id": 561,
+      "offset": 23511463,
+      "name": "Stoutland",
+      "raw_hex": "cde8e3e9e8e0d5e2d8ffff"
+    },
+    {
+      "species_id": 562,
+      "offset": 23511474,
+      "name": "Purrloin",
+      "raw_hex": "cae9e6e6e0e3dde2ffffff"
+    },
+    {
+      "species_id": 563,
+      "offset": 23511485,
+      "name": "Liepard",
+      "raw_hex": "c6ddd9e4d5e6d8ffffffff"
+    },
+    {
+      "species_id": 564,
+      "offset": 23511496,
+      "name": "Pansage",
+      "raw_hex": "cad5e2e7d5dbd9ffffffff"
+    },
+    {
+      "species_id": 565,
+      "offset": 23511507,
+      "name": "Simisage",
+      "raw_hex": "cddde1dde7d5dbd9ffffff"
+    },
+    {
+      "species_id": 566,
+      "offset": 23511518,
+      "name": "Pansear",
+      "raw_hex": "cad5e2e7d9d5e6ffffffff"
+    },
+    {
+      "species_id": 567,
+      "offset": 23511529,
+      "name": "Simisear",
+      "raw_hex": "cddde1dde7d9d5e6ffffff"
+    },
+    {
+      "species_id": 568,
+      "offset": 23511540,
+      "name": "Panpour",
+      "raw_hex": "cad5e2e4e3e9e6ffffffff"
+    },
+    {
+      "species_id": 569,
+      "offset": 23511551,
+      "name": "Simipour",
+      "raw_hex": "cddde1dde4e3e9e6ffffff"
+    },
+    {
+      "species_id": 570,
+      "offset": 23511562,
+      "name": "Munna",
+      "raw_hex": "c7e9e2e2d5ffffffffffff"
+    },
+    {
+      "species_id": 571,
+      "offset": 23511573,
+      "name": "Musharna",
+      "raw_hex": "c7e9e7dcd5e6e2d5ffffff"
+    },
+    {
+      "species_id": 572,
+      "offset": 23511584,
+      "name": "Pidove",
+      "raw_hex": "caddd8e3ead9ffffffffff"
+    },
+    {
+      "species_id": 573,
+      "offset": 23511595,
+      "name": "Tranquill",
+      "raw_hex": "cee6d5e2e5e9dde0e0ffff"
+    },
+    {
+      "species_id": 574,
+      "offset": 23511606,
+      "name": "Unfezant",
+      "raw_hex": "cfe2dad9eed5e2e8ffffff"
+    },
+    {
+      "species_id": 575,
+      "offset": 23511617,
+      "name": "Blitzle",
+      "raw_hex": "bce0dde8eee0d9ffffffff"
+    },
+    {
+      "species_id": 576,
+      "offset": 23511628,
+      "name": "Zebstrika",
+      "raw_hex": "d4d9d6e7e8e6dddfd5ffff"
+    },
+    {
+      "species_id": 577,
+      "offset": 23511639,
+      "name": "Roggenrola",
+      "raw_hex": "cce3dbdbd9e2e6e3e0d5ff"
+    },
+    {
+      "species_id": 578,
+      "offset": 23511650,
+      "name": "Boldore",
+      "raw_hex": "bce3e0d8e3e6d9ffffffff"
+    },
+    {
+      "species_id": 579,
+      "offset": 23511661,
+      "name": "Gigalith",
+      "raw_hex": "c1dddbd5e0dde8dcffffff"
+    },
+    {
+      "species_id": 580,
+      "offset": 23511672,
+      "name": "Woobat",
+      "raw_hex": "d1e3e3d6d5e8ffffffffff"
+    },
+    {
+      "species_id": 581,
+      "offset": 23511683,
+      "name": "Swoobat",
+      "raw_hex": "cdebe3e3d6d5e8ffffffff"
+    },
+    {
+      "species_id": 582,
+      "offset": 23511694,
+      "name": "Drilbur",
+      "raw_hex": "bee6dde0d6e9e6ffffffff"
+    },
+    {
+      "species_id": 583,
+      "offset": 23511705,
+      "name": "Excadrill",
+      "raw_hex": "bfecd7d5d8e6dde0e0ffff"
+    },
+    {
+      "species_id": 584,
+      "offset": 23511716,
+      "name": "Audino",
+      "raw_hex": "bbe9d8dde2e3ffffffffff"
+    },
+    {
+      "species_id": 585,
+      "offset": 23511727,
+      "name": "Timburr",
+      "raw_hex": "cedde1d6e9e6e6ffffffff"
+    },
+    {
+      "species_id": 586,
+      "offset": 23511738,
+      "name": "Gurdurr",
+      "raw_hex": "c1e9e6d8e9e6e6ffffffff"
+    },
+    {
+      "species_id": 587,
+      "offset": 23511749,
+      "name": "Conkeldurr",
+      "raw_hex": "bde3e2dfd9e0d8e9e6e6ff"
+    },
+    {
+      "species_id": 588,
+      "offset": 23511760,
+      "name": "Tympole",
+      "raw_hex": "ceede1e4e3e0d9ffffffff"
+    },
+    {
+      "species_id": 589,
+      "offset": 23511771,
+      "name": "Palpitoad",
+      "raw_hex": "cad5e0e4dde8e3d5d8ffff"
+    },
+    {
+      "species_id": 590,
+      "offset": 23511782,
+      "name": "Seismitoad",
+      "raw_hex": "cdd9dde7e1dde8e3d5d8ff"
+    },
+    {
+      "species_id": 591,
+      "offset": 23511793,
+      "name": "Throh",
+      "raw_hex": "cedce6e3dcffffffffffff"
+    },
+    {
+      "species_id": 592,
+      "offset": 23511804,
+      "name": "Sawk",
+      "raw_hex": "cdd5ebdfffffffffffffff"
+    },
+    {
+      "species_id": 593,
+      "offset": 23511815,
+      "name": "Sewaddle",
+      "raw_hex": "cdd9ebd5d8d8e0d9ffffff"
+    },
+    {
+      "species_id": 594,
+      "offset": 23511826,
+      "name": "Swadloon",
+      "raw_hex": "cdebd5d8e0e3e3e2ffffff"
+    },
+    {
+      "species_id": 595,
+      "offset": 23511837,
+      "name": "Leavanny",
+      "raw_hex": "c6d9d5ead5e2e2edffffff"
+    },
+    {
+      "species_id": 596,
+      "offset": 23511848,
+      "name": "Venipede",
+      "raw_hex": "d0d9e2dde4d9d8d9ffffff"
+    },
+    {
+      "species_id": 597,
+      "offset": 23511859,
+      "name": "Whirlipede",
+      "raw_hex": "d1dcdde6e0dde4d9d8d9ff"
+    },
+    {
+      "species_id": 598,
+      "offset": 23511870,
+      "name": "Scolipede",
+      "raw_hex": "cdd7e3e0dde4d9d8d9ffff"
+    },
+    {
+      "species_id": 599,
+      "offset": 23511881,
+      "name": "Cottonee",
+      "raw_hex": "bde3e8e8e3e2d9d9ffffff"
+    },
+    {
+      "species_id": 600,
+      "offset": 23511892,
+      "name": "Whimsicott",
+      "raw_hex": "d1dcdde1e7ddd7e3e8e8ff"
+    },
+    {
+      "species_id": 601,
+      "offset": 23511903,
+      "name": "Petilil",
+      "raw_hex": "cad9e8dde0dde0ffffffff"
+    },
+    {
+      "species_id": 602,
+      "offset": 23511914,
+      "name": "Lilligant",
+      "raw_hex": "c6dde0e0dddbd5e2e8ffff"
+    },
+    {
+      "species_id": 603,
+      "offset": 23511925,
+      "name": "Basculin",
+      "raw_hex": "bcd5e7d7e9e0dde2ffffff"
+    },
+    {
+      "species_id": 604,
+      "offset": 23511936,
+      "name": "Sandile",
+      "raw_hex": "cdd5e2d8dde0d9ffffffff"
+    },
+    {
+      "species_id": 605,
+      "offset": 23511947,
+      "name": "Krokorok",
+      "raw_hex": "c5e6e3dfe3e6e3dfffffff"
+    },
+    {
+      "species_id": 606,
+      "offset": 23511958,
+      "name": "Krookodile",
+      "raw_hex": "c5e6e3e3dfe3d8dde0d9ff"
+    },
+    {
+      "species_id": 607,
+      "offset": 23511969,
+      "name": "Darumaka",
+      "raw_hex": "bed5e6e9e1d5dfd5ffffff"
+    },
+    {
+      "species_id": 608,
+      "offset": 23511980,
+      "name": "Darmanitan",
+      "raw_hex": "bed5e6e1d5e2dde8d5e2ff"
+    },
+    {
+      "species_id": 609,
+      "offset": 23511991,
+      "name": "Maractus",
+      "raw_hex": "c7d5e6d5d7e8e9e7ffffff"
+    },
+    {
+      "species_id": 610,
+      "offset": 23512002,
+      "name": "Dwebble",
+      "raw_hex": "beebd9d6d6e0d9ffffffff"
+    },
+    {
+      "species_id": 611,
+      "offset": 23512013,
+      "name": "Crustle",
+      "raw_hex": "bde6e9e7e8e0d9ffffffff"
+    },
+    {
+      "species_id": 612,
+      "offset": 23512024,
+      "name": "Scraggy",
+      "raw_hex": "cdd7e6d5dbdbedffffffff"
+    },
+    {
+      "species_id": 613,
+      "offset": 23512035,
+      "name": "Scrafty",
+      "raw_hex": "cdd7e6d5dae8edffffffff"
+    },
+    {
+      "species_id": 614,
+      "offset": 23512046,
+      "name": "Sigilyph",
+      "raw_hex": "cddddbdde0ede4dcffffff"
+    },
+    {
+      "species_id": 615,
+      "offset": 23512057,
+      "name": "Yamask",
+      "raw_hex": "d3d5e1d5e7dfffffffffff"
+    },
+    {
+      "species_id": 616,
+      "offset": 23512068,
+      "name": "Cofagrigus",
+      "raw_hex": "bde3dad5dbe6dddbe9e7ff"
+    },
+    {
+      "species_id": 617,
+      "offset": 23512079,
+      "name": "Tirtouga",
+      "raw_hex": "cedde6e8e3e9dbd5ffffff"
+    },
+    {
+      "species_id": 618,
+      "offset": 23512090,
+      "name": "Carracosta",
+      "raw_hex": "bdd5e6e6d5d7e3e7e8d5ff"
+    },
+    {
+      "species_id": 619,
+      "offset": 23512101,
+      "name": "Archen",
+      "raw_hex": "bbe6d7dcd9e2ffffffffff"
+    },
+    {
+      "species_id": 620,
+      "offset": 23512112,
+      "name": "Archeops",
+      "raw_hex": "bbe6d7dcd9e3e4e7ffffff"
+    },
+    {
+      "species_id": 621,
+      "offset": 23512123,
+      "name": "Trubbish",
+      "raw_hex": "cee6e9d6d6dde7dcffffff"
+    },
+    {
+      "species_id": 622,
+      "offset": 23512134,
+      "name": "Garbodor",
+      "raw_hex": "c1d5e6d6e3d8e3e6ffffff"
+    },
+    {
+      "species_id": 623,
+      "offset": 23512145,
+      "name": "Zorua",
+      "raw_hex": "d4e3e6e9d5ffffffffffff"
+    },
+    {
+      "species_id": 624,
+      "offset": 23512156,
+      "name": "Zoroark",
+      "raw_hex": "d4e3e6e3d5e6dfffffffff"
+    },
+    {
+      "species_id": 625,
+      "offset": 23512167,
+      "name": "Minccino",
+      "raw_hex": "c7dde2d7d7dde2e3ffffff"
+    },
+    {
+      "species_id": 626,
+      "offset": 23512178,
+      "name": "Cinccino",
+      "raw_hex": "bddde2d7d7dde2e3ffffff"
+    },
+    {
+      "species_id": 627,
+      "offset": 23512189,
+      "name": "Gothita",
+      "raw_hex": "c1e3e8dcdde8d5ffffffff"
+    },
+    {
+      "species_id": 628,
+      "offset": 23512200,
+      "name": "Gothorita",
+      "raw_hex": "c1e3e8dce3e6dde8d5ffff"
+    },
+    {
+      "species_id": 629,
+      "offset": 23512211,
+      "name": "Gothitelle",
+      "raw_hex": "c1e3e8dcdde8d9e0e0d9ff"
+    },
+    {
+      "species_id": 630,
+      "offset": 23512222,
+      "name": "Solosis",
+      "raw_hex": "cde3e0e3e7dde7ffffffff"
+    },
+    {
+      "species_id": 631,
+      "offset": 23512233,
+      "name": "Duosion",
+      "raw_hex": "bee9e3e7dde3e2ffffffff"
+    },
+    {
+      "species_id": 632,
+      "offset": 23512244,
+      "name": "Reuniclus",
+      "raw_hex": "ccd9e9e2ddd7e0e9e7ffff"
+    },
+    {
+      "species_id": 633,
+      "offset": 23512255,
+      "name": "Ducklett",
+      "raw_hex": "bee9d7dfe0d9e8e8ffffff"
+    },
+    {
+      "species_id": 634,
+      "offset": 23512266,
+      "name": "Swanna",
+      "raw_hex": "cdebd5e2e2d5ffffffffff"
+    },
+    {
+      "species_id": 635,
+      "offset": 23512277,
+      "name": "Vanillite",
+      "raw_hex": "d0d5e2dde0e0dde8d9ffff"
+    },
+    {
+      "species_id": 636,
+      "offset": 23512288,
+      "name": "Vanillish",
+      "raw_hex": "d0d5e2dde0e0dde7dcffff"
+    },
+    {
+      "species_id": 637,
+      "offset": 23512299,
+      "name": "Vanilluxe",
+      "raw_hex": "d0d5e2dde0e0e9ecd9ffff"
+    },
+    {
+      "species_id": 638,
+      "offset": 23512310,
+      "name": "Deerling",
+      "raw_hex": "bed9d9e6e0dde2dbffffff"
+    },
+    {
+      "species_id": 639,
+      "offset": 23512321,
+      "name": "Sawsbuck",
+      "raw_hex": "cdd5ebe7d6e9d7dfffffff"
+    },
+    {
+      "species_id": 640,
+      "offset": 23512332,
+      "name": "Emolga",
+      "raw_hex": "bfe1e3e0dbd5ffffffffff"
+    },
+    {
+      "species_id": 641,
+      "offset": 23512343,
+      "name": "Karrablast",
+      "raw_hex": "c5d5e6e6d5d6e0d5e7e8ff"
+    },
+    {
+      "species_id": 642,
+      "offset": 23512354,
+      "name": "Escavalier",
+      "raw_hex": "bfe7d7d5ead5e0ddd9e6ff"
+    },
+    {
+      "species_id": 643,
+      "offset": 23512365,
+      "name": "Foongus",
+      "raw_hex": "c0e3e3e2dbe9e7ffffffff"
+    },
+    {
+      "species_id": 644,
+      "offset": 23512376,
+      "name": "Amoonguss",
+      "raw_hex": "bbe1e3e3e2dbe9e7e7ffff"
+    },
+    {
+      "species_id": 645,
+      "offset": 23512387,
+      "name": "Frillish",
+      "raw_hex": "c0e6dde0e0dde7dcffffff"
+    },
+    {
+      "species_id": 646,
+      "offset": 23512398,
+      "name": "Jellicent",
+      "raw_hex": "c4d9e0e0ddd7d9e2e8ffff"
+    },
+    {
+      "species_id": 647,
+      "offset": 23512409,
+      "name": "Alomomola",
+      "raw_hex": "bbe0e3e1e3e1e3e0d5ffff"
+    },
+    {
+      "species_id": 648,
+      "offset": 23512420,
+      "name": "Joltik",
+      "raw_hex": "c4e3e0e8dddfffffffffff"
+    },
+    {
+      "species_id": 649,
+      "offset": 23512431,
+      "name": "Galvantula",
+      "raw_hex": "c1d5e0ead5e2e8e9e0d5ff"
+    },
+    {
+      "species_id": 650,
+      "offset": 23512442,
+      "name": "Ferroseed",
+      "raw_hex": "c0d9e6e6e3e7d9d9d8ffff"
+    },
+    {
+      "species_id": 651,
+      "offset": 23512453,
+      "name": "Ferrothorn",
+      "raw_hex": "c0d9e6e6e3e8dce3e6e2ff"
+    },
+    {
+      "species_id": 652,
+      "offset": 23512464,
+      "name": "Klink",
+      "raw_hex": "c5e0dde2dfffffffffffff"
+    },
+    {
+      "species_id": 653,
+      "offset": 23512475,
+      "name": "Klang",
+      "raw_hex": "c5e0d5e2dbffffffffffff"
+    },
+    {
+      "species_id": 654,
+      "offset": 23512486,
+      "name": "Klinklang",
+      "raw_hex": "c5e0dde2dfe0d5e2dbffff"
+    },
+    {
+      "species_id": 655,
+      "offset": 23512497,
+      "name": "Tynamo",
+      "raw_hex": "ceede2d5e1e3ffffffffff"
+    },
+    {
+      "species_id": 656,
+      "offset": 23512508,
+      "name": "Eelektrik",
+      "raw_hex": "bfd9e0d9dfe8e6dddfffff"
+    },
+    {
+      "species_id": 657,
+      "offset": 23512519,
+      "name": "Eelektross",
+      "raw_hex": "bfd9e0d9dfe8e6e3e7e7ff"
+    },
+    {
+      "species_id": 658,
+      "offset": 23512530,
+      "name": "Elgyem",
+      "raw_hex": "bfe0dbedd9e1ffffffffff"
+    },
+    {
+      "species_id": 659,
+      "offset": 23512541,
+      "name": "Beheeyem",
+      "raw_hex": "bcd9dcd9d9edd9e1ffffff"
+    },
+    {
+      "species_id": 660,
+      "offset": 23512552,
+      "name": "Litwick",
+      "raw_hex": "c6dde8ebddd7dfffffffff"
+    },
+    {
+      "species_id": 661,
+      "offset": 23512563,
+      "name": "Lampent",
+      "raw_hex": "c6d5e1e4d9e2e8ffffffff"
+    },
+    {
+      "species_id": 662,
+      "offset": 23512574,
+      "name": "Chandelure",
+      "raw_hex": "bddcd5e2d8d9e0e9e6d9ff"
+    },
+    {
+      "species_id": 663,
+      "offset": 23512585,
+      "name": "Axew",
+      "raw_hex": "bbecd9ebffffffffffffff"
+    },
+    {
+      "species_id": 664,
+      "offset": 23512596,
+      "name": "Fraxure",
+      "raw_hex": "c0e6d5ece9e6d9ffffffff"
+    },
+    {
+      "species_id": 665,
+      "offset": 23512607,
+      "name": "Haxorus",
+      "raw_hex": "c2d5ece3e6e9e7ffffffff"
+    },
+    {
+      "species_id": 666,
+      "offset": 23512618,
+      "name": "Cubchoo",
+      "raw_hex": "bde9d6d7dce3e3ffffffff"
+    },
+    {
+      "species_id": 667,
+      "offset": 23512629,
+      "name": "Beartic",
+      "raw_hex": "bcd9d5e6e8ddd7ffffffff"
+    },
+    {
+      "species_id": 668,
+      "offset": 23512640,
+      "name": "Cryogonal",
+      "raw_hex": "bde6ede3dbe3e2d5e0ffff"
+    },
+    {
+      "species_id": 669,
+      "offset": 23512651,
+      "name": "Shelmet",
+      "raw_hex": "cddcd9e0e1d9e8ffffffff"
+    },
+    {
+      "species_id": 670,
+      "offset": 23512662,
+      "name": "Accelgor",
+      "raw_hex": "bbd7d7d9e0dbe3e6ffffff"
+    },
+    {
+      "species_id": 671,
+      "offset": 23512673,
+      "name": "Stunfisk",
+      "raw_hex": "cde8e9e2dadde7dfffffff"
+    },
+    {
+      "species_id": 672,
+      "offset": 23512684,
+      "name": "Mienfoo",
+      "raw_hex": "c7ddd9e2dae3e3ffffffff"
+    },
+    {
+      "species_id": 673,
+      "offset": 23512695,
+      "name": "Mienshao",
+      "raw_hex": "c7ddd9e2e7dcd5e3ffffff"
+    },
+    {
+      "species_id": 674,
+      "offset": 23512706,
+      "name": "Druddigon",
+      "raw_hex": "bee6e9d8d8dddbe3e2ffff"
+    },
+    {
+      "species_id": 675,
+      "offset": 23512717,
+      "name": "Golett",
+      "raw_hex": "c1e3e0d9e8e8ffffffffff"
+    },
+    {
+      "species_id": 676,
+      "offset": 23512728,
+      "name": "Golurk",
+      "raw_hex": "c1e3e0e9e6dfffffffffff"
+    },
+    {
+      "species_id": 677,
+      "offset": 23512739,
+      "name": "Pawniard",
+      "raw_hex": "cad5ebe2ddd5e6d8ffffff"
+    },
+    {
+      "species_id": 678,
+      "offset": 23512750,
+      "name": "Bisharp",
+      "raw_hex": "bcdde7dcd5e6e4ffffffff"
+    },
+    {
+      "species_id": 679,
+      "offset": 23512761,
+      "name": "Bouffalant",
+      "raw_hex": "bce3e9dadad5e0d5e2e8ff"
+    },
+    {
+      "species_id": 680,
+      "offset": 23512772,
+      "name": "Rufflet",
+      "raw_hex": "cce9dadae0d9e8ffffffff"
+    },
+    {
+      "species_id": 681,
+      "offset": 23512783,
+      "name": "Braviary",
+      "raw_hex": "bce6d5eaddd5e6edffffff"
+    },
+    {
+      "species_id": 682,
+      "offset": 23512794,
+      "name": "Vullaby",
+      "raw_hex": "d0e9e0e0d5d6edffffffff"
+    },
+    {
+      "species_id": 683,
+      "offset": 23512805,
+      "name": "Mandibuzz",
+      "raw_hex": "c7d5e2d8ddd6e9eeeeffff"
+    },
+    {
+      "species_id": 684,
+      "offset": 23512816,
+      "name": "Heatmor",
+      "raw_hex": "c2d9d5e8e1e3e6ffffffff"
+    },
+    {
+      "species_id": 685,
+      "offset": 23512827,
+      "name": "Durant",
+      "raw_hex": "bee9e6d5e2e8ffffffffff"
+    },
+    {
+      "species_id": 686,
+      "offset": 23512838,
+      "name": "Deino",
+      "raw_hex": "bed9dde2e3ffffffffffff"
+    },
+    {
+      "species_id": 687,
+      "offset": 23512849,
+      "name": "Zweilous",
+      "raw_hex": "d4ebd9dde0e3e9e7ffffff"
+    },
+    {
+      "species_id": 688,
+      "offset": 23512860,
+      "name": "Hydreigon",
+      "raw_hex": "c2edd8e6d9dddbe3e2ffff"
+    },
+    {
+      "species_id": 689,
+      "offset": 23512871,
+      "name": "Larvesta",
+      "raw_hex": "c6d5e6ead9e7e8d5ffffff"
+    },
+    {
+      "species_id": 690,
+      "offset": 23512882,
+      "name": "Volcarona",
+      "raw_hex": "d0e3e0d7d5e6e3e2d5ffff"
+    },
+    {
+      "species_id": 691,
+      "offset": 23512893,
+      "name": "Cobalion",
+      "raw_hex": "bde3d6d5e0dde3e2ffffff"
+    },
+    {
+      "species_id": 692,
+      "offset": 23512904,
+      "name": "Terrakion",
+      "raw_hex": "ced9e6e6d5dfdde3e2ffff"
+    },
+    {
+      "species_id": 693,
+      "offset": 23512915,
+      "name": "Virizion",
+      "raw_hex": "d0dde6ddeedde3e2ffffff"
+    },
+    {
+      "species_id": 694,
+      "offset": 23512926,
+      "name": "Tornadus",
+      "raw_hex": "cee3e6e2d5d8e9e7ffffff"
+    },
+    {
+      "species_id": 695,
+      "offset": 23512937,
+      "name": "Thundurus",
+      "raw_hex": "cedce9e2d8e9e6e9e7ffff"
+    },
+    {
+      "species_id": 696,
+      "offset": 23512948,
+      "name": "Reshiram",
+      "raw_hex": "ccd9e7dcdde6d5e1ffffff"
+    },
+    {
+      "species_id": 697,
+      "offset": 23512959,
+      "name": "Zekrom",
+      "raw_hex": "d4d9dfe6e3e1ffffffffff"
+    },
+    {
+      "species_id": 698,
+      "offset": 23512970,
+      "name": "Landorus",
+      "raw_hex": "c6d5e2d8e3e6e9e7ffffff"
+    },
+    {
+      "species_id": 699,
+      "offset": 23512981,
+      "name": "Kyurem",
+      "raw_hex": "c5ede9e6d9e1ffffffffff"
+    },
+    {
+      "species_id": 700,
+      "offset": 23512992,
+      "name": "Keldeo",
+      "raw_hex": "c5d9e0d8d9e3ffffffffff"
+    },
+    {
+      "species_id": 701,
+      "offset": 23513003,
+      "name": "Meloetta",
+      "raw_hex": "c7d9e0e3d9e8e8d5ffffff"
+    },
+    {
+      "species_id": 702,
+      "offset": 23513014,
+      "name": "Genesect",
+      "raw_hex": "c1d9e2d9e7d9d7e8ffffff"
+    },
+    {
+      "species_id": 703,
+      "offset": 23513025,
+      "name": "Unfezant",
+      "raw_hex": "cfe2dad9eed5e2e8ffffff"
+    },
+    {
+      "species_id": 704,
+      "offset": 23513036,
+      "name": "Frillish",
+      "raw_hex": "c0e6dde0e0dde7dcffffff"
+    },
+    {
+      "species_id": 705,
+      "offset": 23513047,
+      "name": "Jellicent",
+      "raw_hex": "c4d9e0e0ddd7d9e2e8ffff"
+    },
+    {
+      "species_id": 706,
+      "offset": 23513058,
+      "name": "Warrior",
+      "raw_hex": "d1d5e6e6dde3e6ffffffff"
+    },
+    {
+      "species_id": 707,
+      "offset": 23513069,
+      "name": "Burmy",
+      "raw_hex": "bce9e6e1edffffffffffff"
+    },
+    {
+      "species_id": 708,
+      "offset": 23513080,
+      "name": "Burmy",
+      "raw_hex": "bce9e6e1edffffffffffff"
+    },
+    {
+      "species_id": 709,
+      "offset": 23513091,
+      "name": "Wormadam",
+      "raw_hex": "d1e3e6e1d5d8d5e1ffffff"
+    },
+    {
+      "species_id": 710,
+      "offset": 23513102,
+      "name": "Wormadam",
+      "raw_hex": "d1e3e6e1d5d8d5e1ffffff"
+    },
+    {
+      "species_id": 711,
+      "offset": 23513113,
+      "name": "Shellos",
+      "raw_hex": "cddcd9e0e0e3e7ffffffff"
+    },
+    {
+      "species_id": 712,
+      "offset": 23513124,
+      "name": "Gastrodon",
+      "raw_hex": "c1d5e7e8e6e3d8e3e2ffff"
+    },
+    {
+      "species_id": 713,
+      "offset": 23513135,
+      "name": "Rotom",
+      "raw_hex": "cce3e8e3e1ffffffffffff"
+    },
+    {
+      "species_id": 714,
+      "offset": 23513146,
+      "name": "Rotom",
+      "raw_hex": "cce3e8e3e1ffffffffffff"
+    },
+    {
+      "species_id": 715,
+      "offset": 23513157,
+      "name": "Rotom",
+      "raw_hex": "cce3e8e3e1ffffffffffff"
+    },
+    {
+      "species_id": 716,
+      "offset": 23513168,
+      "name": "Rotom",
+      "raw_hex": "cce3e8e3e1ffffffffffff"
+    },
+    {
+      "species_id": 717,
+      "offset": 23513179,
+      "name": "Rotom",
+      "raw_hex": "cce3e8e3e1ffffffffffff"
+    },
+    {
+      "species_id": 718,
+      "offset": 23513190,
+      "name": "Giratina",
+      "raw_hex": "c1dde6d5e8dde2d5ffffff"
+    },
+    {
+      "species_id": 719,
+      "offset": 23513201,
+      "name": "Shaymin",
+      "raw_hex": "cddcd5ede1dde2ffffffff"
+    },
+    {
+      "species_id": 720,
+      "offset": 23513212,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 721,
+      "offset": 23513223,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 722,
+      "offset": 23513234,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 723,
+      "offset": 23513245,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 724,
+      "offset": 23513256,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 725,
+      "offset": 23513267,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 726,
+      "offset": 23513278,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 727,
+      "offset": 23513289,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 728,
+      "offset": 23513300,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 729,
+      "offset": 23513311,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 730,
+      "offset": 23513322,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 731,
+      "offset": 23513333,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 732,
+      "offset": 23513344,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 733,
+      "offset": 23513355,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 734,
+      "offset": 23513366,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 735,
+      "offset": 23513377,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 736,
+      "offset": 23513388,
+      "name": "Basculin",
+      "raw_hex": "bcd5e7d7e9e0dde2ffffff"
+    },
+    {
+      "species_id": 737,
+      "offset": 23513399,
+      "name": "Darmanitan",
+      "raw_hex": "bed5e6e1d5e2dde8d5e2ff"
+    },
+    {
+      "species_id": 738,
+      "offset": 23513410,
+      "name": "Deerling",
+      "raw_hex": "bed9d9e6e0dde2dbffffff"
+    },
+    {
+      "species_id": 739,
+      "offset": 23513421,
+      "name": "Deerling",
+      "raw_hex": "bed9d9e6e0dde2dbffffff"
+    },
+    {
+      "species_id": 740,
+      "offset": 23513432,
+      "name": "Deerling",
+      "raw_hex": "bed9d9e6e0dde2dbffffff"
+    },
+    {
+      "species_id": 741,
+      "offset": 23513443,
+      "name": "Sawsbuck",
+      "raw_hex": "cdd5ebe7d6e9d7dfffffff"
+    },
+    {
+      "species_id": 742,
+      "offset": 23513454,
+      "name": "Sawsbuck",
+      "raw_hex": "cdd5ebe7d6e9d7dfffffff"
+    },
+    {
+      "species_id": 743,
+      "offset": 23513465,
+      "name": "Sawsbuck",
+      "raw_hex": "cdd5ebe7d6e9d7dfffffff"
+    },
+    {
+      "species_id": 744,
+      "offset": 23513476,
+      "name": "Hippopotas",
+      "raw_hex": "c2dde4e4e3e4e3e8d5e7ff"
+    },
+    {
+      "species_id": 745,
+      "offset": 23513487,
+      "name": "Hippowdon",
+      "raw_hex": "c2dde4e4e3ebd8e3e2ffff"
+    },
+    {
+      "species_id": 746,
+      "offset": 23513498,
+      "name": "Meloetta",
+      "raw_hex": "c7d9e0e3d9e8e8d5ffffff"
+    },
+    {
+      "species_id": 747,
+      "offset": 23513509,
+      "name": "Genesect",
+      "raw_hex": "c1d9e2d9e7d9d7e8ffffff"
+    },
+    {
+      "species_id": 748,
+      "offset": 23513520,
+      "name": "Genesect",
+      "raw_hex": "c1d9e2d9e7d9d7e8ffffff"
+    },
+    {
+      "species_id": 749,
+      "offset": 23513531,
+      "name": "Genesect",
+      "raw_hex": "c1d9e2d9e7d9d7e8ffffff"
+    },
+    {
+      "species_id": 750,
+      "offset": 23513542,
+      "name": "Genesect",
+      "raw_hex": "c1d9e2d9e7d9d7e8ffffff"
+    },
+    {
+      "species_id": 751,
+      "offset": 23513553,
+      "name": "Cherrim",
+      "raw_hex": "bddcd9e6e6dde1ffffffff"
+    },
+    {
+      "species_id": 752,
+      "offset": 23513564,
+      "name": "Kyurem",
+      "raw_hex": "c5ede9e6d9e1ffffffffff"
+    },
+    {
+      "species_id": 753,
+      "offset": 23513575,
+      "name": "Kyurem",
+      "raw_hex": "c5ede9e6d9e1ffffffffff"
+    },
+    {
+      "species_id": 754,
+      "offset": 23513586,
+      "name": "Tornadus",
+      "raw_hex": "cee3e6e2d5d8e9e7ffffff"
+    },
+    {
+      "species_id": 755,
+      "offset": 23513597,
+      "name": "Thundurus",
+      "raw_hex": "cedce9e2d8e9e6e9e7ffff"
+    },
+    {
+      "species_id": 756,
+      "offset": 23513608,
+      "name": "Landorus",
+      "raw_hex": "c6d5e2d8e3e6e9e7ffffff"
+    },
+    {
+      "species_id": 757,
+      "offset": 23513619,
+      "name": "Keldeo",
+      "raw_hex": "c5d9e0d8d9e3ffffffffff"
+    },
+    {
+      "species_id": 758,
+      "offset": 23513630,
+      "name": "Chespin",
+      "raw_hex": "bddcd9e7e4dde2ffffffff"
+    },
+    {
+      "species_id": 759,
+      "offset": 23513641,
+      "name": "Quilladin",
+      "raw_hex": "cbe9dde0e0d5d8dde2ffff"
+    },
+    {
+      "species_id": 760,
+      "offset": 23513652,
+      "name": "Chesnaught",
+      "raw_hex": "bddcd9e7e2d5e9dbdce8ff"
+    },
+    {
+      "species_id": 761,
+      "offset": 23513663,
+      "name": "Fennekin",
+      "raw_hex": "c0d9e2e2d9dfdde2ffffff"
+    },
+    {
+      "species_id": 762,
+      "offset": 23513674,
+      "name": "Braixen",
+      "raw_hex": "bce6d5ddecd9e2ffffffff"
+    },
+    {
+      "species_id": 763,
+      "offset": 23513685,
+      "name": "Delphox",
+      "raw_hex": "bed9e0e4dce3ecffffffff"
+    },
+    {
+      "species_id": 764,
+      "offset": 23513696,
+      "name": "Froakie",
+      "raw_hex": "c0e6e3d5dfddd9ffffffff"
+    },
+    {
+      "species_id": 765,
+      "offset": 23513707,
+      "name": "Frogadier",
+      "raw_hex": "c0e6e3dbd5d8ddd9e6ffff"
+    },
+    {
+      "species_id": 766,
+      "offset": 23513718,
+      "name": "Greninja",
+      "raw_hex": "c1e6d9e2dde2ded5ffffff"
+    },
+    {
+      "species_id": 767,
+      "offset": 23513729,
+      "name": "Bunnelby",
+      "raw_hex": "bce9e2e2d9e0d6edffffff"
+    },
+    {
+      "species_id": 768,
+      "offset": 23513740,
+      "name": "Diggersby",
+      "raw_hex": "bedddbdbd9e6e7d6edffff"
+    },
+    {
+      "species_id": 769,
+      "offset": 23513751,
+      "name": "Fletchling",
+      "raw_hex": "c0e0d9e8d7dce0dde2dbff"
+    },
+    {
+      "species_id": 770,
+      "offset": 23513762,
+      "name": "Fletchindr",
+      "raw_hex": "c0e0d9e8d7dcdde2d8e6ff"
+    },
+    {
+      "species_id": 771,
+      "offset": 23513773,
+      "name": "Talonflame",
+      "raw_hex": "ced5e0e3e2dae0d5e1d9ff"
+    },
+    {
+      "species_id": 772,
+      "offset": 23513784,
+      "name": "Scatterbug",
+      "raw_hex": "cdd7d5e8e8d9e6d6e9dbff"
+    },
+    {
+      "species_id": 773,
+      "offset": 23513795,
+      "name": "Spewpa",
+      "raw_hex": "cde4d9ebe4d5ffffffffff"
+    },
+    {
+      "species_id": 774,
+      "offset": 23513806,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 775,
+      "offset": 23513817,
+      "name": "Litleo",
+      "raw_hex": "c6dde8e0d9e3ffffffffff"
+    },
+    {
+      "species_id": 776,
+      "offset": 23513828,
+      "name": "Pyroar",
+      "raw_hex": "caede6e3d5e6ffffffffff"
+    },
+    {
+      "species_id": 777,
+      "offset": 23513839,
+      "name": "Flab?b?",
+      "raw_hex": "c0e0d5d61bd61bffffffff"
+    },
+    {
+      "species_id": 778,
+      "offset": 23513850,
+      "name": "Floette",
+      "raw_hex": "c0e0e3d9e8e8d9ffffffff"
+    },
+    {
+      "species_id": 779,
+      "offset": 23513861,
+      "name": "Florges",
+      "raw_hex": "c0e0e3e6dbd9e7ffffffff"
+    },
+    {
+      "species_id": 780,
+      "offset": 23513872,
+      "name": "Skiddo",
+      "raw_hex": "cddfddd8d8e3ffffffffff"
+    },
+    {
+      "species_id": 781,
+      "offset": 23513883,
+      "name": "Gogoat",
+      "raw_hex": "c1e3dbe3d5e8ffffffffff"
+    },
+    {
+      "species_id": 782,
+      "offset": 23513894,
+      "name": "Pancham",
+      "raw_hex": "cad5e2d7dcd5e1ffffffff"
+    },
+    {
+      "species_id": 783,
+      "offset": 23513905,
+      "name": "Pangoro",
+      "raw_hex": "cad5e2dbe3e6e3ffffffff"
+    },
+    {
+      "species_id": 784,
+      "offset": 23513916,
+      "name": "Furfrou",
+      "raw_hex": "c0e9e6dae6e3e9ffffffff"
+    },
+    {
+      "species_id": 785,
+      "offset": 23513927,
+      "name": "Espurr",
+      "raw_hex": "bfe7e4e9e6e6ffffffffff"
+    },
+    {
+      "species_id": 786,
+      "offset": 23513938,
+      "name": "Meowstic",
+      "raw_hex": "c7d9e3ebe7e8ddd7ffffff"
+    },
+    {
+      "species_id": 787,
+      "offset": 23513949,
+      "name": "Honedge",
+      "raw_hex": "c2e3e2d9d8dbd9ffffffff"
+    },
+    {
+      "species_id": 788,
+      "offset": 23513960,
+      "name": "Doublade",
+      "raw_hex": "bee3e9d6e0d5d8d9ffffff"
+    },
+    {
+      "species_id": 789,
+      "offset": 23513971,
+      "name": "Aegislash",
+      "raw_hex": "bbd9dbdde7e0d5e7dcffff"
+    },
+    {
+      "species_id": 790,
+      "offset": 23513982,
+      "name": "Spritzee",
+      "raw_hex": "cde4e6dde8eed9d9ffffff"
+    },
+    {
+      "species_id": 791,
+      "offset": 23513993,
+      "name": "Aromatisse",
+      "raw_hex": "bbe6e3e1d5e8dde7e7d9ff"
+    },
+    {
+      "species_id": 792,
+      "offset": 23514004,
+      "name": "Swirlix",
+      "raw_hex": "cdebdde6e0ddecffffffff"
+    },
+    {
+      "species_id": 793,
+      "offset": 23514015,
+      "name": "Slurpuff",
+      "raw_hex": "cde0e9e6e4e9dadaffffff"
+    },
+    {
+      "species_id": 794,
+      "offset": 23514026,
+      "name": "Inkay",
+      "raw_hex": "c3e2dfd5edffffffffffff"
+    },
+    {
+      "species_id": 795,
+      "offset": 23514037,
+      "name": "Malamar",
+      "raw_hex": "c7d5e0d5e1d5e6ffffffff"
+    },
+    {
+      "species_id": 796,
+      "offset": 23514048,
+      "name": "Binacle",
+      "raw_hex": "bcdde2d5d7e0d9ffffffff"
+    },
+    {
+      "species_id": 797,
+      "offset": 23514059,
+      "name": "Barbaracle",
+      "raw_hex": "bcd5e6d6d5e6d5d7e0d9ff"
+    },
+    {
+      "species_id": 798,
+      "offset": 23514070,
+      "name": "Skrelp",
+      "raw_hex": "cddfe6d9e0e4ffffffffff"
+    },
+    {
+      "species_id": 799,
+      "offset": 23514081,
+      "name": "Dragalge",
+      "raw_hex": "bee6d5dbd5e0dbd9ffffff"
+    },
+    {
+      "species_id": 800,
+      "offset": 23514092,
+      "name": "Clauncher",
+      "raw_hex": "bde0d5e9e2d7dcd9e6ffff"
+    },
+    {
+      "species_id": 801,
+      "offset": 23514103,
+      "name": "Clawitzer",
+      "raw_hex": "bde0d5ebdde8eed9e6ffff"
+    },
+    {
+      "species_id": 802,
+      "offset": 23514114,
+      "name": "Helioptile",
+      "raw_hex": "c2d9e0dde3e4e8dde0d9ff"
+    },
+    {
+      "species_id": 803,
+      "offset": 23514125,
+      "name": "Heliolisk",
+      "raw_hex": "c2d9e0dde3e0dde7dfffff"
+    },
+    {
+      "species_id": 804,
+      "offset": 23514136,
+      "name": "Tyrunt",
+      "raw_hex": "ceede6e9e2e8ffffffffff"
+    },
+    {
+      "species_id": 805,
+      "offset": 23514147,
+      "name": "Tyrantrum",
+      "raw_hex": "ceede6d5e2e8e6e9e1ffff"
+    },
+    {
+      "species_id": 806,
+      "offset": 23514158,
+      "name": "Amaura",
+      "raw_hex": "bbe1d5e9e6d5ffffffffff"
+    },
+    {
+      "species_id": 807,
+      "offset": 23514169,
+      "name": "Aurorus",
+      "raw_hex": "bbe9e6e3e6e9e7ffffffff"
+    },
+    {
+      "species_id": 808,
+      "offset": 23514180,
+      "name": "Sylveon",
+      "raw_hex": "cdede0ead9e3e2ffffffff"
+    },
+    {
+      "species_id": 809,
+      "offset": 23514191,
+      "name": "Hawlucha",
+      "raw_hex": "c2d5ebe0e9d7dcd5ffffff"
+    },
+    {
+      "species_id": 810,
+      "offset": 23514202,
+      "name": "Dedenne",
+      "raw_hex": "bed9d8d9e2e2d9ffffffff"
+    },
+    {
+      "species_id": 811,
+      "offset": 23514213,
+      "name": "Carbink",
+      "raw_hex": "bdd5e6d6dde2dfffffffff"
+    },
+    {
+      "species_id": 812,
+      "offset": 23514224,
+      "name": "Goomy",
+      "raw_hex": "c1e3e3e1edffffffffffff"
+    },
+    {
+      "species_id": 813,
+      "offset": 23514235,
+      "name": "Sliggoo",
+      "raw_hex": "cde0dddbdbe3e3ffffffff"
+    },
+    {
+      "species_id": 814,
+      "offset": 23514246,
+      "name": "Goodra",
+      "raw_hex": "c1e3e3d8e6d5ffffffffff"
+    },
+    {
+      "species_id": 815,
+      "offset": 23514257,
+      "name": "Klefki",
+      "raw_hex": "c5e0d9dadfddffffffffff"
+    },
+    {
+      "species_id": 816,
+      "offset": 23514268,
+      "name": "Phantump",
+      "raw_hex": "cadcd5e2e8e9e1e4ffffff"
+    },
+    {
+      "species_id": 817,
+      "offset": 23514279,
+      "name": "Trevenant",
+      "raw_hex": "cee6d9ead9e2d5e2e8ffff"
+    },
+    {
+      "species_id": 818,
+      "offset": 23514290,
+      "name": "Pumpkaboo",
+      "raw_hex": "cae9e1e4dfd5d6e3e3ffff"
+    },
+    {
+      "species_id": 819,
+      "offset": 23514301,
+      "name": "Gourgeist",
+      "raw_hex": "c1e3e9e6dbd9dde7e8ffff"
+    },
+    {
+      "species_id": 820,
+      "offset": 23514312,
+      "name": "Bergmite",
+      "raw_hex": "bcd9e6dbe1dde8d9ffffff"
+    },
+    {
+      "species_id": 821,
+      "offset": 23514323,
+      "name": "Avalugg",
+      "raw_hex": "bbead5e0e9dbdbffffffff"
+    },
+    {
+      "species_id": 822,
+      "offset": 23514334,
+      "name": "Noibat",
+      "raw_hex": "c8e3ddd6d5e8ffffffffff"
+    },
+    {
+      "species_id": 823,
+      "offset": 23514345,
+      "name": "Noivern",
+      "raw_hex": "c8e3ddead9e6e2ffffffff"
+    },
+    {
+      "species_id": 824,
+      "offset": 23514356,
+      "name": "Xerneas",
+      "raw_hex": "d2d9e6e2d9d5e7ffffffff"
+    },
+    {
+      "species_id": 825,
+      "offset": 23514367,
+      "name": "Yveltal",
+      "raw_hex": "d3ead9e0e8d5e0ffffffff"
+    },
+    {
+      "species_id": 826,
+      "offset": 23514378,
+      "name": "Zygarde",
+      "raw_hex": "d4eddbd5e6d8d9ffffffff"
+    },
+    {
+      "species_id": 827,
+      "offset": 23514389,
+      "name": "Diancie",
+      "raw_hex": "beddd5e2d7ddd9ffffffff"
+    },
+    {
+      "species_id": 828,
+      "offset": 23514400,
+      "name": "Hoopa",
+      "raw_hex": "c2e3e3e4d5ffffffffffff"
+    },
+    {
+      "species_id": 829,
+      "offset": 23514411,
+      "name": "Hoopa",
+      "raw_hex": "c2e3e3e4d5ffffffffffff"
+    },
+    {
+      "species_id": 830,
+      "offset": 23514422,
+      "name": "Volcanion",
+      "raw_hex": "d0e3e0d7d5e2dde3e2ffff"
+    },
+    {
+      "species_id": 831,
+      "offset": 23514433,
+      "name": "Pyroar",
+      "raw_hex": "caede6e3d5e6ffffffffff"
+    },
+    {
+      "species_id": 832,
+      "offset": 23514444,
+      "name": "Meowstic",
+      "raw_hex": "c7d9e3ebe7e8ddd7ffffff"
+    },
+    {
+      "species_id": 833,
+      "offset": 23514455,
+      "name": "Aegislash",
+      "raw_hex": "bbd9dbdde7e0d5e7dcffff"
+    },
+    {
+      "species_id": 834,
+      "offset": 23514466,
+      "name": "Arceus",
+      "raw_hex": "bbe6d7d9e9e7ffffffffff"
+    },
+    {
+      "species_id": 835,
+      "offset": 23514477,
+      "name": "Zygarde",
+      "raw_hex": "d4eddbd5e6d8d9ffffffff"
+    },
+    {
+      "species_id": 836,
+      "offset": 23514488,
+      "name": "Zygarde",
+      "raw_hex": "d4eddbd5e6d8d9ffffffff"
+    },
+    {
+      "species_id": 837,
+      "offset": 23514499,
+      "name": "Zygarde",
+      "raw_hex": "d4eddbd5e6d8d9ffffffff"
+    },
+    {
+      "species_id": 838,
+      "offset": 23514510,
+      "name": "Zygarde",
+      "raw_hex": "d4eddbd5e6d8d9ffffffff"
+    },
+    {
+      "species_id": 839,
+      "offset": 23514521,
+      "name": "Greninja",
+      "raw_hex": "c1e6d9e2dde2ded5ffffff"
+    },
+    {
+      "species_id": 840,
+      "offset": 23514532,
+      "name": "Flab?b?",
+      "raw_hex": "c0e0d5d61bd61bffffffff"
+    },
+    {
+      "species_id": 841,
+      "offset": 23514543,
+      "name": "Flab?b?",
+      "raw_hex": "c0e0d5d61bd61bffffffff"
+    },
+    {
+      "species_id": 842,
+      "offset": 23514554,
+      "name": "Flab?b?",
+      "raw_hex": "c0e0d5d61bd61bffffffff"
+    },
+    {
+      "species_id": 843,
+      "offset": 23514565,
+      "name": "Flab?b?",
+      "raw_hex": "c0e0d5d61bd61bffffffff"
+    },
+    {
+      "species_id": 844,
+      "offset": 23514576,
+      "name": "Floette",
+      "raw_hex": "c0e0e3d9e8e8d9ffffffff"
+    },
+    {
+      "species_id": 845,
+      "offset": 23514587,
+      "name": "Floette",
+      "raw_hex": "c0e0e3d9e8e8d9ffffffff"
+    },
+    {
+      "species_id": 846,
+      "offset": 23514598,
+      "name": "Floette",
+      "raw_hex": "c0e0e3d9e8e8d9ffffffff"
+    },
+    {
+      "species_id": 847,
+      "offset": 23514609,
+      "name": "Floette",
+      "raw_hex": "c0e0e3d9e8e8d9ffffffff"
+    },
+    {
+      "species_id": 848,
+      "offset": 23514620,
+      "name": "Floette",
+      "raw_hex": "c0e0e3d9e8e8d9ffffffff"
+    },
+    {
+      "species_id": 849,
+      "offset": 23514631,
+      "name": "Florges",
+      "raw_hex": "c0e0e3e6dbd9e7ffffffff"
+    },
+    {
+      "species_id": 850,
+      "offset": 23514642,
+      "name": "Florges",
+      "raw_hex": "c0e0e3e6dbd9e7ffffffff"
+    },
+    {
+      "species_id": 851,
+      "offset": 23514653,
+      "name": "Florges",
+      "raw_hex": "c0e0e3e6dbd9e7ffffffff"
+    },
+    {
+      "species_id": 852,
+      "offset": 23514664,
+      "name": "Florges",
+      "raw_hex": "c0e0e3e6dbd9e7ffffffff"
+    },
+    {
+      "species_id": 853,
+      "offset": 23514675,
+      "name": "Pumpkaboo",
+      "raw_hex": "cae9e1e4dfd5d6e3e3ffff"
+    },
+    {
+      "species_id": 854,
+      "offset": 23514686,
+      "name": "Pumpkaboo",
+      "raw_hex": "cae9e1e4dfd5d6e3e3ffff"
+    },
+    {
+      "species_id": 855,
+      "offset": 23514697,
+      "name": "Pumpkaboo",
+      "raw_hex": "cae9e1e4dfd5d6e3e3ffff"
+    },
+    {
+      "species_id": 856,
+      "offset": 23514708,
+      "name": "Gourgeist",
+      "raw_hex": "c1e3e9e6dbd9dde7e8ffff"
+    },
+    {
+      "species_id": 857,
+      "offset": 23514719,
+      "name": "Gourgeist",
+      "raw_hex": "c1e3e9e6dbd9dde7e8ffff"
+    },
+    {
+      "species_id": 858,
+      "offset": 23514730,
+      "name": "Gourgeist",
+      "raw_hex": "c1e3e9e6dbd9dde7e8ffff"
+    },
+    {
+      "species_id": 859,
+      "offset": 23514741,
+      "name": "Furfrou",
+      "raw_hex": "c0e9e6dae6e3e9ffffffff"
+    },
+    {
+      "species_id": 860,
+      "offset": 23514752,
+      "name": "Furfrou",
+      "raw_hex": "c0e9e6dae6e3e9ffffffff"
+    },
+    {
+      "species_id": 861,
+      "offset": 23514763,
+      "name": "Furfrou",
+      "raw_hex": "c0e9e6dae6e3e9ffffffff"
+    },
+    {
+      "species_id": 862,
+      "offset": 23514774,
+      "name": "Furfrou",
+      "raw_hex": "c0e9e6dae6e3e9ffffffff"
+    },
+    {
+      "species_id": 863,
+      "offset": 23514785,
+      "name": "Furfrou",
+      "raw_hex": "c0e9e6dae6e3e9ffffffff"
+    },
+    {
+      "species_id": 864,
+      "offset": 23514796,
+      "name": "Furfrou",
+      "raw_hex": "c0e9e6dae6e3e9ffffffff"
+    },
+    {
+      "species_id": 865,
+      "offset": 23514807,
+      "name": "Furfrou",
+      "raw_hex": "c0e9e6dae6e3e9ffffffff"
+    },
+    {
+      "species_id": 866,
+      "offset": 23514818,
+      "name": "Furfrou",
+      "raw_hex": "c0e9e6dae6e3e9ffffffff"
+    },
+    {
+      "species_id": 867,
+      "offset": 23514829,
+      "name": "Furfrou",
+      "raw_hex": "c0e9e6dae6e3e9ffffffff"
+    },
+    {
+      "species_id": 868,
+      "offset": 23514840,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 869,
+      "offset": 23514851,
+      "name": "Venusaur",
+      "raw_hex": "d0d9e2e9e7d5e9e6ffffff"
+    },
+    {
+      "species_id": 870,
+      "offset": 23514862,
+      "name": "Charizard",
+      "raw_hex": "bddcd5e6ddeed5e6d8ffff"
+    },
+    {
+      "species_id": 871,
+      "offset": 23514873,
+      "name": "Charizard",
+      "raw_hex": "bddcd5e6ddeed5e6d8ffff"
+    },
+    {
+      "species_id": 872,
+      "offset": 23514884,
+      "name": "Blastoise",
+      "raw_hex": "bce0d5e7e8e3dde7d9ffff"
+    },
+    {
+      "species_id": 873,
+      "offset": 23514895,
+      "name": "Beedrill",
+      "raw_hex": "bcd9d9d8e6dde0e0ffffff"
+    },
+    {
+      "species_id": 874,
+      "offset": 23514906,
+      "name": "Pidgeot",
+      "raw_hex": "caddd8dbd9e3e8ffffffff"
+    },
+    {
+      "species_id": 875,
+      "offset": 23514917,
+      "name": "Alakazam",
+      "raw_hex": "bbe0d5dfd5eed5e1ffffff"
+    },
+    {
+      "species_id": 876,
+      "offset": 23514928,
+      "name": "Slowbro",
+      "raw_hex": "cde0e3ebd6e6e3ffffffff"
+    },
+    {
+      "species_id": 877,
+      "offset": 23514939,
+      "name": "Gengar",
+      "raw_hex": "c1d9e2dbd5e6ffffffffff"
+    },
+    {
+      "species_id": 878,
+      "offset": 23514950,
+      "name": "Kangaskhan",
+      "raw_hex": "c5d5e2dbd5e7dfdcd5e2ff"
+    },
+    {
+      "species_id": 879,
+      "offset": 23514961,
+      "name": "Pinsir",
+      "raw_hex": "cadde2e7dde6ffffffffff"
+    },
+    {
+      "species_id": 880,
+      "offset": 23514972,
+      "name": "Gyarados",
+      "raw_hex": "c1edd5e6d5d8e3e7ffffff"
+    },
+    {
+      "species_id": 881,
+      "offset": 23514983,
+      "name": "Aerodactyl",
+      "raw_hex": "bbd9e6e3d8d5d7e8ede0ff"
+    },
+    {
+      "species_id": 882,
+      "offset": 23514994,
+      "name": "Mewtwo",
+      "raw_hex": "c7d9ebe8ebe3ffffffffff"
+    },
+    {
+      "species_id": 883,
+      "offset": 23515005,
+      "name": "Mewtwo",
+      "raw_hex": "c7d9ebe8ebe3ffffffffff"
+    },
+    {
+      "species_id": 884,
+      "offset": 23515016,
+      "name": "Ampharos",
+      "raw_hex": "bbe1e4dcd5e6e3e7ffffff"
+    },
+    {
+      "species_id": 885,
+      "offset": 23515027,
+      "name": "Steelix",
+      "raw_hex": "cde8d9d9e0ddecffffffff"
+    },
+    {
+      "species_id": 886,
+      "offset": 23515038,
+      "name": "Scizor",
+      "raw_hex": "cdd7ddeee3e6ffffffffff"
+    },
+    {
+      "species_id": 887,
+      "offset": 23515049,
+      "name": "Heracross",
+      "raw_hex": "c2d9e6d5d7e6e3e7e7ffff"
+    },
+    {
+      "species_id": 888,
+      "offset": 23515060,
+      "name": "Houndoom",
+      "raw_hex": "c2e3e9e2d8e3e3e1ffffff"
+    },
+    {
+      "species_id": 889,
+      "offset": 23515071,
+      "name": "Tyranitar",
+      "raw_hex": "ceede6d5e2dde8d5e6ffff"
+    },
+    {
+      "species_id": 890,
+      "offset": 23515082,
+      "name": "Sceptile",
+      "raw_hex": "cdd7d9e4e8dde0d9ffffff"
+    },
+    {
+      "species_id": 891,
+      "offset": 23515093,
+      "name": "Blaziken",
+      "raw_hex": "bce0d5eedddfd9e2ffffff"
+    },
+    {
+      "species_id": 892,
+      "offset": 23515104,
+      "name": "Swampert",
+      "raw_hex": "cdebd5e1e4d9e6e8ffffff"
+    },
+    {
+      "species_id": 893,
+      "offset": 23515115,
+      "name": "Gardevoir",
+      "raw_hex": "c1d5e6d8d9eae3dde6ffff"
+    },
+    {
+      "species_id": 894,
+      "offset": 23515126,
+      "name": "Sableye",
+      "raw_hex": "cdd5d6e0d9edd9ffffffff"
+    },
+    {
+      "species_id": 895,
+      "offset": 23515137,
+      "name": "Mawile",
+      "raw_hex": "c7d5ebdde0d9ffffffffff"
+    },
+    {
+      "species_id": 896,
+      "offset": 23515148,
+      "name": "Aggron",
+      "raw_hex": "bbdbdbe6e3e2ffffffffff"
+    },
+    {
+      "species_id": 897,
+      "offset": 23515159,
+      "name": "Medicham",
+      "raw_hex": "c7d9d8ddd7dcd5e1ffffff"
+    },
+    {
+      "species_id": 898,
+      "offset": 23515170,
+      "name": "Manectric",
+      "raw_hex": "c7d5e2d9d7e8e6ddd7ffff"
+    },
+    {
+      "species_id": 899,
+      "offset": 23515181,
+      "name": "Sharpedo",
+      "raw_hex": "cddcd5e6e4d9d8e3ffffff"
+    },
+    {
+      "species_id": 900,
+      "offset": 23515192,
+      "name": "Camerupt",
+      "raw_hex": "bdd5e1d9e6e9e4e8ffffff"
+    },
+    {
+      "species_id": 901,
+      "offset": 23515203,
+      "name": "Altaria",
+      "raw_hex": "bbe0e8d5e6ddd5ffffffff"
+    },
+    {
+      "species_id": 902,
+      "offset": 23515214,
+      "name": "Banette",
+      "raw_hex": "bcd5e2d9e8e8d9ffffffff"
+    },
+    {
+      "species_id": 903,
+      "offset": 23515225,
+      "name": "Absol",
+      "raw_hex": "bbd6e7e3e0ffffffffffff"
+    },
+    {
+      "species_id": 904,
+      "offset": 23515236,
+      "name": "Glalie",
+      "raw_hex": "c1e0d5e0ddd9ffffffffff"
+    },
+    {
+      "species_id": 905,
+      "offset": 23515247,
+      "name": "Salamence",
+      "raw_hex": "cdd5e0d5e1d9e2d7d9ffff"
+    },
+    {
+      "species_id": 906,
+      "offset": 23515258,
+      "name": "Metagross",
+      "raw_hex": "c7d9e8d5dbe6e3e7e7ffff"
+    },
+    {
+      "species_id": 907,
+      "offset": 23515269,
+      "name": "Latias",
+      "raw_hex": "c6d5e8ddd5e7ffffffffff"
+    },
+    {
+      "species_id": 908,
+      "offset": 23515280,
+      "name": "Latios",
+      "raw_hex": "c6d5e8dde3e7ffffffffff"
+    },
+    {
+      "species_id": 909,
+      "offset": 23515291,
+      "name": "Groudon",
+      "raw_hex": "c1e6e3e9d8e3e2ffffffff"
+    },
+    {
+      "species_id": 910,
+      "offset": 23515302,
+      "name": "Kyogre",
+      "raw_hex": "c5ede3dbe6d9ffffffffff"
+    },
+    {
+      "species_id": 911,
+      "offset": 23515313,
+      "name": "Rayquaza",
+      "raw_hex": "ccd5ede5e9d5eed5ffffff"
+    },
+    {
+      "species_id": 912,
+      "offset": 23515324,
+      "name": "Lopunny",
+      "raw_hex": "c6e3e4e9e2e2edffffffff"
+    },
+    {
+      "species_id": 913,
+      "offset": 23515335,
+      "name": "Garchomp",
+      "raw_hex": "c1d5e6d7dce3e1e4ffffff"
+    },
+    {
+      "species_id": 914,
+      "offset": 23515346,
+      "name": "Lucario",
+      "raw_hex": "c6e9d7d5e6dde3ffffffff"
+    },
+    {
+      "species_id": 915,
+      "offset": 23515357,
+      "name": "Abomasnow",
+      "raw_hex": "bbd6e3e1d5e7e2e3ebffff"
+    },
+    {
+      "species_id": 916,
+      "offset": 23515368,
+      "name": "Gallade",
+      "raw_hex": "c1d5e0e0d5d8d9ffffffff"
+    },
+    {
+      "species_id": 917,
+      "offset": 23515379,
+      "name": "Audino",
+      "raw_hex": "bbe9d8dde2e3ffffffffff"
+    },
+    {
+      "species_id": 918,
+      "offset": 23515390,
+      "name": "Diancie",
+      "raw_hex": "beddd5e2d7ddd9ffffffff"
+    },
+    {
+      "species_id": 919,
+      "offset": 23515401,
+      "name": "Dialga",
+      "raw_hex": "beddd5e0dbd5ffffffffff"
+    },
+    {
+      "species_id": 920,
+      "offset": 23515412,
+      "name": "Palkia",
+      "raw_hex": "cad5e0dfddd5ffffffffff"
+    },
+    {
+      "species_id": 921,
+      "offset": 23515423,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 922,
+      "offset": 23515434,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 923,
+      "offset": 23515445,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 924,
+      "offset": 23515456,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 925,
+      "offset": 23515467,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 926,
+      "offset": 23515478,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 927,
+      "offset": 23515489,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 928,
+      "offset": 23515500,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 929,
+      "offset": 23515511,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 930,
+      "offset": 23515522,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 931,
+      "offset": 23515533,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 932,
+      "offset": 23515544,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 933,
+      "offset": 23515555,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 934,
+      "offset": 23515566,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 935,
+      "offset": 23515577,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 936,
+      "offset": 23515588,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 937,
+      "offset": 23515599,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 938,
+      "offset": 23515610,
+      "name": "Vivillon",
+      "raw_hex": "d0ddeadde0e0e3e2ffffff"
+    },
+    {
+      "species_id": 939,
+      "offset": 23515621,
+      "name": "Rowlet",
+      "raw_hex": "cce3ebe0d9e8ffffffffff"
+    },
+    {
+      "species_id": 940,
+      "offset": 23515632,
+      "name": "Dartrix",
+      "raw_hex": "bed5e6e8e6ddecffffffff"
+    },
+    {
+      "species_id": 941,
+      "offset": 23515643,
+      "name": "Decidueye",
+      "raw_hex": "bed9d7ddd8e9d9edd9ffff"
+    },
+    {
+      "species_id": 942,
+      "offset": 23515654,
+      "name": "Litten",
+      "raw_hex": "c6dde8e8d9e2ffffffffff"
+    },
+    {
+      "species_id": 943,
+      "offset": 23515665,
+      "name": "Torracat",
+      "raw_hex": "cee3e6e6d5d7d5e8ffffff"
+    },
+    {
+      "species_id": 944,
+      "offset": 23515676,
+      "name": "Incineroar",
+      "raw_hex": "c3e2d7dde2d9e6e3d5e6ff"
+    },
+    {
+      "species_id": 945,
+      "offset": 23515687,
+      "name": "Popplio",
+      "raw_hex": "cae3e4e4e0dde3ffffffff"
+    },
+    {
+      "species_id": 946,
+      "offset": 23515698,
+      "name": "Brionne",
+      "raw_hex": "bce6dde3e2e2d9ffffffff"
+    },
+    {
+      "species_id": 947,
+      "offset": 23515709,
+      "name": "Primarina",
+      "raw_hex": "cae6dde1d5e6dde2d5ffff"
+    },
+    {
+      "species_id": 948,
+      "offset": 23515720,
+      "name": "Pikipek",
+      "raw_hex": "cadddfdde4d9dfffffffff"
+    },
+    {
+      "species_id": 949,
+      "offset": 23515731,
+      "name": "Trumbeak",
+      "raw_hex": "cee6e9e1d6d9d5dfffffff"
+    },
+    {
+      "species_id": 950,
+      "offset": 23515742,
+      "name": "Toucannon",
+      "raw_hex": "cee3e9d7d5e2e2e3e2ffff"
+    },
+    {
+      "species_id": 951,
+      "offset": 23515753,
+      "name": "Yungoos",
+      "raw_hex": "d3e9e2dbe3e3e7ffffffff"
+    },
+    {
+      "species_id": 952,
+      "offset": 23515764,
+      "name": "Gumshoos",
+      "raw_hex": "c1e9e1e7dce3e3e7ffffff"
+    },
+    {
+      "species_id": 953,
+      "offset": 23515775,
+      "name": "Grubbin",
+      "raw_hex": "c1e6e9d6d6dde2ffffffff"
+    },
+    {
+      "species_id": 954,
+      "offset": 23515786,
+      "name": "Charjabug",
+      "raw_hex": "bddcd5e6ded5d6e9dbffff"
+    },
+    {
+      "species_id": 955,
+      "offset": 23515797,
+      "name": "Vikavolt",
+      "raw_hex": "d0dddfd5eae3e0e8ffffff"
+    },
+    {
+      "species_id": 956,
+      "offset": 23515808,
+      "name": "Crabrawler",
+      "raw_hex": "bde6d5d6e6d5ebe0d9e6ff"
+    },
+    {
+      "species_id": 957,
+      "offset": 23515819,
+      "name": "Crabminble",
+      "raw_hex": "bde6d5d6e1dde2d6e0d9ff"
+    },
+    {
+      "species_id": 958,
+      "offset": 23515830,
+      "name": "Oricorio",
+      "raw_hex": "c9e6ddd7e3e6dde3ffffff"
+    },
+    {
+      "species_id": 959,
+      "offset": 23515841,
+      "name": "Cutiefly",
+      "raw_hex": "bde9e8ddd9dae0edffffff"
+    },
+    {
+      "species_id": 960,
+      "offset": 23515852,
+      "name": "Ribombee",
+      "raw_hex": "ccddd6e3e1d6d9d9ffffff"
+    },
+    {
+      "species_id": 961,
+      "offset": 23515863,
+      "name": "Rockruff",
+      "raw_hex": "cce3d7dfe6e9dadaffffff"
+    },
+    {
+      "species_id": 962,
+      "offset": 23515874,
+      "name": "Lycanroc",
+      "raw_hex": "c6edd7d5e2e6e3d7ffffff"
+    },
+    {
+      "species_id": 963,
+      "offset": 23515885,
+      "name": "Wishiwashi",
+      "raw_hex": "d1dde7dcddebd5e7dcddff"
+    },
+    {
+      "species_id": 964,
+      "offset": 23515896,
+      "name": "Mareanie",
+      "raw_hex": "c7d5e6d9d5e2ddd9ffffff"
+    },
+    {
+      "species_id": 965,
+      "offset": 23515907,
+      "name": "Toxapex",
+      "raw_hex": "cee3ecd5e4d9ecffffffff"
+    },
+    {
+      "species_id": 966,
+      "offset": 23515918,
+      "name": "Mudbray",
+      "raw_hex": "c7e9d8d6e6d5edffffffff"
+    },
+    {
+      "species_id": 967,
+      "offset": 23515929,
+      "name": "Mudsdale",
+      "raw_hex": "c7e9d8e7d8d5e0d9ffffff"
+    },
+    {
+      "species_id": 968,
+      "offset": 23515940,
+      "name": "Dewpider",
+      "raw_hex": "bed9ebe4ddd8d9e6ffffff"
+    },
+    {
+      "species_id": 969,
+      "offset": 23515951,
+      "name": "Araquanid",
+      "raw_hex": "bbe6d5e5e9d5e2ddd8ffff"
+    },
+    {
+      "species_id": 970,
+      "offset": 23515962,
+      "name": "Fomantis",
+      "raw_hex": "c0e3e1d5e2e8dde7ffffff"
+    },
+    {
+      "species_id": 971,
+      "offset": 23515973,
+      "name": "Lurantis",
+      "raw_hex": "c6e9e6d5e2e8dde7ffffff"
+    },
+    {
+      "species_id": 972,
+      "offset": 23515984,
+      "name": "Morelull",
+      "raw_hex": "c7e3e6d9e0e9e0e0ffffff"
+    },
+    {
+      "species_id": 973,
+      "offset": 23515995,
+      "name": "Shiinotic",
+      "raw_hex": "cddcdddde2e3e8ddd7ffff"
+    },
+    {
+      "species_id": 974,
+      "offset": 23516006,
+      "name": "Salandit",
+      "raw_hex": "cdd5e0d5e2d8dde8ffffff"
+    },
+    {
+      "species_id": 975,
+      "offset": 23516017,
+      "name": "Salazzle",
+      "raw_hex": "cdd5e0d5eeeee0d9ffffff"
+    },
+    {
+      "species_id": 976,
+      "offset": 23516028,
+      "name": "Stufful",
+      "raw_hex": "cde8e9dadae9e0ffffffff"
+    },
+    {
+      "species_id": 977,
+      "offset": 23516039,
+      "name": "Bewear",
+      "raw_hex": "bcd9ebd9d5e6ffffffffff"
+    },
+    {
+      "species_id": 978,
+      "offset": 23516050,
+      "name": "Bounsweet",
+      "raw_hex": "bce3e9e2e7ebd9d9e8ffff"
+    },
+    {
+      "species_id": 979,
+      "offset": 23516061,
+      "name": "Steenee",
+      "raw_hex": "cde8d9d9e2d9d9ffffffff"
+    },
+    {
+      "species_id": 980,
+      "offset": 23516072,
+      "name": "Tsareena",
+      "raw_hex": "cee7d5e6d9d9e2d5ffffff"
+    },
+    {
+      "species_id": 981,
+      "offset": 23516083,
+      "name": "Comfey",
+      "raw_hex": "bde3e1dad9edffffffffff"
+    },
+    {
+      "species_id": 982,
+      "offset": 23516094,
+      "name": "Oranguru",
+      "raw_hex": "c9e6d5e2dbe9e6e9ffffff"
+    },
+    {
+      "species_id": 983,
+      "offset": 23516105,
+      "name": "Passimian",
+      "raw_hex": "cad5e7e7dde1ddd5e2ffff"
+    },
+    {
+      "species_id": 984,
+      "offset": 23516116,
+      "name": "Wimpod",
+      "raw_hex": "d1dde1e4e3d8ffffffffff"
+    },
+    {
+      "species_id": 985,
+      "offset": 23516127,
+      "name": "Golisopod",
+      "raw_hex": "c1e3e0dde7e3e4e3d8ffff"
+    },
+    {
+      "species_id": 986,
+      "offset": 23516138,
+      "name": "Sandygast",
+      "raw_hex": "cdd5e2d8eddbd5e7e8ffff"
+    },
+    {
+      "species_id": 987,
+      "offset": 23516149,
+      "name": "Palossand",
+      "raw_hex": "cad5e0e3e7e7d5e2d8ffff"
+    },
+    {
+      "species_id": 988,
+      "offset": 23516160,
+      "name": "Pyukumuku",
+      "raw_hex": "caede9dfe9e1e9dfe9ffff"
+    },
+    {
+      "species_id": 989,
+      "offset": 23516171,
+      "name": "Type: Null",
+      "raw_hex": "ceede4d9f000c8e9e0e0ff"
+    },
+    {
+      "species_id": 990,
+      "offset": 23516182,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 991,
+      "offset": 23516193,
+      "name": "Minior",
+      "raw_hex": "c7dde2dde3e6ffffffffff"
+    },
+    {
+      "species_id": 992,
+      "offset": 23516204,
+      "name": "Komala",
+      "raw_hex": "c5e3e1d5e0d5ffffffffff"
+    },
+    {
+      "species_id": 993,
+      "offset": 23516215,
+      "name": "Turtonator",
+      "raw_hex": "cee9e6e8e3e2d5e8e3e6ff"
+    },
+    {
+      "species_id": 994,
+      "offset": 23516226,
+      "name": "Togedemaru",
+      "raw_hex": "cee3dbd9d8d9e1d5e6e9ff"
+    },
+    {
+      "species_id": 995,
+      "offset": 23516237,
+      "name": "Mimikyu",
+      "raw_hex": "c7dde1dddfede9ffffffff"
+    },
+    {
+      "species_id": 996,
+      "offset": 23516248,
+      "name": "Bruxish",
+      "raw_hex": "bce6e9ecdde7dcffffffff"
+    },
+    {
+      "species_id": 997,
+      "offset": 23516259,
+      "name": "Drampa",
+      "raw_hex": "bee6d5e1e4d5ffffffffff"
+    },
+    {
+      "species_id": 998,
+      "offset": 23516270,
+      "name": "Dhelmise",
+      "raw_hex": "bedcd9e0e1dde7d9ffffff"
+    },
+    {
+      "species_id": 999,
+      "offset": 23516281,
+      "name": "Jangmo-o",
+      "raw_hex": "c4d5e2dbe1e3aee3ffffff"
+    },
+    {
+      "species_id": 1000,
+      "offset": 23516292,
+      "name": "Hakamo-o",
+      "raw_hex": "c2d5dfd5e1e3aee3ffffff"
+    },
+    {
+      "species_id": 1001,
+      "offset": 23516303,
+      "name": "Kommo-o",
+      "raw_hex": "c5e3e1e1e3aee3ffffffff"
+    },
+    {
+      "species_id": 1002,
+      "offset": 23516314,
+      "name": "Tapu Koko",
+      "raw_hex": "ced5e4e900c5e3dfe3ffff"
+    },
+    {
+      "species_id": 1003,
+      "offset": 23516325,
+      "name": "Tapu Lele",
+      "raw_hex": "ced5e4e900c6d9e0d9ffff"
+    },
+    {
+      "species_id": 1004,
+      "offset": 23516336,
+      "name": "Tapu Bulu",
+      "raw_hex": "ced5e4e900bce9e0e9ffff"
+    },
+    {
+      "species_id": 1005,
+      "offset": 23516347,
+      "name": "Tapu Fini",
+      "raw_hex": "ced5e4e900c0dde2ddffff"
+    },
+    {
+      "species_id": 1006,
+      "offset": 23516358,
+      "name": "Cosmog",
+      "raw_hex": "bde3e7e1e3dbffffffffff"
+    },
+    {
+      "species_id": 1007,
+      "offset": 23516369,
+      "name": "Cosmoem",
+      "raw_hex": "bde3e7e1e3d9e1ffffffff"
+    },
+    {
+      "species_id": 1008,
+      "offset": 23516380,
+      "name": "Solgaleo",
+      "raw_hex": "cde3e0dbd5e0d9e3ffffff"
+    },
+    {
+      "species_id": 1009,
+      "offset": 23516391,
+      "name": "Lunala",
+      "raw_hex": "c6e9e2d5e0d5ffffffffff"
+    },
+    {
+      "species_id": 1010,
+      "offset": 23516402,
+      "name": "Nihilego",
+      "raw_hex": "c8dddcdde0d9dbe3ffffff"
+    },
+    {
+      "species_id": 1011,
+      "offset": 23516413,
+      "name": "Buzzwole",
+      "raw_hex": "bce9eeeeebe3e0d9ffffff"
+    },
+    {
+      "species_id": 1012,
+      "offset": 23516424,
+      "name": "Pheromosa",
+      "raw_hex": "cadcd9e6e3e1e3e7d5ffff"
+    },
+    {
+      "species_id": 1013,
+      "offset": 23516435,
+      "name": "Xurkitree",
+      "raw_hex": "d2e9e6dfdde8e6d9d9ffff"
+    },
+    {
+      "species_id": 1014,
+      "offset": 23516446,
+      "name": "Celesteela",
+      "raw_hex": "bdd9e0d9e7e8d9d9e0d5ff"
+    },
+    {
+      "species_id": 1015,
+      "offset": 23516457,
+      "name": "Kartana",
+      "raw_hex": "c5d5e6e8d5e2d5ffffffff"
+    },
+    {
+      "species_id": 1016,
+      "offset": 23516468,
+      "name": "Guzzlord",
+      "raw_hex": "c1e9eeeee0e3e6d8ffffff"
+    },
+    {
+      "species_id": 1017,
+      "offset": 23516479,
+      "name": "Necrozma",
+      "raw_hex": "c8d9d7e6e3eee1d5ffffff"
+    },
+    {
+      "species_id": 1018,
+      "offset": 23516490,
+      "name": "Magearna",
+      "raw_hex": "c7d5dbd9d5e6e2d5ffffff"
+    },
+    {
+      "species_id": 1019,
+      "offset": 23516501,
+      "name": "Marshadow",
+      "raw_hex": "c7d5e6e7dcd5d8e3ebffff"
+    },
+    {
+      "species_id": 1020,
+      "offset": 23516512,
+      "name": "Rattata",
+      "raw_hex": "ccd5e8e8d5e8d5ffffffff"
+    },
+    {
+      "species_id": 1021,
+      "offset": 23516523,
+      "name": "Raticate",
+      "raw_hex": "ccd5e8ddd7d5e8d9ffffff"
+    },
+    {
+      "species_id": 1022,
+      "offset": 23516534,
+      "name": "Raichu",
+      "raw_hex": "ccd5ddd7dce9ffffffffff"
+    },
+    {
+      "species_id": 1023,
+      "offset": 23516545,
+      "name": "Sandshrew",
+      "raw_hex": "cdd5e2d8e7dce6d9ebffff"
+    },
+    {
+      "species_id": 1024,
+      "offset": 23516556,
+      "name": "Sandslash",
+      "raw_hex": "cdd5e2d8e7e0d5e7dcffff"
+    },
+    {
+      "species_id": 1025,
+      "offset": 23516567,
+      "name": "Vulpix",
+      "raw_hex": "d0e9e0e4ddecffffffffff"
+    },
+    {
+      "species_id": 1026,
+      "offset": 23516578,
+      "name": "Ninetales",
+      "raw_hex": "c8dde2d9e8d5e0d9e7ffff"
+    },
+    {
+      "species_id": 1027,
+      "offset": 23516589,
+      "name": "Diglett",
+      "raw_hex": "bedddbe0d9e8e8ffffffff"
+    },
+    {
+      "species_id": 1028,
+      "offset": 23516600,
+      "name": "Dugtrio",
+      "raw_hex": "bee9dbe8e6dde3ffffffff"
+    },
+    {
+      "species_id": 1029,
+      "offset": 23516611,
+      "name": "Meowth",
+      "raw_hex": "c7d9e3ebe8dcffffffffff"
+    },
+    {
+      "species_id": 1030,
+      "offset": 23516622,
+      "name": "Persian",
+      "raw_hex": "cad9e6e7ddd5e2ffffffff"
+    },
+    {
+      "species_id": 1031,
+      "offset": 23516633,
+      "name": "Geodude",
+      "raw_hex": "c1d9e3d8e9d8d9ffffffff"
+    },
+    {
+      "species_id": 1032,
+      "offset": 23516644,
+      "name": "Graveler",
+      "raw_hex": "c1e6d5ead9e0d9e6ffffff"
+    },
+    {
+      "species_id": 1033,
+      "offset": 23516655,
+      "name": "Golem",
+      "raw_hex": "c1e3e0d9e1ffffffffffff"
+    },
+    {
+      "species_id": 1034,
+      "offset": 23516666,
+      "name": "Grimer",
+      "raw_hex": "c1e6dde1d9e6ffffffffff"
+    },
+    {
+      "species_id": 1035,
+      "offset": 23516677,
+      "name": "Muk",
+      "raw_hex": "c7e9dfffffffffffffffff"
+    },
+    {
+      "species_id": 1036,
+      "offset": 23516688,
+      "name": "Exeggcute",
+      "raw_hex": "bfecd9dbdbd7e9e8d9ffff"
+    },
+    {
+      "species_id": 1037,
+      "offset": 23516699,
+      "name": "Exeggutor",
+      "raw_hex": "bfecd9dbdbe9e8e3e6ffff"
+    },
+    {
+      "species_id": 1038,
+      "offset": 23516710,
+      "name": "Cubone",
+      "raw_hex": "bde9d6e3e2d9ffffffffff"
+    },
+    {
+      "species_id": 1039,
+      "offset": 23516721,
+      "name": "Marowak",
+      "raw_hex": "c7d5e6e3ebd5dfffffffff"
+    },
+    {
+      "species_id": 1040,
+      "offset": 23516732,
+      "name": "Deoxys",
+      "raw_hex": "bed9e3ecede7ffffffffff"
+    },
+    {
+      "species_id": 1041,
+      "offset": 23516743,
+      "name": "Deoxys",
+      "raw_hex": "bed9e3ecede7ffffffffff"
+    },
+    {
+      "species_id": 1042,
+      "offset": 23516754,
+      "name": "Deoxys",
+      "raw_hex": "bed9e3ecede7ffffffffff"
+    },
+    {
+      "species_id": 1043,
+      "offset": 23516765,
+      "name": "Oricorio",
+      "raw_hex": "c9e6ddd7e3e6dde3ffffff"
+    },
+    {
+      "species_id": 1044,
+      "offset": 23516776,
+      "name": "Oricorio",
+      "raw_hex": "c9e6ddd7e3e6dde3ffffff"
+    },
+    {
+      "species_id": 1045,
+      "offset": 23516787,
+      "name": "Oricorio",
+      "raw_hex": "c9e6ddd7e3e6dde3ffffff"
+    },
+    {
+      "species_id": 1046,
+      "offset": 23516798,
+      "name": "Lycanroc",
+      "raw_hex": "c6edd7d5e2e6e3d7ffffff"
+    },
+    {
+      "species_id": 1047,
+      "offset": 23516809,
+      "name": "Wishiwashi",
+      "raw_hex": "d1dde7dcddebd5e7dcddff"
+    },
+    {
+      "species_id": 1048,
+      "offset": 23516820,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 1049,
+      "offset": 23516831,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 1050,
+      "offset": 23516842,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 1051,
+      "offset": 23516853,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 1052,
+      "offset": 23516864,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 1053,
+      "offset": 23516875,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 1054,
+      "offset": 23516886,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 1055,
+      "offset": 23516897,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 1056,
+      "offset": 23516908,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 1057,
+      "offset": 23516919,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 1058,
+      "offset": 23516930,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 1059,
+      "offset": 23516941,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 1060,
+      "offset": 23516952,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 1061,
+      "offset": 23516963,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 1062,
+      "offset": 23516974,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 1063,
+      "offset": 23516985,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 1064,
+      "offset": 23516996,
+      "name": "Silvally",
+      "raw_hex": "cddde0ead5e0e0edffffff"
+    },
+    {
+      "species_id": 1065,
+      "offset": 23517007,
+      "name": "Minior",
+      "raw_hex": "c7dde2dde3e6ffffffffff"
+    },
+    {
+      "species_id": 1066,
+      "offset": 23517018,
+      "name": "Minior",
+      "raw_hex": "c7dde2dde3e6ffffffffff"
+    },
+    {
+      "species_id": 1067,
+      "offset": 23517029,
+      "name": "Minior",
+      "raw_hex": "c7dde2dde3e6ffffffffff"
+    },
+    {
+      "species_id": 1068,
+      "offset": 23517040,
+      "name": "Minior",
+      "raw_hex": "c7dde2dde3e6ffffffffff"
+    },
+    {
+      "species_id": 1069,
+      "offset": 23517051,
+      "name": "Minior",
+      "raw_hex": "c7dde2dde3e6ffffffffff"
+    },
+    {
+      "species_id": 1070,
+      "offset": 23517062,
+      "name": "Minior",
+      "raw_hex": "c7dde2dde3e6ffffffffff"
+    },
+    {
+      "species_id": 1071,
+      "offset": 23517073,
+      "name": "Minior",
+      "raw_hex": "c7dde2dde3e6ffffffffff"
+    },
+    {
+      "species_id": 1072,
+      "offset": 23517084,
+      "name": "Mimikyu",
+      "raw_hex": "c7dde1dddfede9ffffffff"
+    },
+    {
+      "species_id": 1073,
+      "offset": 23517095,
+      "name": "Magearna",
+      "raw_hex": "c7d5dbd9d5e6e2d5ffffff"
+    },
+    {
+      "species_id": 1074,
+      "offset": 23517106,
+      "name": "Poipole",
+      "raw_hex": "cae3dde4e3e0d9ffffffff"
+    },
+    {
+      "species_id": 1075,
+      "offset": 23517117,
+      "name": "Naganadel",
+      "raw_hex": "c8d5dbd5e2d5d8d9e0ffff"
+    },
+    {
+      "species_id": 1076,
+      "offset": 23517128,
+      "name": "Stakataka",
+      "raw_hex": "cde8d5dfd5e8d5dfd5ffff"
+    },
+    {
+      "species_id": 1077,
+      "offset": 23517139,
+      "name": "Blacphalon",
+      "raw_hex": "bce0d5d7e4dcd5e0e3e2ff"
+    },
+    {
+      "species_id": 1078,
+      "offset": 23517150,
+      "name": "Zeraora",
+      "raw_hex": "d4d9e6d5e3e6d5ffffffff"
+    },
+    {
+      "species_id": 1079,
+      "offset": 23517161,
+      "name": "Necrozma",
+      "raw_hex": "c8d9d7e6e3eee1d5ffffff"
+    },
+    {
+      "species_id": 1080,
+      "offset": 23517172,
+      "name": "Necrozma",
+      "raw_hex": "c8d9d7e6e3eee1d5ffffff"
+    },
+    {
+      "species_id": 1081,
+      "offset": 23517183,
+      "name": "Necrozma",
+      "raw_hex": "c8d9d7e6e3eee1d5ffffff"
+    },
+    {
+      "species_id": 1082,
+      "offset": 23517194,
+      "name": "Lycanroc",
+      "raw_hex": "c6edd7d5e2e6e3d7ffffff"
+    },
+    {
+      "species_id": 1083,
+      "offset": 23517205,
+      "name": "Meltan",
+      "raw_hex": "c7d9e0e8d5e2ffffffffff"
+    },
+    {
+      "species_id": 1084,
+      "offset": 23517216,
+      "name": "Melmetal",
+      "raw_hex": "c7d9e0e1d9e8d5e0ffffff"
+    },
+    {
+      "species_id": 1085,
+      "offset": 23517227,
+      "name": "Pikachu",
+      "raw_hex": "cadddfd5d7dce9ffffffff"
+    },
+    {
+      "species_id": 1086,
+      "offset": 23517238,
+      "name": "Pikachu",
+      "raw_hex": "cadddfd5d7dce9ffffffff"
+    },
+    {
+      "species_id": 1087,
+      "offset": 23517249,
+      "name": "Pikachu",
+      "raw_hex": "cadddfd5d7dce9ffffffff"
+    },
+    {
+      "species_id": 1088,
+      "offset": 23517260,
+      "name": "Pikachu",
+      "raw_hex": "cadddfd5d7dce9ffffffff"
+    },
+    {
+      "species_id": 1089,
+      "offset": 23517271,
+      "name": "Pikachu",
+      "raw_hex": "cadddfd5d7dce9ffffffff"
+    },
+    {
+      "species_id": 1090,
+      "offset": 23517282,
+      "name": "Pikachu",
+      "raw_hex": "cadddfd5d7dce9ffffffff"
+    },
+    {
+      "species_id": 1091,
+      "offset": 23517293,
+      "name": "Pikachu",
+      "raw_hex": "cadddfd5d7dce9ffffffff"
+    },
+    {
+      "species_id": 1092,
+      "offset": 23517304,
+      "name": "Pikachu",
+      "raw_hex": "cadddfd5d7dce9ffffffff"
+    },
+    {
+      "species_id": 1093,
+      "offset": 23517315,
+      "name": "Pikachu",
+      "raw_hex": "cadddfd5d7dce9ffffffff"
+    },
+    {
+      "species_id": 1094,
+      "offset": 23517326,
+      "name": "Pikachu",
+      "raw_hex": "cadddfd5d7dce9ffffffff"
+    },
+    {
+      "species_id": 1095,
+      "offset": 23517337,
+      "name": "Pikachu",
+      "raw_hex": "cadddfd5d7dce9ffffffff"
+    },
+    {
+      "species_id": 1096,
+      "offset": 23517348,
+      "name": "Pikachu",
+      "raw_hex": "cadddfd5d7dce9ffffffff"
+    },
+    {
+      "species_id": 1097,
+      "offset": 23517359,
+      "name": "Pikachu",
+      "raw_hex": "cadddfd5d7dce9ffffffff"
+    },
+    {
+      "species_id": 1098,
+      "offset": 23517370,
+      "name": "Pikachu",
+      "raw_hex": "cadddfd5d7dce9ffffffff"
+    },
+    {
+      "species_id": 1099,
+      "offset": 23517381,
+      "name": "Pikachu",
+      "raw_hex": "cadddfd5d7dce9ffffffff"
+    },
+    {
+      "species_id": 1100,
+      "offset": 23517392,
+      "name": "Pichu",
+      "raw_hex": "caddd7dce9ffffffffffff"
+    },
+    {
+      "species_id": 1101,
+      "offset": 23517403,
+      "name": "Xerneas",
+      "raw_hex": "d2d9e6e2d9d5e7ffffffff"
+    },
+    {
+      "species_id": 1102,
+      "offset": 23517414,
+      "name": "Grookey",
+      "raw_hex": "c1e6e3e3dfd9edffffffff"
+    },
+    {
+      "species_id": 1103,
+      "offset": 23517425,
+      "name": "Thwackey",
+      "raw_hex": "cedcebd5d7dfd9edffffff"
+    },
+    {
+      "species_id": 1104,
+      "offset": 23517436,
+      "name": "Rillaboom",
+      "raw_hex": "ccdde0e0d5d6e3e3e1ffff"
+    },
+    {
+      "species_id": 1105,
+      "offset": 23517447,
+      "name": "Scorbunny",
+      "raw_hex": "cdd7e3e6d6e9e2e2edffff"
+    },
+    {
+      "species_id": 1106,
+      "offset": 23517458,
+      "name": "Raboot",
+      "raw_hex": "ccd5d6e3e3e8ffffffffff"
+    },
+    {
+      "species_id": 1107,
+      "offset": 23517469,
+      "name": "Cinderace",
+      "raw_hex": "bddde2d8d9e6d5d7d9ffff"
+    },
+    {
+      "species_id": 1108,
+      "offset": 23517480,
+      "name": "Sobble",
+      "raw_hex": "cde3d6d6e0d9ffffffffff"
+    },
+    {
+      "species_id": 1109,
+      "offset": 23517491,
+      "name": "Drizzile",
+      "raw_hex": "bee6ddeeeedde0d9ffffff"
+    },
+    {
+      "species_id": 1110,
+      "offset": 23517502,
+      "name": "Inteleon",
+      "raw_hex": "c3e2e8d9e0d9e3e2ffffff"
+    },
+    {
+      "species_id": 1111,
+      "offset": 23517513,
+      "name": "Skwovet",
+      "raw_hex": "cddfebe3ead9e8ffffffff"
+    },
+    {
+      "species_id": 1112,
+      "offset": 23517524,
+      "name": "Greedent",
+      "raw_hex": "c1e6d9d9d8d9e2e8ffffff"
+    },
+    {
+      "species_id": 1113,
+      "offset": 23517535,
+      "name": "Rookidee",
+      "raw_hex": "cce3e3dfddd8d9d9ffffff"
+    },
+    {
+      "species_id": 1114,
+      "offset": 23517546,
+      "name": "Corvsquire",
+      "raw_hex": "bde3e6eae7e5e9dde6d9ff"
+    },
+    {
+      "species_id": 1115,
+      "offset": 23517557,
+      "name": "Corvknight",
+      "raw_hex": "bde3e6eadfe2dddbdce8ff"
+    },
+    {
+      "species_id": 1116,
+      "offset": 23517568,
+      "name": "Blipbug",
+      "raw_hex": "bce0dde4d6e9dbffffffff"
+    },
+    {
+      "species_id": 1117,
+      "offset": 23517579,
+      "name": "Dottler",
+      "raw_hex": "bee3e8e8e0d9e6ffffffff"
+    },
+    {
+      "species_id": 1118,
+      "offset": 23517590,
+      "name": "Orbeetle",
+      "raw_hex": "c9e6d6d9d9e8e0d9ffffff"
+    },
+    {
+      "species_id": 1119,
+      "offset": 23517601,
+      "name": "Nickit",
+      "raw_hex": "c8ddd7dfdde8ffffffffff"
+    },
+    {
+      "species_id": 1120,
+      "offset": 23517612,
+      "name": "Thievul",
+      "raw_hex": "cedcddd9eae9e0ffffffff"
+    },
+    {
+      "species_id": 1121,
+      "offset": 23517623,
+      "name": "Gossifleur",
+      "raw_hex": "c1e3e7e7dddae0d9e9e6ff"
+    },
+    {
+      "species_id": 1122,
+      "offset": 23517634,
+      "name": "Eldegoss",
+      "raw_hex": "bfe0d8d9dbe3e7e7ffffff"
+    },
+    {
+      "species_id": 1123,
+      "offset": 23517645,
+      "name": "Wooloo",
+      "raw_hex": "d1e3e3e0e3e3ffffffffff"
+    },
+    {
+      "species_id": 1124,
+      "offset": 23517656,
+      "name": "Dubwool",
+      "raw_hex": "bee9d6ebe3e3e0ffffffff"
+    },
+    {
+      "species_id": 1125,
+      "offset": 23517667,
+      "name": "Chewtle",
+      "raw_hex": "bddcd9ebe8e0d9ffffffff"
+    },
+    {
+      "species_id": 1126,
+      "offset": 23517678,
+      "name": "Drednaw",
+      "raw_hex": "bee6d9d8e2d5ebffffffff"
+    },
+    {
+      "species_id": 1127,
+      "offset": 23517689,
+      "name": "Yamper",
+      "raw_hex": "d3d5e1e4d9e6ffffffffff"
+    },
+    {
+      "species_id": 1128,
+      "offset": 23517700,
+      "name": "Boltund",
+      "raw_hex": "bce3e0e8e9e2d8ffffffff"
+    },
+    {
+      "species_id": 1129,
+      "offset": 23517711,
+      "name": "Rolycoly",
+      "raw_hex": "cce3e0edd7e3e0edffffff"
+    },
+    {
+      "species_id": 1130,
+      "offset": 23517722,
+      "name": "Carkol",
+      "raw_hex": "bdd5e6dfe3e0ffffffffff"
+    },
+    {
+      "species_id": 1131,
+      "offset": 23517733,
+      "name": "Coalossal",
+      "raw_hex": "bde3d5e0e3e7e7d5e0ffff"
+    },
+    {
+      "species_id": 1132,
+      "offset": 23517744,
+      "name": "Applin",
+      "raw_hex": "bbe4e4e0dde2ffffffffff"
+    },
+    {
+      "species_id": 1133,
+      "offset": 23517755,
+      "name": "Flapple",
+      "raw_hex": "c0e0d5e4e4e0d9ffffffff"
+    },
+    {
+      "species_id": 1134,
+      "offset": 23517766,
+      "name": "Appletun",
+      "raw_hex": "bbe4e4e0d9e8e9e2ffffff"
+    },
+    {
+      "species_id": 1135,
+      "offset": 23517777,
+      "name": "Silicobra",
+      "raw_hex": "cddde0ddd7e3d6e6d5ffff"
+    },
+    {
+      "species_id": 1136,
+      "offset": 23517788,
+      "name": "Sandaconda",
+      "raw_hex": "cdd5e2d8d5d7e3e2d8d5ff"
+    },
+    {
+      "species_id": 1137,
+      "offset": 23517799,
+      "name": "Cramorant",
+      "raw_hex": "bde6d5e1e3e6d5e2e8ffff"
+    },
+    {
+      "species_id": 1138,
+      "offset": 23517810,
+      "name": "Arrokuda",
+      "raw_hex": "bbe6e6e3dfe9d8d5ffffff"
+    },
+    {
+      "species_id": 1139,
+      "offset": 23517821,
+      "name": "Baraskewda",
+      "raw_hex": "bcd5e6d5e7dfd9ebd8d5ff"
+    },
+    {
+      "species_id": 1140,
+      "offset": 23517832,
+      "name": "Toxel",
+      "raw_hex": "cee3ecd9e0ffffffffffff"
+    },
+    {
+      "species_id": 1141,
+      "offset": 23517843,
+      "name": "Toxtricity",
+      "raw_hex": "cee3ece8e6ddd7dde8edff"
+    },
+    {
+      "species_id": 1142,
+      "offset": 23517854,
+      "name": "Sizzlipede",
+      "raw_hex": "cdddeeeee0dde4d9d8d9ff"
+    },
+    {
+      "species_id": 1143,
+      "offset": 23517865,
+      "name": "Centskorch",
+      "raw_hex": "bdd9e2e8e7dfe3e6d7dcff"
+    },
+    {
+      "species_id": 1144,
+      "offset": 23517876,
+      "name": "Clobbopus",
+      "raw_hex": "bde0e3d6d6e3e4e9e7ffff"
+    },
+    {
+      "species_id": 1145,
+      "offset": 23517887,
+      "name": "Grapploct",
+      "raw_hex": "c1e6d5e4e4e0e3d7e8ffff"
+    },
+    {
+      "species_id": 1146,
+      "offset": 23517898,
+      "name": "Sinistea",
+      "raw_hex": "cddde2dde7e8d9d5ffffff"
+    },
+    {
+      "species_id": 1147,
+      "offset": 23517909,
+      "name": "Poltegeist",
+      "raw_hex": "cae3e0e8d9dbd9dde7e8ff"
+    },
+    {
+      "species_id": 1148,
+      "offset": 23517920,
+      "name": "Hatenna",
+      "raw_hex": "c2d5e8d9e2e2d5ffffffff"
+    },
+    {
+      "species_id": 1149,
+      "offset": 23517931,
+      "name": "Hattrem",
+      "raw_hex": "c2d5e8e8e6d9e1ffffffff"
+    },
+    {
+      "species_id": 1150,
+      "offset": 23517942,
+      "name": "Hatterene",
+      "raw_hex": "c2d5e8e8d9e6d9e2d9ffff"
+    },
+    {
+      "species_id": 1151,
+      "offset": 23517953,
+      "name": "Impidimp",
+      "raw_hex": "c3e1e4ddd8dde1e4ffffff"
+    },
+    {
+      "species_id": 1152,
+      "offset": 23517964,
+      "name": "Morgrem",
+      "raw_hex": "c7e3e6dbe6d9e1ffffffff"
+    },
+    {
+      "species_id": 1153,
+      "offset": 23517975,
+      "name": "Grimmsnarl",
+      "raw_hex": "c1e6dde1e1e7e2d5e6e0ff"
+    },
+    {
+      "species_id": 1154,
+      "offset": 23517986,
+      "name": "Obstagoon",
+      "raw_hex": "c9d6e7e8d5dbe3e3e2ffff"
+    },
+    {
+      "species_id": 1155,
+      "offset": 23517997,
+      "name": "Perrserker",
+      "raw_hex": "cad9e6e6e7d9e6dfd9e6ff"
+    },
+    {
+      "species_id": 1156,
+      "offset": 23518008,
+      "name": "Cursola",
+      "raw_hex": "bde9e6e7e3e0d5ffffffff"
+    },
+    {
+      "species_id": 1157,
+      "offset": 23518019,
+      "name": "Sirfetch'd",
+      "raw_hex": "cddde6dad9e8d7dcb4d8ff"
+    },
+    {
+      "species_id": 1158,
+      "offset": 23518030,
+      "name": "Mr? Rime",
+      "raw_hex": "c7e6ad00ccdde1d9ffffff"
+    },
+    {
+      "species_id": 1159,
+      "offset": 23518041,
+      "name": "Runerigus",
+      "raw_hex": "cce9e2d9e6dddbe9e7ffff"
+    },
+    {
+      "species_id": 1160,
+      "offset": 23518052,
+      "name": "Milcery",
+      "raw_hex": "c7dde0d7d9e6edffffffff"
+    },
+    {
+      "species_id": 1161,
+      "offset": 23518063,
+      "name": "Alcremie",
+      "raw_hex": "bbe0d7e6d9e1ddd9ffffff"
+    },
+    {
+      "species_id": 1162,
+      "offset": 23518074,
+      "name": "Falinks",
+      "raw_hex": "c0d5e0dde2dfe7ffffffff"
+    },
+    {
+      "species_id": 1163,
+      "offset": 23518085,
+      "name": "Pincurchin",
+      "raw_hex": "cadde2d7e9e6d7dcdde2ff"
+    },
+    {
+      "species_id": 1164,
+      "offset": 23518096,
+      "name": "Snom",
+      "raw_hex": "cde2e3e1ffffffffffffff"
+    },
+    {
+      "species_id": 1165,
+      "offset": 23518107,
+      "name": "Frosmoth",
+      "raw_hex": "c0e6e3e7e1e3e8dcffffff"
+    },
+    {
+      "species_id": 1166,
+      "offset": 23518118,
+      "name": "Stonjorner",
+      "raw_hex": "cde8e3e2dee3e6e2d9e6ff"
+    },
+    {
+      "species_id": 1167,
+      "offset": 23518129,
+      "name": "Eiscue",
+      "raw_hex": "bfdde7d7e9d9ffffffffff"
+    },
+    {
+      "species_id": 1168,
+      "offset": 23518140,
+      "name": "Indeedee",
+      "raw_hex": "c3e2d8d9d9d8d9d9ffffff"
+    },
+    {
+      "species_id": 1169,
+      "offset": 23518151,
+      "name": "Morpeko",
+      "raw_hex": "c7e3e6e4d9dfe3ffffffff"
+    },
+    {
+      "species_id": 1170,
+      "offset": 23518162,
+      "name": "Cufant",
+      "raw_hex": "bde9dad5e2e8ffffffffff"
+    },
+    {
+      "species_id": 1171,
+      "offset": 23518173,
+      "name": "Copperajah",
+      "raw_hex": "bde3e4e4d9e6d5ded5dcff"
+    },
+    {
+      "species_id": 1172,
+      "offset": 23518184,
+      "name": "Dracozolt",
+      "raw_hex": "bee6d5d7e3eee3e0e8ffff"
+    },
+    {
+      "species_id": 1173,
+      "offset": 23518195,
+      "name": "Arctozolt",
+      "raw_hex": "bbe6d7e8e3eee3e0e8ffff"
+    },
+    {
+      "species_id": 1174,
+      "offset": 23518206,
+      "name": "Dracovish",
+      "raw_hex": "bee6d5d7e3eadde7dcffff"
+    },
+    {
+      "species_id": 1175,
+      "offset": 23518217,
+      "name": "Arctovish",
+      "raw_hex": "bbe6d7e8e3eadde7dcffff"
+    },
+    {
+      "species_id": 1176,
+      "offset": 23518228,
+      "name": "Duraludon",
+      "raw_hex": "bee9e6d5e0e9d8e3e2ffff"
+    },
+    {
+      "species_id": 1177,
+      "offset": 23518239,
+      "name": "Dreepy",
+      "raw_hex": "bee6d9d9e4edffffffffff"
+    },
+    {
+      "species_id": 1178,
+      "offset": 23518250,
+      "name": "Drakloak",
+      "raw_hex": "bee6d5dfe0e3d5dfffffff"
+    },
+    {
+      "species_id": 1179,
+      "offset": 23518261,
+      "name": "Dragapult",
+      "raw_hex": "bee6d5dbd5e4e9e0e8ffff"
+    },
+    {
+      "species_id": 1180,
+      "offset": 23518272,
+      "name": "Zacian",
+      "raw_hex": "d4d5d7ddd5e2ffffffffff"
+    },
+    {
+      "species_id": 1181,
+      "offset": 23518283,
+      "name": "Zamazenta",
+      "raw_hex": "d4d5e1d5eed9e2e8d5ffff"
+    },
+    {
+      "species_id": 1182,
+      "offset": 23518294,
+      "name": "Eternatus",
+      "raw_hex": "bfe8d9e6e2d5e8e9e7ffff"
+    },
+    {
+      "species_id": 1183,
+      "offset": 23518305,
+      "name": "Kubfu",
+      "raw_hex": "c5e9d6dae9ffffffffffff"
+    },
+    {
+      "species_id": 1184,
+      "offset": 23518316,
+      "name": "Urshifu",
+      "raw_hex": "cfe6e7dcdddae9ffffffff"
+    },
+    {
+      "species_id": 1185,
+      "offset": 23518327,
+      "name": "Zarude",
+      "raw_hex": "d4d5e6e9d8d9ffffffffff"
+    },
+    {
+      "species_id": 1186,
+      "offset": 23518338,
+      "name": "Regieleki",
+      "raw_hex": "ccd9dbddd9e0d9dfddffff"
+    },
+    {
+      "species_id": 1187,
+      "offset": 23518349,
+      "name": "Regidrago",
+      "raw_hex": "ccd9dbddd8e6d5dbe3ffff"
+    },
+    {
+      "species_id": 1188,
+      "offset": 23518360,
+      "name": "Glastrier",
+      "raw_hex": "c1e0d5e7e8e6ddd9e6ffff"
+    },
+    {
+      "species_id": 1189,
+      "offset": 23518371,
+      "name": "Spectrier",
+      "raw_hex": "cde4d9d7e8e6ddd9e6ffff"
+    },
+    {
+      "species_id": 1190,
+      "offset": 23518382,
+      "name": "Calyrex",
+      "raw_hex": "bdd5e0ede6d9ecffffffff"
+    },
+    {
+      "species_id": 1191,
+      "offset": 23518393,
+      "name": "Cramorant",
+      "raw_hex": "bde6d5e1e3e6d5e2e8ffff"
+    },
+    {
+      "species_id": 1192,
+      "offset": 23518404,
+      "name": "Cramorant",
+      "raw_hex": "bde6d5e1e3e6d5e2e8ffff"
+    },
+    {
+      "species_id": 1193,
+      "offset": 23518415,
+      "name": "Toxtricity",
+      "raw_hex": "cee3ece8e6ddd7dde8edff"
+    },
+    {
+      "species_id": 1194,
+      "offset": 23518426,
+      "name": "Sinistea",
+      "raw_hex": "cddde2dde7e8d9d5ffffff"
+    },
+    {
+      "species_id": 1195,
+      "offset": 23518437,
+      "name": "Poltegeist",
+      "raw_hex": "cae3e0e8d9dbd9dde7e8ff"
+    },
+    {
+      "species_id": 1196,
+      "offset": 23518448,
+      "name": "Alcremie",
+      "raw_hex": "bbe0d7e6d9e1ddd9ffffff"
+    },
+    {
+      "species_id": 1197,
+      "offset": 23518459,
+      "name": "Alcremie",
+      "raw_hex": "bbe0d7e6d9e1ddd9ffffff"
+    },
+    {
+      "species_id": 1198,
+      "offset": 23518470,
+      "name": "Alcremie",
+      "raw_hex": "bbe0d7e6d9e1ddd9ffffff"
+    },
+    {
+      "species_id": 1199,
+      "offset": 23518481,
+      "name": "Alcremie",
+      "raw_hex": "bbe0d7e6d9e1ddd9ffffff"
+    },
+    {
+      "species_id": 1200,
+      "offset": 23518492,
+      "name": "Alcremie",
+      "raw_hex": "bbe0d7e6d9e1ddd9ffffff"
+    },
+    {
+      "species_id": 1201,
+      "offset": 23518503,
+      "name": "Alcremie",
+      "raw_hex": "bbe0d7e6d9e1ddd9ffffff"
+    },
+    {
+      "species_id": 1202,
+      "offset": 23518514,
+      "name": "Eiscue",
+      "raw_hex": "bfdde7d7e9d9ffffffffff"
+    },
+    {
+      "species_id": 1203,
+      "offset": 23518525,
+      "name": "Indeedee",
+      "raw_hex": "c3e2d8d9d9d8d9d9ffffff"
+    },
+    {
+      "species_id": 1204,
+      "offset": 23518536,
+      "name": "Morpeko",
+      "raw_hex": "c7e3e6e4d9dfe3ffffffff"
+    },
+    {
+      "species_id": 1205,
+      "offset": 23518547,
+      "name": "Zacian",
+      "raw_hex": "d4d5d7ddd5e2ffffffffff"
+    },
+    {
+      "species_id": 1206,
+      "offset": 23518558,
+      "name": "Zamazenta",
+      "raw_hex": "d4d5e1d5eed9e2e8d5ffff"
+    },
+    {
+      "species_id": 1207,
+      "offset": 23518569,
+      "name": "Eternatus",
+      "raw_hex": "bfe8d9e6e2d5e8e9e7ffff"
+    },
+    {
+      "species_id": 1208,
+      "offset": 23518580,
+      "name": "Urshifu",
+      "raw_hex": "cfe6e7dcdddae9ffffffff"
+    },
+    {
+      "species_id": 1209,
+      "offset": 23518591,
+      "name": "Zarude",
+      "raw_hex": "d4d5e6e9d8d9ffffffffff"
+    },
+    {
+      "species_id": 1210,
+      "offset": 23518602,
+      "name": "Calyrex",
+      "raw_hex": "bdd5e0ede6d9ecffffffff"
+    },
+    {
+      "species_id": 1211,
+      "offset": 23518613,
+      "name": "Calyrex",
+      "raw_hex": "bdd5e0ede6d9ecffffffff"
+    },
+    {
+      "species_id": 1212,
+      "offset": 23518624,
+      "name": "Meowth",
+      "raw_hex": "c7d9e3ebe8dcffffffffff"
+    },
+    {
+      "species_id": 1213,
+      "offset": 23518635,
+      "name": "Ponyta",
+      "raw_hex": "cae3e2ede8d5ffffffffff"
+    },
+    {
+      "species_id": 1214,
+      "offset": 23518646,
+      "name": "Rapidash",
+      "raw_hex": "ccd5e4ddd8d5e7dcffffff"
+    },
+    {
+      "species_id": 1215,
+      "offset": 23518657,
+      "name": "Slowpoke",
+      "raw_hex": "cde0e3ebe4e3dfd9ffffff"
+    },
+    {
+      "species_id": 1216,
+      "offset": 23518668,
+      "name": "Slowbro",
+      "raw_hex": "cde0e3ebd6e6e3ffffffff"
+    },
+    {
+      "species_id": 1217,
+      "offset": 23518679,
+      "name": "Farfetch'd",
+      "raw_hex": "c0d5e6dad9e8d7dcb4d8ff"
+    },
+    {
+      "species_id": 1218,
+      "offset": 23518690,
+      "name": "Koffing",
+      "raw_hex": "c5e3dadadde2dbffffffff"
+    },
+    {
+      "species_id": 1219,
+      "offset": 23518701,
+      "name": "Weezing",
+      "raw_hex": "d1d9d9eedde2dbffffffff"
+    },
+    {
+      "species_id": 1220,
+      "offset": 23518712,
+      "name": "Mr? Mime",
+      "raw_hex": "c7e6ad00c7dde1d9ffffff"
+    },
+    {
+      "species_id": 1221,
+      "offset": 23518723,
+      "name": "Articuno",
+      "raw_hex": "bbe6e8ddd7e9e2e3ffffff"
+    },
+    {
+      "species_id": 1222,
+      "offset": 23518734,
+      "name": "Zapdos",
+      "raw_hex": "d4d5e4d8e3e7ffffffffff"
+    },
+    {
+      "species_id": 1223,
+      "offset": 23518745,
+      "name": "Moltres",
+      "raw_hex": "c7e3e0e8e6d9e7ffffffff"
+    },
+    {
+      "species_id": 1224,
+      "offset": 23518756,
+      "name": "Slowking",
+      "raw_hex": "cde0e3ebdfdde2dbffffff"
+    },
+    {
+      "species_id": 1225,
+      "offset": 23518767,
+      "name": "Corsola",
+      "raw_hex": "bde3e6e7e3e0d5ffffffff"
+    },
+    {
+      "species_id": 1226,
+      "offset": 23518778,
+      "name": "Zigzagoon",
+      "raw_hex": "d4dddbeed5dbe3e3e2ffff"
+    },
+    {
+      "species_id": 1227,
+      "offset": 23518789,
+      "name": "Linoone",
+      "raw_hex": "c6dde2e3e3e2d9ffffffff"
+    },
+    {
+      "species_id": 1228,
+      "offset": 23518800,
+      "name": "Mime Jr?",
+      "raw_hex": "c7dde1d900c4e6adffffff"
+    },
+    {
+      "species_id": 1229,
+      "offset": 23518811,
+      "name": "Darumaka",
+      "raw_hex": "bed5e6e9e1d5dfd5ffffff"
+    },
+    {
+      "species_id": 1230,
+      "offset": 23518822,
+      "name": "Darmanitan",
+      "raw_hex": "bed5e6e1d5e2dde8d5e2ff"
+    },
+    {
+      "species_id": 1231,
+      "offset": 23518833,
+      "name": "Darmanitan",
+      "raw_hex": "bed5e6e1d5e2dde8d5e2ff"
+    },
+    {
+      "species_id": 1232,
+      "offset": 23518844,
+      "name": "Yamask",
+      "raw_hex": "d3d5e1d5e7dfffffffffff"
+    },
+    {
+      "species_id": 1233,
+      "offset": 23518855,
+      "name": "Stunfisk",
+      "raw_hex": "cde8e9e2dadde7dfffffff"
+    },
+    {
+      "species_id": 1234,
+      "offset": 23518866,
+      "name": "Growlithe",
+      "raw_hex": "c1e6e3ebe0dde8dcd9ffff"
+    },
+    {
+      "species_id": 1235,
+      "offset": 23518877,
+      "name": "Arcanine",
+      "raw_hex": "bbe6d7d5e2dde2d9ffffff"
+    },
+    {
+      "species_id": 1236,
+      "offset": 23518888,
+      "name": "Voltorb",
+      "raw_hex": "d0e3e0e8e3e6d6ffffffff"
+    },
+    {
+      "species_id": 1237,
+      "offset": 23518899,
+      "name": "Electrode",
+      "raw_hex": "bfe0d9d7e8e6e3d8d9ffff"
+    },
+    {
+      "species_id": 1238,
+      "offset": 23518910,
+      "name": "Typhlosion",
+      "raw_hex": "ceede4dce0e3e7dde3e2ff"
+    },
+    {
+      "species_id": 1239,
+      "offset": 23518921,
+      "name": "Qwilfish",
+      "raw_hex": "cbebdde0dadde7dcffffff"
+    },
+    {
+      "species_id": 1240,
+      "offset": 23518932,
+      "name": "Sneasel",
+      "raw_hex": "cde2d9d5e7d9e0ffffffff"
+    },
+    {
+      "species_id": 1241,
+      "offset": 23518943,
+      "name": "Samurott",
+      "raw_hex": "cdd5e1e9e6e3e8e8ffffff"
+    },
+    {
+      "species_id": 1242,
+      "offset": 23518954,
+      "name": "Lilligant",
+      "raw_hex": "c6dde0e0dddbd5e2e8ffff"
+    },
+    {
+      "species_id": 1243,
+      "offset": 23518965,
+      "name": "Basculin",
+      "raw_hex": "bcd5e7d7e9e0dde2ffffff"
+    },
+    {
+      "species_id": 1244,
+      "offset": 23518976,
+      "name": "Zorua",
+      "raw_hex": "d4e3e6e9d5ffffffffffff"
+    },
+    {
+      "species_id": 1245,
+      "offset": 23518987,
+      "name": "Zoroark",
+      "raw_hex": "d4e3e6e3d5e6dfffffffff"
+    },
+    {
+      "species_id": 1246,
+      "offset": 23518998,
+      "name": "Braviary",
+      "raw_hex": "bce6d5eaddd5e6edffffff"
+    },
+    {
+      "species_id": 1247,
+      "offset": 23519009,
+      "name": "Sliggoo",
+      "raw_hex": "cde0dddbdbe3e3ffffffff"
+    },
+    {
+      "species_id": 1248,
+      "offset": 23519020,
+      "name": "Goodra",
+      "raw_hex": "c1e3e3d8e6d5ffffffffff"
+    },
+    {
+      "species_id": 1249,
+      "offset": 23519031,
+      "name": "Avalugg",
+      "raw_hex": "bbead5e0e9dbdbffffffff"
+    },
+    {
+      "species_id": 1250,
+      "offset": 23519042,
+      "name": "Decidueye",
+      "raw_hex": "bed9d7ddd8e9d9edd9ffff"
+    },
+    {
+      "species_id": 1251,
+      "offset": 23519053,
+      "name": "Wyrdeer",
+      "raw_hex": "d1ede6d8d9d9e6ffffffff"
+    },
+    {
+      "species_id": 1252,
+      "offset": 23519064,
+      "name": "Kleavor",
+      "raw_hex": "c5e0d9d5eae3e6ffffffff"
+    },
+    {
+      "species_id": 1253,
+      "offset": 23519075,
+      "name": "Ursaluna",
+      "raw_hex": "cfe6e7d5e0e9e2d5ffffff"
+    },
+    {
+      "species_id": 1254,
+      "offset": 23519086,
+      "name": "Basculegon",
+      "raw_hex": "bcd5e7d7e9e0d9dbe3e2ff"
+    },
+    {
+      "species_id": 1255,
+      "offset": 23519097,
+      "name": "Basculegon",
+      "raw_hex": "bcd5e7d7e9e0d9dbe3e2ff"
+    },
+    {
+      "species_id": 1256,
+      "offset": 23519108,
+      "name": "Sneasler",
+      "raw_hex": "cde2d9d5e7e0d9e6ffffff"
+    },
+    {
+      "species_id": 1257,
+      "offset": 23519119,
+      "name": "Overqwil",
+      "raw_hex": "c9ead9e6e5ebdde0ffffff"
+    },
+    {
+      "species_id": 1258,
+      "offset": 23519130,
+      "name": "Enamorus",
+      "raw_hex": "bfe2d5e1e3e6e9e7ffffff"
+    },
+    {
+      "species_id": 1259,
+      "offset": 23519141,
+      "name": "Enamorus",
+      "raw_hex": "bfe2d5e1e3e6e9e7ffffff"
+    },
+    {
+      "species_id": 1260,
+      "offset": 23519152,
+      "name": "Venusaur",
+      "raw_hex": "d0d9e2e9e7d5e9e6ffffff"
+    },
+    {
+      "species_id": 1261,
+      "offset": 23519163,
+      "name": "Charizard",
+      "raw_hex": "bddcd5e6ddeed5e6d8ffff"
+    },
+    {
+      "species_id": 1262,
+      "offset": 23519174,
+      "name": "Blastoise",
+      "raw_hex": "bce0d5e7e8e3dde7d9ffff"
+    },
+    {
+      "species_id": 1263,
+      "offset": 23519185,
+      "name": "Butterfree",
+      "raw_hex": "bce9e8e8d9e6dae6d9d9ff"
+    },
+    {
+      "species_id": 1264,
+      "offset": 23519196,
+      "name": "Pikachu",
+      "raw_hex": "cadddfd5d7dce9ffffffff"
+    },
+    {
+      "species_id": 1265,
+      "offset": 23519207,
+      "name": "Meowth",
+      "raw_hex": "c7d9e3ebe8dcffffffffff"
+    },
+    {
+      "species_id": 1266,
+      "offset": 23519218,
+      "name": "Machamp",
+      "raw_hex": "c7d5d7dcd5e1e4ffffffff"
+    },
+    {
+      "species_id": 1267,
+      "offset": 23519229,
+      "name": "Gengar",
+      "raw_hex": "c1d9e2dbd5e6ffffffffff"
+    }
+  ]
+}
