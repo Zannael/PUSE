@@ -7,7 +7,6 @@
 - Add create/insert workflows to add Pokemon to party and PC boxes (with validation and checksum-safe writes).
 - Add ROM-truth ability extraction (`id:name`, optional metadata) and mirror it to frontend local mode for parity.
 - Add ROM-truth form alias metadata (Alolan/Galarian/Hisuian/Mega/Giga where confidently identifiable) on top of current neutral `Form N` labels.
-- Add ROM-truth growth-rate/species-growth mapping to reduce EXP/level ambiguity and prevent unintended level shifts after edits.
 - Add ROM-truth sprites for Pokémons and items with ROM-based sprites extraction.
 - Investigate save flags editing feasibility for difficulty mode and NG+ state.
 - Add clearer changelog/update visibility in project docs.
@@ -22,6 +21,7 @@
 - Move catalogs are now synchronized from ROM truth with `backend/data/moves.txt` as canonical runtime source (mirrored to `frontend/public/data/moves.txt` for local mode parity).
 - Added Unbound ROM species extraction tooling (`backend/tools/extract_unbound_species_table.py`) with diagnostic output (`backend/data/species_table_from_rom.json`).
 - Species catalogs are now synchronized from ROM truth with backend/frontend parity, and species base stats were regenerated from ROM (`backend/tools/extract_unbound_species_base_stats.py`).
+- Added Unbound ROM species growth-rate extraction tooling (`backend/tools/extract_unbound_species_growth_rates.py`) and synchronized species growth metadata (`backend/data/species_growth_rates.json` mirrored to `frontend/src/core/speciesGrowthRates.json`) for backend/local parity.
 
 #### Species, Forms, and Nicknames
 
@@ -36,6 +36,8 @@
 - Fixed PC Box move packing/parsing to use the correct CFRU compact 40-bit layout in both backend and local mode.
 - Fixed local-mode 32-bit overflow during 40-bit move bit-packing by switching to `BigInt`, resolving slot corruption cases (for example `DragonAscent`/`V-create` turning into wrong moves in frontend or in-game).
 - Added species drift safety checks for non-species edit flows and tightened save paths to send only changed fields, reducing unintended side effects.
+- Party level edits now default to ROM-truth species growth rate when available, with fallback to previous growth inference behavior when metadata is unavailable.
+- PC level editing now defaults to ROM-truth species growth rate in the editor flow (manual override still supported), reducing EXP/level ambiguity.
 
 #### Party and PC Identity with PID Safety
 
