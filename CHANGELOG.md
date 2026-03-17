@@ -12,6 +12,8 @@
 - Investigate save flags editing feasibility for difficulty mode and NG+ state.
 - Add clearer changelog/update visibility in project docs.
 - Extend identity controls to PC editing flow with the same PID safety and backend/local parity guarantees.
+- Extend Trainer Profile editing to include identity metadata: name (with character encoding validation), gender/style flags, and appearance parameters (hair color/skin tone).
+- Implement "Costume Box" unlocker and wardrobe editing.
 
 ### Changed
 
