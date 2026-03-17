@@ -733,11 +733,16 @@ async def get_box(box_id: int):
         "species_id": m.species_id,
         "item_id": m.get_item_id(),
         "exp": m.exp,
-        "nature_id": m.nature_id if hasattr(m, 'nature_id') else int(box_mod.ru32(m.raw, 0) % 25), # PID fallback
+        "nature_id": m.get_nature_id(),
+        "pid": m.get_pid(),
+        "is_shiny": m.is_shiny(),
+        "gender": m.get_gender(),
+        "gender_mode": m.get_gender_mode(),
+        "gender_editable": m.get_gender_mode() == "dynamic",
         "ivs": m.get_ivs(),
         "evs": m.get_evs(),
         "moves": m.get_moves(), # Returns numeric IDs
-        "current_ability_index": 2 if m.get_hidden_ability_flag() else 0 # Simplified for PC
+        "current_ability_index": 2 if m.get_hidden_ability_flag() else (m.get_pid() & 1)
     } for m in mons]
 
 
@@ -870,6 +875,8 @@ class PCFullUpdate(BaseModel):
     evs: dict = None
     nature_id: int = None
     exp: int = None
+    shiny: bool = None
+    gender: str = None
 
 
 @app.post("/pc/edit-full")
@@ -894,6 +901,11 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
     if upd.ivs: target.set_ivs(upd.ivs)
     if upd.evs: target.set_evs(upd.evs)
     if upd.nature_id is not None: target.set_nature(upd.nature_id)
+    if upd.shiny is not None or upd.gender is not None:
+        try:
+            target.set_identity(shiny=upd.shiny, gender=upd.gender)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
     if upd.exp is not None: target.set_exp(upd.exp)
 
     if upd.species_id is None and target.species_id != species_before:

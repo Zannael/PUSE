@@ -182,6 +182,18 @@ const App = () => {
                 payload.species_id = updatedPk.species_id;
             }
 
+            if (Boolean(updatedPk.is_shiny) !== Boolean(original.is_shiny)) {
+                payload.shiny = Boolean(updatedPk.is_shiny);
+            }
+
+            if (
+                typeof updatedPk.gender === 'string' &&
+                updatedPk.gender !== original.gender &&
+                (updatedPk.gender === 'male' || updatedPk.gender === 'female' || updatedPk.gender === 'genderless')
+            ) {
+                payload.gender = updatedPk.gender;
+            }
+
             if (updatedPk.level_edit) {
                 const targetLevel = Math.max(1, Math.min(100, Number(updatedPk.level_edit.target_level || 1)));
                 const growthRate = Math.max(0, Math.min(5, Number(updatedPk.level_edit.growth_rate || 0)));

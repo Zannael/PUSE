@@ -2,6 +2,7 @@ import { ru8, ru16, ru32, wu8, wu16, wu32 } from './binary.js';
 import { gbaChecksum } from './checksum.js';
 import { OFF_ID, OFF_SAVE_IDX, SECTION_SIZE } from './sections.js';
 import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
+import speciesIdentityMeta from './speciesIdentityMeta.json' with { type: 'json' };
 
 const POKEMON_STREAM_SECTORS = [5, 6, 7, 8, 9, 10, 11, 12];
 const PRESET_SECTOR_ID = 0;
@@ -23,6 +24,11 @@ const OFF_EXP = 0x20;
 const OFF_MOVES = 0x24;
 const OFF_EVS = 0x2C;
 const OFF_IVS = 0x36;
+
+const GENDER_THRESHOLD_MALE_ONLY = 0;
+const GENDER_THRESHOLD_FEMALE_ONLY = 254;
+const GENDER_THRESHOLD_GENDERLESS = 255;
+const INV_11_MOD_25 = 16;
 
 const UNBOUND_PRESET_MAGIC_LEN = 0xADC;
 
@@ -188,12 +194,189 @@ function setNature(raw, natureId) {
     wu32(raw, OFF_PID, pid);
 }
 
+function getOtid(raw) {
+    return ru32(raw, 0x04);
+}
+
+function getGenderThreshold(raw) {
+    const speciesId = ru16(raw, OFF_SPECIES);
+    const meta = speciesIdentityMeta?.[String(speciesId)];
+    if (!meta || meta.gender_threshold === undefined || meta.gender_threshold === null) {
+        return null;
+    }
+    return Number(meta.gender_threshold) & 0xFF;
+}
+
+function genderModeFromThreshold(threshold) {
+    if (threshold === null || threshold === undefined) {
+        return 'unknown';
+    }
+    if (threshold === GENDER_THRESHOLD_GENDERLESS) {
+        return 'genderless';
+    }
+    if (threshold === GENDER_THRESHOLD_MALE_ONLY) {
+        return 'fixed_male';
+    }
+    if (threshold === GENDER_THRESHOLD_FEMALE_ONLY) {
+        return 'fixed_female';
+    }
+    return 'dynamic';
+}
+
+function genderFromPid(pid, threshold) {
+    if (threshold === null || threshold === undefined) {
+        return 'unknown';
+    }
+    if (threshold === GENDER_THRESHOLD_GENDERLESS) {
+        return 'genderless';
+    }
+    if (threshold === GENDER_THRESHOLD_MALE_ONLY) {
+        return 'male';
+    }
+    if (threshold === GENDER_THRESHOLD_FEMALE_ONLY) {
+        return 'female';
+    }
+    return (pid & 0xFF) < threshold ? 'female' : 'male';
+}
+
+function shinyValue(otid, pid) {
+    const tid = otid & 0xFFFF;
+    const sid = (otid >>> 16) & 0xFFFF;
+    return (tid ^ sid ^ (pid & 0xFFFF) ^ ((pid >>> 16) & 0xFFFF)) >>> 0;
+}
+
+function isShinyPid(otid, pid) {
+    return shinyValue(otid, pid) < 8;
+}
+
+function nearestHighForMod(reqMod, preferredHigh) {
+    const minK = 0;
+    const maxK = Math.floor((0xFFFF - reqMod) / 25);
+    const rawK = Math.round((preferredHigh - reqMod) / 25);
+    const k = Math.max(minK, Math.min(maxK, rawK));
+    return reqMod + (25 * k);
+}
+
+function findIdentityPid(raw, payload = {}) {
+    const currentPid = ru32(raw, OFF_PID) >>> 0;
+    const currentLow = currentPid & 0xFFFF;
+    const currentHigh = (currentPid >>> 16) & 0xFFFF;
+    const otid = getOtid(raw) >>> 0;
+    const tidSid = ((otid & 0xFFFF) ^ ((otid >>> 16) & 0xFFFF)) & 0xFFFF;
+    const targetNatureId = currentPid % 25;
+    const hidden = Boolean(getHiddenAbilityFlag(raw));
+    const requiredAbilitySlot = hidden ? null : (currentPid & 1);
+    const threshold = getGenderThreshold(raw);
+    const mode = genderModeFromThreshold(threshold);
+
+    let desiredGender = payload.gender === undefined || payload.gender === null
+        ? null
+        : String(payload.gender).trim().toLowerCase();
+    const desiredShiny = payload.shiny === undefined || payload.shiny === null
+        ? isShinyPid(otid, currentPid)
+        : Boolean(payload.shiny);
+
+    if (desiredGender !== null && !['male', 'female', 'genderless'].includes(desiredGender)) {
+        throw new Error(`Invalid gender '${desiredGender}'.`);
+    }
+
+    if (desiredGender === null && mode === 'dynamic') {
+        desiredGender = genderFromPid(currentPid, threshold);
+    }
+
+    if (desiredGender === 'genderless' && threshold !== GENDER_THRESHOLD_GENDERLESS) {
+        throw new Error('Selected species is not genderless.');
+    }
+    if (desiredGender === 'male' || desiredGender === 'female') {
+        if (mode === 'unknown') {
+            throw new Error('Gender metadata unavailable for this species.');
+        }
+        if (mode === 'genderless') {
+            throw new Error('Selected species is genderless.');
+        }
+        if (mode === 'fixed_male' && desiredGender !== 'male') {
+            throw new Error('Selected species is male-only.');
+        }
+        if (mode === 'fixed_female' && desiredGender !== 'female') {
+            throw new Error('Selected species is female-only.');
+        }
+    }
+
+    for (let delta = 0; delta < 0x10000; delta += 1) {
+        const low = (currentLow + delta) & 0xFFFF;
+
+        if (requiredAbilitySlot !== null && (low & 1) !== requiredAbilitySlot) {
+            continue;
+        }
+
+        if ((desiredGender === 'male' || desiredGender === 'female') && mode === 'dynamic') {
+            if (genderFromPid(low, threshold) !== desiredGender) {
+                continue;
+            }
+        }
+
+        const reqHighMod = (((targetNatureId - (low % 25)) * INV_11_MOD_25) % 25 + 25) % 25;
+
+        if (desiredShiny) {
+            for (let sv = 0; sv < 8; sv += 1) {
+                const high = (tidSid ^ low ^ sv) & 0xFFFF;
+                if ((high % 25) !== reqHighMod) {
+                    continue;
+                }
+                const pid = (((high << 16) >>> 0) | low) >>> 0;
+                if (desiredGender && genderFromPid(pid, threshold) !== desiredGender) {
+                    continue;
+                }
+                return pid;
+            }
+            continue;
+        }
+
+        const baseHigh = nearestHighForMod(reqHighMod, currentHigh);
+        let pid = (((baseHigh << 16) >>> 0) | low) >>> 0;
+        if (isShinyPid(otid, pid)) {
+            pid = null;
+            for (let n = 1; n <= 5; n += 1) {
+                const down = baseHigh - (25 * n);
+                if (down >= 0) {
+                    const test = (((down << 16) >>> 0) | low) >>> 0;
+                    if (!isShinyPid(otid, test)) {
+                        pid = test;
+                        break;
+                    }
+                }
+                const up = baseHigh + (25 * n);
+                if (up <= 0xFFFF) {
+                    const test = (((up << 16) >>> 0) | low) >>> 0;
+                    if (!isShinyPid(otid, test)) {
+                        pid = test;
+                        break;
+                    }
+                }
+            }
+            if (pid === null) {
+                continue;
+            }
+        }
+
+        if (desiredGender && genderFromPid(pid, threshold) !== desiredGender) {
+            continue;
+        }
+        return pid;
+    }
+
+    throw new Error('Could not find a PID satisfying all identity constraints.');
+}
+
 function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
     if (!isValidMon(raw)) {
         return null;
     }
 
     const speciesId = ru16(raw, OFF_SPECIES);
+    const pid = ru32(raw, OFF_PID) >>> 0;
+    const genderThreshold = getGenderThreshold(raw);
+    const genderMode = genderModeFromThreshold(genderThreshold);
     const speciesMeta = getSpeciesFormMeta(speciesMetaById, speciesMap, speciesId);
     return {
         box,
@@ -208,11 +391,16 @@ function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
         species_id: speciesId,
         item_id: ru16(raw, OFF_ITEM),
         exp: ru32(raw, OFF_EXP),
-        nature_id: ru32(raw, OFF_PID) % 25,
+        nature_id: pid % 25,
+        pid,
+        is_shiny: isShinyPid(getOtid(raw), pid),
+        gender: genderFromPid(pid, genderThreshold),
+        gender_mode: genderMode,
+        gender_editable: genderMode === 'dynamic',
         ivs: getIvs(raw),
         evs: getEvs(raw),
         moves: getMoves(raw),
-        current_ability_index: getHiddenAbilityFlag(raw) ? 2 : 0,
+        current_ability_index: getHiddenAbilityFlag(raw) ? 2 : (pid & 1),
     };
 }
 
@@ -366,6 +554,13 @@ export function editPcMonFull(context, payload) {
     }
     if (payload.nature_id !== undefined && payload.nature_id !== null) {
         setNature(raw, Number(payload.nature_id));
+    }
+    if (payload.shiny !== undefined || payload.gender !== undefined) {
+        const nextPid = findIdentityPid(raw, {
+            shiny: payload.shiny,
+            gender: payload.gender,
+        });
+        wu32(raw, OFF_PID, nextPid >>> 0);
     }
     if (payload.exp !== undefined && payload.exp !== null) {
         wu32(raw, OFF_EXP, Number(payload.exp));

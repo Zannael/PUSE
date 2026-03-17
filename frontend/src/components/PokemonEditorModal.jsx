@@ -403,8 +403,7 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
                                 <p className="text-[9px] text-center text-slate-500 italic">Changing nature will modify the Pokemon PID in the save file.</p>
                             </div>
 
-                            {!isPcMon && (
-                                <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
+                            <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
                                         Identity (Shiny & Gender)
                                     </label>
@@ -459,7 +458,6 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
                                         Identity edits rewrite PID. Nature and standard ability slot are preserved where possible.
                                     </div>
                                 </div>
-                            )}
 
                             <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">

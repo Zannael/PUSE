@@ -8,6 +8,11 @@ import {
   updatePartyIdentity,
   updatePartyNature,
 } from '../src/core/party.js';
+import {
+  loadPcContext,
+  getPcBox,
+  editPcMonFull,
+} from '../src/core/pc.js';
 
 function parseArgs(argv) {
   const out = {
@@ -81,6 +86,19 @@ function pickCandidates(party) {
   };
 }
 
+function pickPcCandidates(pcMons) {
+  const dynamicStd = pcMons.find((p) => p.gender_mode === 'dynamic' && p.current_ability_index !== 2);
+  const dynamicAny = pcMons.find((p) => p.gender_mode === 'dynamic');
+  const dynamicHa = pcMons.find((p) => p.gender_mode === 'dynamic' && p.current_ability_index === 2) || null;
+  const fixedOrGenderless = pcMons.find((p) => p.gender_mode !== 'dynamic') || null;
+
+  return {
+    dynamicStd: dynamicStd || dynamicAny || null,
+    dynamicHa,
+    fixedOrGenderless,
+  };
+}
+
 function compareCore(a, b) {
   const keys = ['species_id', 'nature_id', 'current_ability_index', 'is_shiny', 'gender'];
   return keys.every((k) => a?.[k] === b?.[k]);
@@ -123,6 +141,32 @@ async function main() {
     return { backendParty, localBuffer, localParty };
   }
 
+  async function initPcState() {
+    await uploadSave(args.api, saveBytes);
+    const loadRes = await backendRequest(args.api, '/pc/load');
+    if (!loadRes.ok) {
+      throw new Error(`GET /pc/load failed (${loadRes.status}): ${JSON.stringify(loadRes.body)}`);
+    }
+
+    const backendBoxes = [];
+    for (let boxId = 1; boxId <= 26; boxId += 1) {
+      const boxRes = await backendRequest(args.api, `/pc/box/${boxId}`);
+      if (!boxRes.ok) {
+        throw new Error(`GET /pc/box/${boxId} failed (${boxRes.status}): ${JSON.stringify(boxRes.body)}`);
+      }
+      backendBoxes.push(...boxRes.body);
+    }
+
+    const localBuffer = new Uint8Array(saveBytes);
+    const localContext = loadPcContext(localBuffer);
+    const localBoxes = [];
+    for (let boxId = 1; boxId <= 26; boxId += 1) {
+      localBoxes.push(...getPcBox(localContext, boxId, speciesMap));
+    }
+
+    return { backendBoxes, localBuffer, localContext, localBoxes };
+  }
+
   async function backendMon(index) {
     const res = await backendRequest(args.api, '/party');
     if (!res.ok) throw new Error(`GET /party failed (${res.status})`);
@@ -131,6 +175,16 @@ async function main() {
 
   function localMon(localBuffer, index) {
     return getParty(localBuffer, speciesMap)[index];
+  }
+
+  async function backendPcMon(box, slot) {
+    const res = await backendRequest(args.api, `/pc/box/${box}`);
+    if (!res.ok) throw new Error(`GET /pc/box/${box} failed (${res.status})`);
+    return res.body.find((m) => Number(m.box) === Number(box) && Number(m.slot) === Number(slot));
+  }
+
+  function localPcMon(localContext, box, slot) {
+    return getPcBox(localContext, Number(box), speciesMap).find((m) => Number(m.box) === Number(box) && Number(m.slot) === Number(slot));
   }
 
   const first = await initState();
@@ -424,6 +478,221 @@ async function main() {
     }
   } else {
     report.push('[SKIP] mixed sequence: no dynamic standard mon found');
+  }
+
+  const firstPc = await initPcState();
+  const pcCandidates = pickPcCandidates(firstPc.backendBoxes);
+  report.push(`[info] pc candidates dynamicStd=${pcCandidates.dynamicStd ? `${pcCandidates.dynamicStd.box}:${pcCandidates.dynamicStd.slot}` : 'none'} dynamicHa=${pcCandidates.dynamicHa ? `${pcCandidates.dynamicHa.box}:${pcCandidates.dynamicHa.slot}` : 'none'} fixedOrGenderless=${pcCandidates.fixedOrGenderless ? `${pcCandidates.fixedOrGenderless.box}:${pcCandidates.fixedOrGenderless.slot}` : 'none'}`);
+
+  // PC Scenario 1: shiny toggle
+  if (pcCandidates.dynamicStd) {
+    const { box, slot } = pcCandidates.dynamicStd;
+    const state = await initPcState();
+    const b0 = state.backendBoxes.find((m) => m.box === box && m.slot === slot);
+    const l0 = state.localBoxes.find((m) => m.box === box && m.slot === slot);
+    const targetShiny = !Boolean(b0.is_shiny);
+
+    await backendRequest(args.api, '/pc/edit-full', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ box, slot, shiny: targetShiny }),
+    });
+    editPcMonFull(state.localContext, { box, slot, shiny: targetShiny });
+
+    const b1 = await backendPcMon(box, slot);
+    const l1 = localPcMon(state.localContext, box, slot);
+    const invB = assertInvariant(b0, b1, { expectNaturePreserved: true, expectAbilityPreserved: true, expectedShiny: targetShiny, expectedGender: b0.gender });
+    const invL = assertInvariant(l0, l1, { expectNaturePreserved: true, expectAbilityPreserved: true, expectedShiny: targetShiny, expectedGender: l0.gender });
+
+    if (invB.length || invL.length || !compareCore(b1, l1)) {
+      failures += 1;
+      report.push(`[FAIL] pc shiny toggle ${box}:${slot} backend=${invB.join('; ') || 'ok'} local=${invL.join('; ') || 'ok'} parity=${compareCore(b1, l1)}`);
+    } else {
+      report.push(`[PASS] pc shiny toggle ${box}:${slot}`);
+    }
+  } else {
+    report.push('[SKIP] pc shiny toggle: no dynamic PC mon found');
+  }
+
+  // PC Scenario 2: gender toggle
+  if (pcCandidates.dynamicStd) {
+    const { box, slot } = pcCandidates.dynamicStd;
+    const state = await initPcState();
+    const b0 = state.backendBoxes.find((m) => m.box === box && m.slot === slot);
+    const l0 = state.localBoxes.find((m) => m.box === box && m.slot === slot);
+    const targetGender = b0.gender === 'male' ? 'female' : 'male';
+
+    await backendRequest(args.api, '/pc/edit-full', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ box, slot, gender: targetGender }),
+    });
+    editPcMonFull(state.localContext, { box, slot, gender: targetGender });
+
+    const b1 = await backendPcMon(box, slot);
+    const l1 = localPcMon(state.localContext, box, slot);
+    const invB = assertInvariant(b0, b1, { expectNaturePreserved: true, expectAbilityPreserved: true, expectedShiny: b0.is_shiny, expectedGender: targetGender });
+    const invL = assertInvariant(l0, l1, { expectNaturePreserved: true, expectAbilityPreserved: true, expectedShiny: l0.is_shiny, expectedGender: targetGender });
+
+    if (invB.length || invL.length || !compareCore(b1, l1)) {
+      failures += 1;
+      report.push(`[FAIL] pc gender toggle ${box}:${slot} backend=${invB.join('; ') || 'ok'} local=${invL.join('; ') || 'ok'} parity=${compareCore(b1, l1)}`);
+    } else {
+      report.push(`[PASS] pc gender toggle ${box}:${slot}`);
+    }
+  } else {
+    report.push('[SKIP] pc gender toggle: no dynamic PC mon found');
+  }
+
+  // PC Scenario 3: combined shiny+gender
+  if (pcCandidates.dynamicStd) {
+    const { box, slot } = pcCandidates.dynamicStd;
+    const state = await initPcState();
+    const b0 = state.backendBoxes.find((m) => m.box === box && m.slot === slot);
+    const l0 = state.localBoxes.find((m) => m.box === box && m.slot === slot);
+    const targetGender = b0.gender === 'male' ? 'female' : 'male';
+    const targetShiny = !Boolean(b0.is_shiny);
+
+    await backendRequest(args.api, '/pc/edit-full', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ box, slot, shiny: targetShiny, gender: targetGender }),
+    });
+    editPcMonFull(state.localContext, { box, slot, shiny: targetShiny, gender: targetGender });
+
+    const b1 = await backendPcMon(box, slot);
+    const l1 = localPcMon(state.localContext, box, slot);
+    const invB = assertInvariant(b0, b1, { expectNaturePreserved: true, expectAbilityPreserved: true, expectedShiny: targetShiny, expectedGender: targetGender });
+    const invL = assertInvariant(l0, l1, { expectNaturePreserved: true, expectAbilityPreserved: true, expectedShiny: targetShiny, expectedGender: targetGender });
+
+    if (invB.length || invL.length || !compareCore(b1, l1)) {
+      failures += 1;
+      report.push(`[FAIL] pc combined identity ${box}:${slot} backend=${invB.join('; ') || 'ok'} local=${invL.join('; ') || 'ok'} parity=${compareCore(b1, l1)}`);
+    } else {
+      report.push(`[PASS] pc combined identity ${box}:${slot}`);
+    }
+  } else {
+    report.push('[SKIP] pc combined identity: no dynamic PC mon found');
+  }
+
+  // PC Scenario 4: HA preservation
+  if (pcCandidates.dynamicHa) {
+    const { box, slot } = pcCandidates.dynamicHa;
+    const state = await initPcState();
+    const b0 = state.backendBoxes.find((m) => m.box === box && m.slot === slot);
+    const l0 = state.localBoxes.find((m) => m.box === box && m.slot === slot);
+    const targetGender = b0.gender === 'male' ? 'female' : 'male';
+    const targetShiny = !Boolean(b0.is_shiny);
+
+    await backendRequest(args.api, '/pc/edit-full', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ box, slot, shiny: targetShiny, gender: targetGender }),
+    });
+    editPcMonFull(state.localContext, { box, slot, shiny: targetShiny, gender: targetGender });
+
+    const b1 = await backendPcMon(box, slot);
+    const l1 = localPcMon(state.localContext, box, slot);
+    const invB = assertInvariant(b0, b1, { expectNaturePreserved: true, expectAbilityPreserved: true, expectedShiny: targetShiny, expectedGender: targetGender });
+    const invL = assertInvariant(l0, l1, { expectNaturePreserved: true, expectAbilityPreserved: true, expectedShiny: targetShiny, expectedGender: targetGender });
+
+    if (invB.length || invL.length || !compareCore(b1, l1)) {
+      failures += 1;
+      report.push(`[FAIL] pc HA preservation ${box}:${slot} backend=${invB.join('; ') || 'ok'} local=${invL.join('; ') || 'ok'} parity=${compareCore(b1, l1)}`);
+    } else {
+      report.push(`[PASS] pc HA preservation ${box}:${slot}`);
+    }
+  } else {
+    report.push('[SKIP] pc HA preservation: no dynamic HA mon found');
+  }
+
+  // PC Scenario 5: invalid gender guard
+  if (pcCandidates.fixedOrGenderless) {
+    const { box, slot } = pcCandidates.fixedOrGenderless;
+    const state = await initPcState();
+    const b0 = state.backendBoxes.find((m) => m.box === box && m.slot === slot);
+    const l0 = state.localBoxes.find((m) => m.box === box && m.slot === slot);
+    const impossibleGender = b0.gender === 'male' ? 'female' : 'male';
+
+    const badRes = await backendRequest(args.api, '/pc/edit-full', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ box, slot, gender: impossibleGender }),
+    });
+
+    let localError = null;
+    try {
+      editPcMonFull(state.localContext, { box, slot, gender: impossibleGender });
+    } catch (e) {
+      localError = String(e?.message || e);
+    }
+
+    const b1 = await backendPcMon(box, slot);
+    const l1 = localPcMon(state.localContext, box, slot);
+    const unchangedBackend = compareCore(b0, b1);
+    const unchangedLocal = compareCore(l0, l1);
+    const backendRejected = !badRes.ok && badRes.status === 400;
+    const localRejected = Boolean(localError);
+
+    if (!backendRejected || !localRejected || !unchangedBackend || !unchangedLocal) {
+      failures += 1;
+      report.push(`[FAIL] pc invalid gender guard ${box}:${slot} backendRejected=${backendRejected} localRejected=${localRejected} backendUnchanged=${unchangedBackend} localUnchanged=${unchangedLocal}`);
+    } else {
+      report.push(`[PASS] pc invalid gender guard ${box}:${slot}`);
+    }
+  } else {
+    report.push('[SKIP] pc invalid gender guard: no fixed/genderless PC mon found');
+  }
+
+  // PC Scenario 6: mixed sequence nature + identity
+  if (pcCandidates.dynamicStd) {
+    const { box, slot } = pcCandidates.dynamicStd;
+    const state = await initPcState();
+    const b0 = state.backendBoxes.find((m) => m.box === box && m.slot === slot);
+    const l0 = state.localBoxes.find((m) => m.box === box && m.slot === slot);
+    const targetNature = (b0.nature_id + 7) % 25;
+    const targetGender = b0.gender === 'male' ? 'female' : 'male';
+    const targetShiny = !Boolean(b0.is_shiny);
+
+    await backendRequest(args.api, '/pc/edit-full', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ box, slot, nature_id: targetNature }),
+    });
+    editPcMonFull(state.localContext, { box, slot, nature_id: targetNature });
+
+    await backendRequest(args.api, '/pc/edit-full', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ box, slot, shiny: targetShiny, gender: targetGender }),
+    });
+    editPcMonFull(state.localContext, { box, slot, shiny: targetShiny, gender: targetGender });
+
+    await backendRequest(args.api, '/pc/edit-full', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ box, slot, shiny: !targetShiny, gender: b0.gender }),
+    });
+    editPcMonFull(state.localContext, { box, slot, shiny: !targetShiny, gender: b0.gender });
+
+    const b1 = await backendPcMon(box, slot);
+    const l1 = localPcMon(state.localContext, box, slot);
+
+    const invB = assertInvariant(b0, b1, { expectNaturePreserved: false, expectAbilityPreserved: false, expectedShiny: !targetShiny, expectedGender: b0.gender });
+    const invL = assertInvariant(l0, l1, { expectNaturePreserved: false, expectAbilityPreserved: false, expectedShiny: !targetShiny, expectedGender: l0.gender });
+    const mixedChecks = [
+      b1.nature_id === targetNature,
+      l1.nature_id === targetNature,
+    ];
+
+    if (invB.length || invL.length || mixedChecks.includes(false) || !compareCore(b1, l1)) {
+      failures += 1;
+      report.push(`[FAIL] pc mixed sequence ${box}:${slot} backend=${invB.join('; ') || 'ok'} local=${invL.join('; ') || 'ok'} mixedChecks=${JSON.stringify(mixedChecks)} parity=${compareCore(b1, l1)}`);
+    } else {
+      report.push(`[PASS] pc mixed sequence ${box}:${slot}`);
+    }
+  } else {
+    report.push('[SKIP] pc mixed sequence: no dynamic standard PC mon found');
   }
 
   for (const line of report) {
