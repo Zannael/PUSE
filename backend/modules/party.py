@@ -154,6 +154,21 @@ CHARMAP = {
     0xED: "y", 0xEE: "z",
 }
 
+ENCODE_CHARMAP = {
+    " ": 0x00,
+    "!": 0xAB,
+    "?": 0xAC,
+    ".": 0xAD,
+    "-": 0xAE,
+    "'": 0xB4,
+}
+for i, c in enumerate("0123456789"):
+    ENCODE_CHARMAP[c] = 0xB0 + i
+for i, c in enumerate("ABCDEFGHIJKLMNOPQRSTUVWXYZ"):
+    ENCODE_CHARMAP[c] = 0xBB + i
+for i, c in enumerate("abcdefghijklmnopqrstuvwxyz"):
+    ENCODE_CHARMAP[c] = 0xD5 + i
+
 
 def decode_text(data):
     s = ""
@@ -162,6 +177,14 @@ def decode_text(data):
         char = CHARMAP.get(b, "?")
         s += char
     return s
+
+
+def encode_text(text, max_len=10):
+    safe = (text or "").strip()[:max_len]
+    out = bytearray([0xFF] * max_len)
+    for i, ch in enumerate(safe):
+        out[i] = ENCODE_CHARMAP.get(ch, 0xAC)
+    return bytes(out)
 
 
 def ru16(b, o): return struct.unpack_from("<H", b, o)[0]
@@ -380,6 +403,10 @@ class Pokemon:
         b = bytearray(self.substructs['B'])
         wu16(b, 2, item_id)
         self.substructs['B'] = b
+
+    def set_nickname(self, nickname):
+        self.nickname = (nickname or "").strip()[:10]
+        self.raw[OFF_NICK:OFF_NICK + 10] = encode_text(self.nickname, 10)
 
     def set_species_id(self, species_id):
         b = bytearray(self.substructs['B'])

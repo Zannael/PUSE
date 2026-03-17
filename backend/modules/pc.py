@@ -126,6 +126,21 @@ CHARMAP = {
     0xF4: "ä", 0xF5: "ö", 0xF6: "ü", 0xFF: ""
 }
 
+ENCODE_CHARMAP = {
+    " ": 0x00,
+    "!": 0xAB,
+    "?": 0xAC,
+    ".": 0xAD,
+    "-": 0xAE,
+    "'": 0xB4,
+}
+for i, c in enumerate("0123456789"):
+    ENCODE_CHARMAP[c] = 0xA1 + i
+for i, c in enumerate("ABCDEFGHIJKLMNOPQRSTUVWXYZ"):
+    ENCODE_CHARMAP[c] = 0xBB + i
+for i, c in enumerate("abcdefghijklmnopqrstuvwxyz"):
+    ENCODE_CHARMAP[c] = 0xD5 + i
+
 
 def decode_text(data):
     s = ""
@@ -133,6 +148,14 @@ def decode_text(data):
         if b == 0xFF: break
         s += CHARMAP.get(b, "?")
     return s
+
+
+def encode_text(text, max_len=10):
+    safe = (text or "").strip()[:max_len]
+    out = bytearray([0xFF] * max_len)
+    for i, ch in enumerate(safe):
+        out[i] = ENCODE_CHARMAP.get(ch, 0xAC)
+    return bytes(out)
 
 
 def ru32(b, o): return struct.unpack_from("<I", b, o)[0]
@@ -221,6 +244,10 @@ class UnboundPCMon:
     def set_item_id(self, item_id):
         wu16(self.raw, OFF_ITEM, item_id)
         self.item_id = item_id
+
+    def set_nickname(self, nickname):
+        self.nickname = (nickname or "").strip()[:10]
+        self.raw[OFF_NICK: OFF_NICK + 10] = encode_text(self.nickname, 10)
 
     def set_species_id(self, species_id):
         wu16(self.raw, OFF_SPECIES, species_id)

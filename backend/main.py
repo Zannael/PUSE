@@ -80,6 +80,51 @@ ICON_FALLBACK_PNG = base64.b64decode(
 icon_cache = {}
 item_icon_cache: dict[int, str | None] = {}
 item_icon_resolver = ItemIconResolver(ITEM_ICONS_DIR)
+species_form_meta: dict[int, dict] = {}
+
+
+def _build_species_form_meta(species_db: dict[int, str]) -> dict[int, dict]:
+    by_name: dict[str, list[int]] = {}
+    for sid, name in species_db.items():
+        key = (name or "").strip().lower()
+        if not key:
+            continue
+        by_name.setdefault(key, []).append(sid)
+
+    for ids in by_name.values():
+        ids.sort()
+
+    out: dict[int, dict] = {}
+    for sid, name in species_db.items():
+        key = (name or "").strip().lower()
+        ids = by_name.get(key, [sid])
+        variant_count = len(ids)
+        variant_index = max(1, ids.index(sid) + 1) if sid in ids else 1
+        is_form_variant = variant_count > 1
+        display_name = name or "Unknown"
+        label = f"{display_name} (Form {variant_index})" if is_form_variant else display_name
+        out[sid] = {
+            "species_display_name": display_name,
+            "species_label": label,
+            "species_variant_index": variant_index,
+            "species_variant_count": variant_count,
+            "is_form_variant": is_form_variant,
+        }
+    return out
+
+
+def _species_meta(sid: int) -> dict:
+    meta = species_form_meta.get(int(sid))
+    if meta:
+        return meta
+    fallback_name = party_mod.DB_SPECIES.get(int(sid), "Unknown")
+    return {
+        "species_display_name": fallback_name,
+        "species_label": fallback_name,
+        "species_variant_index": 1,
+        "species_variant_count": 1,
+        "is_form_variant": False,
+    }
 
 
 @app.get("/pokemon-icon/{species_id}")
@@ -158,6 +203,9 @@ def load_databases():
     bag_mod.load_item_names_from_file()
     bag_mod.load_tm_names_from_file()
     box_mod.load_static_data()
+
+    species_form_meta.clear()
+    species_form_meta.update(_build_species_form_meta(party_mod.DB_SPECIES))
 
     if not any(os.path.isdir(p) for p in SEARCH_DIRS):
         print(
@@ -266,6 +314,22 @@ class SpeciesUpdate(BaseModel):
     species_id: int
 
 
+class NicknameUpdate(BaseModel):
+    nickname: str
+
+
+def _assert_species_unchanged(pk, expected_species_id: int, op_label: str):
+    current_species_id = pk.get_species_id()
+    if current_species_id != expected_species_id:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Safety check failed during {op_label}: species changed unexpectedly "
+                f"from {expected_species_id} to {current_species_id}."
+            ),
+        )
+
+
 class PartyLevelUpdate(BaseModel):
     target_level: int
     growth_rate: int | None = None
@@ -299,11 +363,17 @@ async def get_party():
     for i in range(team_count):
         mon_off = 0x38 + (i * 100)
         pk = party_mod.Pokemon(sec_data[mon_off: mon_off + 100])
+        smeta = _species_meta(pk.get_species_id())
 
         party.append({
             "index": i,
             "nickname": pk.nickname,
-            "species_name": party_mod.DB_SPECIES.get(pk.get_species_id(), "Unknown"),
+            "species_name": smeta["species_label"],
+            "species_display_name": smeta["species_display_name"],
+            "species_label": smeta["species_label"],
+            "species_variant_index": smeta["species_variant_index"],
+            "species_variant_count": smeta["species_variant_count"],
+            "is_form_variant": smeta["is_form_variant"],
             "level": sec_data[mon_off + 0x54],
             "exp": pk.get_exp(),
             "nature": pk.get_nature_name(),
@@ -325,11 +395,27 @@ async def update_party_item(idx: int, data: ItemUpdate):
     off = get_active_trainer_offset()
     mon_off = off + 0x38 + (idx * 100)
     pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    species_before = pk.get_species_id()
 
     pk.set_item(data.item_id)
+    _assert_species_unchanged(pk, species_before, "party item update")
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
     return {"status": "Item updated"}
+
+
+@app.post("/party/{idx}/nickname")
+async def update_party_nickname(idx: int, data: NicknameUpdate):
+    off = get_active_trainer_offset()
+    mon_off = off + 0x38 + (idx * 100)
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    species_before = pk.get_species_id()
+
+    pk.set_nickname(data.nickname)
+    _assert_species_unchanged(pk, species_before, "party nickname update")
+
+    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    return {"status": "Nickname updated", "nickname": pk.nickname}
 
 
 @app.post("/party/{idx}/species")
@@ -353,8 +439,10 @@ async def switch_ability(idx: int, data: AbilitySwitch):
     off = get_active_trainer_offset()
     mon_off = off + 0x38 + (idx * 100)
     pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    species_before = pk.get_species_id()
 
     pk.set_ability_slot(data.ability_index)
+    _assert_species_unchanged(pk, species_before, "party ability switch")
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
     return {"status": "Ability/PID updated", "new_index": data.ability_index}
@@ -369,6 +457,7 @@ async def update_ivs(idx: int, stats: StatUpdate):
     # Load pokemon from buffer
     pk_data = current_save["data"][mon_off: mon_off + 100]
     pk = party_mod.Pokemon(pk_data)
+    species_before = pk.get_species_id()
 
     # Apply new IVs (mapping frontend keys to backend keys)
     new_ivs = {
@@ -377,6 +466,7 @@ async def update_ivs(idx: int, stats: StatUpdate):
     }
     pk.set_ivs(new_ivs)
     pk.recalculate_party_stats(clamp_hp=True)
+    _assert_species_unchanged(pk, species_before, "party IV update")
 
     # Pack and write back to local buffer
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
@@ -390,8 +480,10 @@ async def update_nature(idx: int, data: NatureUpdate):
     mon_off = off + 0x38 + (idx * 100)
 
     pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    species_before = pk.get_species_id()
     pk.set_nature(data.nature_id)
     pk.recalculate_party_stats(clamp_hp=True)
+    _assert_species_unchanged(pk, species_before, "party nature update")
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
     return {"status": f"Nature changed to {party_mod.DB_NATURES.get(data.nature_id)}"}
@@ -405,6 +497,7 @@ async def update_party_level(idx: int, data: PartyLevelUpdate):
 
     mon_off = off + 0x38 + (idx * 100)
     pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    species_before = pk.get_species_id()
 
     target_level = max(1, min(100, int(data.target_level)))
     visual_level = current_save["data"][mon_off + 0x54]
@@ -421,6 +514,7 @@ async def update_party_level(idx: int, data: PartyLevelUpdate):
     pk.set_exp(new_exp)
     pk.set_visual_level(target_level)
     pk.recalculate_party_stats(clamp_hp=True)
+    _assert_species_unchanged(pk, species_before, "party level update")
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
     return {
@@ -453,7 +547,24 @@ async def get_all_items():
 @app.get("/species")
 async def get_all_species():
     """Return full species list (ID and name) for the frontend."""
-    return [{"id": k, "name": v} for k, v in party_mod.DB_SPECIES.items() if k != 0]
+    rows = []
+    for k, v in party_mod.DB_SPECIES.items():
+        if k == 0:
+            continue
+        smeta = _species_meta(k)
+        rows.append(
+            {
+                "id": k,
+                "name": v,
+                "label": smeta["species_label"],
+                "display_name": smeta["species_display_name"],
+                "variant_index": smeta["species_variant_index"],
+                "variant_count": smeta["species_variant_count"],
+                "is_form_variant": smeta["is_form_variant"],
+            }
+        )
+    rows.sort(key=lambda x: x["id"])
+    return rows
 
 
 @app.get("/bag/scan/{search_item_id}")
@@ -572,10 +683,15 @@ async def get_box(box_id: int):
     mons = [m for m in current_save["pc_context"]["mons"] if m.box == box_id]
 
     return [{
+        "species_name": _species_meta(m.species_id)["species_label"],
+        "species_display_name": _species_meta(m.species_id)["species_display_name"],
+        "species_label": _species_meta(m.species_id)["species_label"],
+        "species_variant_index": _species_meta(m.species_id)["species_variant_index"],
+        "species_variant_count": _species_meta(m.species_id)["species_variant_count"],
+        "is_form_variant": _species_meta(m.species_id)["is_form_variant"],
         "box": m.box,
         "slot": m.slot,
         "nickname": m.nickname,
-        "species_name": box_mod.DB_SPECIES.get(m.species_id, "Unknown"),
         "species_id": m.species_id,
         "item_id": m.get_item_id(),
         "exp": m.exp,
@@ -603,9 +719,17 @@ async def edit_pc_mon(upd: PCUpdate):
     if not target:
         raise HTTPException(status_code=404, detail="Pokemon not found")
 
+    species_before = target.species_id
+
     # Apply object updates
     if upd.moves: target.set_moves(upd.moves)
     if upd.item_id is not None: target.set_item_id(upd.item_id)
+
+    if target.species_id != species_before:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Safety check failed during PC edit: species changed unexpectedly from {species_before} to {target.species_id}.",
+        )
 
     # Reflect updates in the corresponding buffer
     if target.box == 26:
@@ -648,6 +772,7 @@ async def update_evs(idx: int, stats: EvUpdate):
     off = get_active_trainer_offset()
     mon_off = off + 0x38 + (idx * 100)
     pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    species_before = pk.get_species_id()
 
     new_evs = {
         'HP': stats.hp, 'Atk': stats.atk, 'Def': stats.dfe,
@@ -655,6 +780,7 @@ async def update_evs(idx: int, stats: EvUpdate):
     }
     pk.set_evs(new_evs)
     pk.recalculate_party_stats(clamp_hp=True)
+    _assert_species_unchanged(pk, species_before, "party EV update")
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
     return {"status": "EVs updated"}
 
@@ -664,9 +790,11 @@ async def update_ability(idx: int, data: AbilityUpdate):
     off = get_active_trainer_offset()
     mon_off = off + 0x38 + (idx * 100)
     pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    species_before = pk.get_species_id()
 
     # In Unbound, the HA flag is handled inside the IVs/Ability byte
     pk.set_hidden_ability_flag(1 if data.is_hidden else 0)
+    _assert_species_unchanged(pk, species_before, "party ability flag update")
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
     return {"status": "Ability updated"}
@@ -677,8 +805,10 @@ async def update_party_moves(idx: int, data: MovesUpdate):
     off = get_active_trainer_offset()
     mon_off = off + 0x38 + (idx * 100)
     pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    species_before = pk.get_species_id()
 
     pk.set_moves(data.moves)
+    _assert_species_unchanged(pk, species_before, "party moves update")
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
     return {"status": "Moves updated"}
@@ -713,7 +843,10 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
     if not target:
         raise HTTPException(status_code=404, detail="Pokemon not found in PC")
 
+    species_before = target.species_id
+
     # Apply updates using UnboundPCMon methods (v16)
+    if upd.nickname is not None: target.set_nickname(upd.nickname)
     if upd.moves: target.set_moves(upd.moves)
     if upd.item_id is not None: target.set_item_id(upd.item_id)
     if upd.species_id is not None:
@@ -724,6 +857,12 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
     if upd.evs: target.set_evs(upd.evs)
     if upd.nature_id is not None: target.set_nature(upd.nature_id)
     if upd.exp is not None: target.set_exp(upd.exp)
+
+    if upd.species_id is None and target.species_id != species_before:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Safety check failed during PC full edit: species changed unexpectedly from {species_before} to {target.species_id}.",
+        )
 
     # Sync buffer (stream 1-25 or preset 26)
     if target.box == 26:
