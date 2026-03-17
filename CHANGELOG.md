@@ -5,7 +5,6 @@
 ### Planned
 
 - Add create/insert workflows to add Pokemon to party and PC boxes (with validation and checksum-safe writes).
-- Add ROM-truth ability extraction (`id:name`, optional metadata) and mirror it to frontend local mode for parity.
 - Add ROM-truth form alias metadata (Alolan/Galarian/Hisuian/Mega/Giga where confidently identifiable) on top of current neutral `Form N` labels.
 - Add ROM-truth sprites for Pokémons and items with ROM-based sprites extraction.
 - Investigate save flags editing feasibility for difficulty mode and NG+ state.
@@ -19,9 +18,12 @@
 
 - Added Unbound ROM move extraction tooling (`backend/tools/extract_unbound_moves_table.py`) with diagnostic output (`backend/data/move_table_from_rom.json`).
 - Move catalogs are now synchronized from ROM truth with `backend/data/moves.txt` as canonical runtime source (mirrored to `frontend/public/data/moves.txt` for local mode parity).
+- Added Unbound ROM ability extraction tooling (`backend/tools/extract_unbound_abilities_table.py`) with diagnostic output (`backend/data/ability_table_from_rom.json`).
+- Ability catalogs are now synchronized from ROM truth with `backend/data/abilities.txt` as canonical runtime source (mirrored to `frontend/public/data/abilities.txt` for local mode parity).
 - Added Unbound ROM species extraction tooling (`backend/tools/extract_unbound_species_table.py`) with diagnostic output (`backend/data/species_table_from_rom.json`).
 - Species catalogs are now synchronized from ROM truth with backend/frontend parity, and species base stats were regenerated from ROM (`backend/tools/extract_unbound_species_base_stats.py`).
 - Added Unbound ROM species growth-rate extraction tooling (`backend/tools/extract_unbound_species_growth_rates.py`) and synchronized species growth metadata (`backend/data/species_growth_rates.json` mirrored to `frontend/src/core/speciesGrowthRates.json`) for backend/local parity.
+- Added Unbound ROM species abilities metadata extraction tooling (`backend/tools/extract_unbound_species_abilities_meta.py`) with anchor validation (Gliscor -> Poison Heal, Raticate base -> Hustle), and synchronized metadata (`backend/data/species_abilities_meta.json` mirrored to `frontend/src/core/speciesAbilitiesMeta.json`).
 
 #### Species, Forms, and Nicknames
 
@@ -38,6 +40,7 @@
 - Added species drift safety checks for non-species edit flows and tightened save paths to send only changed fields, reducing unintended side effects.
 - Party level edits now default to ROM-truth species growth rate when available, with fallback to previous growth inference behavior when metadata is unavailable.
 - PC level editing now defaults to ROM-truth species growth rate in the editor flow (manual override still supported), reducing EXP/level ambiguity.
+- Party and PC payloads now expose full ROM-derived ability metadata (slot 1/slot 2/hidden IDs and names) with runtime parity.
 
 #### Party and PC Identity with PID Safety
 
@@ -58,6 +61,7 @@
 #### Editor UX
 
 - Pokemon editor Info tab now shows Species controls before level/nature/item controls for faster access.
+- Ability controls now show resolved ROM-truth ability names for slot buttons and current-ability labels (including hidden ability names when available).
 
 ## v1.1.0 - 2026-03-16
 
