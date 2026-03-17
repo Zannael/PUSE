@@ -5,8 +5,11 @@ import { ITEM_ICON_FALLBACK_URL, POKEMON_ICON_FALLBACK_URL } from '../core/iconR
 
 export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
     const isPcMon = Boolean(pokemon?.isPC);
-    const initialGrowthMode = isPcMon ? '0' : 'auto';
-    const initialLevel = pokemon?.level ?? (isPcMon ? calcCurrentLevel(0, Number(pokemon?.exp || 0)) : 1);
+    const initialGrowthMode = 'auto';
+    const inferredSpeciesGrowth = Number.isInteger(Number(pokemon?.species_growth_rate))
+        ? Number(pokemon?.species_growth_rate)
+        : 0;
+    const initialLevel = pokemon?.level ?? (isPcMon ? calcCurrentLevel(inferredSpeciesGrowth, Number(pokemon?.exp || 0)) : 1);
 
     const [activeTab, setActiveTab] = useState('stats');
     const [localPk, setLocalPk] = useState({ ...pokemon });
@@ -363,7 +366,7 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
                                             }}
                                             className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-xs text-slate-300 outline-none focus:border-blue-500/50"
                                         >
-                                            {!isPcMon && <option value="auto">Auto detect (recommended)</option>}
+                                            <option value="auto">Default from species (recommended)</option>
                                             {GROWTH_OPTIONS.map((opt) => (
                                                 <option key={opt.id} value={String(opt.id)}>{opt.id} - {opt.label}</option>
                                             ))}
@@ -372,11 +375,11 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
                                 </div>
                                 {isPcMon ? (
                                     <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-[10px] text-amber-200">
-                                        PC boxes do not store a visual level byte like party Pokemon. Choose the growth curve manually first, then set target level.
+                                        PC boxes do not store a visual level byte like party Pokemon. Default mode uses ROM-truth species growth; choose manual only if needed.
                                     </div>
                                 ) : (
                                     <p className="text-[10px] text-slate-500 italic text-center">
-                                        Auto mode infers the growth curve from current EXP and displayed level. Use manual mode only if needed.
+                                        Default mode uses ROM-truth species growth and falls back to inference only when metadata is unavailable.
                                     </p>
                                 )}
                             </div>

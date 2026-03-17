@@ -3,6 +3,7 @@ import { gbaChecksum } from './checksum.js';
 import { OFF_ID, OFF_SAVE_IDX, SECTION_SIZE } from './sections.js';
 import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
 import speciesIdentityMeta from './speciesIdentityMeta.json' with { type: 'json' };
+import speciesGrowthRates from './speciesGrowthRates.json' with { type: 'json' };
 
 const POKEMON_STREAM_SECTORS = [5, 6, 7, 8, 9, 10, 11, 12];
 const PRESET_SECTOR_ID = 0;
@@ -207,6 +208,18 @@ function getGenderThreshold(raw) {
     return Number(meta.gender_threshold) & 0xFF;
 }
 
+function getSpeciesGrowthRate(speciesId) {
+    const entry = speciesGrowthRates?.[String(Number(speciesId))];
+    if (!entry || entry.growth_rate === undefined || entry.growth_rate === null) {
+        return null;
+    }
+    const rate = Number(entry.growth_rate);
+    if (Number.isNaN(rate) || rate < 0 || rate > 5) {
+        return null;
+    }
+    return rate;
+}
+
 function genderModeFromThreshold(threshold) {
     if (threshold === null || threshold === undefined) {
         return 'unknown';
@@ -389,6 +402,7 @@ function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
         species_variant_count: speciesMeta.species_variant_count,
         is_form_variant: speciesMeta.is_form_variant,
         species_id: speciesId,
+        species_growth_rate: getSpeciesGrowthRate(speciesId),
         item_id: ru16(raw, OFF_ITEM),
         exp: ru32(raw, OFF_EXP),
         nature_id: pid % 25,

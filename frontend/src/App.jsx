@@ -5,7 +5,7 @@ import PCGrid from './components/PCGrid';
 import BagView from "./components/BagView.jsx";
 import {PokemonEditorModal} from "./components/PokemonEditorModal.jsx";
 import { createApiClient, getInitialRuntimeMode, persistRuntimeMode, RUNTIME_MODES } from './services/apiClient.js';
-import { getExpAtLevel } from './core/growth.js';
+import { getExpAtLevel, getSpeciesGrowthRate } from './core/growth.js';
 
 const App = () => {
     const [runtimeMode, setRuntimeMode] = useState(getInitialRuntimeMode);
@@ -196,7 +196,13 @@ const App = () => {
 
             if (updatedPk.level_edit) {
                 const targetLevel = Math.max(1, Math.min(100, Number(updatedPk.level_edit.target_level || 1)));
-                const growthRate = Math.max(0, Math.min(5, Number(updatedPk.level_edit.growth_rate || 0)));
+                let growthRate;
+                if (updatedPk.level_edit.growth_rate === null || updatedPk.level_edit.growth_rate === undefined || updatedPk.level_edit.growth_rate === '') {
+                    const speciesGrowth = getSpeciesGrowthRate(updatedPk.species_id);
+                    growthRate = speciesGrowth === null ? 0 : speciesGrowth;
+                } else {
+                    growthRate = Math.max(0, Math.min(5, Number(updatedPk.level_edit.growth_rate)));
+                }
                 payload.exp = getExpAtLevel(growthRate, targetLevel);
             }
 

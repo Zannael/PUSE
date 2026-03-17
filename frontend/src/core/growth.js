@@ -1,3 +1,5 @@
+import speciesGrowthRates from './speciesGrowthRates.json' with { type: 'json' };
+
 export const GROWTH_OPTIONS = [
     { id: 0, label: 'Medium Fast' },
     { id: 1, label: 'Erratic' },
@@ -6,6 +8,18 @@ export const GROWTH_OPTIONS = [
     { id: 4, label: 'Fast' },
     { id: 5, label: 'Slow' },
 ];
+
+export function getSpeciesGrowthRate(speciesId) {
+    const entry = speciesGrowthRates?.[String(Number(speciesId))];
+    if (!entry) {
+        return null;
+    }
+    const rate = Number(entry.growth_rate);
+    if (Number.isNaN(rate) || rate < 0 || rate > 5) {
+        return null;
+    }
+    return rate;
+}
 
 export function getExpAtLevel(rateIdx, level) {
     let n = Number(level || 1);

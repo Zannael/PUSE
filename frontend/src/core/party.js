@@ -2,6 +2,7 @@ import { ru8, ru16, ru32, wu8, wu16, wu32 } from './binary.js';
 import { findActiveSectionById } from './sections.js';
 import speciesBaseStats from './speciesBaseStats.json' with { type: 'json' };
 import speciesIdentityMeta from './speciesIdentityMeta.json' with { type: 'json' };
+import speciesGrowthRates from './speciesGrowthRates.json' with { type: 'json' };
 import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
 
 const TRAINER_SECTION_ID = 1;
@@ -136,6 +137,19 @@ function getGenderThreshold(rawMon) {
         return null;
     }
     return Number(meta.gender_threshold) & 0xFF;
+}
+
+function getSpeciesGrowthRate(rawMon) {
+    const speciesId = getSpeciesId(rawMon);
+    const meta = speciesGrowthRates?.[String(speciesId)];
+    if (!meta || meta.growth_rate === undefined || meta.growth_rate === null) {
+        return null;
+    }
+    const rate = Number(meta.growth_rate);
+    if (Number.isNaN(rate) || rate < 0 || rate > 5) {
+        return null;
+    }
+    return rate;
 }
 
 function genderModeFromThreshold(threshold) {
@@ -629,6 +643,7 @@ export function getParty(buffer, speciesById, speciesMetaById = null) {
         const pid = ru32(rawMon, OFF_PID) >>> 0;
         const genderThreshold = getGenderThreshold(rawMon);
         const genderMode = genderModeFromThreshold(genderThreshold);
+        const speciesGrowthRate = getSpeciesGrowthRate(rawMon);
         const hidden = Boolean(getHiddenAbilityFlag(rawMon));
         const speciesMeta = getSpeciesFormMeta(metaMap, speciesById, speciesId);
 
@@ -654,6 +669,7 @@ export function getParty(buffer, speciesById, speciesMetaById = null) {
             ivs: getIvs(rawMon),
             evs: getEvs(rawMon),
             species_id: speciesId,
+            species_growth_rate: speciesGrowthRate,
             moves: getMoves(rawMon),
             ability_slot: ru32(rawMon, OFF_PID) & 1,
             current_ability_index: hidden ? 2 : (ru32(rawMon, OFF_PID) & 1),
@@ -783,7 +799,12 @@ export function updatePartyLevel(buffer, monIndex, payload) {
 
         let growthRate;
         if (payload?.growth_rate === undefined || payload?.growth_rate === null || payload?.growth_rate === '') {
-            growthRate = guessGrowthRate(currentExp, visualLevel);
+            const speciesGrowth = getSpeciesGrowthRate(rawMon);
+            if (speciesGrowth !== null) {
+                growthRate = speciesGrowth;
+            } else {
+                growthRate = guessGrowthRate(currentExp, visualLevel);
+            }
         } else {
             growthRate = Math.max(0, Math.min(5, Number(payload.growth_rate)));
         }

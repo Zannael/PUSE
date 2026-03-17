@@ -6,6 +6,7 @@ import {
   getParty,
   updatePartyAbilitySwitch,
   updatePartyIdentity,
+  updatePartyLevel,
   updatePartyNature,
 } from '../src/core/party.js';
 import {
@@ -13,6 +14,7 @@ import {
   getPcBox,
   editPcMonFull,
 } from '../src/core/pc.js';
+import { getExpAtLevel, getSpeciesGrowthRate } from '../src/core/growth.js';
 
 function parseArgs(argv) {
   const out = {
@@ -480,6 +482,44 @@ async function main() {
     report.push('[SKIP] mixed sequence: no dynamic standard mon found');
   }
 
+  // Scenario 7: party level edit default growth (species mapping)
+  {
+    const state = await initState();
+    const candidate = state.backendParty[0] || null;
+    if (!candidate) {
+      report.push('[SKIP] party level default growth: no party mons found');
+    } else {
+      const idx = candidate.index;
+      const b0 = state.backendParty[idx];
+      const l0 = state.localParty[idx];
+      const targetLevel = Math.max(1, Math.min(100, Number((b0.level || 1) + 1)));
+      const speciesGrowth = getSpeciesGrowthRate(b0.species_id);
+
+      const backendLevelRes = await backendRequest(args.api, `/party/${idx}/level`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_level: targetLevel, growth_rate: null }),
+      });
+      updatePartyLevel(state.localBuffer, idx, { target_level: targetLevel, growth_rate: null });
+
+      const b1 = await backendMon(idx);
+      const l1 = localMon(state.localBuffer, idx);
+      const expectedExp = speciesGrowth === null ? null : getExpAtLevel(speciesGrowth, targetLevel);
+      const backendExpOk = expectedExp === null ? true : Number(b1.exp) === Number(expectedExp);
+      const localExpOk = expectedExp === null ? true : Number(l1.exp) === Number(expectedExp);
+      const invB = assertInvariant(b0, b1, { expectNaturePreserved: true, expectAbilityPreserved: true });
+      const invL = assertInvariant(l0, l1, { expectNaturePreserved: true, expectAbilityPreserved: true });
+      const backendRateOk = speciesGrowth === null ? true : Number(backendLevelRes.body?.growth_rate) === Number(speciesGrowth);
+
+      if (!backendLevelRes.ok || invB.length || invL.length || !backendExpOk || !localExpOk || !backendRateOk || Number(b1.exp) !== Number(l1.exp)) {
+        failures += 1;
+        report.push(`[FAIL] party level default growth idx=${idx} backendOk=${backendLevelRes.ok} backendInv=${invB.join('; ') || 'ok'} localInv=${invL.join('; ') || 'ok'} backendExpOk=${backendExpOk} localExpOk=${localExpOk} backendRateOk=${backendRateOk} parityExp=${Number(b1.exp) === Number(l1.exp)}`);
+      } else {
+        report.push(`[PASS] party level default growth idx=${idx}`);
+      }
+    }
+  }
+
   const firstPc = await initPcState();
   const pcCandidates = pickPcCandidates(firstPc.backendBoxes);
   report.push(`[info] pc candidates dynamicStd=${pcCandidates.dynamicStd ? `${pcCandidates.dynamicStd.box}:${pcCandidates.dynamicStd.slot}` : 'none'} dynamicHa=${pcCandidates.dynamicHa ? `${pcCandidates.dynamicHa.box}:${pcCandidates.dynamicHa.slot}` : 'none'} fixedOrGenderless=${pcCandidates.fixedOrGenderless ? `${pcCandidates.fixedOrGenderless.box}:${pcCandidates.fixedOrGenderless.slot}` : 'none'}`);
@@ -693,6 +733,42 @@ async function main() {
     }
   } else {
     report.push('[SKIP] pc mixed sequence: no dynamic standard PC mon found');
+  }
+
+  // PC Scenario 7: default species growth level edit parity
+  {
+    const state = await initPcState();
+    const candidate = state.backendBoxes[0] || null;
+    if (!candidate) {
+      report.push('[SKIP] pc level default growth: no PC mons found');
+    } else {
+      const { box, slot } = candidate;
+      const b0 = state.backendBoxes.find((m) => m.box === box && m.slot === slot);
+      const l0 = state.localBoxes.find((m) => m.box === box && m.slot === slot);
+      const speciesGrowth = getSpeciesGrowthRate(b0.species_id);
+      const targetLevel = 51;
+      const chosenGrowth = speciesGrowth === null ? 0 : speciesGrowth;
+      const targetExp = getExpAtLevel(chosenGrowth, targetLevel);
+
+      await backendRequest(args.api, '/pc/edit-full', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ box, slot, exp: targetExp }),
+      });
+      editPcMonFull(state.localContext, { box, slot, exp: targetExp });
+
+      const b1 = await backendPcMon(box, slot);
+      const l1 = localPcMon(state.localContext, box, slot);
+      const invB = assertInvariant(b0, b1, { expectNaturePreserved: true, expectAbilityPreserved: true });
+      const invL = assertInvariant(l0, l1, { expectNaturePreserved: true, expectAbilityPreserved: true });
+
+      if (invB.length || invL.length || Number(b1.exp) !== Number(targetExp) || Number(l1.exp) !== Number(targetExp) || Number(b1.exp) !== Number(l1.exp)) {
+        failures += 1;
+        report.push(`[FAIL] pc level default growth ${box}:${slot} backend=${invB.join('; ') || 'ok'} local=${invL.join('; ') || 'ok'} backendExp=${b1.exp} localExp=${l1.exp} targetExp=${targetExp}`);
+      } else {
+        report.push(`[PASS] pc level default growth ${box}:${slot}`);
+      }
+    }
   }
 
   for (const line of report) {

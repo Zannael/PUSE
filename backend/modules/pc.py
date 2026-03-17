@@ -44,6 +44,7 @@ DB_ITEMS = {}
 DB_MOVES = {}
 DB_SPECIES = {}
 DB_SPECIES_IDENTITY_META = {}
+DB_SPECIES_GROWTH_RATES = {}
 
 GENDER_THRESHOLD_MALE_ONLY = 0
 GENDER_THRESHOLD_FEMALE_ONLY = 254
@@ -61,6 +62,7 @@ def load_static_data():
     DB_ITEMS.clear()
     DB_MOVES.clear()
     DB_SPECIES_IDENTITY_META.clear()
+    DB_SPECIES_GROWTH_RATES.clear()
 
     DB_SPECIES.update(load_id_name_file("pokemon.txt"))
     DB_ITEMS.update(load_id_name_file("items.txt"))
@@ -80,11 +82,34 @@ def load_static_data():
                 "gender_threshold": int(threshold) & 0xFF,
             }
 
+    growth_rates_path = os.path.join(os.path.dirname(__file__), "..", "data", "species_growth_rates.json")
+    if os.path.exists(growth_rates_path):
+        with open(growth_rates_path, "r", encoding="utf-8") as fh:
+            raw_growth = json.loads(fh.read())
+        for sid, meta in raw_growth.items():
+            if not str(sid).isdigit():
+                continue
+            rate = meta.get("growth_rate") if isinstance(meta, dict) else None
+            if rate is None:
+                continue
+            rate_int = int(rate)
+            if 0 <= rate_int <= 5:
+                DB_SPECIES_GROWTH_RATES[int(sid)] = rate_int
+
     print(
         f"[INFO] Dati statici caricati: "
         f"{len(DB_SPECIES)} specie, {len(DB_ITEMS)} oggetti, {len(DB_MOVES)} mosse, "
-        f"{len(DB_SPECIES_IDENTITY_META)} identity meta."
+        f"{len(DB_SPECIES_IDENTITY_META)} identity meta, {len(DB_SPECIES_GROWTH_RATES)} growth rates."
     )
+
+
+def get_species_growth_rate(species_id):
+    rate = DB_SPECIES_GROWTH_RATES.get(int(species_id))
+    if rate is None:
+        return None
+    if 0 <= int(rate) <= 5:
+        return int(rate)
+    return None
 
 
 # Compat legacy name.

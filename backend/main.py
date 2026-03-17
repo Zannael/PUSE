@@ -392,6 +392,7 @@ async def get_party():
             "ivs": pk.get_ivs(),
             "evs": pk.get_evs(),
             "species_id": pk.get_species_id(),
+            "species_growth_rate": party_mod.get_species_growth_rate(pk.get_species_id()),
             "moves": pk.get_moves_ids(),
             "ability_slot": pk.get_standard_ability_slot(),  # 0 or 1
             "current_ability_index": 2 if pk.get_hidden_ability_flag() else pk.get_standard_ability_slot(),
@@ -546,7 +547,11 @@ async def update_party_level(idx: int, data: PartyLevelUpdate):
             raise HTTPException(status_code=400, detail="growth_rate must be between 0 and 5")
         growth_rate, confidence = data.growth_rate, "manual"
     else:
-        growth_rate, confidence = party_mod.guess_growth_rate(current_exp, visual_level)
+        species_growth = party_mod.get_species_growth_rate(pk.get_species_id())
+        if species_growth is not None:
+            growth_rate, confidence = species_growth, "species"
+        else:
+            growth_rate, confidence = party_mod.guess_growth_rate(current_exp, visual_level)
 
     new_exp = party_mod.get_exp_at_level(growth_rate, target_level)
     pk.set_exp(new_exp)
@@ -731,6 +736,7 @@ async def get_box(box_id: int):
         "slot": m.slot,
         "nickname": m.nickname,
         "species_id": m.species_id,
+        "species_growth_rate": box_mod.get_species_growth_rate(m.species_id),
         "item_id": m.get_item_id(),
         "exp": m.exp,
         "nature_id": m.get_nature_id(),
