@@ -65,17 +65,51 @@ const App = () => {
         spe: clamp(stats?.Spe ?? stats?.Spd, 0, max),
     });
 
+    const sameMoves = (a = [], b = []) =>
+        a.length === b.length && a.every((val, idx) => Number(val) === Number(b[idx]));
+
+    const sameStats = (a = {}, b = {}) =>
+        Number(a.HP ?? 0) === Number(b.HP ?? 0) &&
+        Number(a.Atk ?? 0) === Number(b.Atk ?? 0) &&
+        Number(a.Def ?? 0) === Number(b.Def ?? 0) &&
+        Number(a.SpA ?? 0) === Number(b.SpA ?? 0) &&
+        Number(a.SpD ?? 0) === Number(b.SpD ?? 0) &&
+        Number(a.Spd ?? a.Spe ?? 0) === Number(b.Spd ?? b.Spe ?? 0);
+
     const handleSavePokemon = async (updatedPk) => {
         try {
-            const ivPayload = mapStatsForApi(updatedPk.ivs, 31);
-            const evPayload = mapStatsForApi(updatedPk.evs, 252);
+            const original = selectedPokemon || {};
 
-            await client.updatePartyIvs(updatedPk.index, ivPayload);
-            await client.updatePartyEvs(updatedPk.index, evPayload);
-            await client.updatePartyMoves(updatedPk.index, { moves: updatedPk.moves });
-            await client.updatePartyAbilitySwitch(updatedPk.index, { ability_index: updatedPk.current_ability_index });
-            await client.updatePartyNature(updatedPk.index, { nature_id: updatedPk.nature_id });
-            await client.updatePartyItem(updatedPk.index, { item_id: updatedPk.item_id });
+            if (!sameStats(updatedPk.ivs, original.ivs)) {
+                const ivPayload = mapStatsForApi(updatedPk.ivs, 31);
+                await client.updatePartyIvs(updatedPk.index, ivPayload);
+            }
+
+            if (!sameStats(updatedPk.evs, original.evs)) {
+                const evPayload = mapStatsForApi(updatedPk.evs, 252);
+                await client.updatePartyEvs(updatedPk.index, evPayload);
+            }
+
+            if (!sameMoves(updatedPk.moves, original.moves)) {
+                await client.updatePartyMoves(updatedPk.index, { moves: updatedPk.moves });
+            }
+
+            if (Number(updatedPk.current_ability_index) !== Number(original.current_ability_index)) {
+                await client.updatePartyAbilitySwitch(updatedPk.index, { ability_index: updatedPk.current_ability_index });
+            }
+
+            if (Number(updatedPk.nature_id) !== Number(original.nature_id)) {
+                await client.updatePartyNature(updatedPk.index, { nature_id: updatedPk.nature_id });
+            }
+
+            if (Number(updatedPk.item_id) !== Number(original.item_id)) {
+                await client.updatePartyItem(updatedPk.index, { item_id: updatedPk.item_id });
+            }
+
+            if (String(updatedPk.nickname || '').trim() !== String(original.nickname || '').trim()) {
+                await client.updatePartyNickname(updatedPk.index, { nickname: updatedPk.nickname || '' });
+            }
+
             if (updatedPk.species_id !== selectedPokemon?.species_id) {
                 await client.updatePartySpecies(updatedPk.index, { species_id: updatedPk.species_id });
             }
@@ -94,16 +128,39 @@ const App = () => {
 
     const handleSavePC = async (updatedPk) => {
         try {
+            const original = selectedPokemon || {};
             const payload = {
                 box: updatedPk.box,
                 slot: updatedPk.slot,
-                moves: updatedPk.moves,
-                item_id: updatedPk.item_id,
-                ivs: updatedPk.ivs,
-                evs: updatedPk.evs,
-                nature_id: updatedPk.nature_id,
-                exp: updatedPk.exp
             };
+
+            if (!sameMoves(updatedPk.moves, original.moves)) {
+                payload.moves = updatedPk.moves;
+            }
+
+            if (Number(updatedPk.item_id) !== Number(original.item_id)) {
+                payload.item_id = updatedPk.item_id;
+            }
+
+            if (!sameStats(updatedPk.ivs, original.ivs)) {
+                payload.ivs = updatedPk.ivs;
+            }
+
+            if (!sameStats(updatedPk.evs, original.evs)) {
+                payload.evs = updatedPk.evs;
+            }
+
+            if (Number(updatedPk.nature_id) !== Number(original.nature_id)) {
+                payload.nature_id = updatedPk.nature_id;
+            }
+
+            if (Number(updatedPk.exp) !== Number(original.exp)) {
+                payload.exp = updatedPk.exp;
+            }
+
+            if (String(updatedPk.nickname || '').trim() !== String(original.nickname || '').trim()) {
+                payload.nickname = updatedPk.nickname || '';
+            }
 
             if (updatedPk.species_id !== selectedPokemon?.species_id) {
                 payload.species_id = updatedPk.species_id;
