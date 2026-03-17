@@ -39,6 +39,12 @@ DB_ITEMS = {}
 DB_MOVES = {}
 DB_SPECIES = {}
 DB_SPECIES_BASE_STATS = {}
+DB_SPECIES_IDENTITY_META = {}
+
+GENDER_THRESHOLD_MALE_ONLY = 0
+GENDER_THRESHOLD_FEMALE_ONLY = 254
+GENDER_THRESHOLD_GENDERLESS = 255
+_INV_11_MOD_25 = 16
 
 DB_NATURES = {
     0: "Hardy (Ardita)", 1: "Lonely (Schiva)", 2: "Brave (Audace)", 3: "Adamant (Decisa)",
@@ -207,6 +213,7 @@ def load_static_data():
     DB_MOVES.clear()
     DB_SPECIES.clear()
     DB_SPECIES_BASE_STATS.clear()
+    DB_SPECIES_IDENTITY_META.clear()
 
     DB_ITEMS.update(load_id_name_file("items.txt"))
     DB_MOVES.update(load_id_name_file("moves.txt"))
@@ -228,11 +235,157 @@ def load_static_data():
                 "spd": int(stats.get("spd", 0)),
             }
 
+    identity_meta_path = os.path.join(os.path.dirname(__file__), "..", "data", "species_identity_meta.json")
+    if os.path.exists(identity_meta_path):
+        with open(identity_meta_path, "r", encoding="utf-8") as fh:
+            raw_identity = json.loads(fh.read())
+        for sid, meta in raw_identity.items():
+            if not str(sid).isdigit():
+                continue
+            threshold = meta.get("gender_threshold") if isinstance(meta, dict) else None
+            if threshold is None:
+                continue
+            DB_SPECIES_IDENTITY_META[int(sid)] = {
+                "gender_threshold": int(threshold) & 0xFF,
+            }
+
     print(
         f"[INFO] Dati statici caricati: "
         f"{len(DB_ITEMS)} oggetti, {len(DB_MOVES)} mosse, {len(DB_SPECIES)} specie, "
-        f"{len(DB_SPECIES_BASE_STATS)} base stats."
+        f"{len(DB_SPECIES_BASE_STATS)} base stats, {len(DB_SPECIES_IDENTITY_META)} identity meta."
     )
+
+
+def _shiny_value(otid: int, pid: int) -> int:
+    tid = otid & 0xFFFF
+    sid = (otid >> 16) & 0xFFFF
+    return tid ^ sid ^ (pid & 0xFFFF) ^ ((pid >> 16) & 0xFFFF)
+
+
+def _is_shiny_pid(otid: int, pid: int) -> bool:
+    return _shiny_value(otid, pid) < 8
+
+
+def _gender_from_pid(pid: int, gender_threshold: int | None) -> str:
+    if gender_threshold is None:
+        return "unknown"
+    if gender_threshold == GENDER_THRESHOLD_GENDERLESS:
+        return "genderless"
+    if gender_threshold == GENDER_THRESHOLD_MALE_ONLY:
+        return "male"
+    if gender_threshold == GENDER_THRESHOLD_FEMALE_ONLY:
+        return "female"
+    return "female" if (pid & 0xFF) < gender_threshold else "male"
+
+
+def _gender_mode_from_threshold(gender_threshold: int | None) -> str:
+    if gender_threshold is None:
+        return "unknown"
+    if gender_threshold == GENDER_THRESHOLD_GENDERLESS:
+        return "genderless"
+    if gender_threshold == GENDER_THRESHOLD_MALE_ONLY:
+        return "fixed_male"
+    if gender_threshold == GENDER_THRESHOLD_FEMALE_ONLY:
+        return "fixed_female"
+    return "dynamic"
+
+
+def _nearest_high_for_mod(req_mod: int, preferred_high: int) -> int:
+    k = round((preferred_high - req_mod) / 25)
+    min_k = 0
+    max_k = (0xFFFF - req_mod) // 25
+    k = max(min_k, min(max_k, k))
+    return req_mod + (25 * k)
+
+
+def _find_identity_pid(
+    current_pid: int,
+    otid: int,
+    target_nature_id: int,
+    desired_shiny: bool,
+    desired_gender: str | None,
+    gender_threshold: int | None,
+    required_ability_slot: int | None,
+):
+    target_nature_id = int(target_nature_id) % 25
+
+    if desired_gender is not None:
+        desired_gender = desired_gender.lower().strip()
+        if desired_gender not in {"male", "female", "genderless"}:
+            return None, f"Invalid gender '{desired_gender}'."
+
+    if desired_gender == "genderless":
+        if gender_threshold != GENDER_THRESHOLD_GENDERLESS:
+            return None, "Selected species is not genderless."
+    elif desired_gender in {"male", "female"}:
+        mode = _gender_mode_from_threshold(gender_threshold)
+        if mode == "unknown":
+            return None, "Gender metadata unavailable for this species."
+        if mode == "genderless":
+            return None, "Selected species is genderless."
+        if mode == "fixed_male" and desired_gender != "male":
+            return None, "Selected species is male-only."
+        if mode == "fixed_female" and desired_gender != "female":
+            return None, "Selected species is female-only."
+
+    current_low = current_pid & 0xFFFF
+    current_high = (current_pid >> 16) & 0xFFFF
+    tid_sid = (otid & 0xFFFF) ^ ((otid >> 16) & 0xFFFF)
+
+    for delta in range(0x10000):
+        low = (current_low + delta) & 0xFFFF
+
+        if required_ability_slot is not None and (low & 1) != required_ability_slot:
+            continue
+
+        if desired_gender in {"male", "female"} and _gender_mode_from_threshold(gender_threshold) == "dynamic":
+            if _gender_from_pid(low, gender_threshold) != desired_gender:
+                continue
+
+        req_high_mod = ((target_nature_id - (low % 25)) * _INV_11_MOD_25) % 25
+
+        if desired_shiny:
+            for sv in range(8):
+                high = (tid_sid ^ low ^ sv) & 0xFFFF
+                if high % 25 != req_high_mod:
+                    continue
+                pid = ((high << 16) | low) & 0xFFFFFFFF
+                if desired_gender in {"male", "female", "genderless"}:
+                    if _gender_from_pid(pid, gender_threshold) != desired_gender:
+                        continue
+                return pid, None
+            continue
+
+        base_high = _nearest_high_for_mod(req_high_mod, current_high)
+        if not _is_shiny_pid(otid, ((base_high << 16) | low) & 0xFFFFFFFF):
+            pid = ((base_high << 16) | low) & 0xFFFFFFFF
+            if desired_gender in {"male", "female", "genderless"}:
+                if _gender_from_pid(pid, gender_threshold) != desired_gender:
+                    continue
+            return pid, None
+
+        found_non_shiny = None
+        for n in range(1, 6):
+            for sign in (-1, 1):
+                test_high = base_high + (sign * 25 * n)
+                if test_high < 0 or test_high > 0xFFFF:
+                    continue
+                test_pid = ((test_high << 16) | low) & 0xFFFFFFFF
+                if not _is_shiny_pid(otid, test_pid):
+                    found_non_shiny = test_pid
+                    break
+            if found_non_shiny is not None:
+                break
+
+        if found_non_shiny is None:
+            continue
+
+        if desired_gender in {"male", "female", "genderless"}:
+            if _gender_from_pid(found_non_shiny, gender_threshold) != desired_gender:
+                continue
+        return found_non_shiny, None
+
+    return None, "Could not find a PID satisfying all identity constraints."
 
 
 def nature_modifier(nature_id, stat_key):
@@ -375,10 +528,49 @@ class Pokemon:
     def get_nature_name(self):
         return DB_NATURES.get(self.get_nature_id(), "Sconosciuta")
 
+    def get_gender_threshold(self):
+        meta = DB_SPECIES_IDENTITY_META.get(self.get_species_id(), {})
+        threshold = meta.get("gender_threshold")
+        return int(threshold) if threshold is not None else None
+
+    def get_gender_mode(self):
+        return _gender_mode_from_threshold(self.get_gender_threshold())
+
+    def get_gender(self):
+        return _gender_from_pid(self.pid, self.get_gender_threshold())
+
+    def is_shiny(self):
+        return _is_shiny_pid(self.otid, self.pid)
+
     def set_nature(self, target_nature_id):
         current_ability_slot = self.pid & 1  # Salva lo slot attuale (0 o 1)
         while (self.pid % 25 != target_nature_id) or (self.pid & 1 != current_ability_slot):
             self.pid = (self.pid + 1) & 0xFFFFFFFF
+        wu32(self.raw, OFF_PID, self.pid)
+
+    def set_identity(self, shiny: bool | None = None, gender: str | None = None):
+        desired_shiny = self.is_shiny() if shiny is None else bool(shiny)
+
+        desired_gender = gender
+        if desired_gender is None:
+            mode = self.get_gender_mode()
+            if mode == "dynamic":
+                desired_gender = self.get_gender()
+
+        required_ability_slot = None if self.get_hidden_ability_flag() else self.get_standard_ability_slot()
+        next_pid, reason = _find_identity_pid(
+            current_pid=self.pid,
+            otid=self.otid,
+            target_nature_id=self.get_nature_id(),
+            desired_shiny=desired_shiny,
+            desired_gender=desired_gender,
+            gender_threshold=self.get_gender_threshold(),
+            required_ability_slot=required_ability_slot,
+        )
+        if next_pid is None:
+            raise ValueError(reason or "Identity PID solve failed")
+
+        self.pid = next_pid
         wu32(self.raw, OFF_PID, self.pid)
 
     # Setters Standard

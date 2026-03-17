@@ -113,6 +113,22 @@ const App = () => {
             if (updatedPk.species_id !== selectedPokemon?.species_id) {
                 await client.updatePartySpecies(updatedPk.index, { species_id: updatedPk.species_id });
             }
+
+            const identityPayload = {};
+            if (Boolean(updatedPk.is_shiny) !== Boolean(original.is_shiny)) {
+                identityPayload.shiny = Boolean(updatedPk.is_shiny);
+            }
+            if (
+                typeof updatedPk.gender === 'string' &&
+                updatedPk.gender !== original.gender &&
+                (updatedPk.gender === 'male' || updatedPk.gender === 'female' || updatedPk.gender === 'genderless')
+            ) {
+                identityPayload.gender = updatedPk.gender;
+            }
+            if (Object.keys(identityPayload).length > 0) {
+                await client.updatePartyIdentity(updatedPk.index, identityPayload);
+            }
+
             if (updatedPk.level_edit) {
                 await client.updatePartyLevel(updatedPk.index, updatedPk.level_edit);
             }

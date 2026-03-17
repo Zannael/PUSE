@@ -18,6 +18,7 @@ import {
     updatePartyAbilitySwitch as patchPartyAbilitySwitch,
     updatePartyEvs as patchPartyEvs,
     updatePartyItem as patchPartyItem,
+    updatePartyIdentity as patchPartyIdentity,
     updatePartyIvs as patchPartyIvs,
     updatePartyLevel as patchPartyLevel,
     updatePartyMoves as patchPartyMoves,
@@ -196,6 +197,13 @@ const backendClient = {
             body: JSON.stringify(payload),
         });
     },
+    async updatePartyIdentity(index, payload) {
+        await backendJson(`/party/${index}/identity`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+    },
     async updatePartyNickname(index, payload) {
         await backendJson(`/party/${index}/nickname`, {
             method: "POST",
@@ -311,6 +319,10 @@ const localClient = {
     updatePartyItem(index, payload) {
         updateBuffer((next) => patchPartyItem(next, Number(index), payload || {}));
         return Promise.resolve({ status: 'Item updated in memory' });
+    },
+    updatePartyIdentity(index, payload) {
+        updateBuffer((next) => patchPartyIdentity(next, Number(index), payload || {}));
+        return Promise.resolve({ status: 'Identity updated in memory' });
     },
     updatePartyNickname(index, payload) {
         updateBuffer((next) => patchPartyNickname(next, Number(index), payload || {}));

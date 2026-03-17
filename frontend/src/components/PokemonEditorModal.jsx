@@ -403,6 +403,64 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
                                 <p className="text-[9px] text-center text-slate-500 italic">Changing nature will modify the Pokemon PID in the save file.</p>
                             </div>
 
+                            {!isPcMon && (
+                                <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
+                                        Identity (Shiny & Gender)
+                                    </label>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <div className="bg-slate-900/70 border border-white/10 rounded-xl p-3 space-y-2">
+                                            <p className="text-[10px] uppercase font-black text-slate-500">Shiny</p>
+                                            <button
+                                                type="button"
+                                                onClick={() => setLocalPk({ ...localPk, is_shiny: !localPk.is_shiny })}
+                                                className={`w-full py-2 rounded-lg text-xs font-bold transition-colors ${localPk.is_shiny ? 'bg-amber-500/80 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                                            >
+                                                {localPk.is_shiny ? 'Shiny Enabled' : 'Standard Palette'}
+                                            </button>
+                                        </div>
+
+                                        <div className="bg-slate-900/70 border border-white/10 rounded-xl p-3 space-y-2">
+                                            <p className="text-[10px] uppercase font-black text-slate-500">Gender</p>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setLocalPk({ ...localPk, gender: 'male' })}
+                                                    disabled={localPk.gender_mode !== 'dynamic'}
+                                                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${localPk.gender === 'male' ? 'bg-sky-500 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                                                >
+                                                    Male
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setLocalPk({ ...localPk, gender: 'female' })}
+                                                    disabled={localPk.gender_mode !== 'dynamic'}
+                                                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${localPk.gender === 'female' ? 'bg-rose-500 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                                                >
+                                                    Female
+                                                </button>
+                                            </div>
+                                            {localPk.gender_mode !== 'dynamic' && (
+                                                <p className="text-[10px] text-slate-500">
+                                                    {localPk.gender_mode === 'genderless'
+                                                        ? 'This species is genderless.'
+                                                        : localPk.gender_mode === 'fixed_male'
+                                                            ? 'This species is male-only.'
+                                                            : localPk.gender_mode === 'fixed_female'
+                                                                ? 'This species is female-only.'
+                                                                : 'Gender metadata unavailable for this species.'}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-[10px] text-amber-200">
+                                        Identity edits rewrite PID. Nature and standard ability slot are preserved where possible.
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
                                     Held Item

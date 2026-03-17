@@ -299,6 +299,11 @@ class NatureUpdate(BaseModel):
     nature_id: int
 
 
+class IdentityUpdate(BaseModel):
+    shiny: bool | None = None
+    gender: str | None = None
+
+
 class AbilityUpdate(BaseModel):
     hidden: bool
 
@@ -378,6 +383,11 @@ async def get_party():
             "exp": pk.get_exp(),
             "nature": pk.get_nature_name(),
             "nature_id": pk.get_nature_id(),
+            "pid": pk.pid,
+            "is_shiny": pk.is_shiny(),
+            "gender": pk.get_gender(),
+            "gender_mode": pk.get_gender_mode(),
+            "gender_editable": pk.get_gender_mode() == "dynamic",
             "is_hidden_ability": bool(pk.get_hidden_ability_flag()),
             "ivs": pk.get_ivs(),
             "evs": pk.get_evs(),
@@ -487,6 +497,34 @@ async def update_nature(idx: int, data: NatureUpdate):
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
     return {"status": f"Nature changed to {party_mod.DB_NATURES.get(data.nature_id)}"}
+
+
+@app.post("/party/{idx}/identity")
+async def update_identity(idx: int, data: IdentityUpdate):
+    off = get_active_trainer_offset()
+    if off is None:
+        raise HTTPException(status_code=404, detail="Invalid save file")
+    mon_off = off + 0x38 + (idx * 100)
+
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    species_before = pk.get_species_id()
+
+    try:
+        pk.set_identity(shiny=data.shiny, gender=data.gender)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    pk.recalculate_party_stats(clamp_hp=True)
+    _assert_species_unchanged(pk, species_before, "party identity update")
+
+    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    return {
+        "status": "Identity updated",
+        "pid": pk.pid,
+        "is_shiny": pk.is_shiny(),
+        "gender": pk.get_gender(),
+        "gender_mode": pk.get_gender_mode(),
+    }
 
 
 @app.post("/party/{idx}/level")
