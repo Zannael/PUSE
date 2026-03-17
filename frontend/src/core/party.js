@@ -1,6 +1,7 @@
 import { ru8, ru16, ru32, wu8, wu16, wu32 } from './binary.js';
 import { findActiveSectionById } from './sections.js';
 import speciesBaseStats from './speciesBaseStats.json' with { type: 'json' };
+import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
 
 const TRAINER_SECTION_ID = 1;
 const PARTY_COUNT_OFFSET = 0x34;
@@ -48,6 +49,22 @@ const CHARMAP = {
     0xED: 'y', 0xEE: 'z',
 };
 
+const ENCODE_CHARMAP = {
+    ' ': 0x00,
+    '!': 0xAB,
+    '?': 0xAC,
+    '.': 0xAD,
+    '-': 0xAE,
+    "'": 0xB4,
+};
+for (let i = 0; i < 10; i += 1) {
+    ENCODE_CHARMAP[String(i)] = 0xB0 + i;
+}
+for (let i = 0; i < 26; i += 1) {
+    ENCODE_CHARMAP[String.fromCharCode(65 + i)] = 0xBB + i;
+    ENCODE_CHARMAP[String.fromCharCode(97 + i)] = 0xD5 + i;
+}
+
 function decodeText(bytes) {
     let out = '';
     for (let i = 0; i < bytes.length; i += 1) {
@@ -56,6 +73,16 @@ function decodeText(bytes) {
             break;
         }
         out += CHARMAP[b] ?? '?';
+    }
+    return out;
+}
+
+function encodeText(text, maxLen = 10) {
+    const safe = String(text || '').trim().slice(0, maxLen);
+    const out = new Uint8Array(maxLen);
+    out.fill(0xFF);
+    for (let i = 0; i < safe.length; i += 1) {
+        out[i] = ENCODE_CHARMAP[safe[i]] ?? 0xAC;
     }
     return out;
 }
@@ -216,6 +243,11 @@ function setItemId(rawMon, itemId) {
     const sub = substructViews(rawMon);
     wu16(sub.B, 2, Number(itemId));
     writeSubstructs(rawMon, sub);
+}
+
+function setNickname(rawMon, nickname) {
+    const encoded = encodeText(nickname, 10);
+    rawMon.set(encoded, OFF_NICK);
 }
 
 function setSpeciesId(rawMon, speciesId) {
@@ -399,7 +431,7 @@ function partyMonOffset(sectionOffset, monIndex) {
     return sectionOffset + PARTY_START_OFFSET + (monIndex * PARTY_MON_SIZE);
 }
 
-export function getParty(buffer, speciesById) {
+export function getParty(buffer, speciesById, speciesMetaById = null) {
     const active = findActiveTrainerSection(buffer);
     if (!active) {
         throw new Error('Trainer section not found');
@@ -407,6 +439,7 @@ export function getParty(buffer, speciesById) {
 
     const teamCount = Math.min(6, ru32(buffer, active.off + PARTY_COUNT_OFFSET));
     const party = [];
+    const metaMap = speciesMetaById || buildSpeciesFormMeta(speciesById);
 
     for (let i = 0; i < teamCount; i += 1) {
         const monOffset = partyMonOffset(active.off, i);
@@ -414,11 +447,17 @@ export function getParty(buffer, speciesById) {
         const speciesId = getSpeciesId(rawMon);
         const natureId = getNatureId(rawMon);
         const hidden = Boolean(getHiddenAbilityFlag(rawMon));
+        const speciesMeta = getSpeciesFormMeta(metaMap, speciesById, speciesId);
 
         party.push({
             index: i,
             nickname: decodeText(rawMon.slice(OFF_NICK, OFF_NICK + 10)),
-            species_name: speciesById.get(speciesId) || 'Unknown',
+            species_name: speciesMeta.species_label,
+            species_display_name: speciesMeta.species_display_name,
+            species_label: speciesMeta.species_label,
+            species_variant_index: speciesMeta.species_variant_index,
+            species_variant_count: speciesMeta.species_variant_count,
+            is_form_variant: speciesMeta.is_form_variant,
             level: ru8(rawMon, OFF_LEVEL_VISUAL),
             exp: getExp(rawMon),
             nature: NATURES[natureId] || 'Sconosciuta',
@@ -438,6 +477,27 @@ export function getParty(buffer, speciesById) {
 }
 
 function mutatePartyMon(buffer, monIndex, mutator) {
+    const active = findActiveTrainerSection(buffer);
+    if (!active) {
+        throw new Error('Trainer section not found');
+    }
+
+    if (monIndex < 0 || monIndex > 5) {
+        throw new Error('Invalid party index');
+    }
+
+    const monOffset = partyMonOffset(active.off, monIndex);
+    const rawMon = buffer.slice(monOffset, monOffset + PARTY_MON_SIZE);
+    const speciesBefore = getSpeciesId(rawMon);
+    mutator(rawMon);
+    const speciesAfter = getSpeciesId(rawMon);
+    if (speciesAfter !== speciesBefore) {
+        throw new Error(`Safety check failed: species changed unexpectedly from ${speciesBefore} to ${speciesAfter}`);
+    }
+    buffer.set(rawMon, monOffset);
+}
+
+function mutatePartyMonAllowSpeciesChange(buffer, monIndex, mutator) {
     const active = findActiveTrainerSection(buffer);
     if (!active) {
         throw new Error('Trainer section not found');
@@ -500,8 +560,14 @@ export function updatePartyItem(buffer, monIndex, payload) {
     });
 }
 
-export function updatePartySpecies(buffer, monIndex, payload) {
+export function updatePartyNickname(buffer, monIndex, payload) {
     mutatePartyMon(buffer, monIndex, (rawMon) => {
+        setNickname(rawMon, payload.nickname || '');
+    });
+}
+
+export function updatePartySpecies(buffer, monIndex, payload) {
+    mutatePartyMonAllowSpeciesChange(buffer, monIndex, (rawMon) => {
         setSpeciesId(rawMon, Number(payload.species_id || 0));
         recalculatePartyStats(rawMon, true);
     });

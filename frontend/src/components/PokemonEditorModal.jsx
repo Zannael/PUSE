@@ -16,6 +16,11 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
     const [allSpecies, setAllSpecies] = useState([]);
     const [itemSearch, setItemSearch] = useState('');
     const [speciesSearch, setSpeciesSearch] = useState('');
+    const [renameOnSpeciesChange, setRenameOnSpeciesChange] = useState(() => {
+        const nick = String(pokemon?.nickname || '').trim().toLowerCase();
+        const speciesDisplay = String(pokemon?.species_display_name || pokemon?.species_name || '').trim().toLowerCase();
+        return Boolean(nick && speciesDisplay && nick === speciesDisplay);
+    });
     const [levelInput, setLevelInput] = useState(String(initialLevel));
     const [levelGrowthMode, setLevelGrowthMode] = useState(initialGrowthMode);
     const [levelDirty, setLevelDirty] = useState(false);
@@ -29,7 +34,7 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
     const currentItem = allItems.find(i => i.id === localPk.item_id);
     const currentItemName = currentItem?.name || `ID ${localPk.item_id}`;
     const currentSpecies = allSpecies.find(s => s.id === localPk.species_id);
-    const currentSpeciesName = currentSpecies?.name || `Species ${localPk.species_id}`;
+    const currentSpeciesName = currentSpecies?.label || currentSpecies?.name || `Species ${localPk.species_id}`;
     const canShowItemIcon =
         localPk.item_id > 0 &&
         !!currentItem &&
@@ -66,6 +71,23 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
         client.getSpecies()
             .then(data => setAllSpecies(data));
     }, [client]);
+
+    const applySpeciesSelection = (species) => {
+        const previousSpecies = allSpecies.find(s => s.id === localPk.species_id);
+        const previousDisplay = previousSpecies?.display_name || previousSpecies?.name || '';
+        const nextDisplay = species?.display_name || species?.name || '';
+        const currentNick = String(localPk.nickname || '').trim();
+        const shouldAutoRename =
+            renameOnSpeciesChange ||
+            (currentNick && previousDisplay && currentNick.toLowerCase() === previousDisplay.toLowerCase());
+
+        setLocalPk({
+            ...localPk,
+            species_id: species.id,
+            nickname: shouldAutoRename && nextDisplay ? nextDisplay : localPk.nickname,
+        });
+        setSpeciesSearch('');
+    };
 
     const handleSaveClick = () => {
         const payload = { ...localPk };
@@ -227,6 +249,21 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
 
                             <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
+                                    Nickname
+                                </label>
+                                <input
+                                    type="text"
+                                    maxLength={10}
+                                    value={localPk.nickname || ''}
+                                    onChange={(e) => setLocalPk({ ...localPk, nickname: e.target.value })}
+                                    className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 px-4 text-sm outline-none focus:border-blue-500/50"
+                                    placeholder="Nickname (max 10 chars)"
+                                />
+                                <p className="text-[10px] text-slate-500 text-center">Stored directly in save text bytes (max 10 chars).</p>
+                            </div>
+
+                            <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
                                     Species
                                 </label>
 
@@ -244,21 +281,22 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
                                 {speciesSearch.length > 1 ? (
                                     <div className="max-h-48 overflow-y-auto bg-slate-900 rounded-xl border border-blue-500/30 divide-y divide-white/5">
                                         {allSpecies
-                                            .filter(species =>
-                                                species.name.toLowerCase().includes(speciesSearch.toLowerCase()) ||
-                                                species.id.toString() === speciesSearch
-                                            )
+                                            .filter(species => {
+                                                const q = speciesSearch.toLowerCase();
+                                                return (
+                                                    (species.label || '').toLowerCase().includes(q) ||
+                                                    (species.name || '').toLowerCase().includes(q) ||
+                                                    species.id.toString() === speciesSearch
+                                                );
+                                            })
                                             .slice(0, 15)
                                             .map(species => (
                                                 <button
                                                     key={species.id}
-                                                    onClick={() => {
-                                                        setLocalPk({...localPk, species_id: species.id});
-                                                        setSpeciesSearch('');
-                                                    }}
+                                                    onClick={() => applySpeciesSelection(species)}
                                                     className="w-full text-left px-4 py-3 text-sm hover:bg-blue-600 transition-colors flex justify-between items-center group"
                                                 >
-                                                    <span className="group-hover:text-white">{species.name}</span>
+                                                    <span className="group-hover:text-white">{species.label || species.name}</span>
                                                     <span className="text-blue-400 font-mono text-[10px] bg-blue-500/10 px-2 py-0.5 rounded">ID {species.id}</span>
                                                 </button>
                                             ))
@@ -284,6 +322,16 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
                                         />
                                     </div>
                                 )}
+
+                                <label className="flex items-center gap-2 text-[11px] text-slate-400">
+                                    <input
+                                        type="checkbox"
+                                        checked={renameOnSpeciesChange}
+                                        onChange={(e) => setRenameOnSpeciesChange(e.target.checked)}
+                                        className="accent-blue-500"
+                                    />
+                                    Rename nickname to selected species when changing species
+                                </label>
                             </div>
 
                             <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">

@@ -4,7 +4,7 @@ import {
     resolvePokemonIconUrl,
 } from '../core/iconResolver.js';
 import { saveAll as commitSaveAll } from '../core/commit.js';
-import { getItemsList, getMovesList, getSpeciesList, getSpeciesMap, loadCatalog } from '../core/catalog.js';
+import { getItemsList, getMovesList, getSpeciesFormMetaMap, getSpeciesList, getSpeciesMap, loadCatalog } from '../core/catalog.js';
 import {
     formatScanResults,
     mapPocketFromAnchor,
@@ -22,6 +22,7 @@ import {
     updatePartyLevel as patchPartyLevel,
     updatePartyMoves as patchPartyMoves,
     updatePartyNature as patchPartyNature,
+    updatePartyNickname as patchPartyNickname,
     updatePartySpecies as patchPartySpecies,
 } from '../core/party.js';
 import {
@@ -195,6 +196,13 @@ const backendClient = {
             body: JSON.stringify(payload),
         });
     },
+    async updatePartyNickname(index, payload) {
+        await backendJson(`/party/${index}/nickname`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+    },
     async updatePartySpecies(index, payload) {
         await backendJson(`/party/${index}/species`, {
             method: "POST",
@@ -272,7 +280,9 @@ const localClient = {
         downloadBlob(exportBlob(), getFilename());
     },
     getParty() {
-        return getSpeciesMap().then((speciesMap) => readParty(getBuffer(), speciesMap));
+        return Promise.all([getSpeciesMap(), getSpeciesFormMetaMap()]).then(([speciesMap, speciesMeta]) =>
+            readParty(getBuffer(), speciesMap, speciesMeta)
+        );
     },
     updatePartyIvs(index, payload) {
         updateBuffer((next) => patchPartyIvs(next, Number(index), payload || {}));
@@ -302,6 +312,10 @@ const localClient = {
         updateBuffer((next) => patchPartyItem(next, Number(index), payload || {}));
         return Promise.resolve({ status: 'Item updated in memory' });
     },
+    updatePartyNickname(index, payload) {
+        updateBuffer((next) => patchPartyNickname(next, Number(index), payload || {}));
+        return Promise.resolve({ status: 'Nickname updated in memory' });
+    },
     async updatePartySpecies(index, payload) {
         const speciesId = await ensureValidSpeciesId(payload?.species_id);
         updateBuffer((next) => patchPartySpecies(next, Number(index), { species_id: speciesId }));
@@ -318,8 +332,8 @@ const localClient = {
             context = loadPcContext(getBuffer());
             setPcContext(context);
         }
-        const speciesMap = await getSpeciesMap();
-        return readPcBox(context, Number(boxId), speciesMap);
+        const [speciesMap, speciesMeta] = await Promise.all([getSpeciesMap(), getSpeciesFormMetaMap()]);
+        return readPcBox(context, Number(boxId), speciesMap, speciesMeta);
     },
     async editPcFull(payload) {
         let context = getPcContext();

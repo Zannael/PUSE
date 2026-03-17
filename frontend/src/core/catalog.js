@@ -1,7 +1,10 @@
+import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
+
 const cache = {
     itemsById: null,
     movesById: null,
     speciesById: null,
+    speciesMetaById: null,
     loaded: false,
 };
 
@@ -74,6 +77,7 @@ export async function loadCatalog() {
     cache.itemsById = parseIdNameText(itemsText);
     cache.movesById = parseIdNameText(movesText);
     cache.speciesById = parseIdNameText(pokemonText);
+    cache.speciesMetaById = buildSpeciesFormMeta(cache.speciesById);
     applyTmOverlay(cache.itemsById, tmsText);
     cache.loaded = true;
 }
@@ -117,7 +121,19 @@ export async function getSpeciesList() {
         await loadCatalog();
     }
     ensureLoaded();
-    return mapToList(cache.speciesById, { includeZero: true });
+    const base = mapToList(cache.speciesById, { includeZero: true });
+    return base.map((entry) => {
+        const meta = getSpeciesFormMeta(cache.speciesMetaById, cache.speciesById, entry.id);
+        return {
+            id: entry.id,
+            name: entry.name,
+            label: meta.species_label,
+            display_name: meta.species_display_name,
+            variant_index: meta.species_variant_index,
+            variant_count: meta.species_variant_count,
+            is_form_variant: meta.is_form_variant,
+        };
+    });
 }
 
 export async function getSpeciesMap() {
@@ -126,4 +142,12 @@ export async function getSpeciesMap() {
     }
     ensureLoaded();
     return cache.speciesById;
+}
+
+export async function getSpeciesFormMetaMap() {
+    if (!cache.loaded) {
+        await loadCatalog();
+    }
+    ensureLoaded();
+    return cache.speciesMetaById;
 }

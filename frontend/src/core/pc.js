@@ -1,6 +1,7 @@
 import { ru8, ru16, ru32, wu8, wu16, wu32 } from './binary.js';
 import { gbaChecksum } from './checksum.js';
 import { OFF_ID, OFF_SAVE_IDX, SECTION_SIZE } from './sections.js';
+import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
 
 const POKEMON_STREAM_SECTORS = [5, 6, 7, 8, 9, 10, 11, 12];
 const PRESET_SECTOR_ID = 0;
@@ -44,6 +45,22 @@ const CHARMAP = {
     0xF4: 'a', 0xF5: 'o', 0xF6: 'u', 0xFF: '',
 };
 
+const ENCODE_CHARMAP = {
+    ' ': 0x00,
+    '!': 0xAB,
+    '?': 0xAC,
+    '.': 0xAD,
+    '-': 0xAE,
+    "'": 0xB4,
+};
+for (let i = 0; i < 10; i += 1) {
+    ENCODE_CHARMAP[String(i)] = 0xA1 + i;
+}
+for (let i = 0; i < 26; i += 1) {
+    ENCODE_CHARMAP[String.fromCharCode(65 + i)] = 0xBB + i;
+    ENCODE_CHARMAP[String.fromCharCode(97 + i)] = 0xD5 + i;
+}
+
 function decodeText(data) {
     let s = '';
     for (let i = 0; i < data.length; i += 1) {
@@ -54,6 +71,16 @@ function decodeText(data) {
         s += CHARMAP[b] ?? '?';
     }
     return s;
+}
+
+function encodeText(text, maxLen = 10) {
+    const safe = String(text || '').trim().slice(0, maxLen);
+    const out = new Uint8Array(maxLen);
+    out.fill(0xFF);
+    for (let i = 0; i < safe.length; i += 1) {
+        out[i] = ENCODE_CHARMAP[safe[i]] ?? 0xAC;
+    }
+    return out;
 }
 
 function isValidMon(raw) {
@@ -161,17 +188,23 @@ function setNature(raw, natureId) {
     wu32(raw, OFF_PID, pid);
 }
 
-function parseMon(raw, box, slot, speciesMap) {
+function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
     if (!isValidMon(raw)) {
         return null;
     }
 
     const speciesId = ru16(raw, OFF_SPECIES);
+    const speciesMeta = getSpeciesFormMeta(speciesMetaById, speciesMap, speciesId);
     return {
         box,
         slot,
         nickname: decodeText(raw.slice(OFF_NICK, OFF_NICK + 10)),
-        species_name: speciesMap.get(speciesId) || 'Unknown',
+        species_name: speciesMeta.species_label,
+        species_display_name: speciesMeta.species_display_name,
+        species_label: speciesMeta.species_label,
+        species_variant_index: speciesMeta.species_variant_index,
+        species_variant_count: speciesMeta.species_variant_count,
+        is_form_variant: speciesMeta.is_form_variant,
         species_id: speciesId,
         item_id: ru16(raw, OFF_ITEM),
         exp: ru32(raw, OFF_EXP),
@@ -239,8 +272,9 @@ export function loadPcContext(buffer) {
     };
 }
 
-export function getPcBox(context, boxId, speciesMap) {
+export function getPcBox(context, boxId, speciesMap, speciesMetaById = null) {
     const mons = [];
+    const metaMap = speciesMetaById || buildSpeciesFormMeta(speciesMap);
 
     if (boxId >= 1 && boxId <= 25) {
         const base = (boxId - 1) * 30;
@@ -251,7 +285,7 @@ export function getPcBox(context, boxId, speciesMap) {
                 break;
             }
             const raw = context.pcBuffer.slice(off, off + MON_SIZE_PC);
-            const mon = parseMon(raw, boxId, slot, speciesMap);
+            const mon = parseMon(raw, boxId, slot, speciesMap, metaMap);
             if (mon) {
                 mons.push(mon);
             }
@@ -266,7 +300,7 @@ export function getPcBox(context, boxId, speciesMap) {
                 break;
             }
             const raw = context.presetBuffer.slice(off, off + MON_SIZE_PC);
-            const mon = parseMon(raw, 26, slot, speciesMap);
+            const mon = parseMon(raw, 26, slot, speciesMap, metaMap);
             if (mon) {
                 mons.push(mon);
             }
@@ -309,6 +343,11 @@ export function editPcMonFull(context, payload) {
     if (!isValidMon(raw)) {
         throw new Error('Pokemon not found in slot');
     }
+    const speciesBefore = ru16(raw, OFF_SPECIES);
+
+    if (payload.nickname !== undefined && payload.nickname !== null) {
+        raw.set(encodeText(payload.nickname, 10), OFF_NICK);
+    }
 
     if (payload.moves) {
         setMoves(raw, payload.moves);
@@ -330,6 +369,10 @@ export function editPcMonFull(context, payload) {
     }
     if (payload.exp !== undefined && payload.exp !== null) {
         wu32(raw, OFF_EXP, Number(payload.exp));
+    }
+
+    if ((payload.species_id === undefined || payload.species_id === null) && ru16(raw, OFF_SPECIES) !== speciesBefore) {
+        throw new Error(`Safety check failed: PC species changed unexpectedly from ${speciesBefore} to ${ru16(raw, OFF_SPECIES)}`);
     }
 
     buffer.set(raw, offset);
