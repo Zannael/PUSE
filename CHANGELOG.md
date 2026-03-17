@@ -4,30 +4,48 @@
 
 ### Planned
 
-- Add Pokemon identity controls in editor (shiny toggle, gender toggle).
-- Add create/insert workflows to add Pokemon to party and PC boxes.
+- Add Pokemon identity controls in editor (shiny toggle, gender toggle), with safe PID handling and clear side-effect warnings.
+- Add create/insert workflows to add Pokemon to party and PC boxes (with validation and checksum-safe writes).
+- Add ROM-truth ability extraction (`id:name`, optional metadata) and mirror it to frontend local mode for parity.
+- Add ROM-truth form alias metadata (Alolan/Galarian/Hisuian/Mega/Giga where confidently identifiable) on top of current neutral `Form N` labels.
+- Add ROM-truth growth-rate/species-growth mapping to reduce EXP/level ambiguity and prevent unintended level shifts after edits.
+- Add ROM-truth sprites for Pokémons and items with ROM-based sprites extraction.
 - Investigate save flags editing feasibility for difficulty mode and NG+ state.
 - Add clearer changelog/update visibility in project docs.
 
 ### Changed
 
-- Bag quick-pocket safety now gates TM Case and Berry Pouch editing by unlock state: non-empty pockets are editable, while empty pockets are editable only when the corresponding key item is present (`TM Case` / `Berry Pouch`).
-- Quick-pocket responses now include readiness/lock metadata (`ready`, `locked`, `locked_reason`, `unlock_via`) and can expose safe empty-slot bootstrap candidates only for unlocked TM/Berry flows.
-- Pokemon species editing is now available in the editor for both Party and PC flows, with matching behavior in `backend` and `local` runtime modes.
-- Party stat bytes are now recalculated after species/stat-affecting edits (species, IVs, EVs, nature, level) using ROM-derived base stats and nature modifiers, with current HP clamped to the new max HP.
-- Added Unbound ROM species base-stat extraction tooling (`backend/tools/extract_unbound_species_base_stats.py`) and generated base-stat datasets for backend/frontend parity.
-- Bag editing now uses an explicit save flow: slot edits are applied in memory, and `SAVE BAG CHANGES` is required to write updates to the `.sav` file.
-- Bag UX now keeps save actions visible at the top of pocket view and warns users when navigating back/changing sections with unsaved bag edits.
-- Pokemon editor Info tab now shows Species controls before level/nature/item controls for faster access.
-- Fixed PC Box move packing/parsing to use the correct CFRU compact 40-bit layout in both backend and local mode.
-- Fixed local-mode 32-bit overflow during 40-bit move bit-packing by switching to `BigInt`, resolving slot corruption cases (for example `DragonAscent`/`V-create` turning into wrong moves in frontend or in-game).
-- Added ROM-truth move extraction tooling (`backend/tools/extract_unbound_moves_table.py`) and diagnostic output (`backend/data/move_table_from_rom.json`).
+#### ROM Truth Data
+
+- Added Unbound ROM move extraction tooling (`backend/tools/extract_unbound_moves_table.py`) with diagnostic output (`backend/data/move_table_from_rom.json`).
 - Move catalogs are now synchronized from ROM truth with `backend/data/moves.txt` as canonical runtime source (mirrored to `frontend/public/data/moves.txt` for local mode parity).
-- Added ROM-truth species extraction tooling (`backend/tools/extract_unbound_species_table.py`) and diagnostic output (`backend/data/species_table_from_rom.json`), with canonical runtime species data mirrored to local mode.
+- Added Unbound ROM species extraction tooling (`backend/tools/extract_unbound_species_table.py`) with diagnostic output (`backend/data/species_table_from_rom.json`).
+- Species catalogs are now synchronized from ROM truth with backend/frontend parity, and species base stats were regenerated from ROM (`backend/tools/extract_unbound_species_base_stats.py`).
+
+#### Species, Forms, and Nicknames
+
+- Pokemon species editing is now available in the editor for both Party and PC flows, with matching behavior in `backend` and `local` runtime modes.
 - Species UI payloads now expose form-aware metadata (`species_label`, `species_variant_index`, `species_variant_count`, `is_form_variant`) so duplicate-name forms are distinguishable (for example `Goodra (Form 1)` / `Goodra (Form 2)`).
-- Added species drift safety checks for PC non-species edits and tightened save flows to send only changed fields, reducing unintended side effects.
 - Added nickname editing support for Party and PC flows in both backend and local modes, including save-path parity.
 - Species editor now includes nickname controls and a guided rename behavior when changing species, so users can keep custom nicknames or automatically align nicknames with the selected species.
+
+#### Party and PC Correctness
+
+- Party stat bytes are now recalculated after species/stat-affecting edits (species, IVs, EVs, nature, level) using ROM-derived base stats and nature modifiers, with current HP clamped to the new max HP.
+- Fixed PC Box move packing/parsing to use the correct CFRU compact 40-bit layout in both backend and local mode.
+- Fixed local-mode 32-bit overflow during 40-bit move bit-packing by switching to `BigInt`, resolving slot corruption cases (for example `DragonAscent`/`V-create` turning into wrong moves in frontend or in-game).
+- Added species drift safety checks for non-species edit flows and tightened save paths to send only changed fields, reducing unintended side effects.
+
+#### Bag UX and Safety
+
+- Bag quick-pocket safety now gates TM Case and Berry Pouch editing by unlock state: non-empty pockets are editable, while empty pockets are editable only when the corresponding key item is present (`TM Case` / `Berry Pouch`).
+- Quick-pocket responses now include readiness/lock metadata (`ready`, `locked`, `locked_reason`, `unlock_via`) and can expose safe empty-slot bootstrap candidates only for unlocked TM/Berry flows.
+- Bag editing now uses an explicit save flow: slot edits are applied in memory, and `SAVE BAG CHANGES` is required to write updates to the `.sav` file.
+- Bag UX now keeps save actions visible at the top of pocket view and warns users when navigating back/changing sections with unsaved bag edits.
+
+#### Editor UX
+
+- Pokemon editor Info tab now shows Species controls before level/nature/item controls for faster access.
 
 ## v1.1.0 - 2026-03-16
 
