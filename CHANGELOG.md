@@ -4,7 +4,6 @@
 
 ### Planned
 
-- Add Pokemon identity controls in editor (shiny toggle, gender toggle), with safe PID handling and clear side-effect warnings.
 - Add create/insert workflows to add Pokemon to party and PC boxes (with validation and checksum-safe writes).
 - Add ROM-truth ability extraction (`id:name`, optional metadata) and mirror it to frontend local mode for parity.
 - Add ROM-truth form alias metadata (Alolan/Galarian/Hisuian/Mega/Giga where confidently identifiable) on top of current neutral `Form N` labels.
@@ -12,6 +11,7 @@
 - Add ROM-truth sprites for Pokémons and items with ROM-based sprites extraction.
 - Investigate save flags editing feasibility for difficulty mode and NG+ state.
 - Add clearer changelog/update visibility in project docs.
+- Extend identity controls to PC editing flow with the same PID safety and backend/local parity guarantees.
 
 ### Changed
 
@@ -35,6 +35,15 @@
 - Fixed PC Box move packing/parsing to use the correct CFRU compact 40-bit layout in both backend and local mode.
 - Fixed local-mode 32-bit overflow during 40-bit move bit-packing by switching to `BigInt`, resolving slot corruption cases (for example `DragonAscent`/`V-create` turning into wrong moves in frontend or in-game).
 - Added species drift safety checks for non-species edit flows and tightened save paths to send only changed fields, reducing unintended side effects.
+
+#### Party Identity and PID Safety
+
+- Implemented Party identity editing controls in the Pokemon editor (shiny toggle + gender toggle), with PID side-effect warnings in UI.
+- Added party identity update flow in both runtime modes (`backend` and `local`) to preserve parity.
+- Identity PID solving now preserves nature and standard ability-slot parity while applying shiny/gender targets when valid.
+- Added species identity metadata (`gender_threshold`) extracted from ROM truth and mirrored to frontend local mode.
+- Added explicit validation for incompatible gender requests (fixed male/fixed female/genderless species), returning clear errors instead of silent mutation.
+- Added PID-focused regression coverage (`frontend/scripts/identity-regression.mjs`) for shiny/gender toggles, HA preservation, invalid-gender guards, and mixed PID edit sequences across backend/local parity.
 
 #### Bag UX and Safety
 
