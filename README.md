@@ -110,14 +110,15 @@ docker compose up --build
 - Pokemon icon sprites are optional and not required to run the app.
 - If missing, the backend logs a warning and returns a tiny fallback image, so UI keeps working.
 - Source for icon assets:
-  - `https://github.com/Skeli789/Dynamic-Pokemon-Expansion/tree/master/graphics/frontspr`
+  - Upstream (original): `https://github.com/Skeli789/Dynamic-Pokemon-Expansion/tree/master/graphics/frontspr`
+  - Extended Gen 9 fork: `https://github.com/Shiny-Miner/Dynamic-Pokemon-Expansion-Gen-9/tree/master/graphics/frontspr`
 - To enable sprites locally, clone/copy that folder into:
   - `backend/icons/pokemon/`
 
 ### Frontend icon delivery (GitHub Pages / local mode)
 
 - In frontend local mode, icons are resolved without backend endpoints:
-  - Pokemon icons: `Skeli789/Dynamic-Pokemon-Expansion`
+  - Pokemon icons: pinned commit from `Shiny-Miner/Dynamic-Pokemon-Expansion-Gen-9` (fork of `Skeli789/Dynamic-Pokemon-Expansion`)
   - Item icons: `PokeAPI/sprites`
 - Manifests are generated and committed under:
   - `frontend/src/data/pokemon-icon-manifest.json`
