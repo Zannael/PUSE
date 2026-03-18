@@ -5,7 +5,6 @@
 ### Planned
 
 - Add create/insert workflows to add Pokemon to party and PC boxes (with validation and checksum-safe writes).
-- Add ROM-truth form alias metadata (Alolan/Galarian/Hisuian/Mega/Giga where confidently identifiable) on top of current neutral `Form N` labels.
 - Add ROM-truth sprites for Pokémons and items with ROM-based sprites extraction.
 - Investigate save flags editing feasibility for difficulty mode and NG+ state.
 - Extend Trainer Profile editing to include identity metadata: name (with character encoding validation), gender/style flags, and appearance parameters (hair color/skin tone).
@@ -24,6 +23,7 @@
 - Species catalogs are now synchronized from ROM truth with backend/frontend parity, and species base stats were regenerated from ROM (`backend/tools/extract_unbound_species_base_stats.py`).
 - Added Unbound ROM species growth-rate extraction tooling (`backend/tools/extract_unbound_species_growth_rates.py`) and synchronized species growth metadata (`backend/data/species_growth_rates.json` mirrored to `frontend/src/core/speciesGrowthRates.json`) for backend/local parity.
 - Added Unbound ROM species abilities metadata extraction tooling (`backend/tools/extract_unbound_species_abilities_meta.py`) with anchor validation (Gliscor -> Poison Heal, Raticate base -> Hustle), and synchronized metadata (`backend/data/species_abilities_meta.json` mirrored to `frontend/src/core/speciesAbilitiesMeta.json`).
+- Added ROM-derived species form alias extraction tooling (`backend/tools/extract_unbound_species_form_aliases.py`) with synchronized alias metadata (`backend/data/species_form_aliases.json` mirrored to `frontend/src/core/speciesFormAliases.json`) and diagnostics output (`backend/data/species_form_aliases_diagnostics.json`).
 
 #### Species, Forms, and Nicknames
 
@@ -31,6 +31,7 @@
 - Species UI payloads now expose form-aware metadata (`species_label`, `species_variant_index`, `species_variant_count`, `is_form_variant`) so duplicate-name forms are distinguishable (for example `Goodra (Form 1)` / `Goodra (Form 2)`).
 - Added nickname editing support for Party and PC flows in both backend and local modes, including save-path parity.
 - Species editor now includes nickname controls and a guided rename behavior when changing species, so users can keep custom nicknames or automatically align nicknames with the selected species.
+- Species labels now prefer high-confidence ROM-derived aliases (for example Alolan/Galarian/Hisuian/Mega/Giga and special cases like Aegislash Blade / Darmanitan Zen / Polteageist Chipped) with safe fallback to `Form N` labels when aliases are uncertain.
 
 #### Party and PC Correctness
 
