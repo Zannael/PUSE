@@ -38,6 +38,8 @@
 - Party stat bytes are now recalculated after species/stat-affecting edits (species, IVs, EVs, nature, level) using ROM-derived base stats and nature modifiers, with current HP clamped to the new max HP.
 - Fixed PC Box move packing/parsing to use the correct CFRU compact 40-bit layout in both backend and local mode.
 - Fixed local-mode 32-bit overflow during 40-bit move bit-packing by switching to `BigInt`, resolving slot corruption cases (for example `DragonAscent`/`V-create` turning into wrong moves in frontend or in-game).
+- Added fragmented absolute-layout fallback support for PC boxes 22-24 in save variants where the standard contiguous PC stream does not include those boxes, with backend/local parity for read/edit/save/checksum flows.
+- Added focused regression coverage for fallback PC boxes (`frontend/scripts/pc-fallback-regression.mjs`) to validate FewTimesDead box 22-24 detection, fallback slot parity, absolute fallback edits, touched-sector checksum updates, and Unbound false-positive guards.
 - Added species drift safety checks for non-species edit flows and tightened save paths to send only changed fields, reducing unintended side effects.
 - Party level edits now default to ROM-truth species growth rate when available, with fallback to previous growth inference behavior when metadata is unavailable.
 - PC level editing now defaults to ROM-truth species growth rate in the editor flow (manual override still supported), reducing EXP/level ambiguity.
