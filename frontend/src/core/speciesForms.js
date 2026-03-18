@@ -1,3 +1,5 @@
+import speciesFormAliases from './speciesFormAliases.json' with { type: 'json' };
+
 export function buildSpeciesFormMeta(speciesById) {
     const byName = new Map();
 
@@ -22,7 +24,13 @@ export function buildSpeciesFormMeta(speciesById) {
         const variantIndex = Math.max(1, ids.indexOf(id) + 1);
         const isFormVariant = variantCount > 1;
         const displayName = name || 'Unknown';
-        const label = isFormVariant ? `${displayName} (Form ${variantIndex})` : displayName;
+
+        const aliasMeta = speciesFormAliases?.[String(id)];
+        const aliasLabel =
+            aliasMeta && aliasMeta.confidence === 'high' && aliasMeta.alias
+                ? `${displayName} (${aliasMeta.alias})`
+                : null;
+        const label = aliasLabel || (isFormVariant ? `${displayName} (Form ${variantIndex})` : displayName);
 
         metaById.set(id, {
             species_display_name: displayName,

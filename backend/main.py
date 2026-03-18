@@ -1,4 +1,5 @@
 import glob
+import json
 from typing import List
 from pathlib import Path
 import base64
@@ -81,9 +82,78 @@ icon_cache = {}
 item_icon_cache: dict[int, str | None] = {}
 item_icon_resolver = ItemIconResolver(ITEM_ICONS_DIR)
 species_form_meta: dict[int, dict] = {}
+species_form_aliases: dict[int, dict] = {}
+species_id_tokens: dict[int, str] = {}
+
+SPECIAL_SPRITE_BY_TOKEN = {
+    "FLAPPLE_GIGA": "gFrontSpriteGigaFlappletun.png",
+    "APPLETUN_GIGA": "gFrontSpriteGigaFlappletun.png",
+    "TOXTRICITY_LOW_KEY_GIGA": "gFrontSpriteGigaToxtricity.png",
+}
 
 
-def _build_species_form_meta(species_db: dict[int, str]) -> dict[int, dict]:
+def _load_species_form_aliases() -> dict[int, dict]:
+    path = os.path.join(BASE_DIR, "data", "species_form_aliases.json")
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            raw = json.loads(fh.read())
+    except Exception:
+        return {}
+
+    out: dict[int, dict] = {}
+    if isinstance(raw, dict):
+        for sid, meta in raw.items():
+            if not str(sid).isdigit() or not isinstance(meta, dict):
+                continue
+            out[int(sid)] = meta
+    return out
+
+
+def _load_species_id_tokens() -> dict[int, str]:
+    path = os.path.join(BASE_DIR, "data", "species_id.txt")
+    if not os.path.exists(path):
+        return {}
+
+    out: dict[int, str] = {}
+    with open(path, "r", encoding="utf-8", errors="ignore") as fh:
+        for raw in fh:
+            line = raw.strip()
+            if not line.startswith("SPECIES_"):
+                continue
+            parts = line.split()
+            token = parts[0][len("SPECIES_"):]
+            sid = None
+            for part in parts[1:]:
+                if part.lower().startswith("0x"):
+                    try:
+                        sid = int(part, 16)
+                    except ValueError:
+                        sid = None
+                    break
+            if sid is not None:
+                out[int(sid)] = token
+    return out
+
+
+def _to_pascal_from_token(token: str) -> str:
+    pieces = [p for p in str(token).split("_") if p]
+    return "".join(p[:1].upper() + p[1:].lower() for p in pieces)
+
+
+def _sprite_candidates_from_token(token: str | None) -> list[str]:
+    if not token:
+        return []
+    if token in SPECIAL_SPRITE_BY_TOKEN:
+        return [SPECIAL_SPRITE_BY_TOKEN[token]]
+    if token.endswith("_GIGA"):
+        base = token[: -len("_GIGA")]
+        return [f"gFrontSpriteGiga{_to_pascal_from_token(base)}.png"]
+    return []
+
+
+def _build_species_form_meta(species_db: dict[int, str], alias_map: dict[int, dict] | None = None) -> dict[int, dict]:
     by_name: dict[str, list[int]] = {}
     for sid, name in species_db.items():
         key = (name or "").strip().lower()
@@ -102,7 +172,18 @@ def _build_species_form_meta(species_db: dict[int, str]) -> dict[int, dict]:
         variant_index = max(1, ids.index(sid) + 1) if sid in ids else 1
         is_form_variant = variant_count > 1
         display_name = name or "Unknown"
-        label = f"{display_name} (Form {variant_index})" if is_form_variant else display_name
+        alias_label = None
+        if alias_map:
+            alias_meta = alias_map.get(int(sid), {})
+            if isinstance(alias_meta, dict) and alias_meta.get("confidence") == "high":
+                alias_value = alias_meta.get("alias")
+                if alias_value:
+                    alias_label = f"{display_name} ({alias_value})"
+
+        if alias_label:
+            label = alias_label
+        else:
+            label = f"{display_name} (Form {variant_index})" if is_form_variant else display_name
         out[sid] = {
             "species_display_name": display_name,
             "species_label": label,
@@ -172,6 +253,19 @@ async def get_pokemon_icon(species_id: int):
         icon_cache[species_id] = found_path  # Salva in cache
         return FileResponse(found_path)
 
+    # 4. Token-based fallback (non-numeric sprite naming, e.g. Giga forms)
+    token = species_id_tokens.get(species_id)
+    candidates = _sprite_candidates_from_token(token)
+    if candidates:
+        for folder in search_dirs:
+            if not os.path.exists(folder):
+                continue
+            for filename in candidates:
+                probe = os.path.join(folder, filename)
+                if os.path.exists(probe):
+                    icon_cache[species_id] = probe
+                    return FileResponse(probe)
+
     return Response(content=ICON_FALLBACK_PNG, media_type="image/png")
 
 
@@ -204,8 +298,14 @@ def load_databases():
     bag_mod.load_tm_names_from_file()
     box_mod.load_static_data()
 
+    species_form_aliases.clear()
+    species_form_aliases.update(_load_species_form_aliases())
+
+    species_id_tokens.clear()
+    species_id_tokens.update(_load_species_id_tokens())
+
     species_form_meta.clear()
-    species_form_meta.update(_build_species_form_meta(party_mod.DB_SPECIES))
+    species_form_meta.update(_build_species_form_meta(party_mod.DB_SPECIES, species_form_aliases))
 
     if not any(os.path.isdir(p) for p in SEARCH_DIRS):
         print(
