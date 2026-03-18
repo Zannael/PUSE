@@ -8,9 +8,9 @@
 - Add ROM-truth form alias metadata (Alolan/Galarian/Hisuian/Mega/Giga where confidently identifiable) on top of current neutral `Form N` labels.
 - Add ROM-truth sprites for Pokémons and items with ROM-based sprites extraction.
 - Investigate save flags editing feasibility for difficulty mode and NG+ state.
-- Add clearer changelog/update visibility in project docs.
 - Extend Trainer Profile editing to include identity metadata: name (with character encoding validation), gender/style flags, and appearance parameters (hair color/skin tone).
 - Implement "Costume Box" unlocker and wardrobe editing.
+- Find a way to manually flag "Seen" or "Caught" when editing a species that hasn't be seen/caught before. Leaving the decision to flag it to the user, thus the "manually".
 
 ### Changed
 
