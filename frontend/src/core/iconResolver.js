@@ -1,10 +1,10 @@
 import pokemonIconManifest from '../data/pokemon-icon-manifest.json';
 import itemIconManifest from '../data/item-icon-manifest.json';
 
-const DPE_SHA = 'cdfc053a56326a13dc5311b24488445e17536b7e';
+const DPE_GEN9_SHA = '5906aa4d4904e41393fd9184a16951c961e96263';
 const POKEAPI_SPRITES_SHA = 'eb473a5fc7e6ccd1705d5498d4e5945c05815c74';
 
-const DPE_POKEMON_BASE = `https://cdn.jsdelivr.net/gh/Skeli789/Dynamic-Pokemon-Expansion@${DPE_SHA}/graphics/frontspr`;
+const DPE_POKEMON_BASE = `https://cdn.jsdelivr.net/gh/Shiny-Miner/Dynamic-Pokemon-Expansion-Gen-9@${DPE_GEN9_SHA}/graphics/frontspr`;
 const POKEAPI_ITEMS_BASE = `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@${POKEAPI_SPRITES_SHA}/sprites/items`;
 
 export const POKEMON_ICON_FALLBACK_URL = `${import.meta.env.BASE_URL}icons/pokemon-placeholder.svg`;

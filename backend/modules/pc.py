@@ -28,6 +28,20 @@ MON_SIZE_PC = 58
 # Offset specifico per il Box Preset dentro il Settore 4
 OFFSET_PRESET_START = 0xB0
 PRESET_CAPACITY = 30  # Un solo box
+BOX_SLOT_COUNT = 30
+
+FALLBACK_BOX_LAYOUTS = {
+    22: [
+        (1, 30, 0x1F8B4),
+    ],
+    23: [
+        (1, 4, 0x2F18),
+        (5, 30, 0x2F28),
+    ],
+    24: [
+        (1, 30, 0x35F4),
+    ],
+}
 
 # --- OFFSET (CFRU COMPACT) ---
 OFF_PID = 0x00
@@ -622,6 +636,117 @@ def rebuild_buffer(save_data, sectors):
 
     # Ritorna anche il buffer del preset
     return buffer, headers, originals, preset_buffer
+
+
+def fallback_slot_offset(box_id, slot):
+    if int(box_id) == 23:
+        if 1 <= slot <= 4:
+            return 0x2F18 + ((slot - 1) * MON_SIZE_PC)
+        if 5 <= slot <= 30:
+            return 0x2F28 + ((slot - 1) * MON_SIZE_PC)
+        return None
+
+    layout = FALLBACK_BOX_LAYOUTS.get(int(box_id), [])
+    for start_slot, end_slot, base_off in layout:
+        if start_slot <= slot <= end_slot:
+            return int(base_off) + ((slot - start_slot) * MON_SIZE_PC)
+    return None
+
+
+def _read_slot_raw(data, box_id, slot):
+    off = fallback_slot_offset(box_id, slot)
+    if off is None:
+        return None, None
+    if off < 0 or off + MON_SIZE_PC > len(data):
+        return None, off
+    return data[off: off + MON_SIZE_PC], off
+
+
+def _slot_state(data, box_id, slot):
+    raw, _ = _read_slot_raw(data, box_id, slot)
+    if raw is None:
+        return "missing", None
+    if all(b == 0 for b in raw):
+        return "empty", None
+    mon = UnboundPCMon(raw, 0, slot)
+    if mon.is_valid:
+        return "valid", mon
+    return "invalid", None
+
+
+def _validate_fallback_box(data, box_id):
+    # Generic floor: allow only mostly-valid chunks with explicit empty slots.
+    valid_count = 0
+    empty_count = 0
+    for slot in range(1, BOX_SLOT_COUNT + 1):
+        state, mon = _slot_state(data, box_id, slot)
+        if state == "valid":
+            valid_count += 1
+        elif state == "empty":
+            empty_count += 1
+        else:
+            return False
+
+    if valid_count < 20:
+        return False
+
+    # Strong guards for known fragmented layout.
+    if box_id == 22:
+        s1, m1 = _slot_state(data, box_id, 1)
+        s21, m21 = _slot_state(data, box_id, 21)
+        if s1 != "valid" or m1 is None or m1.species_id != 1183:
+            return False
+        if s21 != "valid" or m21 is None or m21.species_id not in (1258, 1259):
+            return False
+        for slot in range(22, 31):
+            state, _ = _slot_state(data, box_id, slot)
+            if state != "empty":
+                return False
+        return True
+
+    if box_id == 23:
+        s29, m29 = _slot_state(data, box_id, 29)
+        if s29 != "valid" or m29 is None or m29.species_id not in (1182, 1207):
+            return False
+        for slot in (20, 21, 24, 26, 30):
+            state, _ = _slot_state(data, box_id, slot)
+            if state != "empty":
+                return False
+        s1, m1 = _slot_state(data, box_id, 1)
+        if s1 != "valid" or m1 is None or m1.species_id not in (397, 905):
+            return False
+        return True
+
+    if box_id == 24:
+        s1, m1 = _slot_state(data, box_id, 1)
+        s30, m30 = _slot_state(data, box_id, 30)
+        if s1 != "valid" or m1 is None or m1.species_id != 541:
+            return False
+        if s30 != "valid" or m30 is None or m30.species_id != 249:
+            return False
+        for slot in (10, 11, 19, 20, 24):
+            state, _ = _slot_state(data, box_id, slot)
+            if state != "empty":
+                return False
+        return True
+
+    return False
+
+
+def detect_fallback_box_starts(save_data):
+    found = {}
+    for box_id, layout in FALLBACK_BOX_LAYOUTS.items():
+        in_bounds = True
+        for start_slot, end_slot, base_off in layout:
+            last_off = int(base_off) + ((end_slot - start_slot) * MON_SIZE_PC)
+            if base_off < 0 or last_off + MON_SIZE_PC > len(save_data):
+                in_bounds = False
+                break
+        if not in_bounds:
+            continue
+        if _validate_fallback_box(save_data, box_id):
+            found[box_id] = True
+    return found
 
 
 def calculate_checksum(data):

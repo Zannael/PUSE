@@ -18,6 +18,13 @@ const MON_SIZE_PC = 58;
 
 const OFFSET_PRESET_START = 0xB0;
 const PRESET_CAPACITY = 30;
+const BOX_SLOT_COUNT = 30;
+
+const FALLBACK_BOX_LAYOUTS = {
+    22: [[1, 30, 0x1F8B4]],
+    23: [[1, 4, 0x2F18], [5, 30, 0x2F28]],
+    24: [[1, 30, 0x35F4]],
+};
 
 const OFF_PID = 0x00;
 const OFF_NICK = 0x08;
@@ -532,6 +539,123 @@ function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
     };
 }
 
+function fallbackSlotOffset(boxId, slot) {
+    if (Number(boxId) === 23) {
+        if (slot >= 1 && slot <= 4) {
+            return 0x2F18 + ((slot - 1) * MON_SIZE_PC);
+        }
+        if (slot >= 5 && slot <= 30) {
+            return 0x2F28 + ((slot - 1) * MON_SIZE_PC);
+        }
+        return null;
+    }
+
+    const layout = FALLBACK_BOX_LAYOUTS[Number(boxId)] || [];
+    for (const [startSlot, endSlot, baseOff] of layout) {
+        if (slot >= startSlot && slot <= endSlot) {
+            return Number(baseOff) + ((slot - startSlot) * MON_SIZE_PC);
+        }
+    }
+    return null;
+}
+
+function readSlotRaw(data, boxId, slot) {
+    const off = fallbackSlotOffset(boxId, slot);
+    if (!Number.isInteger(off)) {
+        return { raw: null, offset: null };
+    }
+    if (off < 0 || off + MON_SIZE_PC > data.length) {
+        return { raw: null, offset: off };
+    }
+    return { raw: data.slice(off, off + MON_SIZE_PC), offset: off };
+}
+
+function slotState(data, boxId, slot) {
+    const { raw } = readSlotRaw(data, boxId, slot);
+    if (!raw) {
+        return { state: 'missing', mon: null };
+    }
+    if (raw.every((b) => b === 0)) {
+        return { state: 'empty', mon: null };
+    }
+    if (isValidMon(raw)) {
+        return { state: 'valid', mon: raw };
+    }
+    return { state: 'invalid', mon: null };
+}
+
+function ru16At(raw, off) {
+    return raw[off] | (raw[off + 1] << 8);
+}
+
+function validateFallbackBox(buffer, boxId) {
+    let validCount = 0;
+    for (let slot = 1; slot <= BOX_SLOT_COUNT; slot += 1) {
+        const { state } = slotState(buffer, boxId, slot);
+        if (state === 'valid') {
+            validCount += 1;
+        } else if (state !== 'empty') {
+            return false;
+        }
+    }
+    if (validCount < 20) {
+        return false;
+    }
+
+    if (boxId === 22) {
+        const s1 = slotState(buffer, boxId, 1);
+        const s21 = slotState(buffer, boxId, 21);
+        if (s1.state !== 'valid' || ru16At(s1.mon, OFF_SPECIES) !== 1183) return false;
+        if (s21.state !== 'valid' || ![1258, 1259].includes(ru16At(s21.mon, OFF_SPECIES))) return false;
+        for (let slot = 22; slot <= 30; slot += 1) {
+            if (slotState(buffer, boxId, slot).state !== 'empty') return false;
+        }
+        return true;
+    }
+
+    if (boxId === 23) {
+        const s29 = slotState(buffer, boxId, 29);
+        if (s29.state !== 'valid' || ![1182, 1207].includes(ru16At(s29.mon, OFF_SPECIES))) return false;
+        for (const slot of [20, 21, 24, 26, 30]) {
+            if (slotState(buffer, boxId, slot).state !== 'empty') return false;
+        }
+        const s1 = slotState(buffer, boxId, 1);
+        if (s1.state !== 'valid' || ![397, 905].includes(ru16At(s1.mon, OFF_SPECIES))) return false;
+        return true;
+    }
+
+    if (boxId === 24) {
+        const s1 = slotState(buffer, boxId, 1);
+        const s30 = slotState(buffer, boxId, 30);
+        if (s1.state !== 'valid' || ru16At(s1.mon, OFF_SPECIES) !== 541) return false;
+        if (s30.state !== 'valid' || ru16At(s30.mon, OFF_SPECIES) !== 249) return false;
+        for (const slot of [10, 11, 19, 20, 24]) {
+            if (slotState(buffer, boxId, slot).state !== 'empty') return false;
+        }
+        return true;
+    }
+
+    return false;
+}
+
+function detectFallbackBoxStarts(buffer) {
+    const out = {};
+    Object.entries(FALLBACK_BOX_LAYOUTS).forEach(([box, segments]) => {
+        const boxId = Number(box);
+        const inBounds = segments.every(([startSlot, endSlot, baseOff]) => {
+            const lastOff = Number(baseOff) + ((endSlot - startSlot) * MON_SIZE_PC);
+            return baseOff >= 0 && lastOff + MON_SIZE_PC <= buffer.length;
+        });
+        if (!inBounds) {
+            return;
+        }
+        if (validateFallbackBox(buffer, boxId)) {
+            out[boxId] = true;
+        }
+    });
+    return out;
+}
+
 export function getActivePcSectors(buffer) {
     const sections = [];
 
@@ -585,12 +709,17 @@ export function loadPcContext(buffer) {
         headers,
         pcBuffer,
         presetBuffer,
+        sourceBuffer: buffer,
+        fallbackBoxStarts: detectFallbackBoxStarts(buffer),
+        absoluteEdits: new Map(),
+        absoluteTouchedSectors: new Set(),
     };
 }
 
 export function getPcBox(context, boxId, speciesMap, speciesMetaById = null) {
     const mons = [];
     const metaMap = speciesMetaById || buildSpeciesFormMeta(speciesMap);
+    const hasFallback = Boolean(context.fallbackBoxStarts?.[Number(boxId)]);
 
     if (boxId >= 1 && boxId <= 25) {
         const base = (boxId - 1) * 30;
@@ -601,6 +730,21 @@ export function getPcBox(context, boxId, speciesMap, speciesMetaById = null) {
                 break;
             }
             const raw = context.pcBuffer.slice(off, off + MON_SIZE_PC);
+            const mon = parseMon(raw, boxId, slot, speciesMap, metaMap);
+            if (mon) {
+                mons.push(mon);
+            }
+        }
+        if (mons.length > 0 || !hasFallback || !context.sourceBuffer) {
+            return mons;
+        }
+
+        for (let slot = 1; slot <= BOX_SLOT_COUNT; slot += 1) {
+            const absOff = fallbackSlotOffset(boxId, slot);
+            if (!Number.isInteger(absOff)) {
+                continue;
+            }
+            const raw = context.absoluteEdits?.get(absOff) || context.sourceBuffer.slice(absOff, absOff + MON_SIZE_PC);
             const mon = parseMon(raw, boxId, slot, speciesMap, metaMap);
             if (mon) {
                 mons.push(mon);
@@ -645,15 +789,22 @@ function getMonBufferAndOffset(context, box, slot) {
     const idx = ((box - 1) * 30) + (slot - 1);
     const off = idx * MON_SIZE_PC;
     if (off + MON_SIZE_PC > context.pcBuffer.length) {
+        const hasFallback = Boolean(context.fallbackBoxStarts?.[Number(box)]);
+        if (hasFallback && context.sourceBuffer) {
+            const absOff = fallbackSlotOffset(box, slot);
+            if (Number.isInteger(absOff) && absOff + MON_SIZE_PC <= context.sourceBuffer.length) {
+                return { buffer: context.sourceBuffer, offset: absOff, kind: 'absolute' };
+            }
+        }
         throw new Error('Invalid box slot');
     }
-    return { buffer: context.pcBuffer, offset: off };
+    return { buffer: context.pcBuffer, offset: off, kind: 'stream' };
 }
 
 export function editPcMonFull(context, payload) {
     const box = Number(payload.box);
     const slot = Number(payload.slot);
-    const { buffer, offset } = getMonBufferAndOffset(context, box, slot);
+    const { buffer, offset, kind } = getMonBufferAndOffset(context, box, slot);
 
     const raw = buffer.slice(offset, offset + MON_SIZE_PC);
     if (!isValidMon(raw)) {
@@ -701,6 +852,11 @@ export function editPcMonFull(context, payload) {
         throw new Error(`Safety check failed: PC species changed unexpectedly from ${speciesBefore} to ${ru16(raw, OFF_SPECIES)}`);
     }
 
+    if (kind === 'absolute') {
+        context.absoluteEdits.set(offset, raw);
+        context.absoluteTouchedSectors.add(Math.floor(offset / SECTION_SIZE) * SECTION_SIZE);
+        return;
+    }
     buffer.set(raw, offset);
 }
 
@@ -738,4 +894,26 @@ export function applyPcContextToSave(buffer, context) {
 
         cursor += SECTOR_PAYLOAD_SIZE;
     });
+
+    if (context.absoluteEdits && context.absoluteEdits.size > 0) {
+        context.absoluteEdits.forEach((raw, absOff) => {
+            buffer.set(raw, absOff);
+        });
+    }
+
+    if (context.absoluteTouchedSectors && context.absoluteTouchedSectors.size > 0) {
+        context.absoluteTouchedSectors.forEach((secOff) => {
+            if (secOff < 0 || secOff + SECTION_SIZE > buffer.length) {
+                return;
+            }
+            const secId = ru16(buffer, secOff + OFF_ID);
+            if (secId === 0) {
+                const chk = gbaChecksum(buffer, secOff, UNBOUND_PRESET_MAGIC_LEN);
+                wu16(buffer, secOff + 0xFF6, chk);
+                return;
+            }
+            const chk = gbaChecksum(buffer, secOff, 0xFF4);
+            wu16(buffer, secOff + 0xFF6, chk);
+        });
+    }
 }

@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const DPE_SHA = 'cdfc053a56326a13dc5311b24488445e17536b7e';
+const DPE_GEN9_SHA = '5906aa4d4904e41393fd9184a16951c961e96263';
 const POKEAPI_SPRITES_SHA = 'eb473a5fc7e6ccd1705d5498d4e5945c05815c74';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -272,7 +272,7 @@ async function main() {
     ]);
 
     const [dpeTree, pokeapiTree] = await Promise.all([
-        fetchRepoTree('Skeli789', 'Dynamic-Pokemon-Expansion', DPE_SHA),
+        fetchRepoTree('Shiny-Miner', 'Dynamic-Pokemon-Expansion-Gen-9', DPE_GEN9_SHA),
         fetchRepoTree('PokeAPI', 'sprites', POKEAPI_SPRITES_SHA),
     ]);
 

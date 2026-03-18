@@ -62,7 +62,9 @@ current_save = {
         "originals": {},
         "pc_buffer": None,
         "preset_buffer": None,
-        "mons": []
+        "mons": [],
+        "fallback_box_starts": {},
+        "absolute_touched_sectors": []
     }
 }
 
@@ -836,7 +838,9 @@ async def load_pc():
     current_save["pc_context"].update({
         "sectors": sectors, "headers": headers,
         "originals": originals, "pc_buffer": pc_buf, "preset_buffer": preset_buf,
-        "mons": []
+        "mons": [],
+        "fallback_box_starts": {},
+        "absolute_touched_sectors": []
     })
 
     # Load Pokemon entries (Boxes 1-25)
@@ -860,6 +864,28 @@ async def load_pc():
                 m.buffer_offset = p_curr
                 current_save["pc_context"]["mons"].append(m)
             p_curr += box_mod.MON_SIZE_PC
+
+    # Load known fallback fragmented boxes only when missing in normal stream.
+    box_counts = {}
+    for mon in current_save["pc_context"]["mons"]:
+        box_counts[mon.box] = box_counts.get(mon.box, 0) + 1
+
+    fallback_starts = box_mod.detect_fallback_box_starts(current_save["data"])
+    current_save["pc_context"]["fallback_box_starts"] = dict(fallback_starts)
+
+    for box_id in sorted(fallback_starts.keys()):
+        if box_counts.get(box_id, 0) > 0:
+            continue
+        for slot in range(1, 31):
+            abs_off = box_mod.fallback_slot_offset(box_id, slot)
+            if abs_off is None:
+                continue
+            raw = current_save["data"][abs_off: abs_off + box_mod.MON_SIZE_PC]
+            mon = box_mod.UnboundPCMon(raw, box_id, slot)
+            if mon.is_valid:
+                mon.buffer_offset = abs_off
+                mon.buffer_kind = "absolute"
+                current_save["pc_context"]["mons"].append(mon)
 
     return {"count": len(current_save["pc_context"]["mons"]), "message": "PC loaded"}
 
@@ -958,6 +984,14 @@ async def edit_pc_mon(upd: PCUpdate):
     if target.box == 26:
         buf = current_save["pc_context"]["preset_buffer"]
         off = target.buffer_offset
+    elif getattr(target, "buffer_kind", None) == "absolute":
+        off = target.buffer_offset
+        current_save["data"][off: off + box_mod.MON_SIZE_PC] = target.raw
+        sector_off = (off // box_mod.SECTION_SIZE) * box_mod.SECTION_SIZE
+        touched = set(current_save["pc_context"].get("absolute_touched_sectors", []))
+        touched.add(sector_off)
+        current_save["pc_context"]["absolute_touched_sectors"] = sorted(touched)
+        return {"status": "Update saved to temporary buffer"}
     else:
         buf = current_save["pc_context"]["pc_buffer"]
         off = ((target.box - 1) * 30 + (target.slot - 1)) * box_mod.MON_SIZE_PC
@@ -1110,6 +1144,14 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
     if target.box == 26:
         buf = current_save["pc_context"]["preset_buffer"]
         off = target.buffer_offset
+    elif getattr(target, "buffer_kind", None) == "absolute":
+        off = target.buffer_offset
+        current_save["data"][off: off + box_mod.MON_SIZE_PC] = target.raw
+        sector_off = (off // box_mod.SECTION_SIZE) * box_mod.SECTION_SIZE
+        touched = set(current_save["pc_context"].get("absolute_touched_sectors", []))
+        touched.add(sector_off)
+        current_save["pc_context"]["absolute_touched_sectors"] = sorted(touched)
+        return {"status": "PC updates applied to buffer"}
     else:
         buf = current_save["pc_context"]["pc_buffer"]
         # Compute linear stream offset
@@ -1154,9 +1196,23 @@ async def commit_to_file():
             ctx["headers"], ctx["originals"], SAVE_FILE_NAME,
             preset_buffer=ctx["preset_buffer"]
         )
-    else:
-        with open(SAVE_FILE_NAME, "wb") as f:
-            f.write(current_save["data"])
+
+    # 4. Recalculate checksums for any absolute-sector PC edits.
+    for sec_off in ctx.get("absolute_touched_sectors", []):
+        if sec_off < 0 or sec_off + 0x1000 > len(current_save["data"]):
+            continue
+        sec_id = party_mod.ru16(current_save["data"], sec_off + 0xFF4)
+        if sec_id == 0:
+            chk_data = current_save["data"][sec_off: sec_off + 0xADC]
+            new_chk = bag_mod.gba_checksum(chk_data)
+            party_mod.wu16(current_save["data"], sec_off + 0xFF6, new_chk)
+        else:
+            chk_data = current_save["data"][sec_off: sec_off + 0xFF4]
+            new_chk = bag_mod.gba_checksum(chk_data)
+            party_mod.wu16(current_save["data"], sec_off + 0xFF6, new_chk)
+
+    with open(SAVE_FILE_NAME, "wb") as f:
+        f.write(current_save["data"])
 
     return {"message": "Save completed and checksums recalculated!"}
 
