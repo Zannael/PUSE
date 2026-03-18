@@ -963,6 +963,7 @@ class PCFullUpdate(BaseModel):
     exp: int = None
     shiny: bool = None
     gender: str = None
+    current_ability_index: int = None
 
 
 @app.post("/pc/edit-full")
@@ -986,6 +987,11 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
         target.set_species_id(upd.species_id)
     if upd.ivs: target.set_ivs(upd.ivs)
     if upd.evs: target.set_evs(upd.evs)
+    if upd.current_ability_index is not None:
+        try:
+            target.set_ability_slot(upd.current_ability_index)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
     if upd.nature_id is not None: target.set_nature(upd.nature_id)
     if upd.shiny is not None or upd.gender is not None:
         try:

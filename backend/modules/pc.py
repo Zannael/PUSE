@@ -478,6 +478,21 @@ class UnboundPCMon:
             val &= ~(1 << 31)
         wu32(self.raw, OFF_IVS, val)
 
+    def set_ability_slot(self, slot_type):
+        slot_type = int(slot_type)
+        if slot_type == 2:
+            self.set_hidden_ability_flag(True)
+            return
+        if slot_type not in (0, 1):
+            raise ValueError("Invalid ability slot (must be 0, 1, or 2)")
+
+        self.set_hidden_ability_flag(False)
+        pid = self.get_pid()
+        target_nature = pid % 25
+        while (pid % 25 != target_nature) or ((pid & 1) != slot_type):
+            pid = (pid + 1) & 0xFFFFFFFF
+        wu32(self.raw, OFF_PID, pid)
+
     def get_nature_name(self):
         pid = ru32(self.raw, OFF_PID)
         return str(pid % 25)
@@ -507,7 +522,10 @@ class UnboundPCMon:
 
     def set_nature(self, nid):
         pid = ru32(self.raw, OFF_PID)
-        while (pid % 25) != nid:
+        target_nature = int(nid) % 25
+        current_slot = pid & 1
+        keep_slot = not bool(self.get_hidden_ability_flag())
+        while (pid % 25) != target_nature or (keep_slot and ((pid & 1) != current_slot)):
             pid = (pid + 1) & 0xFFFFFFFF
         wu32(self.raw, OFF_PID, pid)
 

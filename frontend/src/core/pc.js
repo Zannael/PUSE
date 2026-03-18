@@ -189,12 +189,44 @@ function getHiddenAbilityFlag(raw) {
     return (ru32(raw, OFF_IVS) >>> 31) & 1;
 }
 
-function setNature(raw, natureId) {
-    let pid = ru32(raw, OFF_PID);
-    while ((pid % 25) !== Number(natureId)) {
+function setHiddenAbilityFlag(raw, active) {
+    let val = ru32(raw, OFF_IVS) >>> 0;
+    if (active) {
+        val |= (1 << 31) >>> 0;
+    } else {
+        val &= (~((1 << 31) >>> 0)) >>> 0;
+    }
+    wu32(raw, OFF_IVS, val >>> 0);
+}
+
+function setAbilitySlot(raw, slotType) {
+    const slot = Number(slotType);
+    if (slot === 2) {
+        setHiddenAbilityFlag(raw, true);
+        return;
+    }
+    if (slot !== 0 && slot !== 1) {
+        throw new Error('Invalid ability slot (must be 0, 1, or 2)');
+    }
+
+    setHiddenAbilityFlag(raw, false);
+    let pid = ru32(raw, OFF_PID) >>> 0;
+    const targetNature = pid % 25;
+    while ((pid % 25) !== targetNature || ((pid & 1) !== slot)) {
         pid = (pid + 1) >>> 0;
     }
-    wu32(raw, OFF_PID, pid);
+    wu32(raw, OFF_PID, pid >>> 0);
+}
+
+function setNature(raw, natureId) {
+    let pid = ru32(raw, OFF_PID) >>> 0;
+    const targetNature = Number(natureId) % 25;
+    const keepSlot = !getHiddenAbilityFlag(raw);
+    const currentSlot = pid & 1;
+    while ((pid % 25) !== targetNature || (keepSlot && ((pid & 1) !== currentSlot))) {
+        pid = (pid + 1) >>> 0;
+    }
+    wu32(raw, OFF_PID, pid >>> 0);
 }
 
 function getOtid(raw) {
@@ -647,6 +679,9 @@ export function editPcMonFull(context, payload) {
     }
     if (payload.evs) {
         setEvs(raw, payload.evs);
+    }
+    if (payload.current_ability_index !== undefined && payload.current_ability_index !== null) {
+        setAbilitySlot(raw, Number(payload.current_ability_index));
     }
     if (payload.nature_id !== undefined && payload.nature_id !== null) {
         setNature(raw, Number(payload.nature_id));

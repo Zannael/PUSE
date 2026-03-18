@@ -93,11 +93,15 @@ function pickPcCandidates(pcMons) {
   const dynamicAny = pcMons.find((p) => p.gender_mode === 'dynamic');
   const dynamicHa = pcMons.find((p) => p.gender_mode === 'dynamic' && p.current_ability_index === 2) || null;
   const fixedOrGenderless = pcMons.find((p) => p.gender_mode !== 'dynamic') || null;
+  const abilityDual = pcMons.find((p) => Number(p.ability_1_id) > 0 && Number(p.ability_2_id) > 0) || null;
+  const abilityHidden = pcMons.find((p) => Number(p.ability_hidden_id) > 0) || null;
 
   return {
     dynamicStd: dynamicStd || dynamicAny || null,
     dynamicHa,
     fixedOrGenderless,
+    abilityDual,
+    abilityHidden,
   };
 }
 
@@ -114,6 +118,8 @@ function compareCore(a, b) {
     'ability_2_name',
     'ability_hidden_id',
     'ability_hidden_name',
+    'effective_ability_id',
+    'effective_ability_name',
     'ability_label_current',
   ];
   return keys.every((k) => a?.[k] === b?.[k]);
@@ -536,6 +542,50 @@ async function main() {
   const firstPc = await initPcState();
   const pcCandidates = pickPcCandidates(firstPc.backendBoxes);
   report.push(`[info] pc candidates dynamicStd=${pcCandidates.dynamicStd ? `${pcCandidates.dynamicStd.box}:${pcCandidates.dynamicStd.slot}` : 'none'} dynamicHa=${pcCandidates.dynamicHa ? `${pcCandidates.dynamicHa.box}:${pcCandidates.dynamicHa.slot}` : 'none'} fixedOrGenderless=${pcCandidates.fixedOrGenderless ? `${pcCandidates.fixedOrGenderless.box}:${pcCandidates.fixedOrGenderless.slot}` : 'none'}`);
+
+  // PC Scenario 0: ability index persistence (standard/HA)
+  if (pcCandidates.abilityHidden && pcCandidates.abilityDual) {
+    const { box, slot } = pcCandidates.abilityDual;
+    const state = await initPcState();
+    const b0 = state.backendBoxes.find((m) => m.box === box && m.slot === slot);
+    const l0 = state.localBoxes.find((m) => m.box === box && m.slot === slot);
+
+    await backendRequest(args.api, '/pc/edit-full', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ box, slot, current_ability_index: 2 }),
+    });
+    editPcMonFull(state.localContext, { box, slot, current_ability_index: 2 });
+
+    await backendRequest(args.api, '/pc/edit-full', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ box, slot, current_ability_index: 1 }),
+    });
+    editPcMonFull(state.localContext, { box, slot, current_ability_index: 1 });
+
+    const b1 = await backendPcMon(box, slot);
+    const l1 = localPcMon(state.localContext, box, slot);
+    const invB = assertInvariant(b0, b1, { expectNaturePreserved: true, expectAbilityPreserved: false });
+    const invL = assertInvariant(l0, l1, { expectNaturePreserved: true, expectAbilityPreserved: false });
+    const checks = [
+      Number(b1.current_ability_index) === 1,
+      Number(l1.current_ability_index) === 1,
+      typeof b1.ability_label_current === 'string' && b1.ability_label_current.length > 0,
+      typeof l1.ability_label_current === 'string' && l1.ability_label_current.length > 0,
+      Number(b1.effective_ability_id || 0) > 0,
+      Number(l1.effective_ability_id || 0) > 0,
+    ];
+
+    if (invB.length || invL.length || checks.includes(false) || !compareCore(b1, l1)) {
+      failures += 1;
+      report.push(`[FAIL] pc ability index persistence ${box}:${slot} backend=${invB.join('; ') || 'ok'} local=${invL.join('; ') || 'ok'} checks=${JSON.stringify(checks)} parity=${compareCore(b1, l1)}`);
+    } else {
+      report.push(`[PASS] pc ability index persistence ${box}:${slot}`);
+    }
+  } else {
+    report.push('[SKIP] pc ability index persistence: suitable dual+hidden candidate not found');
+  }
 
   // PC Scenario 1: shiny toggle
   if (pcCandidates.dynamicStd) {

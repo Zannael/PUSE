@@ -178,6 +178,10 @@ const App = () => {
                 payload.nickname = updatedPk.nickname || '';
             }
 
+            if (Number(updatedPk.current_ability_index) !== Number(original.current_ability_index)) {
+                payload.current_ability_index = Number(updatedPk.current_ability_index);
+            }
+
             if (updatedPk.species_id !== selectedPokemon?.species_id) {
                 payload.species_id = updatedPk.species_id;
             }
