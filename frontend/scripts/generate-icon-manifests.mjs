@@ -9,6 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const FRONTEND_DIR = path.resolve(__dirname, '..');
 const POKEMON_DATA_PATH = path.join(FRONTEND_DIR, 'public', 'data', 'pokemon.txt');
+const SPECIES_ID_PATH = path.resolve(FRONTEND_DIR, '..', 'backend', 'data', 'species_id.txt');
 const ITEM_DATA_PATH = path.join(FRONTEND_DIR, 'public', 'data', 'items.txt');
 const POKEMON_OUT_PATH = path.join(FRONTEND_DIR, 'src', 'data', 'pokemon-icon-manifest.json');
 const ITEM_OUT_PATH = path.join(FRONTEND_DIR, 'src', 'data', 'item-icon-manifest.json');
@@ -43,6 +44,56 @@ function parseIdNameText(content) {
     return out;
 }
 
+function parseSpeciesIdTokens(content) {
+    const out = new Map();
+    for (const raw of content.split(/\r?\n/)) {
+        const line = raw.trim();
+        if (!line.startsWith('SPECIES_')) {
+            continue;
+        }
+        const parts = line.split(/\s+/);
+        const token = parts[0].slice('SPECIES_'.length);
+        const hex = parts.find((p) => /^0x[0-9a-f]+$/i.test(p));
+        if (!hex) {
+            continue;
+        }
+        const id = Number.parseInt(hex, 16);
+        if (Number.isNaN(id) || id < 0) {
+            continue;
+        }
+        out.set(id, token);
+    }
+    return out;
+}
+
+const SPECIAL_SPRITE_BY_TOKEN = {
+    FLAPPLE_GIGA: 'gFrontSpriteGigaFlappletun.png',
+    APPLETUN_GIGA: 'gFrontSpriteGigaFlappletun.png',
+    TOXTRICITY_LOW_KEY_GIGA: 'gFrontSpriteGigaToxtricity.png',
+};
+
+function toPascalFromToken(token) {
+    return String(token || '')
+        .split('_')
+        .filter(Boolean)
+        .map((chunk) => chunk.charAt(0) + chunk.slice(1).toLowerCase())
+        .join('');
+}
+
+function candidatesFromSpeciesToken(token) {
+    if (!token) {
+        return [];
+    }
+    if (SPECIAL_SPRITE_BY_TOKEN[token]) {
+        return [SPECIAL_SPRITE_BY_TOKEN[token]];
+    }
+    if (token.endsWith('_GIGA')) {
+        const baseToken = token.slice(0, -'_GIGA'.length);
+        return [`gFrontSpriteGiga${toPascalFromToken(baseToken)}.png`];
+    }
+    return [];
+}
+
 async function fetchJson(url) {
     const res = await fetch(url, {
         headers: {
@@ -68,8 +119,9 @@ async function fetchRepoTree(owner, repo, sha) {
     return json.tree;
 }
 
-function buildPokemonManifest(speciesRows, dpeTree) {
+function buildPokemonManifest(speciesRows, dpeTree, speciesTokensById) {
     const byId = new Map();
+    const availableFilenames = new Set();
 
     for (const node of dpeTree) {
         if (node.type !== 'blob') {
@@ -79,6 +131,7 @@ function buildPokemonManifest(speciesRows, dpeTree) {
             continue;
         }
         const filename = node.path.split('/').pop();
+        availableFilenames.add(filename);
         const match = /^gFrontSprite(\d{3,4})(.+)\.png$/i.exec(filename);
         if (!match) {
             continue;
@@ -99,6 +152,13 @@ function buildPokemonManifest(speciesRows, dpeTree) {
     for (const species of speciesRows) {
         const candidates = byId.get(species.id) || [];
         if (candidates.length === 0) {
+            const token = speciesTokensById.get(species.id);
+            const tokenCandidates = candidatesFromSpeciesToken(token);
+            const picked = tokenCandidates.find((f) => availableFilenames.has(f));
+            if (picked) {
+                manifest[String(species.id)] = picked;
+                continue;
+            }
             unresolved.push(species);
             continue;
         }
@@ -205,8 +265,9 @@ function stableJson(obj) {
 async function main() {
     const checkMode = process.argv.includes('--check');
 
-    const [pokemonText, itemText] = await Promise.all([
+    const [pokemonText, speciesIdText, itemText] = await Promise.all([
         fs.readFile(POKEMON_DATA_PATH, 'utf-8'),
+        fs.readFile(SPECIES_ID_PATH, 'utf-8'),
         fs.readFile(ITEM_DATA_PATH, 'utf-8'),
     ]);
 
@@ -216,9 +277,22 @@ async function main() {
     ]);
 
     const speciesRows = parseIdNameText(pokemonText);
+    const speciesTokensById = parseSpeciesIdTokens(speciesIdText);
+
+    // Add species IDs that exist in species_id.txt but not in pokemon.txt,
+    // so non-numeric form sprites (e.g. many Gigantamax forms) can be mapped.
+    const speciesKnown = new Set(speciesRows.map((s) => s.id));
+    for (const [id, token] of speciesTokensById.entries()) {
+        if (id <= 0 || speciesKnown.has(id)) {
+            continue;
+        }
+        speciesRows.push({ id, name: token });
+    }
+
+    speciesRows.sort((a, b) => a.id - b.id);
     const itemRows = parseIdNameText(itemText);
 
-    const pokemonResult = buildPokemonManifest(speciesRows, dpeTree);
+    const pokemonResult = buildPokemonManifest(speciesRows, dpeTree, speciesTokensById);
     const itemResult = buildItemManifest(itemRows, pokeapiTree);
 
     const pokemonJson = stableJson(pokemonResult.manifest);
