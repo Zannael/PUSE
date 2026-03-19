@@ -66,6 +66,16 @@
 - Pokemon editor Info tab now shows Species controls before level/nature/item controls for faster access.
 - Ability controls now show resolved ROM-truth ability names for slot buttons and current-ability labels (including hidden ability names when available).
 
+#### Responsive UI and Internationalization
+
+- Reworked the frontend shell for responsive behavior across desktop/tablet/mobile while preserving single-page dynamic sections.
+- App title in UI now uses `PUSE` and the pre-upload screen now includes concise onboarding content plus visible upload and drag-and-drop actions.
+- Added explicit `RESTART / LOAD NEW FILE` control in the loaded-state header.
+- Standardized modal dismissal UX: money modal, Pokemon editor modal, and bag edit modal now close via `X`, outside click, and `Esc`.
+- PC Box view now renders explicit empty slots and keeps a responsive grid (up to 6 columns where space allows) without forced horizontal scrolling on small devices.
+- Party card icon sizing was adjusted to avoid sprite cropping in slot frames.
+- Nature labels were normalized to English-only for public international UX parity in both backend and local mode flows (`Hardy`, `Adamant`, etc.); fallback text is now `Unknown`.
+
 ## v1.1.0 - 2026-03-16
 
 ### Added

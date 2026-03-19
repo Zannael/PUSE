@@ -33,13 +33,13 @@ const INV_11_MOD_25 = 16;
 const GROWTH_RATE_COUNT = 6;
 
 const NATURES = {
-    0: 'Hardy (Ardita)', 1: 'Lonely (Schiva)', 2: 'Brave (Audace)', 3: 'Adamant (Decisa)',
-    4: 'Naughty (Birbona)', 5: 'Bold (Sicura)', 6: 'Docile (Docile)', 7: 'Relaxed (Placida)',
-    8: 'Impish (Scaltra)', 9: 'Lax (Fiacca)', 10: 'Timid (Timida)', 11: 'Hasty (Lesta)',
-    12: 'Serious (Seria)', 13: 'Jolly (Allegra)', 14: 'Naive (Ingenua)', 15: 'Modest (Modesta)',
-    16: 'Mild (Mite)', 17: 'Quiet (Quieta)', 18: 'Bashful (Ritrosa)', 19: 'Rash (Ardente)',
-    20: 'Calm (Calma)', 21: 'Gentle (Gentile)', 22: 'Sassy (Vivace)', 23: 'Careful (Cauta)',
-    24: 'Quirky (Furba)',
+    0: 'Hardy', 1: 'Lonely', 2: 'Brave', 3: 'Adamant',
+    4: 'Naughty', 5: 'Bold', 6: 'Docile', 7: 'Relaxed',
+    8: 'Impish', 9: 'Lax', 10: 'Timid', 11: 'Hasty',
+    12: 'Serious', 13: 'Jolly', 14: 'Naive', 15: 'Modest',
+    16: 'Mild', 17: 'Quiet', 18: 'Bashful', 19: 'Rash',
+    20: 'Calm', 21: 'Gentle', 22: 'Sassy', 23: 'Careful',
+    24: 'Quirky',
 };
 
 const CHARMAP = {
@@ -731,7 +731,7 @@ export function getParty(buffer, speciesById, speciesMetaById = null) {
             is_form_variant: speciesMeta.is_form_variant,
             level: ru8(rawMon, OFF_LEVEL_VISUAL),
             exp: getExp(rawMon),
-            nature: NATURES[natureId] || 'Sconosciuta',
+            nature: NATURES[natureId] || 'Unknown',
             nature_id: natureId,
             pid,
             is_shiny: isShinyPid(getOtid(rawMon), pid),
