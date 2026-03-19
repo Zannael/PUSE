@@ -3,40 +3,6 @@ import {
     resolveItemIconUrl,
     resolvePokemonIconUrl,
 } from '../core/iconResolver.js';
-import { saveAll as commitSaveAll } from '../core/commit.js';
-import { getAbilitiesList, getItemsList, getMovesList, getSpeciesFormMetaMap, getSpeciesList, getSpeciesMap, loadCatalog } from '../core/catalog.js';
-import {
-    formatScanResults,
-    mapPocketFromAnchor,
-    resolveQuickPockets,
-    scanForItemCandidates,
-    writeSlot,
-} from '../core/bag.js';
-import { readMoney, updateMoney as patchMoney } from '../core/money.js';
-import {
-    getParty as readParty,
-    updatePartyAbilitySwitch as patchPartyAbilitySwitch,
-    updatePartyEvs as patchPartyEvs,
-    updatePartyItem as patchPartyItem,
-    updatePartyIdentity as patchPartyIdentity,
-    updatePartyIvs as patchPartyIvs,
-    updatePartyLevel as patchPartyLevel,
-    updatePartyMoves as patchPartyMoves,
-    updatePartyNature as patchPartyNature,
-    updatePartyNickname as patchPartyNickname,
-    updatePartySpecies as patchPartySpecies,
-} from '../core/party.js';
-import {
-    clearPcContext,
-    exportBlob,
-    getBuffer,
-    getFilename,
-    getPcContext,
-    loadFile,
-    setPcContext,
-    updateBuffer,
-} from '../core/saveSession.js';
-import { editPcMonFull, getPcBox as readPcBox, loadPcContext } from '../core/pc.js';
 
 const MODE_STORAGE_KEY = "runtime_mode";
 
@@ -96,11 +62,36 @@ function downloadBlob(blob, filename) {
 }
 
 let itemNameMapCache = null;
+let localCoreModulesPromise = null;
+
+async function getLocalCoreModules() {
+    if (!localCoreModulesPromise) {
+        localCoreModulesPromise = Promise.all([
+            import('../core/catalog.js'),
+            import('../core/party.js'),
+            import('../core/saveSession.js'),
+            import('../core/pc.js'),
+            import('../core/bag.js'),
+            import('../core/money.js'),
+            import('../core/commit.js'),
+        ]).then(([catalog, party, saveSession, pc, bag, money, commit]) => ({
+            ...catalog,
+            ...party,
+            ...saveSession,
+            ...pc,
+            ...bag,
+            ...money,
+            ...commit,
+        }));
+    }
+    return localCoreModulesPromise;
+}
 
 async function getItemNameMap() {
     if (itemNameMapCache) {
         return itemNameMapCache;
     }
+    const { getItemsList } = await getLocalCoreModules();
     const items = await getItemsList();
     itemNameMapCache = new Map(items.map((it) => [it.id, it.name]));
     return itemNameMapCache;
@@ -108,6 +99,7 @@ async function getItemNameMap() {
 
 async function ensureValidSpeciesId(speciesId) {
     const nextId = Number(speciesId);
+    const { getSpeciesMap } = await getLocalCoreModules();
     const speciesMap = await getSpeciesMap();
     if (!Number.isInteger(nextId) || nextId <= 0 || !speciesMap.has(nextId)) {
         throw new Error('Invalid species_id');
@@ -271,77 +263,102 @@ const localClient = {
     getItemIconUrl(itemId) {
         return resolveItemIconUrl(itemId, API_BASE);
     },
-    uploadSave(file) {
+    async uploadSave(file) {
+        const { clearPcContext, loadFile, loadCatalog } = await getLocalCoreModules();
         itemNameMapCache = null;
         clearPcContext();
-        return Promise.all([loadFile(file), loadCatalog()]);
+        await Promise.all([loadFile(file), loadCatalog()]);
     },
-    getMoney() {
+    async getMoney() {
+        const { readMoney, getBuffer } = await getLocalCoreModules();
         const money = readMoney(getBuffer());
-        return Promise.resolve({ money });
+        return { money };
     },
-    updateMoney(amount) {
+    async updateMoney(amount) {
+        const { updateBuffer, readMoney, updateMoney: patchMoney } = await getLocalCoreModules();
         const newMoney = updateBuffer((next) => patchMoney(next, amount));
-        return Promise.resolve({
+        return {
             message: `Money updated to ${readMoney(newMoney)}`,
             new_money: readMoney(newMoney),
-        });
+        };
     },
-    downloadSave() {
+    async downloadSave() {
+        const { exportBlob, getFilename } = await getLocalCoreModules();
         downloadBlob(exportBlob(), getFilename());
     },
-    getParty() {
+    async getParty() {
+        const { getSpeciesMap, getSpeciesFormMetaMap, getParty: readParty, getBuffer } = await getLocalCoreModules();
         return Promise.all([getSpeciesMap(), getSpeciesFormMetaMap()]).then(([speciesMap, speciesMeta]) =>
             readParty(getBuffer(), speciesMap, speciesMeta)
         );
     },
-    updatePartyIvs(index, payload) {
+    async updatePartyIvs(index, payload) {
+        const { updateBuffer, updatePartyIvs: patchPartyIvs } = await getLocalCoreModules();
         updateBuffer((next) => patchPartyIvs(next, Number(index), payload || {}));
-        return Promise.resolve({ status: 'IVs updated in memory' });
+        return { status: 'IVs updated in memory' };
     },
-    updatePartyEvs(index, payload) {
+    async updatePartyEvs(index, payload) {
+        const { updateBuffer, updatePartyEvs: patchPartyEvs } = await getLocalCoreModules();
         updateBuffer((next) => patchPartyEvs(next, Number(index), payload || {}));
-        return Promise.resolve({ status: 'EVs updated in memory' });
+        return { status: 'EVs updated in memory' };
     },
-    updatePartyMoves(index, payload) {
+    async updatePartyMoves(index, payload) {
+        const { updateBuffer, updatePartyMoves: patchPartyMoves } = await getLocalCoreModules();
         updateBuffer((next) => patchPartyMoves(next, Number(index), payload || {}));
-        return Promise.resolve({ status: 'Moves updated in memory' });
+        return { status: 'Moves updated in memory' };
     },
-    updatePartyAbilitySwitch(index, payload) {
+    async updatePartyAbilitySwitch(index, payload) {
+        const { updateBuffer, updatePartyAbilitySwitch: patchPartyAbilitySwitch } = await getLocalCoreModules();
         updateBuffer((next) => patchPartyAbilitySwitch(next, Number(index), payload || {}));
-        return Promise.resolve({ status: 'Ability updated in memory' });
+        return { status: 'Ability updated in memory' };
     },
-    updatePartyNature(index, payload) {
+    async updatePartyNature(index, payload) {
+        const { updateBuffer, updatePartyNature: patchPartyNature } = await getLocalCoreModules();
         updateBuffer((next) => patchPartyNature(next, Number(index), payload || {}));
-        return Promise.resolve({ status: 'Nature updated in memory' });
+        return { status: 'Nature updated in memory' };
     },
-    updatePartyLevel(index, payload) {
+    async updatePartyLevel(index, payload) {
+        const { updateBuffer, updatePartyLevel: patchPartyLevel } = await getLocalCoreModules();
         updateBuffer((next) => patchPartyLevel(next, Number(index), payload || {}));
-        return Promise.resolve({ status: 'Level updated in memory' });
+        return { status: 'Level updated in memory' };
     },
-    updatePartyItem(index, payload) {
+    async updatePartyItem(index, payload) {
+        const { updateBuffer, updatePartyItem: patchPartyItem } = await getLocalCoreModules();
         updateBuffer((next) => patchPartyItem(next, Number(index), payload || {}));
-        return Promise.resolve({ status: 'Item updated in memory' });
+        return { status: 'Item updated in memory' };
     },
-    updatePartyIdentity(index, payload) {
+    async updatePartyIdentity(index, payload) {
+        const { updateBuffer, updatePartyIdentity: patchPartyIdentity } = await getLocalCoreModules();
         updateBuffer((next) => patchPartyIdentity(next, Number(index), payload || {}));
-        return Promise.resolve({ status: 'Identity updated in memory' });
+        return { status: 'Identity updated in memory' };
     },
-    updatePartyNickname(index, payload) {
+    async updatePartyNickname(index, payload) {
+        const { updateBuffer, updatePartyNickname: patchPartyNickname } = await getLocalCoreModules();
         updateBuffer((next) => patchPartyNickname(next, Number(index), payload || {}));
-        return Promise.resolve({ status: 'Nickname updated in memory' });
+        return { status: 'Nickname updated in memory' };
     },
     async updatePartySpecies(index, payload) {
+        const { updateBuffer, updatePartySpecies: patchPartySpecies } = await getLocalCoreModules();
         const speciesId = await ensureValidSpeciesId(payload?.species_id);
         updateBuffer((next) => patchPartySpecies(next, Number(index), { species_id: speciesId }));
-        return Promise.resolve({ status: 'Species updated in memory' });
+        return { status: 'Species updated in memory' };
     },
-    loadPc() {
+    async loadPc() {
+        const { getBuffer, loadPcContext, setPcContext } = await getLocalCoreModules();
         const context = loadPcContext(getBuffer());
         setPcContext(context);
-        return Promise.resolve({ message: 'PC loaded' });
+        return { message: 'PC loaded' };
     },
     async getPcBox(boxId) {
+        const {
+            getPcContext,
+            loadPcContext,
+            setPcContext,
+            getBuffer,
+            getSpeciesMap,
+            getSpeciesFormMetaMap,
+            getPcBox: readPcBox,
+        } = await getLocalCoreModules();
         let context = getPcContext();
         if (!context) {
             context = loadPcContext(getBuffer());
@@ -351,6 +368,13 @@ const localClient = {
         return readPcBox(context, Number(boxId), speciesMap, speciesMeta);
     },
     async editPcFull(payload) {
+        const {
+            getPcContext,
+            loadPcContext,
+            setPcContext,
+            getBuffer,
+            editPcMonFull,
+        } = await getLocalCoreModules();
         let context = getPcContext();
         if (!context) {
             context = loadPcContext(getBuffer());
@@ -361,29 +385,36 @@ const localClient = {
             nextPayload.species_id = await ensureValidSpeciesId(nextPayload.species_id);
         }
         editPcMonFull(context, nextPayload);
-        return Promise.resolve({ status: 'PC edit buffered' });
+        return { status: 'PC edit buffered' };
     },
-    getMoves() {
+    async getMoves() {
+        const { getMovesList } = await getLocalCoreModules();
         return getMovesList();
     },
-    getAbilities() {
+    async getAbilities() {
+        const { getAbilitiesList } = await getLocalCoreModules();
         return getAbilitiesList();
     },
-    getItems() {
+    async getItems() {
+        const { getItemsList } = await getLocalCoreModules();
         return getItemsList();
     },
-    getSpecies() {
+    async getSpecies() {
+        const { getSpeciesList } = await getLocalCoreModules();
         return getSpeciesList();
     },
-    scanBag(searchId) {
+    async scanBag(searchId) {
+        const { getBuffer, scanForItemCandidates, formatScanResults } = await getLocalCoreModules();
         const candidates = scanForItemCandidates(getBuffer(), Number(searchId));
-        return Promise.resolve(formatScanResults(candidates, Number(searchId)));
+        return formatScanResults(candidates, Number(searchId));
     },
     async getBagPocket(anchorOffset) {
+        const { getBuffer, mapPocketFromAnchor } = await getLocalCoreModules();
         const itemNames = await getItemNameMap();
         return mapPocketFromAnchor(getBuffer(), Number(anchorOffset), itemNames);
     },
-    updateBagItem(payload) {
+    async updateBagItem(payload) {
+        const { updateBuffer, writeSlot } = await getLocalCoreModules();
         updateBuffer((next) => {
             writeSlot(
                 next,
@@ -393,16 +424,18 @@ const localClient = {
                 payload.encoding || null,
             );
         });
-        return Promise.resolve({ status: 'Bag slot updated' });
+        return { status: 'Bag slot updated' };
     },
-    getBagPocketsBootstrap() {
-        return Promise.resolve({ pockets: resolveQuickPockets(getBuffer()) });
+    async getBagPocketsBootstrap() {
+        const { resolveQuickPockets, getBuffer } = await getLocalCoreModules();
+        return { pockets: resolveQuickPockets(getBuffer()) };
     },
-    saveAll() {
+    async saveAll() {
+        const { updateBuffer, saveAll: commitSaveAll, getPcContext } = await getLocalCoreModules();
         updateBuffer((next) => {
             commitSaveAll(next, getPcContext());
         });
-        return Promise.resolve({ message: 'Save completed' });
+        return { message: 'Save completed' };
     },
 };
 
