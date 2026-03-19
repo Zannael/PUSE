@@ -75,6 +75,16 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
             .then(data => setAllSpecies(data));
     }, [client]);
 
+    useEffect(() => {
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [onClose]);
+
     const applySpeciesSelection = (species) => {
         const previousSpecies = allSpecies.find(s => s.id === localPk.species_id);
         const previousDisplay = previousSpecies?.display_name || previousSpecies?.name || '';
@@ -106,8 +116,14 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-[#0f172a] border border-white/10 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+            onClick={onClose}
+        >
+            <div
+                className="bg-[#0f172a] border border-white/10 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                onClick={(e) => e.stopPropagation()}
+            >
 
                 <div className="p-6 bg-[#1e293b] flex justify-between items-center border-b border-white/5">
                     <div className="flex items-center gap-4">

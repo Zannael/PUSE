@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Upload, LayoutGrid, Users, Briefcase, Save, Edit3, X } from 'lucide-react';
+import { Upload, LayoutGrid, Users, Briefcase, Save, Edit3, X, RotateCcw, Sparkles, Newspaper } from 'lucide-react';
 import PartyGrid from './components/PartyGrid';
 import PCGrid from './components/PCGrid';
 import BagView from "./components/BagView.jsx";
@@ -20,8 +20,7 @@ const App = () => {
         persistRuntimeMode(runtimeMode);
     }, [runtimeMode]);
 
-    const handleUpload = async (e) => {
-        const file = e.target.files[0];
+    const uploadSaveFile = async (file) => {
         if (!file) return;
 
         try {
@@ -33,6 +32,17 @@ const App = () => {
         } catch {
             alert("Upload failed for current runtime mode.");
         }
+    };
+
+    const handleUpload = async (e) => {
+        const file = e.target.files[0];
+        await uploadSaveFile(file);
+    };
+
+    const handleDropUpload = async (e) => {
+        e.preventDefault();
+        const file = e.dataTransfer?.files?.[0];
+        await uploadSaveFile(file);
     };
 
     const [selectedPokemon, setSelectedPokemon] = useState(null);
@@ -247,23 +257,38 @@ const App = () => {
         }
     };
 
+    const handleRestartApp = () => {
+        window.location.reload();
+    };
+
+    useEffect(() => {
+        if (!showMoneyModal) return;
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                setShowMoneyModal(false);
+            }
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [showMoneyModal]);
+
     return (
         <div className="min-h-screen bg-[#0f172a] text-slate-100 flex flex-col items-center">
             <header className="w-full bg-[#1e293b]/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
-                <div className="max-w-6xl mx-auto p-4 flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-xl font-black text-blue-400 tracking-tighter uppercase">Unbound Editor</h1>
+                <div className="max-w-6xl mx-auto p-4 flex justify-between items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <h1 className="text-xl font-black text-blue-400 tracking-tighter uppercase">PUSE</h1>
                         <select
                             value={runtimeMode}
                             onChange={(e) => setRuntimeMode(e.target.value)}
-                            className="bg-slate-900 border border-white/10 rounded-xl px-2 py-1 text-[10px] uppercase tracking-widest text-slate-300"
+                            className="bg-slate-900 border border-white/10 rounded-xl px-2 py-1 text-[10px] uppercase tracking-widest text-slate-300 min-w-[116px]"
                         >
                             <option value={RUNTIME_MODES.backend}>Backend mode</option>
                             <option value={RUNTIME_MODES.local}>Local mode</option>
                         </select>
                     </div>
                     {isLoaded && (
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 md:gap-3 flex-wrap justify-end">
                             <div className="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full text-emerald-400 font-mono text-sm">
                                 ${money.toLocaleString()}
                             </div>
@@ -273,6 +298,13 @@ const App = () => {
                                 title="Edit money"
                             >
                                 <Edit3 size={14} />
+                            </button>
+                            <button
+                                onClick={handleRestartApp}
+                                className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all"
+                                title="Restart app and load a new file"
+                            >
+                                <RotateCcw size={14} /> RESTART / LOAD NEW FILE
                             </button>
                             <button
                                 onClick={handleDownload}
@@ -285,17 +317,58 @@ const App = () => {
                 </div>
             </header>
 
-            <main className="w-full max-w-6xl p-4 md:p-8 pb-32">
+            <main className="w-full max-w-6xl p-4 md:p-8 pb-36">
                 {!isLoaded ? (
-                    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-                        <div className="w-20 h-20 bg-blue-600/20 rounded-3xl flex items-center justify-center mb-6 border border-blue-500/30">
-                            <Upload className="text-blue-500" size={32} />
-                        </div>
-                        <h2 className="text-3xl font-bold mb-2">Welcome Trainer</h2>
-                        <label className="bg-blue-600 hover:bg-blue-500 px-10 py-4 rounded-2xl cursor-pointer font-bold transition-all shadow-lg active:scale-95">
-                            SELECT SAVE FILE
-                            <input type="file" className="hidden" onChange={handleUpload} accept=".sav" />
-                        </label>
+                    <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-4 md:gap-6 min-h-[60vh] content-start">
+                        <section
+                            className="bg-[#1e293b]/50 border border-white/10 rounded-[2rem] p-5 md:p-6 text-center md:text-left"
+                            onDrop={handleDropUpload}
+                            onDragOver={(e) => e.preventDefault()}
+                        >
+                            <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center mb-4 border border-blue-500/30 mx-auto md:mx-0">
+                                <Upload className="text-blue-500" size={28} />
+                            </div>
+                            <h2 className="text-2xl md:text-3xl font-bold">Load your save and start editing</h2>
+                            <p className="text-slate-300 mt-2 text-sm md:text-base">
+                                Drag and drop a <span className="font-mono">.sav</span> file here, or pick it manually.
+                            </p>
+
+                            <div className="mt-5 border border-dashed border-blue-500/40 bg-slate-900/40 rounded-2xl p-5 md:p-6">
+                                <p className="text-xs uppercase tracking-widest text-slate-400 mb-3">Drop zone</p>
+                                <label className="inline-flex bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-2xl cursor-pointer font-bold transition-all shadow-lg active:scale-95 text-sm">
+                                    SELECT SAVE FILE
+                                    <input type="file" className="hidden" onChange={handleUpload} accept=".sav" />
+                                </label>
+                            </div>
+
+                            <p className="text-[11px] text-slate-500 mt-3">
+                                Tip: Local mode runs fully in-browser. Backend mode uses FastAPI endpoints.
+                            </p>
+                        </section>
+
+                        <section className="space-y-4">
+                            <div className="bg-[#1e293b]/50 border border-white/10 rounded-[2rem] p-5 md:p-6">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                    <Sparkles size={12} /> What PUSE does
+                                </p>
+                                <ul className="mt-3 space-y-2 text-sm text-slate-200">
+                                    <li>Edit Party Pokemon (IV/EV/moves/ability/nature/item)</li>
+                                    <li>Edit PC boxes and bag pockets</li>
+                                    <li>Update money and export checksum-safe saves</li>
+                                </ul>
+                            </div>
+
+                            <div className="bg-[#1e293b]/50 border border-white/10 rounded-[2rem] p-5 md:p-6">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                    <Newspaper size={12} /> Latest updates
+                                </p>
+                                <ul className="mt-3 space-y-2 text-sm text-slate-200">
+                                    <li>Species and nickname editing for Party + PC</li>
+                                    <li>Identity controls (shiny/gender) with PID safety</li>
+                                    <li>Bag uses explicit save flow to write .sav changes</li>
+                                </ul>
+                            </div>
+                        </section>
                     </div>
                 ) : (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -319,8 +392,14 @@ const App = () => {
             </main>
 
             {showMoneyModal && (
-                <div className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="w-full max-w-sm bg-[#0f172a] border border-white/10 rounded-[2rem] p-6 space-y-5">
+                <div
+                    className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+                    onClick={() => setShowMoneyModal(false)}
+                >
+                    <div
+                        className="w-full max-w-sm bg-[#0f172a] border border-white/10 rounded-[2rem] p-6 space-y-5"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <div className="flex items-center justify-between">
                             <h3 className="text-lg font-bold">Edit Money</h3>
                             <button onClick={() => setShowMoneyModal(false)} className="text-slate-500 hover:text-white">

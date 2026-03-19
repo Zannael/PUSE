@@ -192,6 +192,18 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
     const [editItemId, setEditItemId] = useState(0);
     const [modalSearch, setModalSearch] = useState("");
 
+    useEffect(() => {
+        if (!editingItem) return;
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                setEditingItem(null);
+                setModalSearch('');
+            }
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [editingItem]);
+
     const confirmNavigateWithUnsaved = () => {
         if (!hasUnsavedBagChanges) {
             return true;
@@ -531,8 +543,17 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
                     </div>
 
                     {editingItem && (
-                        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                            <div className="bg-[#0f172a] border border-white/10 p-8 rounded-[2.5rem] w-full max-w-md shadow-2xl space-y-6">
+                        <div
+                            className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+                            onClick={() => {
+                                setEditingItem(null);
+                                setModalSearch('');
+                            }}
+                        >
+                            <div
+                                className="bg-[#0f172a] border border-white/10 p-8 rounded-[2.5rem] w-full max-w-md shadow-2xl space-y-6"
+                                onClick={(e) => e.stopPropagation()}
+                            >
                                 <div className="flex justify-between items-center">
                                     <h3 className="text-xl font-bold flex items-center gap-2">
                                         <Edit3 className="text-blue-400" /> Edit Slot
