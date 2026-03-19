@@ -70,6 +70,8 @@
 
 - Reworked the frontend shell for responsive behavior across desktop/tablet/mobile while preserving single-page dynamic sections.
 - App title in UI now uses `PUSE` and the pre-upload screen now includes concise onboarding content plus visible upload and drag-and-drop actions.
+- Branding now references Pokemon Unbound in both the browser tab title and onboarding copy, while keeping a compact `PUSE` header label on small screens.
+- Added onboarding note clarifying compatibility with `.sav` files from CFRU + DPE ROM hacks.
 - Added explicit `RESTART / LOAD NEW FILE` control in the loaded-state header.
 - Standardized modal dismissal UX: money modal, Pokemon editor modal, and bag edit modal now close via `X`, outside click, and `Esc`.
 - PC Box view now renders explicit empty slots and keeps a responsive grid (up to 6 columns where space allows) without forced horizontal scrolling on small devices.

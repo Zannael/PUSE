@@ -1,11 +1,14 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { lazy, Suspense, useMemo, useState, useEffect } from 'react';
 import { Upload, LayoutGrid, Users, Briefcase, Save, Edit3, X, RotateCcw, Sparkles, Newspaper } from 'lucide-react';
-import PartyGrid from './components/PartyGrid';
-import PCGrid from './components/PCGrid';
-import BagView from "./components/BagView.jsx";
-import {PokemonEditorModal} from "./components/PokemonEditorModal.jsx";
 import { createApiClient, getInitialRuntimeMode, persistRuntimeMode, RUNTIME_MODES } from './services/apiClient.js';
 import { getExpAtLevel, getSpeciesGrowthRate } from './core/growth.js';
+
+const PartyGrid = lazy(() => import('./components/PartyGrid'));
+const PCGrid = lazy(() => import('./components/PCGrid'));
+const BagView = lazy(() => import('./components/BagView.jsx'));
+const PokemonEditorModal = lazy(() =>
+    import('./components/PokemonEditorModal.jsx').then((mod) => ({ default: mod.PokemonEditorModal }))
+);
 
 const App = () => {
     const [runtimeMode, setRuntimeMode] = useState(getInitialRuntimeMode);
@@ -248,9 +251,9 @@ const App = () => {
         }
     };
 
-    const handleDownload = () => {
+    const handleDownload = async () => {
         try {
-            client.downloadSave();
+            await client.downloadSave();
         } catch (err) {
             console.error(err);
             alert('Download is not available in this runtime mode yet.');
@@ -277,7 +280,10 @@ const App = () => {
             <header className="w-full bg-[#1e293b]/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
                 <div className="max-w-6xl mx-auto p-4 flex justify-between items-center gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                        <h1 className="text-xl font-black text-blue-400 tracking-tighter uppercase">PUSE</h1>
+                        <h1 className="text-xl font-black text-blue-400 tracking-tighter uppercase">
+                            <span className="md:hidden">PUSE</span>
+                            <span className="hidden md:inline">PUSE - Pokemon Unbound Save Editor</span>
+                        </h1>
                         <select
                             value={runtimeMode}
                             onChange={(e) => setRuntimeMode(e.target.value)}
@@ -328,7 +334,7 @@ const App = () => {
                             <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center mb-4 border border-blue-500/30 mx-auto md:mx-0">
                                 <Upload className="text-blue-500" size={28} />
                             </div>
-                            <h2 className="text-2xl md:text-3xl font-bold">Load your save and start editing</h2>
+                            <h2 className="text-2xl md:text-3xl font-bold">Load your Pokemon Unbound save and start editing</h2>
                             <p className="text-slate-300 mt-2 text-sm md:text-base">
                                 Drag and drop a <span className="font-mono">.sav</span> file here, or pick it manually.
                             </p>
@@ -343,6 +349,9 @@ const App = () => {
 
                             <p className="text-[11px] text-slate-500 mt-3">
                                 Tip: Local mode runs fully in-browser. Backend mode uses FastAPI endpoints.
+                            </p>
+                            <p className="text-[11px] text-slate-400 mt-1">
+                                Note: You can also try any <span className="font-mono">.sav</span> file from a CFRU + DPE hack.
                             </p>
                         </section>
 
@@ -372,21 +381,23 @@ const App = () => {
                     </div>
                 ) : (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        {activeTab === 'party' && (
-                            <PartyGrid
-                                key={`party-${refreshKey}`}
+                        <Suspense fallback={<div className="py-16 text-center text-slate-400 animate-pulse">Loading editor section...</div>}>
+                            {activeTab === 'party' && (
+                                <PartyGrid
+                                    key={`party-${refreshKey}`}
+                                    client={client}
+                                    onEditPokemon={(pk) => setSelectedPokemon(pk)}
+                                />
+                            )}
+                            {activeTab === 'pc' && <PCGrid
+                                key={`pc-${refreshKey}`}
                                 client={client}
-                                onEditPokemon={(pk) => setSelectedPokemon(pk)}
-                            />
-                        )}
-                        {activeTab === 'pc' && <PCGrid
-                            key={`pc-${refreshKey}`}
-                            client={client}
-                            onEditPokemon={(pk) => {
-                                setSelectedPokemon({ ...pk, isPC: true });
-                            }}
-                        />}
-                        {activeTab === 'bag' && <BagView client={client} initialUnsaved={bagHasUnsavedChanges} onDirtyChange={setBagHasUnsavedChanges} />}
+                                onEditPokemon={(pk) => {
+                                    setSelectedPokemon({ ...pk, isPC: true });
+                                }}
+                            />}
+                            {activeTab === 'bag' && <BagView client={client} initialUnsaved={bagHasUnsavedChanges} onDirtyChange={setBagHasUnsavedChanges} />}
+                        </Suspense>
                     </div>
                 )}
             </main>
@@ -432,12 +443,14 @@ const App = () => {
             )}
 
             {selectedPokemon && (
-                <PokemonEditorModal
-                    client={client}
-                    pokemon={selectedPokemon}
-                    onClose={() => setSelectedPokemon(null)}
-                    onSave={selectedPokemon?.isPC ? handleSavePC : handleSavePokemon}
-                />
+                <Suspense fallback={null}>
+                    <PokemonEditorModal
+                        client={client}
+                        pokemon={selectedPokemon}
+                        onClose={() => setSelectedPokemon(null)}
+                        onSave={selectedPokemon?.isPC ? handleSavePC : handleSavePokemon}
+                    />
+                </Suspense>
             )}
 
             {isLoaded && (
