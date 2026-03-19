@@ -34,7 +34,7 @@ const PokemonCard = ({ pokemon, onEdit, getPokemonIconUrl }) => {
                             // Interroga il backend passando solo l'ID numerico
                             src={getPokemonIconUrl(pokemon.species_id)}
                             alt={pokemon.species_name}
-                            className="w-full h-full object-contain pixelated scale-125"
+                            className="w-16 h-16 object-contain pixelated"
                             onError={(e) => {
                                 if (e.currentTarget.src !== POKEMON_ICON_FALLBACK_URL) {
                                     e.currentTarget.src = POKEMON_ICON_FALLBACK_URL;

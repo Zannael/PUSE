@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Package } from 'lucide-react';
 import { POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 
 const TOTAL_BOXES = 26;
+const BOX_SLOTS = 30;
 
 const PCGrid = ({ client, onEditPokemon }) => {
     const [boxId, setBoxId] = useState(1);
@@ -42,6 +43,26 @@ const PCGrid = ({ client, onEditPokemon }) => {
         setBoxId(prev => (prev === TOTAL_BOXES ? 1 : prev + 1));
     };
 
+    const normalizedSlots = Array.from({ length: BOX_SLOTS }, (_, idx) => {
+        const slot = idx + 1;
+        return {
+            slot,
+            pokemon: null,
+        };
+    });
+
+    pokemon.forEach((pk) => {
+        const rawSlot = Number(pk.slot);
+        const normalizedSlot = Number.isFinite(rawSlot)
+            ? (rawSlot >= 1 && rawSlot <= BOX_SLOTS ? rawSlot : (rawSlot >= 0 && rawSlot < BOX_SLOTS ? rawSlot + 1 : null))
+            : null;
+        if (!normalizedSlot) return;
+        normalizedSlots[normalizedSlot - 1] = {
+            slot: normalizedSlot,
+            pokemon: pk,
+        };
+    });
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between bg-slate-800/50 p-4 rounded-3xl border border-white/5 shadow-inner">
@@ -57,7 +78,7 @@ const PCGrid = ({ client, onEditPokemon }) => {
                         Box {boxId}
                     </h2>
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
-                        {pokemon.length} / 30 Pokémon
+                        {pokemon.length} / {BOX_SLOTS} Pokemon
                     </p>
                 </div>
 
@@ -69,37 +90,51 @@ const PCGrid = ({ client, onEditPokemon }) => {
                 </button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
                 {loading ? (
                     <div className="col-span-full py-20 text-center text-slate-500 animate-pulse">
                         Syncing box...
                     </div>
                 ) : (
-                    pokemon.map((pk) => (
+                    normalizedSlots.map(({ slot, pokemon: pk }) => (
                         <div
-                            key={pk.slot}
-                            onClick={() => onEditPokemon(pk)}
-                            className="group bg-[#1e293b] border border-white/5 p-4 rounded-3xl hover:border-blue-500/50 transition-all cursor-pointer"
+                            key={slot}
+                            onClick={() => {
+                                if (!pk) return;
+                                onEditPokemon(pk);
+                            }}
+                            className={`group p-2.5 sm:p-3 rounded-2xl border transition-all ${
+                                pk
+                                    ? 'bg-[#1e293b] border-white/5 hover:border-blue-500/50 cursor-pointer'
+                                    : 'bg-slate-900/40 border-dashed border-white/10'
+                            }`}
                         >
-                            <div className="relative w-full aspect-square bg-slate-800/50 rounded-2xl flex items-center justify-center mb-3 overflow-hidden">
-                                <img
-                                    src={client.getPokemonIconUrl(pk.species_id)}
-                                    alt={pk.nickname}
-                                    className="w-16 h-16 object-contain pixelated group-hover:scale-110 transition-transform"
-                                    onError={(e) => {
-                                        if (e.currentTarget.src !== POKEMON_ICON_FALLBACK_URL) {
-                                            e.currentTarget.src = POKEMON_ICON_FALLBACK_URL;
-                                        }
-                                    }}
-                                />
+                            <div className="relative w-full aspect-square bg-slate-800/50 rounded-xl flex items-center justify-center mb-2 overflow-hidden">
+                                {pk ? (
+                                    <img
+                                        src={client.getPokemonIconUrl(pk.species_id)}
+                                        alt={pk.nickname}
+                                        className="w-14 h-14 object-contain pixelated group-hover:scale-110 transition-transform"
+                                        onError={(e) => {
+                                            if (e.currentTarget.src !== POKEMON_ICON_FALLBACK_URL) {
+                                                e.currentTarget.src = POKEMON_ICON_FALLBACK_URL;
+                                            }
+                                        }}
+                                    />
+                                ) : (
+                                    <span className="text-[10px] font-mono text-slate-500">EMPTY</span>
+                                )}
                             </div>
-                            <div className="text-center">
-                                <p className="text-sm font-bold truncate">{pk.nickname}</p>
-                                <p className="text-[10px] text-slate-500 font-mono uppercase">Slot {pk.slot}</p>
+                            <div className="text-center min-h-10">
+                                <p className={`text-xs font-bold truncate ${pk ? 'text-slate-100' : 'text-slate-500'}`}>
+                                    {pk ? pk.nickname : 'Empty Slot'}
+                                </p>
+                                <p className="text-[10px] text-slate-500 font-mono uppercase">Slot {slot}</p>
                             </div>
                         </div>
                     ))
                 )}
+            </div>
 
                 {!loading && pokemon.length === 0 && (
                     <div className="col-span-full py-20 text-center bg-slate-800/20 rounded-[2rem] border border-dashed border-white/10">
@@ -107,7 +142,6 @@ const PCGrid = ({ client, onEditPokemon }) => {
                         <p className="text-slate-500 italic">This box is empty</p>
                     </div>
                 )}
-            </div>
         </div>
     );
 };
