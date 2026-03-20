@@ -2,6 +2,7 @@ import { ru8, ru16, ru32, wu8, wu16, wu32 } from './binary.js';
 import { gbaChecksum } from './checksum.js';
 import { OFF_ID, OFF_SAVE_IDX, SECTION_SIZE } from './sections.js';
 import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
+import { getExpAtLevel } from './growth.js';
 import speciesIdentityMeta from './speciesIdentityMeta.json' with { type: 'json' };
 import speciesGrowthRates from './speciesGrowthRates.json' with { type: 'json' };
 import speciesAbilitiesMeta from './speciesAbilitiesMeta.json' with { type: 'json' };
@@ -607,18 +608,12 @@ function validateFallbackBox(buffer, boxId) {
         const s21 = slotState(buffer, boxId, 21);
         if (s1.state !== 'valid' || ru16At(s1.mon, OFF_SPECIES) !== 1183) return false;
         if (s21.state !== 'valid' || ![1258, 1259].includes(ru16At(s21.mon, OFF_SPECIES))) return false;
-        for (let slot = 22; slot <= 30; slot += 1) {
-            if (slotState(buffer, boxId, slot).state !== 'empty') return false;
-        }
         return true;
     }
 
     if (boxId === 23) {
         const s29 = slotState(buffer, boxId, 29);
         if (s29.state !== 'valid' || ![1182, 1207].includes(ru16At(s29.mon, OFF_SPECIES))) return false;
-        for (const slot of [20, 21, 24, 26, 30]) {
-            if (slotState(buffer, boxId, slot).state !== 'empty') return false;
-        }
         const s1 = slotState(buffer, boxId, 1);
         if (s1.state !== 'valid' || ![397, 905].includes(ru16At(s1.mon, OFF_SPECIES))) return false;
         return true;
@@ -629,9 +624,6 @@ function validateFallbackBox(buffer, boxId) {
         const s30 = slotState(buffer, boxId, 30);
         if (s1.state !== 'valid' || ru16At(s1.mon, OFF_SPECIES) !== 541) return false;
         if (s30.state !== 'valid' || ru16At(s30.mon, OFF_SPECIES) !== 249) return false;
-        for (const slot of [10, 11, 19, 20, 24]) {
-            if (slotState(buffer, boxId, slot).state !== 'empty') return false;
-        }
         return true;
     }
 
@@ -799,6 +791,153 @@ function getMonBufferAndOffset(context, box, slot) {
         throw new Error('Invalid box slot');
     }
     return { buffer: context.pcBuffer, offset: off, kind: 'stream' };
+}
+
+function buildPcMonRaw(payload, speciesMap) {
+    const speciesId = Number(payload?.species_id);
+    if (!Number.isInteger(speciesId) || speciesId <= 0) {
+        throw new Error('Invalid species_id');
+    }
+
+    let exp = null;
+    if (payload?.exp !== undefined && payload?.exp !== null) {
+        exp = Number(payload.exp);
+    } else {
+        const level = Math.max(1, Math.min(100, Number(payload?.level ?? 5) || 5));
+        const rate = getSpeciesGrowthRate(speciesId);
+        exp = getExpAtLevel(rate === null ? 0 : rate, level);
+    }
+    if (!Number.isFinite(exp) || exp <= 0) {
+        throw new Error('EXP must be > 0');
+    }
+
+    const raw = new Uint8Array(MON_SIZE_PC);
+    wu16(raw, OFF_SPECIES, speciesId);
+    wu16(raw, OFF_ITEM, Number(payload?.item_id ?? 0));
+    wu32(raw, OFF_EXP, Number(exp));
+    wu32(raw, OFF_PID, ((speciesId * 2654435761) >>> 0));
+    wu32(raw, 0x04, 0);
+
+    const speciesName = speciesMap?.get?.(speciesId) || `Species ${speciesId}`;
+    const nickname = payload?.nickname === undefined || payload?.nickname === null ? speciesName : payload.nickname;
+    raw.set(encodeText(nickname, 10), OFF_NICK);
+
+    if (payload?.moves) {
+        setMoves(raw, payload.moves);
+    }
+    if (payload?.ivs) {
+        setIvs(raw, payload.ivs);
+    }
+    if (payload?.evs) {
+        setEvs(raw, payload.evs);
+    }
+    if (payload?.current_ability_index !== undefined && payload?.current_ability_index !== null) {
+        setAbilitySlot(raw, Number(payload.current_ability_index));
+    }
+    if (payload?.nature_id !== undefined && payload?.nature_id !== null) {
+        setNature(raw, Number(payload.nature_id));
+    }
+    if (payload?.shiny !== undefined || payload?.gender !== undefined) {
+        const nextPid = findIdentityPid(raw, {
+            shiny: payload.shiny,
+            gender: payload.gender,
+        });
+        wu32(raw, OFF_PID, nextPid >>> 0);
+    }
+
+    if (!isValidMon(raw)) {
+        throw new Error('Failed to build valid Pokemon');
+    }
+    return raw;
+}
+
+function isPcSlotOccupied(context, box, slot) {
+    if (box === 26) {
+        if (!context.presetBuffer) {
+            return false;
+        }
+        const off = OFFSET_PRESET_START + ((slot - 1) * MON_SIZE_PC);
+        if (off + MON_SIZE_PC > context.presetBuffer.length) {
+            return false;
+        }
+        return isValidMon(context.presetBuffer.slice(off, off + MON_SIZE_PC));
+    }
+
+    const streamOff = (((box - 1) * 30) + (slot - 1)) * MON_SIZE_PC;
+    if (streamOff + MON_SIZE_PC <= context.pcBuffer.length) {
+        return isValidMon(context.pcBuffer.slice(streamOff, streamOff + MON_SIZE_PC));
+    }
+
+    const hasFallback = Boolean(context.fallbackBoxStarts?.[Number(box)]);
+    if (hasFallback && context.sourceBuffer) {
+        const absOff = fallbackSlotOffset(box, slot);
+        if (Number.isInteger(absOff) && absOff + MON_SIZE_PC <= context.sourceBuffer.length) {
+            const raw = context.absoluteEdits?.get(absOff) || context.sourceBuffer.slice(absOff, absOff + MON_SIZE_PC);
+            return isValidMon(raw);
+        }
+    }
+    return false;
+}
+
+export function insertPcMon(context, payload, speciesMap = null) {
+    const box = Number(payload?.box);
+    if (!Number.isInteger(box) || box < 1 || box > 26) {
+        throw new Error('Invalid box');
+    }
+
+    let slot = payload?.slot;
+    if (slot !== undefined && slot !== null) {
+        slot = Number(slot);
+        if (!Number.isInteger(slot) || slot < 1 || slot > 30) {
+            throw new Error('Invalid slot');
+        }
+        if (isPcSlotOccupied(context, box, slot)) {
+            throw new Error('Target slot is occupied');
+        }
+    } else {
+        slot = null;
+        for (let s = 1; s <= 30; s += 1) {
+            if (!isPcSlotOccupied(context, box, s)) {
+                slot = s;
+                break;
+            }
+        }
+        if (slot === null) {
+            throw new Error('Box is full');
+        }
+    }
+
+    const raw = buildPcMonRaw(payload, speciesMap);
+
+    if (box === 26) {
+        if (!context.presetBuffer) {
+            throw new Error('Preset sector not loaded');
+        }
+        const off = OFFSET_PRESET_START + ((slot - 1) * MON_SIZE_PC);
+        if (off + MON_SIZE_PC > context.presetBuffer.length) {
+            throw new Error('Invalid preset slot');
+        }
+        context.presetBuffer.set(raw, off);
+        return { box, slot };
+    }
+
+    const streamOff = (((box - 1) * 30) + (slot - 1)) * MON_SIZE_PC;
+    if (streamOff + MON_SIZE_PC <= context.pcBuffer.length) {
+        context.pcBuffer.set(raw, streamOff);
+        return { box, slot };
+    }
+
+    const hasFallback = Boolean(context.fallbackBoxStarts?.[Number(box)]);
+    if (hasFallback && context.sourceBuffer) {
+        const absOff = fallbackSlotOffset(box, slot);
+        if (Number.isInteger(absOff) && absOff + MON_SIZE_PC <= context.sourceBuffer.length) {
+            context.absoluteEdits.set(absOff, raw);
+            context.absoluteTouchedSectors.add(Math.floor(absOff / SECTION_SIZE) * SECTION_SIZE);
+            return { box, slot };
+        }
+    }
+
+    throw new Error('Slot not writable in this save layout');
 }
 
 export function editPcMonFull(context, payload) {

@@ -223,6 +223,13 @@ const backendClient = {
             body: JSON.stringify(payload),
         });
     },
+    insertPc(payload) {
+        return backendJson('/pc/insert', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+    },
     getMoves() {
         return backendJson("/moves");
     },
@@ -386,6 +393,25 @@ const localClient = {
         }
         editPcMonFull(context, nextPayload);
         return { status: 'PC edit buffered' };
+    },
+    async insertPc(payload) {
+        const {
+            getPcContext,
+            loadPcContext,
+            setPcContext,
+            getBuffer,
+            getSpeciesMap,
+            insertPcMon,
+        } = await getLocalCoreModules();
+        let context = getPcContext();
+        if (!context) {
+            context = loadPcContext(getBuffer());
+            setPcContext(context);
+        }
+        const speciesMap = await getSpeciesMap();
+        const nextPayload = { ...(payload || {}) };
+        nextPayload.species_id = await ensureValidSpeciesId(nextPayload.species_id);
+        return insertPcMon(context, nextPayload, speciesMap);
     },
     async getMoves() {
         const { getMovesList } = await getLocalCoreModules();

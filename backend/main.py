@@ -1100,6 +1100,23 @@ class PCFullUpdate(BaseModel):
     current_ability_index: int = None
 
 
+class PCInsert(BaseModel):
+    box: int
+    slot: int = None
+    species_id: int
+    nickname: str = None
+    level: int = 5
+    exp: int = None
+    item_id: int = 0
+    moves: List[int] = None
+    ivs: dict = None
+    evs: dict = None
+    nature_id: int = None
+    shiny: bool = None
+    gender: str = None
+    current_ability_index: int = 0
+
+
 @app.post("/pc/edit-full")
 async def edit_pc_mon_full(upd: PCFullUpdate):
     # Find pokemon in loaded context
@@ -1159,6 +1176,145 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
 
     buf[off: off + box_mod.MON_SIZE_PC] = target.raw
     return {"status": "PC updates applied to buffer"}
+
+
+@app.post("/pc/insert")
+async def insert_pc_mon(upd: PCInsert):
+    if not current_save["data"]:
+        raise HTTPException(status_code=400, detail="Upload a .sav file")
+
+    if current_save["pc_context"].get("pc_buffer") is None:
+        await load_pc()
+
+    box = int(upd.box)
+    if box < 1 or box > 26:
+        raise HTTPException(status_code=400, detail="Invalid box")
+
+    occupied = {int(m.slot) for m in current_save["pc_context"].get("mons", []) if int(m.box) == box}
+
+    slot = upd.slot
+    if slot is not None:
+        slot = int(slot)
+        if slot < 1 or slot > 30:
+            raise HTTPException(status_code=400, detail="Invalid slot")
+        if slot in occupied:
+            raise HTTPException(status_code=400, detail="Target slot is occupied")
+    else:
+        slot = next((s for s in range(1, 31) if s not in occupied), None)
+        if slot is None:
+            raise HTTPException(status_code=400, detail="Box is full")
+
+    kind = "stream"
+    off = None
+    if box == 26:
+        kind = "preset"
+        off = box_mod.OFFSET_PRESET_START + ((slot - 1) * box_mod.MON_SIZE_PC)
+        if off + box_mod.MON_SIZE_PC > len(current_save["pc_context"]["preset_buffer"]):
+            raise HTTPException(status_code=400, detail="Invalid preset slot")
+    else:
+        stream_off = ((box - 1) * 30 + (slot - 1)) * box_mod.MON_SIZE_PC
+        pc_buf = current_save["pc_context"]["pc_buffer"]
+        if stream_off + box_mod.MON_SIZE_PC <= len(pc_buf):
+            off = stream_off
+        else:
+            has_fallback = bool(current_save["pc_context"].get("fallback_box_starts", {}).get(box))
+            abs_off = box_mod.fallback_slot_offset(box, slot) if has_fallback else None
+            if abs_off is None or abs_off + box_mod.MON_SIZE_PC > len(current_save["data"]):
+                raise HTTPException(status_code=400, detail="Slot not writable in this save layout")
+            kind = "absolute"
+            off = abs_off
+
+    try:
+        raw = box_mod.build_pc_mon_raw(
+            species_id=upd.species_id,
+            nickname=upd.nickname,
+            level=upd.level,
+            exp=upd.exp,
+            nature_id=upd.nature_id,
+            item_id=upd.item_id,
+            moves=upd.moves,
+            ivs=upd.ivs,
+            evs=upd.evs,
+            current_ability_index=upd.current_ability_index,
+            shiny=upd.shiny,
+            gender=upd.gender,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    mon = box_mod.UnboundPCMon(raw, box, slot)
+    if not mon.is_valid:
+        raise HTTPException(status_code=400, detail="Failed to build a valid Pokemon")
+
+    mon.buffer_offset = off
+    if kind == "preset":
+        current_save["pc_context"]["preset_buffer"][off: off + box_mod.MON_SIZE_PC] = mon.raw
+    elif kind == "absolute":
+        mon.buffer_kind = "absolute"
+        current_save["data"][off: off + box_mod.MON_SIZE_PC] = mon.raw
+        sector_off = (off // box_mod.SECTION_SIZE) * box_mod.SECTION_SIZE
+        touched = set(current_save["pc_context"].get("absolute_touched_sectors", []))
+        touched.add(sector_off)
+        current_save["pc_context"]["absolute_touched_sectors"] = sorted(touched)
+    else:
+        current_save["pc_context"]["pc_buffer"][off: off + box_mod.MON_SIZE_PC] = mon.raw
+
+    current_save["pc_context"]["mons"].append(mon)
+
+    smeta = _species_meta(mon.species_id)
+    ability_1_id, ability_2_id, ability_hidden_id = box_mod.get_species_ability_ids(mon.species_id)
+    ability_1_name = box_mod.get_ability_name(ability_1_id)
+    ability_2_name = box_mod.get_ability_name(ability_2_id)
+    ability_hidden_name = box_mod.get_ability_name(ability_hidden_id)
+    current_ability_index = 2 if mon.get_hidden_ability_flag() else (mon.get_pid() & 1)
+    effective_ability_id, ability_name_current, ability_label_current = _resolve_current_ability(
+        current_ability_index,
+        ability_1_id,
+        ability_1_name,
+        ability_2_id,
+        ability_2_name,
+        ability_hidden_id,
+        ability_hidden_name,
+    )
+
+    return {
+        "status": "Pokemon inserted into PC buffer",
+        "pokemon": {
+            "species_name": smeta["species_label"],
+            "species_display_name": smeta["species_display_name"],
+            "species_label": smeta["species_label"],
+            "species_variant_index": smeta["species_variant_index"],
+            "species_variant_count": smeta["species_variant_count"],
+            "is_form_variant": smeta["is_form_variant"],
+            "box": mon.box,
+            "slot": mon.slot,
+            "nickname": mon.nickname,
+            "species_id": mon.species_id,
+            "species_growth_rate": box_mod.get_species_growth_rate(mon.species_id),
+            "item_id": mon.get_item_id(),
+            "exp": mon.exp,
+            "nature_id": mon.get_nature_id(),
+            "pid": mon.get_pid(),
+            "is_shiny": mon.is_shiny(),
+            "gender": mon.get_gender(),
+            "gender_mode": mon.get_gender_mode(),
+            "gender_editable": mon.get_gender_mode() == "dynamic",
+            "ivs": mon.get_ivs(),
+            "evs": mon.get_evs(),
+            "moves": mon.get_moves(),
+            "current_ability_index": current_ability_index,
+            "ability_1_id": ability_1_id,
+            "ability_1_name": ability_1_name,
+            "ability_2_id": ability_2_id,
+            "ability_2_name": ability_2_name,
+            "ability_hidden_id": ability_hidden_id,
+            "ability_hidden_name": ability_hidden_name,
+            "effective_ability_id": effective_ability_id,
+            "effective_ability_name": ability_name_current,
+            "ability_name_current": ability_name_current,
+            "ability_label_current": ability_label_current,
+        }
+    }
 
 
 @app.post("/save-all")

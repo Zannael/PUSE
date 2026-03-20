@@ -9,6 +9,7 @@ const BagView = lazy(() => import('./components/BagView.jsx'));
 const PokemonEditorModal = lazy(() =>
     import('./components/PokemonEditorModal.jsx').then((mod) => ({ default: mod.PokemonEditorModal }))
 );
+const AddPcPokemonModal = lazy(() => import('./components/AddPcPokemonModal.jsx'));
 
 const App = () => {
     const [runtimeMode, setRuntimeMode] = useState(getInitialRuntimeMode);
@@ -49,6 +50,7 @@ const App = () => {
     };
 
     const [selectedPokemon, setSelectedPokemon] = useState(null);
+    const [pcInsertTarget, setPcInsertTarget] = useState(null);
     const [refreshKey, setRefreshKey] = useState(0);
     const [bagHasUnsavedChanges, setBagHasUnsavedChanges] = useState(false);
 
@@ -233,6 +235,18 @@ const App = () => {
         }
     };
 
+    const handleInsertPcPokemon = async (payload) => {
+        try {
+            await client.insertPc(payload);
+            await client.saveAll();
+            setPcInsertTarget(null);
+            setRefreshKey(prev => prev + 1);
+            alert('Pokemon inserted successfully!');
+        } catch {
+            alert('Failed to add Pokemon to PC box.');
+        }
+    };
+
     const openMoneyModal = () => {
         setMoneyInput(String(money ?? 0));
         setShowMoneyModal(true);
@@ -395,6 +409,7 @@ const App = () => {
                                 onEditPokemon={(pk) => {
                                     setSelectedPokemon({ ...pk, isPC: true });
                                 }}
+                                onAddPokemon={(target) => setPcInsertTarget(target)}
                             />}
                             {activeTab === 'bag' && <BagView client={client} initialUnsaved={bagHasUnsavedChanges} onDirtyChange={setBagHasUnsavedChanges} />}
                         </Suspense>
@@ -449,6 +464,17 @@ const App = () => {
                         pokemon={selectedPokemon}
                         onClose={() => setSelectedPokemon(null)}
                         onSave={selectedPokemon?.isPC ? handleSavePC : handleSavePokemon}
+                    />
+                </Suspense>
+            )}
+
+            {pcInsertTarget && (
+                <Suspense fallback={null}>
+                    <AddPcPokemonModal
+                        client={client}
+                        target={pcInsertTarget}
+                        onClose={() => setPcInsertTarget(null)}
+                        onConfirm={handleInsertPcPokemon}
                     />
                 </Suspense>
             )}

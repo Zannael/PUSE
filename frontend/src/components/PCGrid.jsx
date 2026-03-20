@@ -5,7 +5,7 @@ import { POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 const TOTAL_BOXES = 26;
 const BOX_SLOTS = 30;
 
-const PCGrid = ({ client, onEditPokemon }) => {
+const PCGrid = ({ client, onEditPokemon, onAddPokemon }) => {
     const [boxId, setBoxId] = useState(1);
     const [pokemon, setPokemon] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -100,13 +100,16 @@ const PCGrid = ({ client, onEditPokemon }) => {
                         <div
                             key={slot}
                             onClick={() => {
-                                if (!pk) return;
+                                if (!pk) {
+                                    onAddPokemon?.({ box: boxId, slot });
+                                    return;
+                                }
                                 onEditPokemon(pk);
                             }}
                             className={`group p-2.5 sm:p-3 rounded-2xl border transition-all ${
                                 pk
                                     ? 'bg-[#1e293b] border-white/5 hover:border-blue-500/50 cursor-pointer'
-                                    : 'bg-slate-900/40 border-dashed border-white/10'
+                                    : 'bg-slate-900/40 border-dashed border-white/10 hover:border-emerald-400/40 cursor-pointer'
                             }`}
                         >
                             <div className="relative w-full aspect-square bg-slate-800/50 rounded-xl flex items-center justify-center mb-2 overflow-hidden">
@@ -122,7 +125,7 @@ const PCGrid = ({ client, onEditPokemon }) => {
                                         }}
                                     />
                                 ) : (
-                                    <span className="text-[10px] font-mono text-slate-500">EMPTY</span>
+                                    <span className="text-[10px] font-mono text-slate-500 group-hover:text-emerald-300">+ ADD</span>
                                 )}
                             </div>
                             <div className="text-center min-h-10">

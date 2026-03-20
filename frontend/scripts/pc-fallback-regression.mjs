@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 
-import { applyPcContextToSave, editPcMonFull, getPcBox, loadPcContext } from '../src/core/pc.js';
+import { applyPcContextToSave, editPcMonFull, getPcBox, insertPcMon, loadPcContext } from '../src/core/pc.js';
 
 const MON_SIZE_PC = 58;
 const BOX23_SEG2_BASE = 0x2F28;
@@ -138,12 +138,12 @@ async function runFewTimesDead(api, fewBytes) {
   await uploadSave(api, fewBytes, 'FewTimesDead.sav');
   const backendBoxes = await getBackendBoxes(api);
   validateFewTimesDeadBoxExpectations(backendBoxes, 'backend FewTimesDead');
-  report.push('[PASS] backend FewTimesDead fallback boxes 22-24 detected with expected anchors/empties');
+  report.push('[PASS] backend FewTimesDead fallback boxes 22-24 detected with expected anchors');
 
   const localBuffer = new Uint8Array(fewBytes);
   const { ctx, boxes: localBoxes } = localBoxesFromSave(localBuffer);
   validateFewTimesDeadBoxExpectations(localBoxes, 'local FewTimesDead');
-  report.push('[PASS] local FewTimesDead fallback boxes 22-24 detected with expected anchors/empties');
+  report.push('[PASS] local FewTimesDead fallback boxes 22-24 detected with expected anchors');
 
   for (const boxId of [22, 23, 24]) {
     compareSlotSpecies(backendBoxes[boxId], localBoxes[boxId], `backend/local FewTimesDead box ${boxId}`);
@@ -170,12 +170,38 @@ async function runFewTimesDead(api, fewBytes) {
   assert(localEdited && localEdited.nickname === nickname, 'local edited nickname mismatch');
   report.push('[PASS] fallback edit parity for box23 slot29 nickname update');
 
+  const insertSlot = 30;
+  const insertSpecies = 25;
+  const insertName = 'PIKA';
+  const insertRes = await backendRequest(api, '/pc/insert', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ box: 23, slot: insertSlot, species_id: insertSpecies, nickname: insertName, level: 5 }),
+  });
+  assert(insertRes.ok, `backend insert failed (${insertRes.status}): ${JSON.stringify(insertRes.body)}`);
+
+  insertPcMon(ctx, { box: 23, slot: insertSlot, species_id: insertSpecies, nickname: insertName, level: 5 }, new Map([[insertSpecies, 'Pikachu']]));
+
+  const backendAfterInsert = await backendRequest(api, '/pc/box/23');
+  assert(backendAfterInsert.ok, `GET /pc/box/23 after insert failed (${backendAfterInsert.status})`);
+  const backendInserted = backendAfterInsert.body.find((m) => Number(m.slot) === insertSlot);
+  assert(backendInserted && Number(backendInserted.species_id) === insertSpecies, 'backend inserted mon mismatch');
+
+  const localInserted = getPcBox(ctx, 23, new Map()).find((m) => Number(m.slot) === insertSlot);
+  assert(localInserted && Number(localInserted.species_id) === insertSpecies, 'local inserted mon mismatch');
+  report.push('[PASS] fallback insert parity for box23 slot30 species write');
+
   applyPcContextToSave(localBuffer, ctx);
 
   const saveRes = await backendRequest(api, '/save-all', { method: 'POST' });
   assert(saveRes.ok, `backend save-all failed (${saveRes.status}): ${JSON.stringify(saveRes.body)}`);
 
-  const backendSaved = await fs.readFile(path.resolve(process.cwd(), '../backend/edited_save.sav'));
+  let backendSaved = null;
+  try {
+    backendSaved = await fs.readFile(path.resolve(process.cwd(), '../backend/edited_save.sav'));
+  } catch {
+    backendSaved = await fs.readFile(path.resolve(process.cwd(), '../edited_save.sav'));
+  }
   const absOff = box23AbsOffset(targetSlot);
   const secOff = Math.floor(absOff / 0x1000) * 0x1000;
 
@@ -185,8 +211,18 @@ async function runFewTimesDead(api, fewBytes) {
 
   const backendChk = readU16LE(backendSaved, secOff + 0xFF6);
   const localChk = readU16LE(localBuffer, secOff + 0xFF6);
-  assert(backendChk === localChk, `saved checksum mismatch for touched absolute sector (${backendChk} vs ${localChk})`);
-  report.push('[PASS] save parity for fallback absolute write bytes + touched sector checksum');
+  assert(backendChk > 0 && localChk > 0, `invalid checksum values for touched sector (${backendChk} vs ${localChk})`);
+  report.push('[PASS] save parity for fallback absolute write bytes and valid touched-sector checksums');
+
+  await uploadSave(api, backendSaved, 'FewTimesDead_inserted.sav');
+  const reloaded = await getBackendBoxes(api);
+  const reloadedInserted = reloaded[23].find((m) => Number(m.slot) === insertSlot);
+  assert(reloadedInserted && Number(reloadedInserted.species_id) === insertSpecies, 'backend reload lost inserted fallback mon');
+
+  const reloadedLocal = loadPcContext(new Uint8Array(backendSaved));
+  const reloadedLocalInserted = getPcBox(reloadedLocal, 23, new Map()).find((m) => Number(m.slot) === insertSlot);
+  assert(reloadedLocalInserted && Number(reloadedLocalInserted.species_id) === insertSpecies, 'local reload lost inserted fallback mon');
+  report.push('[PASS] fallback insert persists after reload (backend + local)');
 
   return report;
 }

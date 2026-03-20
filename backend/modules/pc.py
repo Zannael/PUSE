@@ -698,20 +698,12 @@ def _validate_fallback_box(data, box_id):
             return False
         if s21 != "valid" or m21 is None or m21.species_id not in (1258, 1259):
             return False
-        for slot in range(22, 31):
-            state, _ = _slot_state(data, box_id, slot)
-            if state != "empty":
-                return False
         return True
 
     if box_id == 23:
         s29, m29 = _slot_state(data, box_id, 29)
         if s29 != "valid" or m29 is None or m29.species_id not in (1182, 1207):
             return False
-        for slot in (20, 21, 24, 26, 30):
-            state, _ = _slot_state(data, box_id, slot)
-            if state != "empty":
-                return False
         s1, m1 = _slot_state(data, box_id, 1)
         if s1 != "valid" or m1 is None or m1.species_id not in (397, 905):
             return False
@@ -724,10 +716,6 @@ def _validate_fallback_box(data, box_id):
             return False
         if s30 != "valid" or m30 is None or m30.species_id != 249:
             return False
-        for slot in (10, 11, 19, 20, 24):
-            state, _ = _slot_state(data, box_id, slot)
-            if state != "empty":
-                return False
         return True
 
     return False
@@ -747,6 +735,75 @@ def detect_fallback_box_starts(save_data):
         if _validate_fallback_box(save_data, box_id):
             found[box_id] = True
     return found
+
+
+def build_pc_mon_raw(
+    *,
+    species_id,
+    nickname=None,
+    level=None,
+    exp=None,
+    nature_id=None,
+    item_id=0,
+    moves=None,
+    ivs=None,
+    evs=None,
+    current_ability_index=0,
+    shiny=None,
+    gender=None,
+):
+    sid = int(species_id)
+    if sid <= 0 or sid not in DB_SPECIES:
+        raise ValueError("Invalid species_id")
+
+    mon_exp = None
+    if exp is not None:
+        mon_exp = int(exp)
+    else:
+        target_level = int(level) if level is not None else 5
+        target_level = max(1, min(100, target_level))
+        growth_rate = get_species_growth_rate(sid)
+        if growth_rate is None:
+            growth_rate = 0
+        mon_exp = int(get_exp_at_level(growth_rate, target_level))
+
+    if mon_exp <= 0:
+        raise ValueError("EXP must be > 0")
+
+    raw = bytearray(MON_SIZE_PC)
+    wu16(raw, OFF_SPECIES, sid)
+    wu16(raw, OFF_ITEM, int(item_id) if item_id is not None else 0)
+    wu32(raw, OFF_EXP, mon_exp)
+    wu32(raw, OFF_PID, (sid * 2654435761) & 0xFFFFFFFF)
+    wu32(raw, 0x04, 0)
+
+    default_name = DB_SPECIES.get(sid, "Pokemon")
+    nick = default_name if nickname is None else str(nickname)
+    raw[OFF_NICK: OFF_NICK + 10] = encode_text(nick, 10)
+
+    mon = UnboundPCMon(raw, 0, 0)
+    if not mon.is_valid:
+        raise ValueError("Failed to build valid PC mon")
+
+    if moves is not None:
+        mon.set_moves(list(moves))
+
+    if ivs:
+        mon.set_ivs(ivs)
+
+    if evs:
+        mon.set_evs(evs)
+
+    if current_ability_index is not None:
+        mon.set_ability_slot(int(current_ability_index))
+
+    if nature_id is not None:
+        mon.set_nature(int(nature_id))
+
+    if shiny is not None or gender is not None:
+        mon.set_identity(shiny=shiny, gender=gender)
+
+    return mon.raw
 
 
 def calculate_checksum(data):
