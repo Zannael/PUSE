@@ -4,7 +4,7 @@
 
 ### Planned
 
-- Add create/insert workflows to add Pokemon to party and PC boxes (with validation and checksum-safe writes).
+- Add create/insert workflows to add Pokemon to party (with validation and checksum-safe writes).
 - Add ROM-truth sprites for Pokémons and items with ROM-based sprites extraction.
 - Investigate save flags editing feasibility for difficulty mode and NG+ state.
 - Extend Trainer Profile editing to include identity metadata: name (with character encoding validation), gender/style flags, and appearance parameters (hair color/skin tone).
@@ -40,6 +40,7 @@
 - Fixed local-mode 32-bit overflow during 40-bit move bit-packing by switching to `BigInt`, resolving slot corruption cases (for example `DragonAscent`/`V-create` turning into wrong moves in frontend or in-game).
 - Added fragmented absolute-layout fallback support for PC boxes 22-24 in save variants where the standard contiguous PC stream does not include those boxes, with backend/local parity for read/edit/save/checksum flows.
 - Added focused regression coverage for fallback PC boxes (`frontend/scripts/pc-fallback-regression.mjs`) to validate FewTimesDead box 22-24 detection, fallback slot parity, absolute fallback edits, touched-sector checksum updates, and Unbound false-positive guards.
+- Added `PC insert` workflows (backend + local mode parity) to create Pokemon directly in empty box slots, including stream boxes, preset box 26, and fragmented fallback box layouts.
 - Added species drift safety checks for non-species edit flows and tightened save paths to send only changed fields, reducing unintended side effects.
 - Party level edits now default to ROM-truth species growth rate when available, with fallback to previous growth inference behavior when metadata is unavailable.
 - PC level editing now defaults to ROM-truth species growth rate in the editor flow (manual override still supported), reducing EXP/level ambiguity.
@@ -65,6 +66,7 @@
 
 - Pokemon editor Info tab now shows Species controls before level/nature/item controls for faster access.
 - Ability controls now show resolved ROM-truth ability names for slot buttons and current-ability labels (including hidden ability names when available).
+- PC grid empty slots now support in-place add flow via modal (species search + nickname + level) with save-path parity across backend/local modes.
 
 #### Responsive UI and Internationalization
 
