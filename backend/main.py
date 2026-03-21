@@ -329,7 +329,7 @@ def load_databases():
 
 @app.post("/upload")
 async def upload_save(file: UploadFile = File(...)):
-    """Load the .sav file into memory."""
+    """Load the .sav or .srm file into memory."""
     content = await file.read()
     current_save["data"] = bytearray(content)
     current_save["filename"] = file.filename

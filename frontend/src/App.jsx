@@ -15,6 +15,7 @@ const App = () => {
     const [runtimeMode, setRuntimeMode] = useState(getInitialRuntimeMode);
     const [activeTab, setActiveTab] = useState('party');
     const [isLoaded, setIsLoaded] = useState(false);
+    const [saveExt, setSaveExt] = useState('.sav');
     const [money, setMoney] = useState(0);
     const [showMoneyModal, setShowMoneyModal] = useState(false);
     const [moneyInput, setMoneyInput] = useState('0');
@@ -32,6 +33,7 @@ const App = () => {
             const mData = await client.getMoney();
             setMoney(mData.money);
             setMoneyInput(String(mData.money ?? 0));
+            setSaveExt(file.name.toLowerCase().endsWith('.srm') ? '.srm' : '.sav');
             setIsLoaded(true);
         } catch {
             alert("Upload failed for current runtime mode.");
@@ -52,6 +54,7 @@ const App = () => {
     const [selectedPokemon, setSelectedPokemon] = useState(null);
     const [pcInsertTarget, setPcInsertTarget] = useState(null);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [pcBoxId, setPcBoxId] = useState(1);
     const [bagHasUnsavedChanges, setBagHasUnsavedChanges] = useState(false);
 
     const handleTabChange = (nextTab) => {
@@ -330,7 +333,7 @@ const App = () => {
                                 onClick={handleDownload}
                                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-full text-xs font-bold transition-all"
                             >
-                                <Save size={14} /> DOWNLOAD .SAV
+                                <Save size={14} /> DOWNLOAD {saveExt.toUpperCase()}
                             </button>
                         </div>
                     )}
@@ -350,14 +353,14 @@ const App = () => {
                             </div>
                             <h2 className="text-2xl md:text-3xl font-bold">Load your Pokemon Unbound save and start editing</h2>
                             <p className="text-slate-300 mt-2 text-sm md:text-base">
-                                Drag and drop a <span className="font-mono">.sav</span> file here, or pick it manually.
+                                Drag and drop a <span className="font-mono">.sav</span> or <span className="font-mono">.srm</span> file here, or pick it manually.
                             </p>
 
                             <div className="mt-5 border border-dashed border-blue-500/40 bg-slate-900/40 rounded-2xl p-5 md:p-6">
                                 <p className="text-xs uppercase tracking-widest text-slate-400 mb-3">Drop zone</p>
                                 <label className="inline-flex bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-2xl cursor-pointer font-bold transition-all shadow-lg active:scale-95 text-sm">
                                     SELECT SAVE FILE
-                                    <input type="file" className="hidden" onChange={handleUpload} accept=".sav" />
+                                    <input type="file" className="hidden" onChange={handleUpload} accept=".sav,.srm" />
                                 </label>
                             </div>
 
@@ -365,7 +368,7 @@ const App = () => {
                                 Tip: Local mode runs fully in-browser. Backend mode uses FastAPI endpoints.
                             </p>
                             <p className="text-[11px] text-slate-400 mt-1">
-                                Note: You can also try any <span className="font-mono">.sav</span> file from a CFRU + DPE hack.
+                                Note: You can also try any <span className="font-mono">.sav</span> or <span className="font-mono">.srm</span> file from a CFRU + DPE hack.
                             </p>
                         </section>
 
@@ -406,6 +409,8 @@ const App = () => {
                             {activeTab === 'pc' && <PCGrid
                                 key={`pc-${refreshKey}`}
                                 client={client}
+                                boxId={pcBoxId}
+                                onBoxChange={setPcBoxId}
                                 onEditPokemon={(pk) => {
                                     setSelectedPokemon({ ...pk, isPC: true });
                                 }}
