@@ -449,6 +449,12 @@ const App = () => {
                             }}
                             className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 font-mono text-emerald-400 outline-none focus:border-blue-500"
                         />
+                        <p
+                            className="text-[11px] text-slate-400"
+                            title="Server-side safety always clamps money to the legal in-game range 0..999999, even if a larger value is entered."
+                        >
+                            Hover for details: money is safely clamped server-side.
+                        </p>
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setShowMoneyModal(false)}
