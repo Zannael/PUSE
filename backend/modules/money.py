@@ -9,6 +9,8 @@ FOOTER_SAVEINDEX_OFF = 0xFFC
 TRAINER_SECTION_ID = 1
 # fallback u32 offset we observed; used only if search fails
 FALLBACK_OFF_MONEY = 0x290
+MIN_MONEY = 0
+MAX_MONEY = 999999
 
 def ru16(b,o): return struct.unpack_from("<H", b, o)[0]
 def ru32(b,o): return struct.unpack_from("<I", b, o)[0]
@@ -29,6 +31,10 @@ def find_all(hay: bytes, needle: bytes):
         out.append(p)
         pos = p + 1
     return out
+
+
+def clamp_money(value: int) -> int:
+    return max(MIN_MONEY, min(MAX_MONEY, int(value)))
 
 def compute_section_checksum(payload: bytes, valid_len: int) -> int:
     # Se valid_len è 0 o non sensato, usa tutta l'area payload
@@ -72,6 +78,7 @@ def selfcheck_print(secs):
         print(f" - file_off=0x{off:06X} index={s['index']} saveidx={s['saveidx']} chk_stored=0x{s['chk']:04X} chk_calc=0x{calc:04X} {'OK' if calc==s['chk'] else 'MISMATCH'}")
 
 def patch_money_everywhere(buf: bytes, new_money: int, dryrun=False):
+    new_money = clamp_money(new_money)
     out = bytearray(buf)
     secs = list_sections(buf)
     trainer_secs = [s for s in secs if s["id"] == TRAINER_SECTION_ID]

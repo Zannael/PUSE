@@ -365,10 +365,16 @@ async def update_money(amount: int):
         raise HTTPException(status_code=400, detail="Upload a .sav file first")
 
     try:
+        clamped_amount = money_mod.clamp_money(amount)
         # Reuse patch_money_everywhere; it already handles checksums and BCD
-        new_data = money_mod.patch_money_everywhere(current_save["data"], amount)
+        new_data = money_mod.patch_money_everywhere(current_save["data"], clamped_amount)
         current_save["data"] = bytearray(new_data)
-        return {"message": f"Money updated to {amount}", "new_money": amount}
+        return {
+            "message": f"Money updated to {clamped_amount}",
+            "new_money": clamped_amount,
+            "requested_money": amount,
+            "was_clamped": clamped_amount != amount,
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
