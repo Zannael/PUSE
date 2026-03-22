@@ -11,6 +11,19 @@
 - Implement "Costume Box" unlocker and wardrobe editing.
 - Find a way to manually flag "Seen" or "Caught" when editing a species that hasn't be seen/caught before. Leaving the decision to flag it to the user, thus the "manually".
 
+#### Community Feedback UX Backlog
+
+- Add a "legit EV mode" toggle that enforces legal-style constraints (max 252 per stat, max 510 total) with clear remaining-points feedback.
+- Preserve current PC box context after saving a Pokemon, so multi-edit workflows do not jump back to Box 1.
+- Reorganize editor tabs so stat-affecting controls are grouped together (Level, Nature, IVs, EVs, and Ability), and simplify tab naming for faster editing.
+- Update hidden-ability button labeling to prioritize readability (`<Ability Name> (Hidden)` / `<Ability Name> (HA)` instead of `Hidden (<Ability Name>)`).
+- Add keyboard-assisted stat editing shortcuts (Ctrl+click to set max, Alt+click to set zero) for IV/EV fields.
+- Harden and clarify level constraints in UI and validation so level cap behavior (1-100) is explicit and consistently enforced.
+- Investigate ROM-truth naming mismatch reports (for example Rhyperior shown as `Filter` vs expected `Solid Rock`) and align visible labels where appropriate.
+- Clarify visual indicators on Pokemon cards (background color meaning, `#` metadata source) to reduce ambiguity.
+- Document backend vs local runtime behavior differences directly in-app so mode choice is understandable.
+- Explore set import support (Showdown/Smogon/Pokepaste format) as an advanced editor workflow.
+
 ### Changed
 
 #### ROM Truth Data
