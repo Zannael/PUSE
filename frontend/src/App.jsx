@@ -11,8 +11,19 @@ const PokemonEditorModal = lazy(() =>
 );
 const AddPcPokemonModal = lazy(() => import('./components/AddPcPokemonModal.jsx'));
 
+const LEGIT_MODE_STORAGE_KEY = 'puse_legit_mode';
+
+const getInitialLegitMode = () => {
+    try {
+        return window.localStorage.getItem(LEGIT_MODE_STORAGE_KEY) === '1';
+    } catch {
+        return false;
+    }
+};
+
 const App = () => {
     const [runtimeMode, setRuntimeMode] = useState(getInitialRuntimeMode);
+    const [legitMode, setLegitMode] = useState(getInitialLegitMode);
     const [activeTab, setActiveTab] = useState('party');
     const [isLoaded, setIsLoaded] = useState(false);
     const [saveExt, setSaveExt] = useState('.sav');
@@ -24,6 +35,14 @@ const App = () => {
     useEffect(() => {
         persistRuntimeMode(runtimeMode);
     }, [runtimeMode]);
+
+    useEffect(() => {
+        try {
+            window.localStorage.setItem(LEGIT_MODE_STORAGE_KEY, legitMode ? '1' : '0');
+        } catch {
+            // ignore storage failures
+        }
+    }, [legitMode]);
 
     const uploadSaveFile = async (file) => {
         if (!file) return;
@@ -309,6 +328,18 @@ const App = () => {
                             <option value={RUNTIME_MODES.backend}>Backend mode</option>
                             <option value={RUNTIME_MODES.local}>Local mode</option>
                         </select>
+                        <button
+                            type="button"
+                            onClick={() => setLegitMode((prev) => !prev)}
+                            className={`px-3 py-1 rounded-xl text-[10px] uppercase tracking-widest font-bold border transition-colors ${
+                                legitMode
+                                    ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+                                    : 'bg-slate-900 border-white/10 text-slate-300 hover:bg-slate-800'
+                            }`}
+                            title="When enabled, EV editing enforces 510 total EV limit and keeps level rules explicit (1-100)."
+                        >
+                            Legit: {legitMode ? 'ON' : 'OFF'}
+                        </button>
                     </div>
                     {isLoaded && (
                         <div className="flex items-center gap-2 md:gap-3 flex-wrap justify-end">
@@ -478,6 +509,7 @@ const App = () => {
                     <PokemonEditorModal
                         client={client}
                         pokemon={selectedPokemon}
+                        legitMode={legitMode}
                         onClose={() => setSelectedPokemon(null)}
                         onSave={selectedPokemon?.isPC ? handleSavePC : handleSavePokemon}
                     />

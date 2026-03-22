@@ -691,7 +691,8 @@ async def update_party_level(idx: int, data: PartyLevelUpdate):
     pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
     species_before = pk.get_species_id()
 
-    target_level = max(1, min(100, int(data.target_level)))
+    requested_level = int(data.target_level)
+    target_level = max(1, min(100, requested_level))
     visual_level = current_save["data"][mon_off + 0x54]
     current_exp = pk.get_exp()
 
@@ -715,7 +716,9 @@ async def update_party_level(idx: int, data: PartyLevelUpdate):
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
     return {
         "status": "Level updated",
+        "requested_level": requested_level,
         "target_level": target_level,
+        "was_clamped": requested_level != target_level,
         "exp": new_exp,
         "growth_rate": growth_rate,
         "growth_name": party_mod.GROWTH_NAMES.get(growth_rate, "Unknown"),

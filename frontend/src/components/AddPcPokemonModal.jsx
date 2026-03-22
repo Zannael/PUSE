@@ -1,6 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search, X } from 'lucide-react';
 
+const MIN_LEVEL = 1;
+const MAX_LEVEL = 100;
+
+const clampLevel = (value, fallback = 5) => {
+    const parsed = Number.parseInt(value, 10);
+    if (!Number.isFinite(parsed)) return fallback;
+    return Math.max(MIN_LEVEL, Math.min(MAX_LEVEL, parsed));
+};
+
 export default function AddPcPokemonModal({ client, target, onClose, onConfirm }) {
     const [allSpecies, setAllSpecies] = useState([]);
     const [speciesSearch, setSpeciesSearch] = useState('');
@@ -109,8 +118,10 @@ export default function AddPcPokemonModal({ client, target, onClose, onConfirm }
                                 max="100"
                                 value={level}
                                 onChange={(e) => setLevel(e.target.value)}
+                                onBlur={() => setLevel(String(clampLevel(level, 5)))}
                                 className="mt-2 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm"
                             />
+                            <p className="mt-2 text-[10px] text-slate-500">Level is capped to 1-100.</p>
                         </div>
                     </div>
 
@@ -131,7 +142,7 @@ export default function AddPcPokemonModal({ client, target, onClose, onConfirm }
                                     slot: target.slot,
                                     species_id: Number(selectedSpecies.id),
                                     nickname,
-                                    level: Math.max(1, Math.min(100, Number(level) || 5)),
+                                    level: clampLevel(level, 5),
                                 });
                             }}
                             className="flex-1 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-bold"

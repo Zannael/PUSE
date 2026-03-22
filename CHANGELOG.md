@@ -13,11 +13,9 @@
 
 #### Community Feedback UX Backlog
 
-- Add a "legit EV mode" toggle that enforces legal-style constraints (max 252 per stat, max 510 total) with clear remaining-points feedback.
 - Reorganize editor tabs so stat-affecting controls are grouped together (Level, Nature, IVs, EVs, and Ability), and simplify tab naming for faster editing.
 - Update hidden-ability button labeling to prioritize readability (`<Ability Name> (Hidden)` / `<Ability Name> (HA)` instead of `Hidden (<Ability Name>)`).
 - Add keyboard-assisted stat editing shortcuts (Ctrl+click to set max, Alt+click to set zero) for IV/EV fields.
-- Harden and clarify level constraints in UI and validation so level cap behavior (1-100) is explicit and consistently enforced.
 - ~Investigate ROM-truth naming mismatch reports (for example Rhyperior shown as `Filter` vs expected `Solid Rock`) and align visible labels where appropriate.~ This now has [an opened issue](https://github.com/Zannael/PUSE/issues/7).
 - Document backend vs local runtime behavior differences directly in-app so mode choice is understandable.
 - Explore set import support (Showdown/Smogon/Pokepaste format) as an advanced editor workflow.
@@ -84,6 +82,9 @@
 - Saving edits in PC now preserves the currently selected box instead of resetting to Box 1.
 - Money modal input now enforces whole-number entry and a six-digit cap (`999999`) in UI.
 - Money modal now includes a hover note clarifying that backend safety clamps values to the legal in-game range.
+- Added a global `Legit` header toggle (default OFF) that keeps per-stat EV cap (`0..252`) always enforced and applies total EV cap (`510`) only when enabled.
+- EV editing now shows explicit legal-spread feedback (`Total EV` and `Remaining`) while Legit mode is ON.
+- Level editing now surfaces explicit `1..100` cap guidance and normalizes out-of-range values in editor flows, with backend party level updates returning clamp metadata (`requested_level`, `was_clamped`).
 
 #### Responsive UI and Internationalization
 

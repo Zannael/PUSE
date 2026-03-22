@@ -3,7 +3,29 @@ import { X, Zap, Save, Search } from 'lucide-react';
 import { calcCurrentLevel, GROWTH_OPTIONS } from '../core/growth.js';
 import { ITEM_ICON_FALLBACK_URL, POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 
-export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
+const EV_STAT_MAX = 252;
+const EV_TOTAL_MAX = 510;
+const MIN_LEVEL = 1;
+const MAX_LEVEL = 100;
+
+const clampNumber = (value, min, max) => {
+    const parsed = Number.parseInt(value, 10);
+    if (!Number.isFinite(parsed)) return min;
+    return Math.max(min, Math.min(max, parsed));
+};
+
+const getSpeedStatValue = (stats = {}) =>
+    Number(stats.Spd ?? stats.Spe ?? 0);
+
+const getTotalEvs = (evs = {}) =>
+    Number(evs.HP ?? 0) +
+    Number(evs.Atk ?? 0) +
+    Number(evs.Def ?? 0) +
+    Number(evs.SpA ?? 0) +
+    Number(evs.SpD ?? 0) +
+    getSpeedStatValue(evs);
+
+export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose, onSave }) => {
     const isPcMon = Boolean(pokemon?.isPC);
     const initialGrowthMode = 'auto';
     const inferredSpeciesGrowth = Number.isInteger(Number(pokemon?.species_growth_rate))
@@ -49,10 +71,30 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
     }, [client]);
 
     const updateStat = (type, stat, val) => {
-        setLocalPk(prev => ({
-            ...prev,
-            [type]: { ...prev[type], [stat]: parseInt(val) }
-        }));
+        setLocalPk((prev) => {
+            const nextGroup = { ...(prev[type] || {}) };
+
+            if (type === 'ivs') {
+                nextGroup[stat] = clampNumber(val, 0, 31);
+            } else if (type === 'evs') {
+                let nextEv = clampNumber(val, 0, EV_STAT_MAX);
+                if (legitMode) {
+                    const currentTotal = getTotalEvs(prev.evs || {});
+                    const currentStat = Number((prev.evs || {})[stat] ?? 0);
+                    const totalWithoutCurrent = currentTotal - currentStat;
+                    const remainingForCurrent = Math.max(0, EV_TOTAL_MAX - totalWithoutCurrent);
+                    nextEv = Math.min(nextEv, remainingForCurrent);
+                }
+                nextGroup[stat] = nextEv;
+            } else {
+                nextGroup[stat] = clampNumber(val, 0, Number.MAX_SAFE_INTEGER);
+            }
+
+            return {
+                ...prev,
+                [type]: nextGroup,
+            };
+        });
     };
 
     const updateMove = (slotIndex, moveId) => {
@@ -105,7 +147,7 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
     const handleSaveClick = () => {
         const payload = { ...localPk };
         if (levelDirty) {
-            const parsedLevel = Math.max(1, Math.min(100, parseInt(levelInput, 10) || localPk.level || 1));
+            const parsedLevel = clampNumber(levelInput, MIN_LEVEL, MAX_LEVEL);
             payload.level = parsedLevel;
             payload.level_edit = {
                 target_level: parsedLevel,
@@ -114,6 +156,10 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
         }
         onSave(payload);
     };
+
+    const levelClampFallback = Number(localPk.level || initialLevel || MIN_LEVEL);
+    const totalEvs = getTotalEvs(localPk.evs || {});
+    const remainingEvs = Math.max(0, EV_TOTAL_MAX - totalEvs);
 
     return (
         <div
@@ -171,7 +217,24 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
                     {activeTab === 'stats' && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <StatGroup title="IVs (0-31)" type="ivs" data={localPk.ivs} update={updateStat} max={31} />
-                            <StatGroup title="EVs (0-252)" type="evs" data={localPk.evs} update={updateStat} max={252} />
+                            <div className="space-y-4">
+                                <StatGroup title="EVs (0-252)" type="evs" data={localPk.evs} update={updateStat} max={252} />
+                                <div className="rounded-xl border border-white/10 bg-slate-900/50 px-3 py-2 text-[10px] text-slate-300 space-y-1">
+                                    <p>
+                                        Legit Mode: <span className={`font-bold ${legitMode ? 'text-emerald-300' : 'text-slate-400'}`}>{legitMode ? 'ON' : 'OFF'}</span>
+                                    </p>
+                                    <p>
+                                        Total EV: <span className={`font-bold ${legitMode && totalEvs >= EV_TOTAL_MAX ? 'text-amber-300' : 'text-blue-300'}`}>{totalEvs}/{EV_TOTAL_MAX}</span>
+                                    </p>
+                                    {legitMode ? (
+                                        <p>
+                                            Remaining: <span className="font-bold text-emerald-300">{remainingEvs}</span>
+                                        </p>
+                                    ) : (
+                                        <p className="text-slate-400">Total cap is disabled while Legit Mode is OFF.</p>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     )}
 
@@ -376,8 +439,13 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
                                                 setLevelInput(e.target.value);
                                                 setLevelDirty(true);
                                             }}
+                                            onBlur={() => {
+                                                const normalized = clampNumber(levelInput, MIN_LEVEL, MAX_LEVEL);
+                                                setLevelInput(String(normalized || levelClampFallback));
+                                            }}
                                             className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-blue-400 font-bold outline-none focus:border-blue-500/50"
                                         />
+                                        <p className="mt-2 text-[10px] text-slate-500">Level is capped to 1-100.</p>
                                     </div>
                                     <div className="bg-slate-900/70 border border-white/10 rounded-xl p-3">
                                         <p className="text-[10px] uppercase font-black text-slate-500 mb-2">Growth Curve</p>
