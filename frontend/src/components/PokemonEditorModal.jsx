@@ -208,32 +208,150 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                 </div>
 
                 <div className="flex bg-[#1e293b]/50 p-2 gap-2 border-b border-white/5">
-                    <EditorTab active={activeTab === 'stats'} label="IVs & EVs" onClick={() => setActiveTab('stats')} />
-                    <EditorTab active={activeTab === 'moves'} label="Moves & Ability" onClick={() => setActiveTab('moves')} />
-                    <EditorTab active={activeTab === 'info'} label="LV, Nature & Item" onClick={() => setActiveTab('info')} />
+                    <EditorTab active={activeTab === 'stats'} label="Stats" onClick={() => setActiveTab('stats')} />
+                    <EditorTab active={activeTab === 'moves'} label="Moves" onClick={() => setActiveTab('moves')} />
+                    <EditorTab active={activeTab === 'info'} label="Info" onClick={() => setActiveTab('info')} />
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-8">
                     {activeTab === 'stats' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <StatGroup title="IVs (0-31)" type="ivs" data={localPk.ivs} update={updateStat} max={31} />
-                            <div className="space-y-4">
-                                <StatGroup title="EVs (0-252)" type="evs" data={localPk.evs} update={updateStat} max={252} />
-                                <div className="rounded-xl border border-white/10 bg-slate-900/50 px-3 py-2 text-[10px] text-slate-300 space-y-1">
-                                    <p>
-                                        Legit Mode: <span className={`font-bold ${legitMode ? 'text-emerald-300' : 'text-slate-400'}`}>{legitMode ? 'ON' : 'OFF'}</span>
-                                    </p>
-                                    <p>
-                                        Total EV: <span className={`font-bold ${legitMode && totalEvs >= EV_TOTAL_MAX ? 'text-amber-300' : 'text-blue-300'}`}>{totalEvs}/{EV_TOTAL_MAX}</span>
-                                    </p>
-                                    {legitMode ? (
+                        <div className="space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <StatGroup title="IVs (0-31)" type="ivs" data={localPk.ivs} update={updateStat} max={31} />
+                                <div className="space-y-4">
+                                    <StatGroup title="EVs (0-252)" type="evs" data={localPk.evs} update={updateStat} max={252} />
+                                    <div className="rounded-xl border border-white/10 bg-slate-900/50 px-3 py-2 text-[10px] text-slate-300 space-y-1">
                                         <p>
-                                            Remaining: <span className="font-bold text-emerald-300">{remainingEvs}</span>
+                                            Legit Mode: <span className={`font-bold ${legitMode ? 'text-emerald-300' : 'text-slate-400'}`}>{legitMode ? 'ON' : 'OFF'}</span>
                                         </p>
+                                        <p>
+                                            Total EV: <span className={`font-bold ${legitMode && totalEvs >= EV_TOTAL_MAX ? 'text-amber-300' : 'text-blue-300'}`}>{totalEvs}/{EV_TOTAL_MAX}</span>
+                                        </p>
+                                        {legitMode ? (
+                                            <p>
+                                                Remaining: <span className="font-bold text-emerald-300">{remainingEvs}</span>
+                                            </p>
+                                        ) : (
+                                            <p className="text-slate-400">Total cap is disabled while Legit Mode is OFF.</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
+                                        Level Editor
+                                    </label>
+                                    <div className="space-y-3">
+                                        <div className="bg-slate-900/70 border border-white/10 rounded-xl p-3">
+                                            <p className="text-[10px] uppercase font-black text-slate-500 mb-2">Target Level</p>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="100"
+                                                value={levelInput}
+                                                onChange={(e) => {
+                                                    setLevelInput(e.target.value);
+                                                    setLevelDirty(true);
+                                                }}
+                                                onBlur={() => {
+                                                    const normalized = clampNumber(levelInput, MIN_LEVEL, MAX_LEVEL);
+                                                    setLevelInput(String(normalized || levelClampFallback));
+                                                }}
+                                                className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-blue-400 font-bold outline-none focus:border-blue-500/50"
+                                            />
+                                            <p className="mt-2 text-[10px] text-slate-500">Level is capped to 1-100.</p>
+                                        </div>
+                                        <div className="bg-slate-900/70 border border-white/10 rounded-xl p-3">
+                                            <p className="text-[10px] uppercase font-black text-slate-500 mb-2">Growth Curve</p>
+                                            <select
+                                                value={levelGrowthMode}
+                                                onChange={(e) => {
+                                                    setLevelGrowthMode(e.target.value);
+                                                    setLevelDirty(true);
+                                                }}
+                                                className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-xs text-slate-300 outline-none focus:border-blue-500/50"
+                                            >
+                                                <option value="auto">Default from species (recommended)</option>
+                                                {GROWTH_OPTIONS.map((opt) => (
+                                                    <option key={opt.id} value={String(opt.id)}>{opt.id} - {opt.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    {isPcMon ? (
+                                        <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-[10px] text-amber-200">
+                                            PC boxes do not store a visual level byte like party Pokemon. Default mode uses ROM-truth species growth; choose manual only if needed.
+                                        </div>
                                     ) : (
-                                        <p className="text-slate-400">Total cap is disabled while Legit Mode is OFF.</p>
+                                        <p className="text-[10px] text-slate-500 italic text-center">
+                                            Default mode uses ROM-truth species growth and falls back to inference only when metadata is unavailable.
+                                        </p>
                                     )}
                                 </div>
+
+                                <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
+                                        Pokemon Nature
+                                    </label>
+                                    <select
+                                        value={localPk.nature_id}
+                                        onChange={(e) => setLocalPk({...localPk, nature_id: parseInt(e.target.value)})}
+                                        className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm text-blue-400 font-bold outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none cursor-pointer"
+                                    >
+                                        {[
+                                            "Hardy", "Lonely", "Brave", "Adamant", "Naughty",
+                                            "Bold", "Docile", "Relaxed", "Impish", "Lax",
+                                            "Timid", "Hasty", "Serious", "Jolly", "Naive",
+                                            "Modest", "Mild", "Quiet", "Bashful", "Rash",
+                                            "Calm", "Gentle", "Sassy", "Careful", "Quirky"
+                                        ].map((name, i) => (
+                                            <option key={i} value={i}>{name}</option>
+                                        ))}
+                                    </select>
+                                    <p className="text-[9px] text-center text-slate-500 italic">Changing nature will modify the Pokemon PID in the save file.</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
+                                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Ability Setup</h4>
+
+                                <div className="flex bg-slate-900 p-1 rounded-xl gap-1">
+                                    {[
+                                        {id: 0, label: localPk.ability_1_name || 'Slot 1 (Standard)', disabled: !localPk.ability_1_id},
+                                        {id: 1, label: localPk.ability_2_name || 'Slot 2 (Standard)', disabled: !localPk.ability_2_id},
+                                        {
+                                            id: 2,
+                                            label: localPk.ability_hidden_name ? `${localPk.ability_hidden_name} (HA)` : 'Hidden Ability (HA)',
+                                            disabled: !localPk.ability_hidden_id,
+                                        }
+                                    ].map((opt) => (
+                                        <button
+                                            key={opt.id}
+                                            onClick={() => {
+                                                if (opt.disabled) return;
+                                                setLocalPk({...localPk, current_ability_index: opt.id});
+                                            }}
+                                            disabled={opt.disabled}
+                                            className={`flex-1 py-2 rounded-lg text-[10px] font-bold transition-all ${
+                                                localPk.current_ability_index === opt.id
+                                                    ? 'bg-blue-600 text-white shadow-lg'
+                                                    : 'text-slate-500 hover:text-slate-300'
+                                            } ${opt.disabled ? 'opacity-50 cursor-not-allowed hover:text-slate-500' : ''}`}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                                <p className="text-[10px] text-center text-slate-400">
+                                    Current: <span className="font-bold text-blue-300">{localPk.ability_label_current || 'Unknown Ability'}</span>
+                                </p>
+                                <p className="text-[9px] text-center text-slate-500 italic">
+                                    {localPk.current_ability_index === 2
+                                        ? "Hidden ability ignores the Pokemon PID."
+                                        : "The system will change PID while keeping the same Nature."}
+                                </p>
                             </div>
                         </div>
                     )}
@@ -294,42 +412,6 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                                 ))}
                             </div>
 
-                            <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
-                                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Ability
-                                    Setup</h4>
-
-                                <div className="flex bg-slate-900 p-1 rounded-xl gap-1">
-                                    {[
-                                        {id: 0, label: localPk.ability_1_name || 'Slot 1 (Standard)', disabled: !localPk.ability_1_id},
-                                        {id: 1, label: localPk.ability_2_name || 'Slot 2 (Standard)', disabled: !localPk.ability_2_id},
-                                        {id: 2, label: localPk.ability_hidden_name ? `Hidden (${localPk.ability_hidden_name})` : 'Hidden (HA)', disabled: !localPk.ability_hidden_id}
-                                    ].map((opt) => (
-                                        <button
-                                            key={opt.id}
-                                            onClick={() => {
-                                                if (opt.disabled) return;
-                                                setLocalPk({...localPk, current_ability_index: opt.id});
-                                            }}
-                                            disabled={opt.disabled}
-                                            className={`flex-1 py-2 rounded-lg text-[10px] font-bold transition-all ${
-                                                localPk.current_ability_index === opt.id
-                                                    ? 'bg-blue-600 text-white shadow-lg'
-                                                    : 'text-slate-500 hover:text-slate-300'
-                                            } ${opt.disabled ? 'opacity-50 cursor-not-allowed hover:text-slate-500' : ''}`}
-                                        >
-                                            {opt.label}
-                                        </button>
-                                    ))}
-                                </div>
-                                <p className="text-[10px] text-center text-slate-400">
-                                    Current: <span className="font-bold text-blue-300">{localPk.ability_label_current || 'Unknown Ability'}</span>
-                                </p>
-                                <p className="text-[9px] text-center text-slate-500 italic">
-                                    {localPk.current_ability_index === 2
-                                        ? "Hidden ability ignores the Pokemon PID."
-                                        : "The system will change PID while keeping the same Nature."}
-                                </p>
-                            </div>
                         </div>
                     )}
 
@@ -421,80 +503,6 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                                     />
                                     Rename nickname to selected species when changing species
                                 </label>
-                            </div>
-
-                            <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
-                                    Level Editor
-                                </label>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <div className="bg-slate-900/70 border border-white/10 rounded-xl p-3">
-                                        <p className="text-[10px] uppercase font-black text-slate-500 mb-2">Target Level</p>
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            max="100"
-                                            value={levelInput}
-                                            onChange={(e) => {
-                                                setLevelInput(e.target.value);
-                                                setLevelDirty(true);
-                                            }}
-                                            onBlur={() => {
-                                                const normalized = clampNumber(levelInput, MIN_LEVEL, MAX_LEVEL);
-                                                setLevelInput(String(normalized || levelClampFallback));
-                                            }}
-                                            className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-blue-400 font-bold outline-none focus:border-blue-500/50"
-                                        />
-                                        <p className="mt-2 text-[10px] text-slate-500">Level is capped to 1-100.</p>
-                                    </div>
-                                    <div className="bg-slate-900/70 border border-white/10 rounded-xl p-3">
-                                        <p className="text-[10px] uppercase font-black text-slate-500 mb-2">Growth Curve</p>
-                                        <select
-                                            value={levelGrowthMode}
-                                            onChange={(e) => {
-                                                setLevelGrowthMode(e.target.value);
-                                                setLevelDirty(true);
-                                            }}
-                                            className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-xs text-slate-300 outline-none focus:border-blue-500/50"
-                                        >
-                                            <option value="auto">Default from species (recommended)</option>
-                                            {GROWTH_OPTIONS.map((opt) => (
-                                                <option key={opt.id} value={String(opt.id)}>{opt.id} - {opt.label}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-                                {isPcMon ? (
-                                    <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-[10px] text-amber-200">
-                                        PC boxes do not store a visual level byte like party Pokemon. Default mode uses ROM-truth species growth; choose manual only if needed.
-                                    </div>
-                                ) : (
-                                    <p className="text-[10px] text-slate-500 italic text-center">
-                                        Default mode uses ROM-truth species growth and falls back to inference only when metadata is unavailable.
-                                    </p>
-                                )}
-                            </div>
-
-                            <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
-                                    Pokemon Nature
-                                </label>
-                                <select
-                                    value={localPk.nature_id}
-                                    onChange={(e) => setLocalPk({...localPk, nature_id: parseInt(e.target.value)})}
-                                    className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm text-blue-400 font-bold outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none cursor-pointer"
-                                >
-                                    {[
-                                        "Hardy", "Lonely", "Brave", "Adamant", "Naughty",
-                                        "Bold", "Docile", "Relaxed", "Impish", "Lax",
-                                        "Timid", "Hasty", "Serious", "Jolly", "Naive",
-                                        "Modest", "Mild", "Quiet", "Bashful", "Rash",
-                                        "Calm", "Gentle", "Sassy", "Careful", "Quirky"
-                                    ].map((name, i) => (
-                                        <option key={i} value={i}>{name}</option>
-                                    ))}
-                                </select>
-                                <p className="text-[9px] text-center text-slate-500 italic">Changing nature will modify the Pokemon PID in the save file.</p>
                             </div>
 
                             <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
