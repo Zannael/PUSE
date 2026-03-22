@@ -13,11 +13,11 @@ const PokemonCard = ({ pokemon, onEdit, getPokemonIconUrl }) => {
 
     const stats = [
         { label: 'HP', val: pokemon.ivs.HP, icon: <Heart size={12}/> },
-        { label: 'Atk', val: pokemon.ivs.Atk, icon: <Target size={12}/> },
-        { label: 'Def', val: pokemon.ivs.Def, icon: <Shield size={12}/> },
-        { label: 'SpA', val: pokemon.ivs.SpA, icon: <Zap size={12}/> },
-        { label: 'SpD', val: pokemon.ivs.SpD, icon: <Activity size={12}/> },
-        { label: 'Spe', val: pokemon.ivs.Spd || pokemon.ivs.Spe, icon: <Wind size={12}/> },
+        { label: 'ATK', val: pokemon.ivs.Atk, icon: <Target size={12}/> },
+        { label: 'DEF', val: pokemon.ivs.Def, icon: <Shield size={12}/> },
+        { label: 'SPA', val: pokemon.ivs.SpA, icon: <Zap size={12}/> },
+        { label: 'SPD', val: pokemon.ivs.SpD, icon: <Activity size={12}/> },
+        { label: 'SPE', val: pokemon.ivs.Spd || pokemon.ivs.Spe, icon: <Wind size={12}/> },
     ];
     return (
         <div

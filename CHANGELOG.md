@@ -67,6 +67,7 @@
 - Pokemon editor Info tab now shows Species controls before level/nature/item controls for faster access.
 - Ability controls now show resolved ROM-truth ability names for slot buttons and current-ability labels (including hidden ability names when available).
 - PC grid empty slots now support in-place add flow via modal (species search + nickname + level) with save-path parity across backend/local modes.
+- Standardized visible stat abbreviations across party cards and editor sliders to `HP/ATK/DEF/SPA/SPD/SPE`, and enforced the standard display order to avoid `SPD` ambiguity between Special Defense and Speed.
 
 #### Responsive UI and Internationalization
 

@@ -571,13 +571,26 @@ export const PokemonEditorModal = ({ client, pokemon, onClose, onSave }) => {
 
 const StatGroup = ({title, type, data, update, max}) => {
     const statsEntries = data ? Object.entries(data) : [];
+    const statLabels = {
+        HP: 'HP',
+        Atk: 'ATK',
+        Def: 'DEF',
+        SpA: 'SPA',
+        SpD: 'SPD',
+        Spd: 'SPE',
+        Spe: 'SPE',
+    };
+    const statOrder = ['HP', 'Atk', 'Def', 'SpA', 'SpD', 'Spd', 'Spe'];
+    const orderedStatsEntries = statOrder
+        .map((key) => (Object.prototype.hasOwnProperty.call(data || {}, key) ? [key, data[key]] : null))
+        .filter(Boolean);
 
     return (
         <div className="space-y-4">
             <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest">{title}</h4>
-            {statsEntries.map(([stat, val]) => (
+            {(orderedStatsEntries.length > 0 ? orderedStatsEntries : statsEntries).map(([stat, val]) => (
                 <div key={stat} className="flex items-center gap-4">
-                    <span className="w-8 text-[10px] font-bold text-slate-400 uppercase">{stat}</span>
+                    <span className="w-8 text-[10px] font-bold text-slate-400 uppercase">{statLabels[stat] || stat}</span>
                     <input
                         type="range" min="0" max={max} value={val}
                         onChange={(e) => update(type, stat, e.target.value)}
