@@ -5,8 +5,7 @@ import { POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 const TOTAL_BOXES = 26;
 const BOX_SLOTS = 30;
 
-const PCGrid = ({ client, onEditPokemon, onAddPokemon }) => {
-    const [boxId, setBoxId] = useState(1);
+const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon }) => {
     const [pokemon, setPokemon] = useState([]);
     const [loading, setLoading] = useState(false);
     const [pcLoaded, setPcLoaded] = useState(false);
@@ -36,11 +35,11 @@ const PCGrid = ({ client, onEditPokemon, onAddPokemon }) => {
     }, [client]);
 
     const handlePrevBox = () => {
-        setBoxId(prev => (prev === 1 ? TOTAL_BOXES : prev - 1));
+        onBoxChange(boxId === 1 ? TOTAL_BOXES : boxId - 1);
     };
 
     const handleNextBox = () => {
-        setBoxId(prev => (prev === TOTAL_BOXES ? 1 : prev + 1));
+        onBoxChange(boxId === TOTAL_BOXES ? 1 : boxId + 1);
     };
 
     const normalizedSlots = Array.from({ length: BOX_SLOTS }, (_, idx) => {
