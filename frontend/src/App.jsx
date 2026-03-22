@@ -521,6 +521,7 @@ const App = () => {
                     <AddPcPokemonModal
                         client={client}
                         target={pcInsertTarget}
+                        legitMode={legitMode}
                         onClose={() => setPcInsertTarget(null)}
                         onConfirm={handleInsertPcPokemon}
                     />

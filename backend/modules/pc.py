@@ -46,6 +46,10 @@ FALLBACK_BOX_LAYOUTS = {
 # --- OFFSET (CFRU COMPACT) ---
 OFF_PID = 0x00
 OFF_NICK = 0x08
+OFF_OT_MISC_1 = 0x12
+OFF_OT_MISC_2 = 0x13
+OFF_OT_NAME = 0x14
+OT_NAME_LEN = 7
 OFF_SPECIES = 0x1C
 OFF_ITEM = 0x1E  # Offset Strumento
 OFF_EXP = 0x20
@@ -517,6 +521,12 @@ class UnboundPCMon:
     def get_otid(self):
         return ru32(self.raw, 0x04)
 
+    def get_owner_name(self):
+        return decode_text(self.raw[OFF_OT_NAME: OFF_OT_NAME + OT_NAME_LEN])
+
+    def get_owner_misc(self):
+        return ru8(self.raw, OFF_OT_MISC_1), ru8(self.raw, OFF_OT_MISC_2)
+
     def get_nature_id(self):
         return self.get_pid() % 25
 
@@ -751,6 +761,10 @@ def build_pc_mon_raw(
     current_ability_index=0,
     shiny=None,
     gender=None,
+    otid=None,
+    ot_name=None,
+    ot_misc_1=None,
+    ot_misc_2=None,
 ):
     sid = int(species_id)
     if sid <= 0 or sid not in DB_SPECIES:
@@ -775,7 +789,11 @@ def build_pc_mon_raw(
     wu16(raw, OFF_ITEM, int(item_id) if item_id is not None else 0)
     wu32(raw, OFF_EXP, mon_exp)
     wu32(raw, OFF_PID, (sid * 2654435761) & 0xFFFFFFFF)
-    wu32(raw, 0x04, 0)
+    wu32(raw, 0x04, int(otid) & 0xFFFFFFFF if otid is not None else 0)
+    owner_name = "" if ot_name is None else str(ot_name)
+    raw[OFF_OT_NAME: OFF_OT_NAME + OT_NAME_LEN] = encode_text(owner_name, OT_NAME_LEN)
+    wu8(raw, OFF_OT_MISC_1, int(ot_misc_1) & 0xFF if ot_misc_1 is not None else 0)
+    wu8(raw, OFF_OT_MISC_2, int(ot_misc_2) & 0xFF if ot_misc_2 is not None else 0)
 
     default_name = DB_SPECIES.get(sid, "Pokemon")
     nick = default_name if nickname is None else str(nickname)
@@ -790,6 +808,8 @@ def build_pc_mon_raw(
 
     if ivs:
         mon.set_ivs(ivs)
+    else:
+        mon.set_ivs({"HP": 31, "Atk": 31, "Def": 31, "Spe": 31, "SpA": 31, "SpD": 31})
 
     if evs:
         mon.set_evs(evs)

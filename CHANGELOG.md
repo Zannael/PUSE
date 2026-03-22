@@ -15,7 +15,6 @@
 
 - Add keyboard-assisted stat editing shortcuts (Ctrl+click to set max, Alt+click to set zero) for IV/EV fields.
 - ~Investigate ROM-truth naming mismatch reports (for example Rhyperior shown as `Filter` vs expected `Solid Rock`) and align visible labels where appropriate.~ This now has [an opened issue](https://github.com/Zannael/PUSE/issues/7).
-- Explore set import support (Showdown/Smogon/Pokepaste format) as an advanced editor workflow.
 
 ### Changed
 
@@ -84,6 +83,8 @@
 - Level editing now surfaces explicit `1..100` cap guidance and normalizes out-of-range values in editor flows, with backend party level updates returning clamp metadata (`requested_level`, `was_clamped`).
 - Editor tabs were reorganized for faster stat workflows: `Stats` now groups Level, Nature, IVs, EVs, and Ability controls in one place.
 - Hidden ability labels now prioritize readability by showing ability name first (for example `Sheer Force (HA)`).
+- Added Showdown/Smogon set import to the `Add Pokemon` modal header (`FROM SMOGON`) with strict catalog validation (species/item/ability/moves), clear blocking errors, and safe insert/save flow. Still some bugs with some items and Pokémon with multiple forms.
+- New PC Pokemon insertions now default IVs to `31/31/31/31/31/31` and infer full owner template from existing save data (OT name + IDNo/TID-linked OTID + owner bytes) instead of zeroed owner fields.
 
 #### Responsive UI and Internationalization
 

@@ -7,6 +7,13 @@ const EV_STAT_MAX = 252;
 const EV_TOTAL_MAX = 510;
 const MIN_LEVEL = 1;
 const MAX_LEVEL = 100;
+const NATURES = [
+    'Hardy', 'Lonely', 'Brave', 'Adamant', 'Naughty',
+    'Bold', 'Docile', 'Relaxed', 'Impish', 'Lax',
+    'Timid', 'Hasty', 'Serious', 'Jolly', 'Naive',
+    'Modest', 'Mild', 'Quiet', 'Bashful', 'Rash',
+    'Calm', 'Gentle', 'Sassy', 'Careful', 'Quirky',
+];
 
 const clampNumber = (value, min, max) => {
     const parsed = Number.parseInt(value, 10);
@@ -49,6 +56,8 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
     const [levelInput, setLevelInput] = useState(String(initialLevel));
     const [levelGrowthMode, setLevelGrowthMode] = useState(initialGrowthMode);
     const [levelDirty, setLevelDirty] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveStage, setSaveStage] = useState('Applying changes...');
 
     const hasKnownItemName = (name) => {
         if (!name) return false;
@@ -119,13 +128,13 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
 
     useEffect(() => {
         const onKeyDown = (e) => {
-            if (e.key === 'Escape') {
+            if (e.key === 'Escape' && !isSaving) {
                 onClose();
             }
         };
         window.addEventListener('keydown', onKeyDown);
         return () => window.removeEventListener('keydown', onKeyDown);
-    }, [onClose]);
+    }, [onClose, isSaving]);
 
     const applySpeciesSelection = (species) => {
         const previousSpecies = allSpecies.find(s => s.id === localPk.species_id);
@@ -144,7 +153,10 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
         setSpeciesSearch('');
     };
 
-    const handleSaveClick = () => {
+
+    const handleSaveClick = async () => {
+        setIsSaving(true);
+        setSaveStage('Applying changes...');
         const payload = { ...localPk };
         if (levelDirty) {
             const parsedLevel = clampNumber(levelInput, MIN_LEVEL, MAX_LEVEL);
@@ -154,7 +166,12 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                 growth_rate: levelGrowthMode === 'auto' ? null : parseInt(levelGrowthMode, 10),
             };
         }
-        onSave(payload);
+        try {
+            setSaveStage('Saving file...');
+            await Promise.resolve(onSave(payload));
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const levelClampFallback = Number(localPk.level || initialLevel || MIN_LEVEL);
@@ -164,10 +181,10 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
     return (
         <div
             className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
-            onClick={onClose}
+            onClick={isSaving ? undefined : onClose}
         >
             <div
-                className="bg-[#0f172a] border border-white/10 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                className="relative bg-[#0f172a] border border-white/10 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
                 onClick={(e) => e.stopPropagation()}
             >
 
@@ -204,7 +221,7 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                             )}
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full"><X /></button>
+                    <button onClick={onClose} disabled={isSaving} className="p-2 hover:bg-white/5 rounded-full disabled:opacity-40 disabled:cursor-not-allowed"><X /></button>
                 </div>
 
                 <div className="flex bg-[#1e293b]/50 p-2 gap-2 border-b border-white/5">
@@ -300,13 +317,7 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                                         onChange={(e) => setLocalPk({...localPk, nature_id: parseInt(e.target.value)})}
                                         className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm text-blue-400 font-bold outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none cursor-pointer"
                                     >
-                                        {[
-                                            "Hardy", "Lonely", "Brave", "Adamant", "Naughty",
-                                            "Bold", "Docile", "Relaxed", "Impish", "Lax",
-                                            "Timid", "Hasty", "Serious", "Jolly", "Naive",
-                                            "Modest", "Mild", "Quiet", "Bashful", "Rash",
-                                            "Calm", "Gentle", "Sassy", "Careful", "Quirky"
-                                        ].map((name, i) => (
+                                        {NATURES.map((name, i) => (
                                             <option key={i} value={i}>{name}</option>
                                         ))}
                                     </select>
@@ -635,10 +646,21 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
 
                 <div className="p-6 bg-[#1e293b]/80 border-t border-white/5 flex justify-end">
                     <button onClick={handleSaveClick}
-                            className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-3 rounded-2xl flex items-center gap-2 shadow-lg active:scale-95 transition-all">
+                            disabled={isSaving}
+                            className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-3 rounded-2xl flex items-center gap-2 shadow-lg active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed">
                         <Save size={18}/> SAVE CHANGES
                     </button>
                 </div>
+
+                {isSaving && (
+                    <div className="absolute inset-0 z-20 bg-black/70 backdrop-blur-sm flex items-center justify-center">
+                        <div className="bg-slate-900 border border-white/10 rounded-2xl px-6 py-5 text-center space-y-2 min-w-[260px]">
+                            <div className="w-7 h-7 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto" />
+                            <p className="text-sm font-bold text-blue-300">Applying edits</p>
+                            <p className="text-xs text-slate-400">{saveStage}</p>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

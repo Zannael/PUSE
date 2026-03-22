@@ -481,6 +481,65 @@ def get_active_trainer_offset():
     return trainer_secs[0]['off']
 
 
+def _infer_default_owner_template() -> dict:
+    counts: dict[tuple, int] = {}
+    order: dict[tuple, int] = {}
+
+    def add_owner(otid_value, name_value, misc_1=0, misc_2=0):
+        try:
+            otid = int(otid_value) & 0xFFFFFFFF
+        except Exception:
+            return
+        name = str(name_value or "").strip()
+        if otid == 0 or not name:
+            return
+        key = (otid, name, int(misc_1) & 0xFF, int(misc_2) & 0xFF)
+        if key not in order:
+            order[key] = len(order)
+        counts[key] = counts.get(key, 0) + 1
+
+    trainer_off = get_active_trainer_offset()
+    if trainer_off is not None and current_save.get("data"):
+        sec_data = current_save["data"][trainer_off: trainer_off + party_mod.SECTION_SIZE]
+        team_count = min(6, int(party_mod.ru32(sec_data, 0x34)))
+        for idx in range(team_count):
+            mon_off = 0x38 + (idx * 100)
+            raw = sec_data[mon_off: mon_off + 100]
+            if len(raw) < 100:
+                continue
+            try:
+                p = party_mod.Pokemon(raw)
+                owner_name = box_mod.decode_text(raw[0x14:0x14 + 7])
+                owner_misc_1 = int(raw[0x12])
+                owner_misc_2 = int(raw[0x13])
+                add_owner(p.otid, owner_name, owner_misc_1, owner_misc_2)
+            except Exception:
+                continue
+
+    for mon in current_save.get("pc_context", {}).get("mons", []):
+        try:
+            owner_misc_1, owner_misc_2 = mon.get_owner_misc()
+            add_owner(mon.get_otid(), mon.get_owner_name(), owner_misc_1, owner_misc_2)
+        except Exception:
+            continue
+
+    if not counts:
+        return {
+            "otid": 0,
+            "ot_name": "",
+            "ot_misc_1": 0,
+            "ot_misc_2": 0,
+        }
+
+    best_key = max(counts.items(), key=lambda kv: (kv[1], -order.get(kv[0], 10**9)))[0]
+    return {
+        "otid": int(best_key[0]),
+        "ot_name": str(best_key[1]),
+        "ot_misc_1": int(best_key[2]),
+        "ot_misc_2": int(best_key[3]),
+    }
+
+
 # --- Endpoints ---
 
 @app.get("/party")
@@ -1234,6 +1293,7 @@ async def insert_pc_mon(upd: PCInsert):
             off = abs_off
 
     try:
+        inferred_owner = _infer_default_owner_template()
         raw = box_mod.build_pc_mon_raw(
             species_id=upd.species_id,
             nickname=upd.nickname,
@@ -1247,6 +1307,10 @@ async def insert_pc_mon(upd: PCInsert):
             current_ability_index=upd.current_ability_index,
             shiny=upd.shiny,
             gender=upd.gender,
+            otid=inferred_owner.get("otid"),
+            ot_name=inferred_owner.get("ot_name"),
+            ot_misc_1=inferred_owner.get("ot_misc_1"),
+            ot_misc_2=inferred_owner.get("ot_misc_2"),
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

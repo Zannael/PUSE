@@ -20,6 +20,10 @@ const MON_SIZE_PC = 58;
 const OFFSET_PRESET_START = 0xB0;
 const PRESET_CAPACITY = 30;
 const BOX_SLOT_COUNT = 30;
+const TRAINER_SECTION_ID = 1;
+const PARTY_COUNT_OFFSET = 0x34;
+const PARTY_START_OFFSET = 0x38;
+const PARTY_MON_SIZE = 100;
 
 const FALLBACK_BOX_LAYOUTS = {
     22: [[1, 30, 0x1F8B4]],
@@ -29,6 +33,10 @@ const FALLBACK_BOX_LAYOUTS = {
 
 const OFF_PID = 0x00;
 const OFF_NICK = 0x08;
+const OFF_OT_MISC_1 = 0x12;
+const OFF_OT_MISC_2 = 0x13;
+const OFF_OT_NAME = 0x14;
+const OT_NAME_LEN = 7;
 const OFF_SPECIES = 0x1C;
 const OFF_ITEM = 0x1E;
 const OFF_EXP = 0x20;
@@ -793,7 +801,87 @@ function getMonBufferAndOffset(context, box, slot) {
     return { buffer: context.pcBuffer, offset: off, kind: 'stream' };
 }
 
-function buildPcMonRaw(payload, speciesMap) {
+function inferDefaultOwnerTemplate(context) {
+    const counts = new Map();
+    const order = new Map();
+
+    const add = (otidValue, nameValue, misc1 = 0, misc2 = 0) => {
+        const otid = Number(otidValue) >>> 0;
+        const name = String(nameValue || '').trim();
+        if (!otid || !name) return;
+        const key = `${otid}|${name}|${Number(misc1) & 0xFF}|${Number(misc2) & 0xFF}`;
+        if (!order.has(key)) {
+            order.set(key, order.size);
+        }
+        counts.set(key, (counts.get(key) || 0) + 1);
+    };
+
+    const src = context?.sourceBuffer;
+    if (src) {
+        let bestTrainer = null;
+        for (let off = 0; off + SECTION_SIZE <= src.length; off += SECTION_SIZE) {
+            const secId = ru16(src, off + OFF_ID);
+            if (secId !== TRAINER_SECTION_ID) continue;
+            const saveIdx = ru32(src, off + OFF_SAVE_IDX);
+            if (!bestTrainer || saveIdx > bestTrainer.saveIdx) {
+                bestTrainer = { off, saveIdx };
+            }
+        }
+        if (bestTrainer) {
+            const teamCount = Math.min(6, ru32(src, bestTrainer.off + PARTY_COUNT_OFFSET));
+            for (let i = 0; i < teamCount; i += 1) {
+                const monOff = bestTrainer.off + PARTY_START_OFFSET + (i * PARTY_MON_SIZE);
+                if (monOff + PARTY_MON_SIZE > src.length) break;
+                add(
+                    ru32(src, monOff + 0x04),
+                    decodeText(src.slice(monOff + OFF_OT_NAME, monOff + OFF_OT_NAME + OT_NAME_LEN)),
+                    ru8(src, monOff + OFF_OT_MISC_1),
+                    ru8(src, monOff + OFF_OT_MISC_2),
+                );
+            }
+        }
+    }
+
+    if (context?.pcBuffer) {
+        for (let off = 0; off + MON_SIZE_PC <= context.pcBuffer.length; off += MON_SIZE_PC) {
+            const raw = context.pcBuffer.slice(off, off + MON_SIZE_PC);
+            if (!isValidMon(raw)) continue;
+            add(
+                getOtid(raw),
+                decodeText(raw.slice(OFF_OT_NAME, OFF_OT_NAME + OT_NAME_LEN)),
+                ru8(raw, OFF_OT_MISC_1),
+                ru8(raw, OFF_OT_MISC_2),
+            );
+        }
+    }
+
+    if (counts.size === 0) {
+        return { otid: 0, otName: '', otMisc1: 0, otMisc2: 0 };
+    }
+
+    let bestKey = '';
+    let bestCount = -1;
+    let bestOrder = Number.MAX_SAFE_INTEGER;
+    counts.forEach((count, key) => {
+        const seen = order.get(key) ?? Number.MAX_SAFE_INTEGER;
+        if (count > bestCount || (count === bestCount && seen < bestOrder)) {
+            bestCount = count;
+            bestOrder = seen;
+            bestKey = key;
+        }
+    });
+
+    const [otidStr, otName, misc1Str, misc2Str] = bestKey.split('|');
+
+    return {
+        otid: Number(otidStr) >>> 0,
+        otName: String(otName || ''),
+        otMisc1: Number(misc1Str) & 0xFF,
+        otMisc2: Number(misc2Str) & 0xFF,
+    };
+}
+
+function buildPcMonRaw(payload, speciesMap, context) {
     const speciesId = Number(payload?.species_id);
     if (!Number.isInteger(speciesId) || speciesId <= 0) {
         throw new Error('Invalid species_id');
@@ -816,7 +904,11 @@ function buildPcMonRaw(payload, speciesMap) {
     wu16(raw, OFF_ITEM, Number(payload?.item_id ?? 0));
     wu32(raw, OFF_EXP, Number(exp));
     wu32(raw, OFF_PID, ((speciesId * 2654435761) >>> 0));
-    wu32(raw, 0x04, 0);
+    const inferredOwner = inferDefaultOwnerTemplate(context);
+    wu32(raw, 0x04, Number(payload?.otid ?? inferredOwner.otid) >>> 0);
+    raw.set(encodeText(payload?.ot_name ?? inferredOwner.otName ?? '', OT_NAME_LEN), OFF_OT_NAME);
+    wu8(raw, OFF_OT_MISC_1, Number(payload?.ot_misc_1 ?? inferredOwner.otMisc1 ?? 0) & 0xFF);
+    wu8(raw, OFF_OT_MISC_2, Number(payload?.ot_misc_2 ?? inferredOwner.otMisc2 ?? 0) & 0xFF);
 
     const speciesName = speciesMap?.get?.(speciesId) || `Species ${speciesId}`;
     const nickname = payload?.nickname === undefined || payload?.nickname === null ? speciesName : payload.nickname;
@@ -827,6 +919,8 @@ function buildPcMonRaw(payload, speciesMap) {
     }
     if (payload?.ivs) {
         setIvs(raw, payload.ivs);
+    } else {
+        setIvs(raw, { HP: 31, Atk: 31, Def: 31, Spe: 31, SpA: 31, SpD: 31 });
     }
     if (payload?.evs) {
         setEvs(raw, payload.evs);
@@ -907,7 +1001,7 @@ export function insertPcMon(context, payload, speciesMap = null) {
         }
     }
 
-    const raw = buildPcMonRaw(payload, speciesMap);
+    const raw = buildPcMonRaw(payload, speciesMap, context);
 
     if (box === 26) {
         if (!context.presetBuffer) {
