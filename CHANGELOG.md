@@ -14,7 +14,6 @@
 #### Community Feedback UX Backlog
 
 - Add a "legit EV mode" toggle that enforces legal-style constraints (max 252 per stat, max 510 total) with clear remaining-points feedback.
-- Preserve current PC box context after saving a Pokemon, so multi-edit workflows do not jump back to Box 1.
 - Reorganize editor tabs so stat-affecting controls are grouped together (Level, Nature, IVs, EVs, and Ability), and simplify tab naming for faster editing.
 - Update hidden-ability button labeling to prioritize readability (`<Ability Name> (Hidden)` / `<Ability Name> (HA)` instead of `Hidden (<Ability Name>)`).
 - Add keyboard-assisted stat editing shortcuts (Ctrl+click to set max, Alt+click to set zero) for IV/EV fields.
@@ -73,6 +72,8 @@
 - Quick-pocket responses now include readiness/lock metadata (`ready`, `locked`, `locked_reason`, `unlock_via`) and can expose safe empty-slot bootstrap candidates only for unlocked TM/Berry flows.
 - Bag editing now uses an explicit save flow: slot edits are applied in memory, and `SAVE BAG CHANGES` is required to write updates to the `.sav` file.
 - Bag UX now keeps save actions visible at the top of pocket view and warns users when navigating back/changing sections with unsaved bag edits.
+- Fixed item-sector checksum window for Unbound main items sector (`id=13`) to `0x450` in both backend and local mode, preventing intermittent save corruption caused by extra trailing bytes.
+- Backend money updates now clamp requested values to the legal in-game range (`0..999999`) and return clamp metadata (`requested_money`, `was_clamped`) for safer API behavior.
 
 #### Editor UX
 
@@ -80,6 +81,9 @@
 - Ability controls now show resolved ROM-truth ability names for slot buttons and current-ability labels (including hidden ability names when available).
 - PC grid empty slots now support in-place add flow via modal (species search + nickname + level) with save-path parity across backend/local modes.
 - Standardized visible stat abbreviations across party cards and editor sliders to `HP/ATK/DEF/SPA/SPD/SPE`, and enforced the standard display order to avoid `SPD` ambiguity between Special Defense and Speed.
+- Saving edits in PC now preserves the currently selected box instead of resetting to Box 1.
+- Money modal input now enforces whole-number entry and a six-digit cap (`999999`) in UI.
+- Money modal now includes a hover note clarifying that backend safety clamps values to the legal in-game range.
 
 #### Responsive UI and Internationalization
 
@@ -87,6 +91,7 @@
 - App title in UI now uses `PUSE` and the pre-upload screen now includes concise onboarding content plus visible upload and drag-and-drop actions.
 - Branding now references Pokemon Unbound in both the browser tab title and onboarding copy, while keeping a compact `PUSE` header label on small screens.
 - Added onboarding note clarifying compatibility with `.sav` files from CFRU + DPE ROM hacks.
+- Upload flow now accepts `.srm` files in addition to `.sav`, preserves the original extension on download, and updates the download button label accordingly.
 - Added explicit `RESTART / LOAD NEW FILE` control in the loaded-state header.
 - Standardized modal dismissal UX: money modal, Pokemon editor modal, and bag edit modal now close via `X`, outside click, and `Esc`.
 - PC Box view now renders explicit empty slots and keeps a responsive grid (up to 6 columns where space allows) without forced horizontal scrolling on small devices.
