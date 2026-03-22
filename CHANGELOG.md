@@ -20,7 +20,6 @@
 - Add keyboard-assisted stat editing shortcuts (Ctrl+click to set max, Alt+click to set zero) for IV/EV fields.
 - Harden and clarify level constraints in UI and validation so level cap behavior (1-100) is explicit and consistently enforced.
 - Investigate ROM-truth naming mismatch reports (for example Rhyperior shown as `Filter` vs expected `Solid Rock`) and align visible labels where appropriate.
-- Clarify visual indicators on Pokemon cards (background color meaning, `#` metadata source) to reduce ambiguity.
 - Document backend vs local runtime behavior differences directly in-app so mode choice is understandable.
 - Explore set import support (Showdown/Smogon/Pokepaste format) as an advanced editor workflow.
 
