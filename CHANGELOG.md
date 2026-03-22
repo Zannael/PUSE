@@ -18,7 +18,7 @@
 - Update hidden-ability button labeling to prioritize readability (`<Ability Name> (Hidden)` / `<Ability Name> (HA)` instead of `Hidden (<Ability Name>)`).
 - Add keyboard-assisted stat editing shortcuts (Ctrl+click to set max, Alt+click to set zero) for IV/EV fields.
 - Harden and clarify level constraints in UI and validation so level cap behavior (1-100) is explicit and consistently enforced.
-- Investigate ROM-truth naming mismatch reports (for example Rhyperior shown as `Filter` vs expected `Solid Rock`) and align visible labels where appropriate.
+- ~Investigate ROM-truth naming mismatch reports (for example Rhyperior shown as `Filter` vs expected `Solid Rock`) and align visible labels where appropriate.~ This now has [an opened issue](https://github.com/Zannael/PUSE/issues/7).
 - Document backend vs local runtime behavior differences directly in-app so mode choice is understandable.
 - Explore set import support (Showdown/Smogon/Pokepaste format) as an advanced editor workflow.
 
