@@ -434,6 +434,7 @@ const App = () => {
                         </div>
                         <input
                             type="number"
+                            step="1"
                             min="0"
                             max="999999"
                             value={moneyInput}
