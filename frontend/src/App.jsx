@@ -435,8 +435,12 @@ const App = () => {
                         <input
                             type="number"
                             min="0"
+                            max="999999"
                             value={moneyInput}
-                            onChange={(e) => setMoneyInput(e.target.value)}
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                if (value.length <= 6) setMoneyInput(value);
+                            }}
                             className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 font-mono text-emerald-400 outline-none focus:border-blue-500"
                         />
                         <div className="flex gap-3">
