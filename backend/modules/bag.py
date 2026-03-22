@@ -20,8 +20,9 @@ OFF_SAVE_IDX = 0xFFC
 UNBOUND_ITEM_SECTOR_ID = 13
 # Settori borsa noti (Unbound/CFRU): item, key, balls, berries/tm (varia per build)
 BAG_SECTOR_IDS = {13, 14, 15, 16}
-# Lunghezza fissa trovata col Cracker (0x450 o 0x454 vanno bene, usiamo il max)
-UNBOUND_ITEM_FIXED_LEN = 0x454
+# Correct checksum length for item sector (id=13) is 0x450
+# Using 0x454 includes 4 extra bytes that can be non-zero, producing invalid checksums
+UNBOUND_ITEM_FIXED_LEN = 0x450
 
 # Limiti conservativi per filtro slot borsa
 MAX_PLAUSIBLE_ITEM_ID = 4095

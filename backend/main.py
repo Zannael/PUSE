@@ -1339,7 +1339,7 @@ async def commit_to_file():
     # Pokemon Unbound uses sectors 13, 14, 15, etc. for pockets.
     # Apply checksum recalculation to each bag/PC-items sector.
     for sec in sections:
-        # Sector 13 is the main items sector (fixed 0x454).
+        # Sector 13 is the main items sector (fixed 0x450).
         # Other sectors (Berries, TMs) use standard footer length.
         if sec['id'] >= 13 and sec['id'] <= 16:
             bag_mod.recalculate_checksum(current_save["data"], sec['off'])

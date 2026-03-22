@@ -8,7 +8,7 @@ import {
 
 const MAX_SECTION_PAYLOAD = 0xFF4;
 const UNBOUND_ITEM_SECTOR_ID = 13;
-const UNBOUND_ITEM_FIXED_LEN = 0x454;
+const UNBOUND_ITEM_FIXED_LEN = 0x450;
 
 export function gbaChecksum(buffer, offset, length) {
     const safeLength = Math.max(0, length);
