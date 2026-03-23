@@ -139,6 +139,14 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
         return () => window.removeEventListener('keydown', onKeyDown);
     }, [onClose, isSaving]);
 
+    useEffect(() => {
+        if (!isPcMon) {
+            setShowImport(false);
+            setSetImportErrors([]);
+            setSetImportWarnings([]);
+        }
+    }, [isPcMon]);
+
     const applySpeciesSelection = (species) => {
         const previousSpecies = allSpecies.find(s => s.id === localPk.species_id);
         const previousDisplay = previousSpecies?.display_name || previousSpecies?.name || '';
@@ -157,6 +165,11 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
     };
 
     const applyShowdownImport = () => {
+        if (!isPcMon) {
+            setSetImportErrors(['FROM SMOGON is currently disabled for party Pokemon (stability safeguard).']);
+            setSetImportWarnings([]);
+            return;
+        }
         if (!allSpecies.length || !allMoves.length || !allItems.length || !allAbilities.length) {
             setSetImportErrors(['Catalogs are still loading. Try again in a second.']);
             setSetImportWarnings([]);
@@ -325,9 +338,9 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                         <button
                             type="button"
                             onClick={() => setShowImport((prev) => !prev)}
-                            disabled={isSaving}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-[10px] font-bold uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Paste a Showdown/Smogon set"
+                            disabled={isSaving || !isPcMon}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-[10px] font-bold uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+                            title={isPcMon ? 'Paste a Showdown/Smogon set' : 'Disabled for party Pokemon (stability safeguard)'}
                         >
                             <Download size={12} /> FROM SMOGON
                         </button>
