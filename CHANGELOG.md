@@ -65,6 +65,7 @@
 
 - Bag quick-pocket safety now gates TM Case and Berry Pouch editing by unlock state: non-empty pockets are editable, while empty pockets are editable only when the corresponding key item is present (`TM Case` / `Berry Pouch`).
 - Quick-pocket responses now include readiness/lock metadata (`ready`, `locked`, `locked_reason`, `unlock_via`) and can expose safe empty-slot bootstrap candidates only for unlocked TM/Berry flows.
+- Main pocket detection now resolves from active section `id=13` first (anchor template) and supports unusually long pocket streams, fixing bootstrap/search failures on long-list saves (for example FewTimesDead variants) with backend/local parity.
 - Bag editing now uses an explicit save flow: slot edits are applied in memory, and `SAVE BAG CHANGES` is required to write updates to the `.sav` file.
 - Bag UX now keeps save actions visible at the top of pocket view and warns users when navigating back/changing sections with unsaved bag edits.
 - Fixed item-sector checksum window for Unbound main items sector (`id=13`) to `0x450` in both backend and local mode, preventing intermittent save corruption caused by extra trailing bytes.

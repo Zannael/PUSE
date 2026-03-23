@@ -27,7 +27,11 @@ UNBOUND_ITEM_FIXED_LEN = 0x450
 # Limiti conservativi per filtro slot borsa
 MAX_PLAUSIBLE_ITEM_ID = 4095
 MAX_PLAUSIBLE_ITEM_QTY = 2000
-MAX_POCKET_SLOTS = 200
+# Sector-local pocket streams can be very long in some saves.
+# Use full sector payload capacity for anchored section parsing.
+MAX_SECTOR_POCKET_SLOTS = OFF_VALID_LEN // 4
+# Global scans remain bounded for performance/safety.
+MAX_GLOBAL_POCKET_SLOTS = 400
 MAX_STRICT_POCKET_SLOTS = 80
 MAX_STRICT_DUP_RATIO = 0.35
 MAX_MEDIUM_DUP_RATIO = 0.60
@@ -91,6 +95,7 @@ KNOWN_POCKET_ANCHORS = {
 }
 
 KNOWN_POCKET_REL_OFFSETS = {
+    "main": 0xAD8,
     "ball": 0x31C,
     "tm": 0x3E4,
     "berry": 0x5E4,
@@ -280,6 +285,28 @@ def _compute_active_save_idx(data, sector_ids=None):
     return max_idx
 
 
+def _resolve_active_section_offsets(data, section_ids=None):
+    best = {}
+    wanted = None if section_ids is None else {int(x) for x in section_ids}
+
+    total_sectors = len(data) // SECTION_SIZE
+    for sec_idx in range(total_sectors):
+        sec_off = sec_idx * SECTION_SIZE
+        sect_id = ru16(data, sec_off + OFF_ID)
+        if wanted is not None and sect_id not in wanted:
+            continue
+
+        save_idx = ru32(data, sec_off + OFF_SAVE_IDX)
+        prev = best.get(sect_id)
+        if prev is None or save_idx > prev['save_idx']:
+            best[sect_id] = {
+                'offset': sec_off,
+                'save_idx': save_idx,
+            }
+
+    return {int(sec_id): int(meta['offset']) for sec_id, meta in best.items()}
+
+
 def _pick_best_candidate(candidates):
     if not candidates:
         return None
@@ -297,6 +324,25 @@ def _pick_best_candidate(candidates):
 
 
 def _resolve_main_pocket(data):
+    active_sections = _resolve_active_section_offsets(data, section_ids={UNBOUND_ITEM_SECTOR_ID})
+    active_item_sector_off = active_sections.get(UNBOUND_ITEM_SECTOR_ID)
+    if active_item_sector_off is not None:
+        anchor = active_item_sector_off + KNOWN_POCKET_REL_OFFSETS['main']
+        candidate, _ = _candidate_from_anchor(data, anchor)
+        if candidate and candidate.get('quality') != 'reject':
+            conf = 'high' if candidate.get('quality') == 'strict' else 'medium'
+            return {
+                'pocket_type': 'main',
+                'anchor_offset': anchor,
+                'quality': candidate.get('quality'),
+                'score': candidate.get('score'),
+                'slot_count': candidate.get('pocket_slots'),
+                'dup_count': candidate.get('pocket_dups'),
+                'source': 'active_section_template',
+                'confidence': conf,
+                'detection_note': 'main pocket resolved from active section 13 anchor template',
+            }
+
     best = None
     best_probe = None
 
@@ -675,7 +721,7 @@ def _extract_idset_pocket_bounds_global(data, anchor_offset, valid_ids, min_slot
     slot_count = 0
     terminated = False
 
-    while curr + 3 < len(data) and slot_count < MAX_POCKET_SLOTS:
+    while curr + 3 < len(data) and slot_count < MAX_GLOBAL_POCKET_SLOTS:
         iid = ru16(data, curr)
         iqty = ru16(data, curr + 2)
 
@@ -835,7 +881,7 @@ def _extract_pocket_bounds(data, anchor_offset, swapped=False):
     seen_ids = set()
     terminated = False
 
-    while curr + 3 < sector_end and slot_count < MAX_POCKET_SLOTS:
+    while curr + 3 < sector_end and slot_count < MAX_SECTOR_POCKET_SLOTS:
         iid, iqty = _decode_slot(data, curr, swapped=swapped)
 
         if iid == 0:

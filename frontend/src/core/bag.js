@@ -9,7 +9,8 @@ const BAG_SECTOR_IDS = new Set([13, 14, 15, 16]);
 
 const MAX_PLAUSIBLE_ITEM_ID = 4095;
 const MAX_PLAUSIBLE_ITEM_QTY = 2000;
-const MAX_POCKET_SLOTS = 200;
+const MAX_SECTOR_POCKET_SLOTS = OFF_VALID_LEN / 4;
+const MAX_GLOBAL_POCKET_SLOTS = 400;
 const MAX_STRICT_POCKET_SLOTS = 80;
 const MAX_STRICT_DUP_RATIO = 0.35;
 const MAX_MEDIUM_DUP_RATIO = 0.6;
@@ -61,6 +62,7 @@ const KNOWN_POCKET_ANCHORS = {
 };
 
 const KNOWN_POCKET_REL_OFFSETS = {
+    main: 0xAD8,
     ball: 0x31C,
     tm: 0x3E4,
     berry: 0x5E4,
@@ -136,7 +138,7 @@ function extractPocketBounds(buffer, anchorOffset, swapped = false) {
     let terminated = false;
     const seen = new Set();
 
-    while (curr + 3 < sectorEnd && slotCount < MAX_POCKET_SLOTS) {
+    while (curr + 3 < sectorEnd && slotCount < MAX_SECTOR_POCKET_SLOTS) {
         const [iid, iqty] = decodeSlot(buffer, curr, swapped);
         if (iid === 0 || iqty === 0) {
             terminated = true;
@@ -209,7 +211,7 @@ function extractIdSetPocketBoundsGlobal(buffer, anchorOffset, validIds, minSlots
     let slotCount = 0;
     let terminated = false;
 
-    while (curr + 3 < buffer.length && slotCount < MAX_POCKET_SLOTS) {
+    while (curr + 3 < buffer.length && slotCount < MAX_GLOBAL_POCKET_SLOTS) {
         const iid = ru16(buffer, curr);
         const iqty = ru16(buffer, curr + 2);
         if (iid === 0) {
@@ -373,6 +375,32 @@ function computeActiveSaveIdx(buffer, sectorIds = null) {
     }
 
     return maxIdx;
+}
+
+function resolveActiveSectionOffsets(buffer, sectionIds = null) {
+    const wanted = sectionIds instanceof Set ? sectionIds : (Array.isArray(sectionIds) ? new Set(sectionIds) : null);
+    const best = new Map();
+
+    const totalSectors = Math.floor(buffer.length / SECTION_SIZE);
+    for (let secIdx = 0; secIdx < totalSectors; secIdx += 1) {
+        const secOff = secIdx * SECTION_SIZE;
+        const sectId = ru16(buffer, secOff + OFF_ID);
+        if (wanted && !wanted.has(sectId)) {
+            continue;
+        }
+
+        const saveIdx = ru32(buffer, secOff + OFF_SAVE_IDX);
+        const prev = best.get(sectId);
+        if (!prev || saveIdx > prev.saveIdx) {
+            best.set(sectId, { offset: secOff, saveIdx });
+        }
+    }
+
+    const out = {};
+    best.forEach((meta, secId) => {
+        out[Number(secId)] = Number(meta.offset);
+    });
+    return out;
 }
 
 function pickBestCandidate(candidates) {
@@ -795,6 +823,26 @@ function resolveFamilyPocket(buffer, pocketType, knownAnchor, probeItemId, valid
 }
 
 function resolveMainPocket(buffer) {
+    const activeSections = resolveActiveSectionOffsets(buffer, new Set([UNBOUND_ITEM_SECTOR_ID]));
+    const activeItemSectorOff = activeSections[UNBOUND_ITEM_SECTOR_ID];
+    if (Number.isInteger(activeItemSectorOff)) {
+        const anchorOffset = activeItemSectorOff + KNOWN_POCKET_REL_OFFSETS.main;
+        const [candidate] = candidateFromAnchor(buffer, anchorOffset);
+        if (candidate && candidate.quality !== 'reject') {
+            return {
+                pocket_type: 'main',
+                anchor_offset: anchorOffset,
+                quality: candidate.quality,
+                score: candidate.score,
+                slot_count: candidate.pocket_slots,
+                dup_count: candidate.pocket_dups,
+                source: 'active_section_template',
+                confidence: candidate.quality === 'strict' ? 'high' : 'medium',
+                detection_note: 'main pocket resolved from active section 13 anchor template',
+            };
+        }
+    }
+
     let best = null;
     let bestProbe = null;
 
