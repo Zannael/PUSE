@@ -131,10 +131,6 @@ const App = () => {
                 await client.updatePartyMoves(updatedPk.index, { moves: updatedPk.moves });
             }
 
-            if (Number(updatedPk.current_ability_index) !== Number(original.current_ability_index)) {
-                await client.updatePartyAbilitySwitch(updatedPk.index, { ability_index: updatedPk.current_ability_index });
-            }
-
             if (Number(updatedPk.nature_id) !== Number(original.nature_id)) {
                 await client.updatePartyNature(updatedPk.index, { nature_id: updatedPk.nature_id });
             }
@@ -149,6 +145,10 @@ const App = () => {
 
             if (updatedPk.species_id !== selectedPokemon?.species_id) {
                 await client.updatePartySpecies(updatedPk.index, { species_id: updatedPk.species_id });
+            }
+
+            if (Number(updatedPk.current_ability_index) !== Number(original.current_ability_index)) {
+                await client.updatePartyAbilitySwitch(updatedPk.index, { ability_index: updatedPk.current_ability_index });
             }
 
             const identityPayload = {};

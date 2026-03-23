@@ -1,162 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search, X, Download } from 'lucide-react';
-import speciesAbilitiesMeta from '../core/speciesAbilitiesMeta.json' with { type: 'json' };
-import abilitiesCatalog from '../core/abilitiesCatalog.json' with { type: 'json' };
+import { clampLevel, parseShowdownSet, resolveShowdownSet } from '../core/showdownImport.js';
 
-const MIN_LEVEL = 1;
-const MAX_LEVEL = 100;
-const IV_STAT_MAX = 31;
-const EV_STAT_MAX = 252;
-const EV_TOTAL_MAX = 510;
-const NATURES = [
-    'Hardy', 'Lonely', 'Brave', 'Adamant', 'Naughty',
-    'Bold', 'Docile', 'Relaxed', 'Impish', 'Lax',
-    'Timid', 'Hasty', 'Serious', 'Jolly', 'Naive',
-    'Modest', 'Mild', 'Quiet', 'Bashful', 'Rash',
-    'Calm', 'Gentle', 'Sassy', 'Careful', 'Quirky',
-];
-
-const normalizeName = (value) =>
-    String(value || '')
-        .toLowerCase()
-        .replace(/[’']/g, '')
-        .replace(/[^a-z0-9]+/g, ' ')
-        .trim();
-
-const clampLevel = (value, fallback = 5) => {
-    const parsed = Number.parseInt(value, 10);
-    if (!Number.isFinite(parsed)) return fallback;
-    return Math.max(MIN_LEVEL, Math.min(MAX_LEVEL, parsed));
-};
-
-const parseSetStatToken = (rawToken) => {
-    const token = String(rawToken || '').replace(/[^A-Za-z]/g, '');
-    const lower = token.toLowerCase();
-    if (token === 'HP' || lower === 'hp') return 'HP';
-    if (token === 'Atk' || lower === 'atk' || lower === 'attack') return 'Atk';
-    if (token === 'Def' || lower === 'def' || lower === 'defense') return 'Def';
-    if (token === 'SpA' || lower === 'spa' || lower === 'spatk' || lower === 'specialattack' || lower === 'specialatk') return 'SpA';
-    if (token === 'SpD' || lower === 'spd' || lower === 'spdef' || lower === 'specialdefense' || lower === 'specialdef') return 'SpD';
-    if (token === 'Spe' || token === 'Spd' || lower === 'spe' || lower === 'speed') return 'Spe';
-    return null;
-};
-
-const parseShowdownSet = (rawText) => {
-    const text = String(rawText || '').replace(/\r/g, '');
-    const lines = text.split('\n').map((line) => line.trim()).filter(Boolean);
-    const parsed = {
-        nickname: '',
-        speciesName: '',
-        itemName: '',
-        abilityName: '',
-        natureName: '',
-        level: null,
-        shiny: null,
-        evs: null,
-        ivs: null,
-        moves: [],
-        warnings: [],
-    };
-    const errors = [];
-
-    if (lines.length === 0) {
-        errors.push('Set text is empty.');
-        return { parsed, errors };
-    }
-
-    const header = lines[0];
-    const atIndex = header.indexOf('@');
-    const headerLeft = atIndex >= 0 ? header.slice(0, atIndex).trim() : header.trim();
-    if (atIndex >= 0) {
-        parsed.itemName = header.slice(atIndex + 1).trim();
-    }
-
-    const nickSpeciesMatch = headerLeft.match(/^(.*?)\(([^)]+)\)\s*$/);
-    if (nickSpeciesMatch) {
-        parsed.nickname = nickSpeciesMatch[1].trim();
-        parsed.speciesName = nickSpeciesMatch[2].trim();
-    } else {
-        parsed.speciesName = headerLeft;
-    }
-
-    if (!parsed.speciesName) {
-        errors.push('Could not parse species from first line.');
-    }
-
-    lines.slice(1).forEach((line) => {
-        if (line.startsWith('Ability:')) {
-            parsed.abilityName = line.slice('Ability:'.length).trim();
-            return;
-        }
-        if (line.startsWith('EVs:')) {
-            const evs = { HP: 0, Atk: 0, Def: 0, SpA: 0, SpD: 0, Spe: 0 };
-            line.slice('EVs:'.length).split('/').forEach((chunk) => {
-                const m = chunk.trim().match(/^(\d+)\s+(.+)$/);
-                if (!m) return;
-                const statKey = parseSetStatToken(m[2]);
-                if (!statKey) return;
-                evs[statKey] = Number.parseInt(m[1], 10);
-            });
-            parsed.evs = evs;
-            return;
-        }
-        if (line.startsWith('IVs:')) {
-            const ivs = { HP: IV_STAT_MAX, Atk: IV_STAT_MAX, Def: IV_STAT_MAX, SpA: IV_STAT_MAX, SpD: IV_STAT_MAX, Spe: IV_STAT_MAX };
-            line.slice('IVs:'.length).split('/').forEach((chunk) => {
-                const m = chunk.trim().match(/^(\d+)\s+(.+)$/);
-                if (!m) return;
-                const statKey = parseSetStatToken(m[2]);
-                if (!statKey) return;
-                ivs[statKey] = Number.parseInt(m[1], 10);
-            });
-            parsed.ivs = ivs;
-            return;
-        }
-        if (line.startsWith('Level:')) {
-            const n = Number.parseInt(line.slice('Level:'.length).trim(), 10);
-            if (Number.isFinite(n)) parsed.level = n;
-            return;
-        }
-        if (line.startsWith('Shiny:')) {
-            parsed.shiny = normalizeName(line.slice('Shiny:'.length)) === 'yes';
-            return;
-        }
-        if (line.endsWith(' Nature')) {
-            parsed.natureName = line.replace(/\s+Nature$/, '').trim();
-            return;
-        }
-        if (line.startsWith('-')) {
-            const moveName = line.replace(/^-+\s*/, '').trim();
-            if (moveName) parsed.moves.push(moveName);
-            return;
-        }
-        if (line.startsWith('Tera Type:')) {
-            parsed.warnings.push('Tera Type is ignored in this save format.');
-            return;
-        }
-        parsed.warnings.push(`Ignored line: ${line}`);
-    });
-
-    if (parsed.moves.length > 4) {
-        parsed.warnings.push(`Only first 4 moves are used (received ${parsed.moves.length}).`);
-        parsed.moves = parsed.moves.slice(0, 4);
-    }
-
-    return { parsed, errors };
-};
-
-const buildLookup = (rows, namesForRow) => {
-    const byNorm = new Map();
-    rows.forEach((row) => {
-        namesForRow(row).forEach((name) => {
-            const norm = normalizeName(name);
-            if (!norm) return;
-            if (!byNorm.has(norm)) byNorm.set(norm, new Map());
-            byNorm.get(norm).set(Number(row.id), row);
-        });
-    });
-    return byNorm;
-};
 
 export default function AddPcPokemonModal({ client, target, onClose, onConfirm, legitMode = false }) {
     const [allSpecies, setAllSpecies] = useState([]);
@@ -219,111 +64,26 @@ export default function AddPcPokemonModal({ client, target, onClose, onConfirm, 
         }
 
         const { parsed, errors } = parseShowdownSet(setImportText);
-        const blocking = [...errors];
-        const warnings = [...parsed.warnings];
-
-        const speciesLookup = buildLookup(allSpecies, (s) => [s.label, s.display_name, s.name, String(s.id)]);
-        const itemLookup = buildLookup(allItems, (i) => [i.name, String(i.id)]);
-        const moveLookup = buildLookup(allMoves, (m) => [m.name, String(m.id)]);
-        const abilityLookup = buildLookup(allAbilities, (a) => [a.name, String(a.id)]);
-
-        const getCandidates = (lookup, inputName) => {
-            if (!inputName) return [];
-            const norm = normalizeName(inputName);
-            return Array.from((lookup.get(norm) || new Map()).values());
-        };
-
-        const pickOne = (lookup, inputName, kind) => {
-            if (!inputName) return null;
-            const candidates = getCandidates(lookup, inputName);
-            if (candidates.length === 0) {
-                blocking.push(`${kind} not found in Unbound catalogs: ${inputName}`);
-                return null;
-            }
-            if (candidates.length > 1) {
-                blocking.push(`${kind} is ambiguous: ${inputName}`);
-                return null;
-            }
-            return candidates[0];
-        };
-
-        const speciesRow = pickOne(speciesLookup, parsed.speciesName, 'Species');
-
-        let itemRow = null;
-        if (parsed.itemName) {
-            const itemCandidates = getCandidates(itemLookup, parsed.itemName);
-            if (itemCandidates.length === 0) {
-                blocking.push(`Item not found in Unbound catalogs: ${parsed.itemName}`);
-            } else if (itemCandidates.length === 1) {
-                itemRow = itemCandidates[0];
-            } else {
-                itemCandidates.sort((a, b) => Number(a.id) - Number(b.id));
-                itemRow = itemCandidates[0];
-                const ids = itemCandidates.map((it) => Number(it.id)).join(', ');
-                warnings.push(`Item ${parsed.itemName} matched multiple IDs (${ids}); using lowest ID ${itemRow.id}.`);
-            }
-        }
-
-        const abilityRow = parsed.abilityName ? pickOne(abilityLookup, parsed.abilityName, 'Ability') : null;
-
-        const moveRows = [];
-        parsed.moves.forEach((name) => {
-            const moveRow = pickOne(moveLookup, name, 'Move');
-            if (moveRow) moveRows.push(moveRow);
+        const { errors: resolvedErrors, warnings, resolved } = resolveShowdownSet({
+            parsed,
+            catalogs: {
+                species: allSpecies,
+                items: allItems,
+                moves: allMoves,
+                abilities: allAbilities,
+            },
+            legitMode,
+            levelFallback: 5,
         });
 
-        let abilityIndex = null;
-        if (abilityRow && speciesRow) {
-            const meta = speciesAbilitiesMeta?.[String(speciesRow.id)] || {};
-            const a1Name = abilitiesCatalog[String(meta.ability_1_id || 0)] || '';
-            const a2Name = abilitiesCatalog[String(meta.ability_2_id || 0)] || '';
-            const haName = abilitiesCatalog[String(meta.hidden_ability_id || 0)] || '';
-            const wanted = normalizeName(abilityRow.name);
-            if (normalizeName(a1Name) === wanted) abilityIndex = 0;
-            else if (normalizeName(a2Name) === wanted) abilityIndex = 1;
-            else if (normalizeName(haName) === wanted) abilityIndex = 2;
-            else blocking.push(`Ability ${abilityRow.name} is not available for ${speciesRow.label || speciesRow.name}.`);
-        }
-
-        let natureId = null;
-        if (parsed.natureName) {
-            const idx = NATURES.findIndex((name) => normalizeName(name) === normalizeName(parsed.natureName));
-            if (idx < 0) blocking.push(`Nature not found: ${parsed.natureName}`);
-            else natureId = idx;
-        }
-
-        if (parsed.evs) {
-            const vals = Object.values(parsed.evs).map((x) => Number(x || 0));
-            if (vals.some((x) => x < 0 || x > EV_STAT_MAX)) {
-                blocking.push('EVs must stay in range 0..252 per stat.');
-            }
-            const total = vals.reduce((a, b) => a + b, 0);
-            if (legitMode && total > EV_TOTAL_MAX) {
-                blocking.push(`Legit mode is ON: EV total ${total} exceeds 510.`);
-            }
-        }
-
-        if (parsed.ivs) {
-            const vals = Object.values(parsed.ivs).map((x) => Number(x || 0));
-            if (vals.some((x) => x < 0 || x > IV_STAT_MAX)) {
-                blocking.push('IVs must stay in range 0..31 per stat.');
-            }
-        }
-
-        let levelToApply = null;
-        if (parsed.level !== null && Number.isFinite(parsed.level)) {
-            levelToApply = clampLevel(parsed.level, 5);
-            if (levelToApply !== parsed.level) {
-                warnings.push(`Level ${parsed.level} was clamped to ${levelToApply}.`);
-            }
-        }
-
+        const blocking = [...errors, ...resolvedErrors];
         if (blocking.length > 0) {
             setSetImportErrors(blocking);
             setSetImportWarnings(warnings);
             return;
         }
 
+        const { speciesRow, itemRow, moveRows, natureId, abilityIndex, levelToApply } = resolved;
         if (speciesRow) {
             setSpeciesId(Number(speciesRow.id));
             if (parsed.nickname) {

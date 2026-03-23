@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { X, Zap, Save, Search } from 'lucide-react';
+import { X, Zap, Save, Search, Download } from 'lucide-react';
 import { calcCurrentLevel, GROWTH_OPTIONS } from '../core/growth.js';
 import { ITEM_ICON_FALLBACK_URL, POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
+import { NATURES, clampLevel, parseShowdownSet, resolveShowdownSet } from '../core/showdownImport.js';
 
 const EV_STAT_MAX = 252;
 const EV_TOTAL_MAX = 510;
 const MIN_LEVEL = 1;
 const MAX_LEVEL = 100;
-const NATURES = [
-    'Hardy', 'Lonely', 'Brave', 'Adamant', 'Naughty',
-    'Bold', 'Docile', 'Relaxed', 'Impish', 'Lax',
-    'Timid', 'Hasty', 'Serious', 'Jolly', 'Naive',
-    'Modest', 'Mild', 'Quiet', 'Bashful', 'Rash',
-    'Calm', 'Gentle', 'Sassy', 'Careful', 'Quirky',
-];
-
 const clampNumber = (value, min, max) => {
     const parsed = Number.parseInt(value, 10);
     if (!Number.isFinite(parsed)) return min;
@@ -43,6 +36,7 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
     const [activeTab, setActiveTab] = useState('stats');
     const [localPk, setLocalPk] = useState({ ...pokemon });
     const [allMoves, setAllMoves] = useState([]);
+    const [allAbilities, setAllAbilities] = useState([]);
     const [searchTerm, setSearchTerm] = useState(['', '', '', '']);
     const [allItems, setAllItems] = useState([]);
     const [allSpecies, setAllSpecies] = useState([]);
@@ -56,6 +50,10 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
     const [levelInput, setLevelInput] = useState(String(initialLevel));
     const [levelGrowthMode, setLevelGrowthMode] = useState(initialGrowthMode);
     const [levelDirty, setLevelDirty] = useState(false);
+    const [showImport, setShowImport] = useState(false);
+    const [setImportText, setSetImportText] = useState('');
+    const [setImportErrors, setSetImportErrors] = useState([]);
+    const [setImportWarnings, setSetImportWarnings] = useState([]);
     const [isSaving, setIsSaving] = useState(false);
     const [saveStage, setSaveStage] = useState('Applying changes...');
 
@@ -77,6 +75,11 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
     useEffect(() => {
         client.getMoves()
             .then(data => setAllMoves(data));
+    }, [client]);
+
+    useEffect(() => {
+        client.getAbilities()
+            .then(data => setAllAbilities(data));
     }, [client]);
 
     const updateStat = (type, stat, val) => {
@@ -153,6 +156,103 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
         setSpeciesSearch('');
     };
 
+    const applyShowdownImport = () => {
+        if (!allSpecies.length || !allMoves.length || !allItems.length || !allAbilities.length) {
+            setSetImportErrors(['Catalogs are still loading. Try again in a second.']);
+            setSetImportWarnings([]);
+            return;
+        }
+
+        const { parsed, errors } = parseShowdownSet(setImportText);
+        const { errors: resolvedErrors, warnings, resolved } = resolveShowdownSet({
+            parsed,
+            catalogs: {
+                species: allSpecies,
+                items: allItems,
+                moves: allMoves,
+                abilities: allAbilities,
+            },
+            legitMode,
+            levelFallback: Number(localPk.level || initialLevel || 1),
+        });
+
+        const blocking = [...errors, ...resolvedErrors];
+        if (blocking.length > 0) {
+            setSetImportErrors(blocking);
+            setSetImportWarnings(warnings);
+            return;
+        }
+
+        const mapImportedStats = (source, speedKey) => ({
+            HP: Number(source.HP ?? 0),
+            Atk: Number(source.Atk ?? 0),
+            Def: Number(source.Def ?? 0),
+            SpA: Number(source.SpA ?? 0),
+            SpD: Number(source.SpD ?? 0),
+            [speedKey]: Number(source.Spe ?? source.Spd ?? 0),
+        });
+
+        const speedIvKey = Object.prototype.hasOwnProperty.call(localPk.ivs || {}, 'Spe') ? 'Spe' : 'Spd';
+        const speedEvKey = Object.prototype.hasOwnProperty.call(localPk.evs || {}, 'Spe') ? 'Spe' : 'Spd';
+        const nextState = { ...localPk };
+
+        if (resolved.speciesRow) {
+            nextState.species_id = Number(resolved.speciesRow.id);
+            if (resolved.speciesAbilityData) {
+                nextState.ability_1_id = resolved.speciesAbilityData.ability_1_id;
+                nextState.ability_1_name = resolved.speciesAbilityData.ability_1_name;
+                nextState.ability_2_id = resolved.speciesAbilityData.ability_2_id;
+                nextState.ability_2_name = resolved.speciesAbilityData.ability_2_name;
+                nextState.ability_hidden_id = resolved.speciesAbilityData.ability_hidden_id;
+                nextState.ability_hidden_name = resolved.speciesAbilityData.ability_hidden_name;
+            }
+        }
+        if (resolved.itemRow) {
+            nextState.item_id = Number(resolved.itemRow.id);
+        }
+        if (parsed.evs) {
+            nextState.evs = mapImportedStats(parsed.evs, speedEvKey);
+        }
+        if (parsed.ivs) {
+            nextState.ivs = mapImportedStats(parsed.ivs, speedIvKey);
+        }
+        if (resolved.moveRows.length > 0) {
+            const moveIds = [0, 0, 0, 0];
+            resolved.moveRows.forEach((m, idx) => {
+                if (idx < 4) moveIds[idx] = Number(m.id);
+            });
+            nextState.moves = moveIds;
+        }
+        if (resolved.natureId !== null) {
+            nextState.nature_id = resolved.natureId;
+        }
+        if (resolved.abilityIndex !== null) {
+            nextState.current_ability_index = resolved.abilityIndex;
+            if (resolved.abilityIndex === 0) nextState.ability_label_current = nextState.ability_1_name || 'Slot 1 (Standard)';
+            else if (resolved.abilityIndex === 1) nextState.ability_label_current = nextState.ability_2_name || 'Slot 2 (Standard)';
+            else nextState.ability_label_current = nextState.ability_hidden_name || 'Hidden Ability';
+        }
+        if (parsed.shiny !== null) {
+            nextState.is_shiny = Boolean(parsed.shiny);
+        }
+        if (resolved.levelToApply !== null) {
+            const nextLevel = clampLevel(resolved.levelToApply, Number(localPk.level || initialLevel || 1));
+            setLevelInput(String(nextLevel));
+            setLevelDirty(true);
+            nextState.level = nextLevel;
+        }
+        if (parsed.nickname) {
+            nextState.nickname = String(parsed.nickname).slice(0, 10);
+        }
+
+        setLocalPk(nextState);
+        setSetImportErrors([]);
+        setSetImportWarnings([
+            ...warnings,
+            'Set imported into editor. Review and click SAVE CHANGES to commit.',
+        ]);
+    };
+
 
     const handleSaveClick = async () => {
         setIsSaving(true);
@@ -221,7 +321,18 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                             )}
                         </div>
                     </div>
-                    <button onClick={onClose} disabled={isSaving} className="p-2 hover:bg-white/5 rounded-full disabled:opacity-40 disabled:cursor-not-allowed"><X /></button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setShowImport((prev) => !prev)}
+                            disabled={isSaving}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-[10px] font-bold uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Paste a Showdown/Smogon set"
+                        >
+                            <Download size={12} /> FROM SMOGON
+                        </button>
+                        <button onClick={onClose} disabled={isSaving} className="p-2 hover:bg-white/5 rounded-full disabled:opacity-40 disabled:cursor-not-allowed"><X /></button>
+                    </div>
                 </div>
 
                 <div className="flex bg-[#1e293b]/50 p-2 gap-2 border-b border-white/5">
@@ -231,6 +342,52 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-8">
+                    {showImport && (
+                        <div className="mb-6 bg-slate-800/40 p-4 rounded-2xl border border-white/5 space-y-3">
+                            <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Smogon/Showdown Import</h4>
+                            <textarea
+                                value={setImportText}
+                                onChange={(e) => setSetImportText(e.target.value)}
+                                placeholder="Terrakion @ Choice Band\nAbility: Justified\nEVs: 252 Atk / 4 SpD / 252 Spe\nJolly Nature\n- Stone Edge\n- Close Combat\n- Earthquake\n- Quick Attack"
+                                className="w-full h-36 bg-slate-900 border border-white/10 rounded-xl p-3 text-xs font-mono outline-none focus:border-blue-500/50"
+                            />
+                            <div className="flex flex-wrap gap-2">
+                                <button
+                                    type="button"
+                                    onClick={applyShowdownImport}
+                                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold"
+                                >
+                                    Parse & Apply to Editor
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setSetImportText('');
+                                        setSetImportErrors([]);
+                                        setSetImportWarnings([]);
+                                    }}
+                                    className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-xs font-bold"
+                                >
+                                    Clear
+                                </button>
+                            </div>
+                            {setImportErrors.length > 0 && (
+                                <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-[11px] text-rose-200 space-y-1">
+                                    {setImportErrors.map((msg, idx) => (
+                                        <p key={`${msg}-${idx}`}>- {msg}</p>
+                                    ))}
+                                </div>
+                            )}
+                            {setImportWarnings.length > 0 && (
+                                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-200 space-y-1">
+                                    {setImportWarnings.map((msg, idx) => (
+                                        <p key={`${msg}-${idx}`}>- {msg}</p>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {activeTab === 'stats' && (
                         <div className="space-y-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

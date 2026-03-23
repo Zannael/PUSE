@@ -83,7 +83,8 @@
 - Level editing now surfaces explicit `1..100` cap guidance and normalizes out-of-range values in editor flows, with backend party level updates returning clamp metadata (`requested_level`, `was_clamped`).
 - Editor tabs were reorganized for faster stat workflows: `Stats` now groups Level, Nature, IVs, EVs, and Ability controls in one place.
 - Hidden ability labels now prioritize readability by showing ability name first (for example `Sheer Force (HA)`).
-- Added Showdown/Smogon set import to the `Add Pokemon` modal header (`FROM SMOGON`) with strict catalog validation (species/item/ability/moves), clear blocking errors, and safe insert/save flow. Still some bugs with some items and Pokémon with multiple forms.
+- Added Showdown/Smogon set import via `FROM SMOGON` in both Add Pokemon and existing Pokemon editor flows, with strict catalog validation (species/item/ability/moves), clear blocking errors, and deterministic duplicate-item fallback (lowest ID + warning).
+- Smogon species resolution now supports regional suffix input (`-Alola`, `-Galar`, `-Hisui`) and defaults multi-form base species imports to the canonical base form (lowest-ID deterministic fallback with warning).
 - New PC Pokemon insertions now default IVs to `31/31/31/31/31/31` and infer full owner template from existing save data (OT name + IDNo/TID-linked OTID + owner bytes) instead of zeroed owner fields.
 
 #### Responsive UI and Internationalization
