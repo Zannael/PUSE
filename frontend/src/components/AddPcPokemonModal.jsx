@@ -227,10 +227,15 @@ export default function AddPcPokemonModal({ client, target, onClose, onConfirm, 
         const moveLookup = buildLookup(allMoves, (m) => [m.name, String(m.id)]);
         const abilityLookup = buildLookup(allAbilities, (a) => [a.name, String(a.id)]);
 
+        const getCandidates = (lookup, inputName) => {
+            if (!inputName) return [];
+            const norm = normalizeName(inputName);
+            return Array.from((lookup.get(norm) || new Map()).values());
+        };
+
         const pickOne = (lookup, inputName, kind) => {
             if (!inputName) return null;
-            const norm = normalizeName(inputName);
-            const candidates = Array.from((lookup.get(norm) || new Map()).values());
+            const candidates = getCandidates(lookup, inputName);
             if (candidates.length === 0) {
                 blocking.push(`${kind} not found in Unbound catalogs: ${inputName}`);
                 return null;
@@ -243,7 +248,22 @@ export default function AddPcPokemonModal({ client, target, onClose, onConfirm, 
         };
 
         const speciesRow = pickOne(speciesLookup, parsed.speciesName, 'Species');
-        const itemRow = parsed.itemName ? pickOne(itemLookup, parsed.itemName, 'Item') : null;
+
+        let itemRow = null;
+        if (parsed.itemName) {
+            const itemCandidates = getCandidates(itemLookup, parsed.itemName);
+            if (itemCandidates.length === 0) {
+                blocking.push(`Item not found in Unbound catalogs: ${parsed.itemName}`);
+            } else if (itemCandidates.length === 1) {
+                itemRow = itemCandidates[0];
+            } else {
+                itemCandidates.sort((a, b) => Number(a.id) - Number(b.id));
+                itemRow = itemCandidates[0];
+                const ids = itemCandidates.map((it) => Number(it.id)).join(', ');
+                warnings.push(`Item ${parsed.itemName} matched multiple IDs (${ids}); using lowest ID ${itemRow.id}.`);
+            }
+        }
+
         const abilityRow = parsed.abilityName ? pickOne(abilityLookup, parsed.abilityName, 'Ability') : null;
 
         const moveRows = [];
