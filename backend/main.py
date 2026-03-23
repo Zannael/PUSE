@@ -64,6 +64,7 @@ current_save = {
         "preset_buffer": None,
         "mons": [],
         "fallback_box_starts": {},
+        "fallback_slot_offsets": {},
         "absolute_touched_sectors": []
     }
 }
@@ -908,6 +909,7 @@ async def load_pc():
         "originals": originals, "pc_buffer": pc_buf, "preset_buffer": preset_buf,
         "mons": [],
         "fallback_box_starts": {},
+        "fallback_slot_offsets": {},
         "absolute_touched_sectors": []
     })
 
@@ -940,12 +942,17 @@ async def load_pc():
 
     fallback_starts = box_mod.detect_fallback_box_starts(current_save["data"])
     current_save["pc_context"]["fallback_box_starts"] = dict(fallback_starts)
+    current_save["pc_context"]["fallback_slot_offsets"] = box_mod.build_fallback_slot_offsets(
+        current_save["data"],
+        box_ids=sorted(fallback_starts.keys()),
+    )
 
     for box_id in sorted(fallback_starts.keys()):
         if box_counts.get(box_id, 0) > 0:
             continue
+        slot_offsets = current_save["pc_context"].get("fallback_slot_offsets", {}).get(int(box_id), {})
         for slot in range(1, 31):
-            abs_off = box_mod.fallback_slot_offset(box_id, slot)
+            abs_off = slot_offsets.get(int(slot))
             if abs_off is None:
                 continue
             raw = current_save["data"][abs_off: abs_off + box_mod.MON_SIZE_PC]
@@ -1286,7 +1293,8 @@ async def insert_pc_mon(upd: PCInsert):
             off = stream_off
         else:
             has_fallback = bool(current_save["pc_context"].get("fallback_box_starts", {}).get(box))
-            abs_off = box_mod.fallback_slot_offset(box, slot) if has_fallback else None
+            slot_offsets = current_save["pc_context"].get("fallback_slot_offsets", {}).get(int(box), {})
+            abs_off = slot_offsets.get(int(slot)) if has_fallback else None
             if abs_off is None or abs_off + box_mod.MON_SIZE_PC > len(current_save["data"]):
                 raise HTTPException(status_code=400, detail="Slot not writable in this save layout")
             kind = "absolute"

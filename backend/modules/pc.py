@@ -31,15 +31,17 @@ PRESET_CAPACITY = 30  # Un solo box
 BOX_SLOT_COUNT = 30
 
 FALLBACK_BOX_LAYOUTS = {
+    # Stable absolute area observed in this Unbound layout.
     22: [
-        (1, 30, 0x1F8B4),
+        ("absolute", 1, 30, 0x1F8B4),
     ],
+    # Logical section-relative fragmented areas (rotate physically with save index).
     23: [
-        (1, 4, 0x2F18),
-        (5, 30, 0x2F28),
+        ("section", 2, 1, 4, 0x0F18),
+        ("section", 3, 5, 30, 0x0010),
     ],
     24: [
-        (1, 30, 0x35F4),
+        ("section", 3, 1, 30, 0x05F4),
     ],
 }
 
@@ -648,23 +650,62 @@ def rebuild_buffer(save_data, sectors):
     return buffer, headers, originals, preset_buffer
 
 
-def fallback_slot_offset(box_id, slot):
-    if int(box_id) == 23:
-        if 1 <= slot <= 4:
-            return 0x2F18 + ((slot - 1) * MON_SIZE_PC)
-        if 5 <= slot <= 30:
-            return 0x2F28 + ((slot - 1) * MON_SIZE_PC)
-        return None
+def resolve_active_section_offsets(save_data, section_ids=None):
+    best = {}
+    wanted = None if section_ids is None else {int(x) for x in section_ids}
 
-    layout = FALLBACK_BOX_LAYOUTS.get(int(box_id), [])
-    for start_slot, end_slot, base_off in layout:
-        if start_slot <= slot <= end_slot:
-            return int(base_off) + ((slot - start_slot) * MON_SIZE_PC)
+    for i in range(0, len(save_data), SECTION_SIZE):
+        if i + SECTION_SIZE > len(save_data):
+            break
+        footer_off = i + 0xFF0
+        sec_id = ru16(save_data, footer_off + 4)
+        if wanted is not None and sec_id not in wanted:
+            continue
+        save_idx = ru32(save_data, footer_off + 12)
+
+        prev = best.get(sec_id)
+        if prev is None or save_idx > prev["idx"]:
+            best[sec_id] = {
+                "offset": i,
+                "idx": save_idx,
+            }
+
+    return {int(sec_id): int(meta["offset"]) for sec_id, meta in best.items()}
+
+
+def fallback_slot_offset(box_id, slot, save_data=None, section_offsets=None):
+    bid = int(box_id)
+    slot_i = int(slot)
+    layout = FALLBACK_BOX_LAYOUTS.get(bid, [])
+
+    if section_offsets is None and save_data is not None:
+        section_offsets = resolve_active_section_offsets(save_data, section_ids={2, 3})
+    elif section_offsets is None:
+        section_offsets = {}
+
+    for segment in layout:
+        seg_kind = segment[0]
+
+        if seg_kind == "absolute":
+            _, start_slot, end_slot, base_off = segment
+            if start_slot <= slot_i <= end_slot:
+                return int(base_off) + ((slot_i - start_slot) * MON_SIZE_PC)
+            continue
+
+        if seg_kind == "section":
+            _, section_id, start_slot, end_slot, rel_off = segment
+            if not (start_slot <= slot_i <= end_slot):
+                continue
+            sec_off = section_offsets.get(int(section_id))
+            if sec_off is None:
+                return None
+            return int(sec_off) + int(rel_off) + ((slot_i - start_slot) * MON_SIZE_PC)
+
     return None
 
 
-def _read_slot_raw(data, box_id, slot):
-    off = fallback_slot_offset(box_id, slot)
+def _read_slot_raw(data, box_id, slot, section_offsets=None):
+    off = fallback_slot_offset(box_id, slot, save_data=data, section_offsets=section_offsets)
     if off is None:
         return None, None
     if off < 0 or off + MON_SIZE_PC > len(data):
@@ -672,8 +713,8 @@ def _read_slot_raw(data, box_id, slot):
     return data[off: off + MON_SIZE_PC], off
 
 
-def _slot_state(data, box_id, slot):
-    raw, _ = _read_slot_raw(data, box_id, slot)
+def _slot_state(data, box_id, slot, section_offsets=None):
+    raw, _ = _read_slot_raw(data, box_id, slot, section_offsets=section_offsets)
     if raw is None:
         return "missing", None
     if all(b == 0 for b in raw):
@@ -684,12 +725,12 @@ def _slot_state(data, box_id, slot):
     return "invalid", None
 
 
-def _validate_fallback_box(data, box_id):
+def _validate_fallback_box(data, box_id, section_offsets=None):
     # Generic floor: allow only mostly-valid chunks with explicit empty slots.
     valid_count = 0
     empty_count = 0
     for slot in range(1, BOX_SLOT_COUNT + 1):
-        state, mon = _slot_state(data, box_id, slot)
+        state, mon = _slot_state(data, box_id, slot, section_offsets=section_offsets)
         if state == "valid":
             valid_count += 1
         elif state == "empty":
@@ -699,52 +740,59 @@ def _validate_fallback_box(data, box_id):
 
     if valid_count < 20:
         return False
-
-    # Strong guards for known fragmented layout.
-    if box_id == 22:
-        s1, m1 = _slot_state(data, box_id, 1)
-        s21, m21 = _slot_state(data, box_id, 21)
-        if s1 != "valid" or m1 is None or m1.species_id != 1183:
-            return False
-        if s21 != "valid" or m21 is None or m21.species_id not in (1258, 1259):
-            return False
-        return True
-
-    if box_id == 23:
-        s29, m29 = _slot_state(data, box_id, 29)
-        if s29 != "valid" or m29 is None or m29.species_id not in (1182, 1207):
-            return False
-        s1, m1 = _slot_state(data, box_id, 1)
-        if s1 != "valid" or m1 is None or m1.species_id not in (397, 905):
-            return False
-        return True
-
-    if box_id == 24:
-        s1, m1 = _slot_state(data, box_id, 1)
-        s30, m30 = _slot_state(data, box_id, 30)
-        if s1 != "valid" or m1 is None or m1.species_id != 541:
-            return False
-        if s30 != "valid" or m30 is None or m30.species_id != 249:
-            return False
-        return True
-
-    return False
+    return True
 
 
 def detect_fallback_box_starts(save_data):
+    section_offsets = resolve_active_section_offsets(save_data, section_ids={2, 3})
     found = {}
     for box_id, layout in FALLBACK_BOX_LAYOUTS.items():
         in_bounds = True
-        for start_slot, end_slot, base_off in layout:
-            last_off = int(base_off) + ((end_slot - start_slot) * MON_SIZE_PC)
-            if base_off < 0 or last_off + MON_SIZE_PC > len(save_data):
+        for segment in layout:
+            seg_kind = segment[0]
+            if seg_kind == "absolute":
+                _, start_slot, end_slot, base_off = segment
+                first_off = int(base_off)
+            elif seg_kind == "section":
+                _, section_id, start_slot, end_slot, rel_off = segment
+                sec_off = section_offsets.get(int(section_id))
+                if sec_off is None:
+                    in_bounds = False
+                    break
+                first_off = int(sec_off) + int(rel_off)
+            else:
+                in_bounds = False
+                break
+
+            last_off = int(first_off) + ((end_slot - start_slot) * MON_SIZE_PC)
+            if first_off < 0 or last_off + MON_SIZE_PC > len(save_data):
                 in_bounds = False
                 break
         if not in_bounds:
             continue
-        if _validate_fallback_box(save_data, box_id):
+        if _validate_fallback_box(save_data, box_id, section_offsets=section_offsets):
             found[box_id] = True
     return found
+
+
+def build_fallback_slot_offsets(save_data, box_ids=None):
+    if box_ids is None:
+        box_ids = sorted(FALLBACK_BOX_LAYOUTS.keys())
+
+    section_offsets = resolve_active_section_offsets(save_data, section_ids={2, 3})
+    out = {}
+    for box_id in box_ids:
+        slot_map = {}
+        for slot in range(1, BOX_SLOT_COUNT + 1):
+            off = fallback_slot_offset(box_id, slot, save_data=save_data, section_offsets=section_offsets)
+            if off is None:
+                continue
+            if off < 0 or off + MON_SIZE_PC > len(save_data):
+                continue
+            slot_map[int(slot)] = int(off)
+        if slot_map:
+            out[int(box_id)] = slot_map
+    return out
 
 
 def build_pc_mon_raw(

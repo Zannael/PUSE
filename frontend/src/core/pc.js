@@ -26,9 +26,9 @@ const PARTY_START_OFFSET = 0x38;
 const PARTY_MON_SIZE = 100;
 
 const FALLBACK_BOX_LAYOUTS = {
-    22: [[1, 30, 0x1F8B4]],
-    23: [[1, 4, 0x2F18], [5, 30, 0x2F28]],
-    24: [[1, 30, 0x35F4]],
+    22: [['absolute', 1, 30, 0x1F8B4]],
+    23: [['section', 2, 1, 4, 0x0F18], ['section', 3, 5, 30, 0x0010]],
+    24: [['section', 3, 1, 30, 0x05F4]],
 };
 
 const OFF_PID = 0x00;
@@ -548,28 +548,96 @@ function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
     };
 }
 
-function fallbackSlotOffset(boxId, slot) {
-    if (Number(boxId) === 23) {
-        if (slot >= 1 && slot <= 4) {
-            return 0x2F18 + ((slot - 1) * MON_SIZE_PC);
+function resolveActiveSectionOffsets(buffer, sectionIds = null) {
+    const wanted = sectionIds instanceof Set ? sectionIds : (Array.isArray(sectionIds) ? new Set(sectionIds) : null);
+    const best = new Map();
+
+    for (let off = 0; off + SECTION_SIZE <= buffer.length; off += SECTION_SIZE) {
+        const secId = ru16(buffer, off + OFF_ID);
+        if (wanted && !wanted.has(secId)) {
+            continue;
         }
-        if (slot >= 5 && slot <= 30) {
-            return 0x2F28 + ((slot - 1) * MON_SIZE_PC);
+        const saveIdx = ru32(buffer, off + OFF_SAVE_IDX);
+        const prev = best.get(secId);
+        if (!prev || saveIdx > prev.idx) {
+            best.set(secId, { offset: off, idx: saveIdx });
         }
-        return null;
     }
 
-    const layout = FALLBACK_BOX_LAYOUTS[Number(boxId)] || [];
-    for (const [startSlot, endSlot, baseOff] of layout) {
-        if (slot >= startSlot && slot <= endSlot) {
-            return Number(baseOff) + ((slot - startSlot) * MON_SIZE_PC);
+    const out = {};
+    best.forEach((meta, secId) => {
+        out[Number(secId)] = Number(meta.offset);
+    });
+    return out;
+}
+
+function fallbackSlotOffset(boxId, slot, sourceBuffer = null, sectionOffsets = null) {
+    const bid = Number(boxId);
+    const slotNum = Number(slot);
+    const layout = FALLBACK_BOX_LAYOUTS[bid] || [];
+
+    let offsets = sectionOffsets;
+    if (!offsets && sourceBuffer) {
+        offsets = resolveActiveSectionOffsets(sourceBuffer, new Set([2, 3]));
+    }
+    if (!offsets) {
+        offsets = {};
+    }
+
+    for (const segment of layout) {
+        const kind = segment[0];
+        if (kind === 'absolute') {
+            const [, startSlot, endSlot, baseOff] = segment;
+            if (slotNum >= startSlot && slotNum <= endSlot) {
+                return Number(baseOff) + ((slotNum - startSlot) * MON_SIZE_PC);
+            }
+            continue;
+        }
+        if (kind === 'section') {
+            const [, sectionId, startSlot, endSlot, relOff] = segment;
+            if (slotNum < startSlot || slotNum > endSlot) {
+                continue;
+            }
+            const secOff = offsets[Number(sectionId)];
+            if (!Number.isInteger(secOff)) {
+                return null;
+            }
+            return Number(secOff) + Number(relOff) + ((slotNum - startSlot) * MON_SIZE_PC);
         }
     }
     return null;
 }
 
-function readSlotRaw(data, boxId, slot) {
-    const off = fallbackSlotOffset(boxId, slot);
+function buildFallbackSlotOffsets(buffer, boxIds = null, sectionOffsets = null) {
+    const boxes = Array.isArray(boxIds) ? boxIds.map(Number) : Object.keys(FALLBACK_BOX_LAYOUTS).map(Number);
+    const offsets = sectionOffsets || resolveActiveSectionOffsets(buffer, new Set([2, 3]));
+    const out = {};
+
+    boxes.forEach((boxId) => {
+        const slotMap = {};
+        for (let slot = 1; slot <= BOX_SLOT_COUNT; slot += 1) {
+            const off = fallbackSlotOffset(boxId, slot, buffer, offsets);
+            if (!Number.isInteger(off)) {
+                continue;
+            }
+            if (off < 0 || off + MON_SIZE_PC > buffer.length) {
+                continue;
+            }
+            slotMap[slot] = off;
+        }
+        if (Object.keys(slotMap).length > 0) {
+            out[boxId] = slotMap;
+        }
+    });
+
+    return out;
+}
+
+function readSlotRaw(data, boxId, slot, sectionOffsets = null, slotOffsets = null) {
+    const direct = slotOffsets?.[Number(slot)];
+    const off = Number.isInteger(direct)
+        ? direct
+        : fallbackSlotOffset(boxId, slot, data, sectionOffsets);
     if (!Number.isInteger(off)) {
         return { raw: null, offset: null };
     }
@@ -579,8 +647,8 @@ function readSlotRaw(data, boxId, slot) {
     return { raw: data.slice(off, off + MON_SIZE_PC), offset: off };
 }
 
-function slotState(data, boxId, slot) {
-    const { raw } = readSlotRaw(data, boxId, slot);
+function slotState(data, boxId, slot, sectionOffsets = null, slotOffsets = null) {
+    const { raw } = readSlotRaw(data, boxId, slot, sectionOffsets, slotOffsets);
     if (!raw) {
         return { state: 'missing', mon: null };
     }
@@ -593,14 +661,10 @@ function slotState(data, boxId, slot) {
     return { state: 'invalid', mon: null };
 }
 
-function ru16At(raw, off) {
-    return raw[off] | (raw[off + 1] << 8);
-}
-
-function validateFallbackBox(buffer, boxId) {
+function validateFallbackBox(buffer, boxId, sectionOffsets = null, slotOffsets = null) {
     let validCount = 0;
     for (let slot = 1; slot <= BOX_SLOT_COUNT; slot += 1) {
-        const { state } = slotState(buffer, boxId, slot);
+        const { state } = slotState(buffer, boxId, slot, sectionOffsets, slotOffsets);
         if (state === 'valid') {
             validCount += 1;
         } else if (state !== 'empty') {
@@ -610,46 +674,20 @@ function validateFallbackBox(buffer, boxId) {
     if (validCount < 20) {
         return false;
     }
-
-    if (boxId === 22) {
-        const s1 = slotState(buffer, boxId, 1);
-        const s21 = slotState(buffer, boxId, 21);
-        if (s1.state !== 'valid' || ru16At(s1.mon, OFF_SPECIES) !== 1183) return false;
-        if (s21.state !== 'valid' || ![1258, 1259].includes(ru16At(s21.mon, OFF_SPECIES))) return false;
-        return true;
-    }
-
-    if (boxId === 23) {
-        const s29 = slotState(buffer, boxId, 29);
-        if (s29.state !== 'valid' || ![1182, 1207].includes(ru16At(s29.mon, OFF_SPECIES))) return false;
-        const s1 = slotState(buffer, boxId, 1);
-        if (s1.state !== 'valid' || ![397, 905].includes(ru16At(s1.mon, OFF_SPECIES))) return false;
-        return true;
-    }
-
-    if (boxId === 24) {
-        const s1 = slotState(buffer, boxId, 1);
-        const s30 = slotState(buffer, boxId, 30);
-        if (s1.state !== 'valid' || ru16At(s1.mon, OFF_SPECIES) !== 541) return false;
-        if (s30.state !== 'valid' || ru16At(s30.mon, OFF_SPECIES) !== 249) return false;
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
-function detectFallbackBoxStarts(buffer) {
+function detectFallbackBoxStarts(buffer, sectionOffsets = null, fallbackSlotOffsets = null) {
+    const offsets = sectionOffsets || resolveActiveSectionOffsets(buffer, new Set([2, 3]));
+    const slotMaps = fallbackSlotOffsets || buildFallbackSlotOffsets(buffer, null, offsets);
     const out = {};
-    Object.entries(FALLBACK_BOX_LAYOUTS).forEach(([box, segments]) => {
+    Object.entries(FALLBACK_BOX_LAYOUTS).forEach(([box]) => {
         const boxId = Number(box);
-        const inBounds = segments.every(([startSlot, endSlot, baseOff]) => {
-            const lastOff = Number(baseOff) + ((endSlot - startSlot) * MON_SIZE_PC);
-            return baseOff >= 0 && lastOff + MON_SIZE_PC <= buffer.length;
-        });
-        if (!inBounds) {
+        const slotMap = slotMaps[boxId];
+        if (!slotMap || Object.keys(slotMap).length === 0) {
             return;
         }
-        if (validateFallbackBox(buffer, boxId)) {
+        if (validateFallbackBox(buffer, boxId, offsets, slotMap)) {
             out[boxId] = true;
         }
     });
@@ -704,13 +742,19 @@ export function loadPcContext(buffer) {
         cursor += chunk.length;
     });
 
+    const fallbackSectionOffsets = resolveActiveSectionOffsets(buffer, new Set([2, 3]));
+    const fallbackSlotOffsets = buildFallbackSlotOffsets(buffer, null, fallbackSectionOffsets);
+    const fallbackBoxStarts = detectFallbackBoxStarts(buffer, fallbackSectionOffsets, fallbackSlotOffsets);
+
     return {
         sectors,
         headers,
         pcBuffer,
         presetBuffer,
         sourceBuffer: buffer,
-        fallbackBoxStarts: detectFallbackBoxStarts(buffer),
+        fallbackSectionOffsets,
+        fallbackSlotOffsets,
+        fallbackBoxStarts,
         absoluteEdits: new Map(),
         absoluteTouchedSectors: new Set(),
     };
@@ -740,7 +784,8 @@ export function getPcBox(context, boxId, speciesMap, speciesMetaById = null) {
         }
 
         for (let slot = 1; slot <= BOX_SLOT_COUNT; slot += 1) {
-            const absOff = fallbackSlotOffset(boxId, slot);
+            const absOff = context.fallbackSlotOffsets?.[Number(boxId)]?.[Number(slot)]
+                ?? fallbackSlotOffset(boxId, slot, context.sourceBuffer, context.fallbackSectionOffsets);
             if (!Number.isInteger(absOff)) {
                 continue;
             }
@@ -791,7 +836,8 @@ function getMonBufferAndOffset(context, box, slot) {
     if (off + MON_SIZE_PC > context.pcBuffer.length) {
         const hasFallback = Boolean(context.fallbackBoxStarts?.[Number(box)]);
         if (hasFallback && context.sourceBuffer) {
-            const absOff = fallbackSlotOffset(box, slot);
+            const absOff = context.fallbackSlotOffsets?.[Number(box)]?.[Number(slot)]
+                ?? fallbackSlotOffset(box, slot, context.sourceBuffer, context.fallbackSectionOffsets);
             if (Number.isInteger(absOff) && absOff + MON_SIZE_PC <= context.sourceBuffer.length) {
                 return { buffer: context.sourceBuffer, offset: absOff, kind: 'absolute' };
             }
@@ -964,7 +1010,8 @@ function isPcSlotOccupied(context, box, slot) {
 
     const hasFallback = Boolean(context.fallbackBoxStarts?.[Number(box)]);
     if (hasFallback && context.sourceBuffer) {
-        const absOff = fallbackSlotOffset(box, slot);
+        const absOff = context.fallbackSlotOffsets?.[Number(box)]?.[Number(slot)]
+            ?? fallbackSlotOffset(box, slot, context.sourceBuffer, context.fallbackSectionOffsets);
         if (Number.isInteger(absOff) && absOff + MON_SIZE_PC <= context.sourceBuffer.length) {
             const raw = context.absoluteEdits?.get(absOff) || context.sourceBuffer.slice(absOff, absOff + MON_SIZE_PC);
             return isValidMon(raw);
@@ -1023,7 +1070,8 @@ export function insertPcMon(context, payload, speciesMap = null) {
 
     const hasFallback = Boolean(context.fallbackBoxStarts?.[Number(box)]);
     if (hasFallback && context.sourceBuffer) {
-        const absOff = fallbackSlotOffset(box, slot);
+        const absOff = context.fallbackSlotOffsets?.[Number(box)]?.[Number(slot)]
+            ?? fallbackSlotOffset(box, slot, context.sourceBuffer, context.fallbackSectionOffsets);
         if (Number.isInteger(absOff) && absOff + MON_SIZE_PC <= context.sourceBuffer.length) {
             context.absoluteEdits.set(absOff, raw);
             context.absoluteTouchedSectors.add(Math.floor(absOff / SECTION_SIZE) * SECTION_SIZE);

@@ -44,6 +44,7 @@
 - Fixed PC Box move packing/parsing to use the correct CFRU compact 40-bit layout in both backend and local mode.
 - Fixed local-mode 32-bit overflow during 40-bit move bit-packing by switching to `BigInt`, resolving slot corruption cases (for example `DragonAscent`/`V-create` turning into wrong moves in frontend or in-game).
 - Added fragmented absolute-layout fallback support for PC boxes 22-24 in save variants where the standard contiguous PC stream does not include those boxes, with backend/local parity for read/edit/save/checksum flows.
+- Fixed fallback PC box extraction for rotated save-section layouts by resolving box 23/24 offsets from active logical sections (instead of static absolute addresses), with backend/local mode parity and regression verification across local artifact saves.
 - Added focused regression coverage for fallback PC boxes (`frontend/scripts/pc-fallback-regression.mjs`) to validate FewTimesDead box 22-24 detection, fallback slot parity, absolute fallback edits, touched-sector checksum updates, and Unbound false-positive guards.
 - Added `PC insert` workflows (backend + local mode parity) to create Pokemon directly in empty box slots, including stream boxes, preset box 26, and fragmented fallback box layouts.
 - Added species drift safety checks for non-species edit flows and tightened save paths to send only changed fields, reducing unintended side effects.
