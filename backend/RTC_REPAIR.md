@@ -52,6 +52,7 @@ curl -X POST \
 - Goal: apply known manifest deltas from `backend/data/rtc_manifest_unbound_v1.json`.
 - Output: quick fallback candidates in a zip pack.
 - Use when: you are sure the issue is RTC tampering and no NPC-fixed pair is available.
+- Important: the manifest includes opaque-section checksum metadata; it must be built from a known tampered->fixed pair for this save family.
 
 Backend endpoint:
 
@@ -62,7 +63,7 @@ curl -X POST \
   -o rtc_quick_fix_pack.zip
 ```
 
-Warning: quick fix is profile-based. If symptoms are not RTC-related, prefer pair repair.
+Warning: quick fix is profile-based. If symptoms are not RTC-related, or if the save was already partially repaired, prefer pair repair.
 
 ## Notes
 

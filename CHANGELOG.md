@@ -93,8 +93,13 @@
 
 - Added backend RTC pair-repair API endpoint `POST /rtc/repair-candidates` to generate a repair zip pack (manifest + ordered fallback candidates) from tampered and NPC-fixed save files.
 - Added backend RTC quick-fix API endpoint `POST /rtc/quick-fix` to generate single-file fallback candidates using tracked manifest data (`backend/data/rtc_manifest_unbound_v1.json`).
-- Added frontend metadata editing card for RTC workflows on the load screen, including tabbed actions (`Pair Repair` and `Quick Fix`) and backend-mode guards.
-- Added API client download helpers for RTC pair and quick-fix packs in `frontend/src/services/apiClient.js`, with explicit local-mode errors for unsupported operations.
+- Added frontend metadata editing card for RTC workflows on the load screen, including tabbed actions (`Pair Repair` and `Quick Fix`).
+- Added API client download helpers for RTC pair and quick-fix packs in `frontend/src/services/apiClient.js`, then extended them to full backend/local runtime parity.
+- Added full local-mode RTC parity for GitHub Pages usage: manifest generation, pair candidate generation, quick-fix candidate generation, and zip pack downloads now run fully in frontend JS.
+- Added RTC parity regression script (`frontend/scripts/rtc-parity-regression.mjs`) and npm commands to run RTC + existing parity checks.
+- Fixed RTC quick-fix candidate generation to copy source footer bytes correctly during coherent layout rebuild (instead of destination footer bytes).
+- Fixed RTC quick-fix opaque checksum handling to apply fixed-reference checksum metadata for patched opaque sections (`id 0`, `4`, `13`).
+- Refreshed quick-fix manifest payload (`backend/data/rtc_manifest_unbound_v1.json`, mirrored to frontend public data) from the known tampered `Unbound_2_before_promote_working.sav` to `Unbound_2_fixed.sav` pair.
 - Fixed pair-repair backend wiring to build manifests through `backend/tools/rtc_patch.py` (`build_manifest`) before candidate generation.
 
 #### Responsive UI and Internationalization
