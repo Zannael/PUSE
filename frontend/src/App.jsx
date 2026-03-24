@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useMemo, useState, useEffect } from 'react';
-import { Upload, LayoutGrid, Users, Briefcase, Save, Edit3, X, RotateCcw, Sparkles, Newspaper } from 'lucide-react';
+import { Upload, LayoutGrid, Users, Briefcase, Save, Edit3, X, RotateCcw, Sparkles, Newspaper, ShieldAlert } from 'lucide-react';
 import { createApiClient, getInitialRuntimeMode, persistRuntimeMode, RUNTIME_MODES } from './services/apiClient.js';
 import { getExpAtLevel, getSpeciesGrowthRate } from './core/growth.js';
 
@@ -75,6 +75,53 @@ const App = () => {
     const [refreshKey, setRefreshKey] = useState(0);
     const [pcBoxId, setPcBoxId] = useState(1);
     const [bagHasUnsavedChanges, setBagHasUnsavedChanges] = useState(false);
+    const [rtcBrokenFile, setRtcBrokenFile] = useState(null);
+    const [rtcFixedFile, setRtcFixedFile] = useState(null);
+    const [rtcQuickFile, setRtcQuickFile] = useState(null);
+    const [rtcTab, setRtcTab] = useState('pair');
+    const [rtcBusy, setRtcBusy] = useState(false);
+
+    const handleRtcFixPack = async () => {
+        if (runtimeMode !== RUNTIME_MODES.backend) {
+            alert('RTC repair pack is available in backend mode only.');
+            return;
+        }
+        if (!rtcBrokenFile || !rtcFixedFile) {
+            alert('Please select both files: tampered save and NPC-fixed save.');
+            return;
+        }
+
+        try {
+            setRtcBusy(true);
+            await client.generateRtcRepairPack(rtcBrokenFile, rtcFixedFile);
+            alert('RTC repair pack downloaded. Test candidates in the provided order JSON.');
+        } catch {
+            alert('Failed to generate RTC repair pack.');
+        } finally {
+            setRtcBusy(false);
+        }
+    };
+
+    const handleRtcQuickFixPack = async () => {
+        if (runtimeMode !== RUNTIME_MODES.backend) {
+            alert('RTC quick fix is available in backend mode only.');
+            return;
+        }
+        if (!rtcQuickFile) {
+            alert('Please select one tampered save file.');
+            return;
+        }
+
+        try {
+            setRtcBusy(true);
+            await client.generateRtcQuickFixPack(rtcQuickFile);
+            alert('RTC quick-fix pack downloaded. Test candidates in order and stop at first valid save.');
+        } catch {
+            alert('Failed to generate RTC quick-fix pack.');
+        } finally {
+            setRtcBusy(false);
+        }
+    };
 
     const handleTabChange = (nextTab) => {
         if (nextTab === activeTab) return;
@@ -404,6 +451,100 @@ const App = () => {
                         </section>
 
                         <section className="space-y-4">
+                            <div className="bg-[#1e293b]/50 border border-white/10 rounded-[2rem] p-5 md:p-6">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                    <ShieldAlert size={12} /> Metadata editing (upcoming features)
+                                </p>
+                                <div className="mt-3 inline-flex rounded-xl border border-white/10 bg-slate-900/60 p-1 text-[10px] uppercase tracking-widest font-bold">
+                                    <button
+                                        type="button"
+                                        onClick={() => setRtcTab('pair')}
+                                        className={`px-3 py-1 rounded-lg transition-colors ${
+                                            rtcTab === 'pair' ? 'bg-amber-600 text-white' : 'text-slate-300 hover:bg-white/5'
+                                        }`}
+                                    >
+                                        Pair Repair
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setRtcTab('quick')}
+                                        className={`px-3 py-1 rounded-lg transition-colors ${
+                                            rtcTab === 'quick' ? 'bg-amber-600 text-white' : 'text-slate-300 hover:bg-white/5'
+                                        }`}
+                                    >
+                                        Quick Fix
+                                    </button>
+                                </div>
+
+                                {rtcTab === 'pair' ? (
+                                    <>
+                                        <p className="mt-3 text-sm text-slate-200">
+                                            Build a repair pack using tampered + NPC-fixed save pair.
+                                        </p>
+                                        <div className="mt-4 space-y-2 text-xs text-slate-300">
+                                            <label className="block">
+                                                <span className="block mb-1 text-slate-400">Tampered save (.sav)</span>
+                                                <input
+                                                    type="file"
+                                                    accept=".sav"
+                                                    onChange={(e) => setRtcBrokenFile(e.target.files?.[0] || null)}
+                                                    className="w-full text-xs"
+                                                />
+                                            </label>
+                                            <label className="block">
+                                                <span className="block mb-1 text-slate-400">NPC-fixed save (.sav)</span>
+                                                <input
+                                                    type="file"
+                                                    accept=".sav"
+                                                    onChange={(e) => setRtcFixedFile(e.target.files?.[0] || null)}
+                                                    className="w-full text-xs"
+                                                />
+                                            </label>
+                                        </div>
+                                        <button
+                                            onClick={handleRtcFixPack}
+                                            disabled={rtcBusy}
+                                            className="mt-4 inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-500 disabled:bg-amber-900/60 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all"
+                                        >
+                                            <ShieldAlert size={14} /> {rtcBusy ? 'GENERATING...' : 'GENERATE PAIR REPAIR PACK'}
+                                        </button>
+                                        <p className="mt-2 text-[11px] text-slate-400">
+                                            Downloads manifest + fallback candidates. Recommended when NPC fix was used once.
+                                        </p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="mt-3 text-sm text-slate-200">
+                                            Quick single-file RTC repair for known tampering cases.
+                                        </p>
+                                        <p className="mt-2 text-[11px] text-amber-300">
+                                            Warning: use this only if you are sure the issue is RTC tampering.
+                                        </p>
+                                        <div className="mt-3 text-xs text-slate-300">
+                                            <label className="block">
+                                                <span className="block mb-1 text-slate-400">Tampered save (.sav)</span>
+                                                <input
+                                                    type="file"
+                                                    accept=".sav"
+                                                    onChange={(e) => setRtcQuickFile(e.target.files?.[0] || null)}
+                                                    className="w-full text-xs"
+                                                />
+                                            </label>
+                                        </div>
+                                        <button
+                                            onClick={handleRtcQuickFixPack}
+                                            disabled={rtcBusy}
+                                            className="mt-4 inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-500 disabled:bg-amber-900/60 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all"
+                                        >
+                                            <ShieldAlert size={14} /> {rtcBusy ? 'GENERATING...' : 'GENERATE QUICK FIX PACK'}
+                                        </button>
+                                        <p className="mt-2 text-[11px] text-slate-400">
+                                            Downloads quick candidates with fallback order.
+                                        </p>
+                                    </>
+                                )}
+                            </div>
+
                             <div className="bg-[#1e293b]/50 border border-white/10 rounded-[2rem] p-5 md:p-6">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
                                     <Sparkles size={12} /> What PUSE does

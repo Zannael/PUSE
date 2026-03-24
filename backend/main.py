@@ -3,6 +3,8 @@ import json
 from typing import List
 from pathlib import Path
 import base64
+import io
+import zipfile
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import FileResponse, Response
@@ -15,6 +17,8 @@ import os
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from core.item_icon_resolver import ItemIconResolver
+from tools import rtc_repair_from_pair as rtc_repair
+from tools import rtc_patch
 
 
 SAVE_FILE_NAME = "edited_save.sav"
@@ -68,6 +72,92 @@ current_save = {
         "absolute_touched_sectors": []
     }
 }
+
+
+@app.post("/rtc/repair-candidates")
+async def rtc_repair_candidates(broken: UploadFile = File(...), fixed: UploadFile = File(...)):
+    broken_bytes = await broken.read()
+    fixed_bytes = await fixed.read()
+
+    if not broken_bytes or not fixed_bytes:
+        raise HTTPException(status_code=400, detail="Both broken and fixed save files are required")
+    if len(broken_bytes) != len(fixed_bytes):
+        raise HTTPException(status_code=400, detail="Save files must have the same size")
+
+    full_manifest = rtc_patch.build_manifest(broken_bytes, fixed_bytes)
+    candidates = rtc_repair.build_candidates_from_pair(
+        broken_bytes,
+        fixed_bytes,
+        full_manifest,
+        rtc_repair.DEFAULT_PROFILES,
+    )
+
+    zip_buffer = io.BytesIO()
+    base_name = Path(broken.filename or "save").stem
+
+    with zipfile.ZipFile(zip_buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        manifest_json = json.dumps(full_manifest, indent=2).encode("utf-8")
+        zf.writestr(f"{base_name}_rtc_manifest.json", manifest_json)
+
+        summary = {
+            "recommended_profile": "id0_id4_full",
+            "fallback_order": rtc_repair.DEFAULT_PROFILES,
+            "notes": "Test candidates in order and stop at first valid non-tampered save",
+        }
+        zf.writestr(f"{base_name}_rtc_summary.json", json.dumps(summary, indent=2).encode("utf-8"))
+
+        for profile in rtc_repair.DEFAULT_PROFILES:
+            entry = candidates[profile]
+            out_name = f"{base_name}_rtc_{profile}.sav"
+            zf.writestr(out_name, entry["bytes"])
+
+    zip_buffer.seek(0)
+    return Response(
+        content=zip_buffer.getvalue(),
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={base_name}_rtc_repair_pack.zip"},
+    )
+
+
+@app.post("/rtc/quick-fix")
+async def rtc_quick_fix(file: UploadFile = File(...)):
+    raw = await file.read()
+    if not raw:
+        raise HTTPException(status_code=400, detail="Save file is required")
+    if len(raw) < 0x20000:
+        raise HTTPException(status_code=400, detail="Save file is too small")
+
+    manifest_path = Path(__file__).with_name("data").joinpath("rtc_manifest_unbound_v1.json")
+    if not manifest_path.exists():
+        raise HTTPException(status_code=500, detail="RTC quick-fix manifest missing")
+
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        result = rtc_repair.build_quick_candidates_from_single(raw, manifest)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Quick fix failed: {e}")
+
+    zip_buffer = io.BytesIO()
+    base_name = Path(file.filename or "save").stem
+
+    with zipfile.ZipFile(zip_buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        summary = {
+            "recommended": "quick_id0_id4",
+            "fallback_order": ["quick_id0_id4", "quick_id0_id4_id13", "quick_id0_id4_id13_aux12"],
+            "source_idx": result["source_idx"],
+            "target_idx": result["target_idx"],
+            "warning": "Use only when you are sure the issue is RTC tampering",
+        }
+        zf.writestr(f"{base_name}_rtc_quick_summary.json", json.dumps(summary, indent=2).encode("utf-8"))
+        for profile_name, payload in result["candidates"].items():
+            zf.writestr(f"{base_name}_{profile_name}.sav", payload)
+
+    zip_buffer.seek(0)
+    return Response(
+        content=zip_buffer.getvalue(),
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={base_name}_rtc_quick_fix_pack.zip"},
+    )
 
 # Keep BASE_DIR and icon paths defined before endpoint handlers
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

@@ -261,6 +261,47 @@ const backendClient = {
     saveAll() {
         return backendJson("/save-all", { method: "POST" });
     },
+    async generateRtcRepairPack(brokenFile, fixedFile) {
+        const formData = new FormData();
+        formData.append('broken', brokenFile);
+        formData.append('fixed', fixedFile);
+
+        const res = await fetch(`${API_BASE}/rtc/repair-candidates`, {
+            method: 'POST',
+            body: formData,
+        });
+        if (!res.ok) {
+            throw new Error('RTC repair pack generation failed');
+        }
+
+        const blob = await res.blob();
+        const fallbackName = `${(brokenFile?.name || 'save').replace(/\.[^.]+$/, '')}_rtc_repair_pack.zip`;
+        const contentDisposition = res.headers.get('Content-Disposition') || '';
+        const match = contentDisposition.match(/filename=([^;]+)/i);
+        const fileName = match ? match[1].replace(/"/g, '').trim() : fallbackName;
+        downloadBlob(blob, fileName);
+        return { status: 'ok' };
+    },
+    async generateRtcQuickFixPack(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const res = await fetch(`${API_BASE}/rtc/quick-fix`, {
+            method: 'POST',
+            body: formData,
+        });
+        if (!res.ok) {
+            throw new Error('RTC quick-fix pack generation failed');
+        }
+
+        const blob = await res.blob();
+        const fallbackName = `${(file?.name || 'save').replace(/\.[^.]+$/, '')}_rtc_quick_fix_pack.zip`;
+        const contentDisposition = res.headers.get('Content-Disposition') || '';
+        const match = contentDisposition.match(/filename=([^;]+)/i);
+        const fileName = match ? match[1].replace(/"/g, '').trim() : fallbackName;
+        downloadBlob(blob, fileName);
+        return { status: 'ok' };
+    },
 };
 
 const localClient = {
@@ -462,6 +503,12 @@ const localClient = {
             commitSaveAll(next, getPcContext());
         });
         return { message: 'Save completed' };
+    },
+    async generateRtcRepairPack() {
+        throw new Error('RTC repair pack is available in backend mode only');
+    },
+    async generateRtcQuickFixPack() {
+        throw new Error('RTC quick fix is available in backend mode only');
     },
 };
 
