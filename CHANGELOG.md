@@ -89,6 +89,14 @@
 - Smogon species resolution now supports regional suffix input (`-Alola`, `-Galar`, `-Hisui`) and defaults multi-form base species imports to the canonical base form (lowest-ID deterministic fallback with warning).
 - New PC Pokemon insertions now default IVs to `31/31/31/31/31/31` and infer full owner template from existing save data (OT name + IDNo/TID-linked OTID + owner bytes) instead of zeroed owner fields.
 
+#### RTC Recovery and Metadata Editing
+
+- Added backend RTC pair-repair API endpoint `POST /rtc/repair-candidates` to generate a repair zip pack (manifest + ordered fallback candidates) from tampered and NPC-fixed save files.
+- Added backend RTC quick-fix API endpoint `POST /rtc/quick-fix` to generate single-file fallback candidates using tracked manifest data (`backend/data/rtc_manifest_unbound_v1.json`).
+- Added frontend metadata editing card for RTC workflows on the load screen, including tabbed actions (`Pair Repair` and `Quick Fix`) and backend-mode guards.
+- Added API client download helpers for RTC pair and quick-fix packs in `frontend/src/services/apiClient.js`, with explicit local-mode errors for unsupported operations.
+- Fixed pair-repair backend wiring to build manifests through `backend/tools/rtc_patch.py` (`build_manifest`) before candidate generation.
+
 #### Responsive UI and Internationalization
 
 - Reworked the frontend shell for responsive behavior across desktop/tablet/mobile while preserving single-page dynamic sections.
