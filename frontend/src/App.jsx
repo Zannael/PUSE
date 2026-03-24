@@ -82,10 +82,6 @@ const App = () => {
     const [rtcBusy, setRtcBusy] = useState(false);
 
     const handleRtcFixPack = async () => {
-        if (runtimeMode !== RUNTIME_MODES.backend) {
-            alert('RTC repair pack is available in backend mode only.');
-            return;
-        }
         if (!rtcBrokenFile || !rtcFixedFile) {
             alert('Please select both files: tampered save and NPC-fixed save.');
             return;
@@ -103,10 +99,6 @@ const App = () => {
     };
 
     const handleRtcQuickFixPack = async () => {
-        if (runtimeMode !== RUNTIME_MODES.backend) {
-            alert('RTC quick fix is available in backend mode only.');
-            return;
-        }
         if (!rtcQuickFile) {
             alert('Please select one tampered save file.');
             return;

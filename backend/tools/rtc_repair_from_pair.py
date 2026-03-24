@@ -214,7 +214,7 @@ def build_quick_candidates_from_single(tampered, manifest):
         do = compute_layout_offset_for_saveidx(sid, target_idx)
 
         base[do:do + PAYLOAD_SIZE] = tampered[so:so + PAYLOAD_SIZE]
-        base[do + 0xFF0:do + 0x1000] = tampered[do + 0xFF0:do + 0x1000]
+        base[do + 0xFF0:do + 0x1000] = tampered[so + 0xFF0:so + 0x1000]
         wu16(base, do + 0xFF4, sid)
         wu32(base, do + 0xFFC, target_idx)
 
@@ -241,8 +241,11 @@ def build_quick_candidates_from_single(tampered, manifest):
             if sid not in OPAQUE_IDS:
                 recalc_standard_checksum(cand, do)
             else:
-                # Opaque sections keep source checksum policy.
-                wu16(cand, do + 0xFF6, src_latest[sid]["checksum"])
+                # Opaque sections use fixed reference checksum when available.
+                fixed_chk = manifest.get("changes_by_id", {}).get(str(sid), {}).get("fixed_latest", {}).get("checksum")
+                if fixed_chk is None:
+                    fixed_chk = src_latest[sid]["checksum"]
+                wu16(cand, do + 0xFF6, fixed_chk)
 
         candidates[name] = bytes(cand)
 

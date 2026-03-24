@@ -9,11 +9,15 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "pc:fallback-regression": "node scripts/pc-fallback-regression.mjs",
+    "identity:regression": "node scripts/identity-regression.mjs",
+    "rtc:parity-regression": "node scripts/rtc-parity-regression.mjs",
+    "parity:all": "npm run rtc:parity-regression && npm run pc:fallback-regression && npm run identity:regression",
     "icons:manifest": "node scripts/generate-icon-manifests.mjs",
     "icons:check": "node scripts/generate-icon-manifests.mjs --check"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
+    "fflate": "^0.8.2",
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

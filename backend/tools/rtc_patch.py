@@ -100,8 +100,16 @@ def build_manifest(broken_bytes, fixed_bytes):
         if sec_changes:
             changes_by_id[str(sid)] = {
                 "sid": sid,
-                "broken_latest": {"save_idx": bsec["save_idx"], "off": bsec["off"]},
-                "fixed_latest": {"save_idx": fsec["save_idx"], "off": fsec["off"]},
+                "broken_latest": {
+                    "save_idx": bsec["save_idx"],
+                    "off": bsec["off"],
+                    "checksum": ru16(broken_bytes, bsec["off"] + 0xFF6),
+                },
+                "fixed_latest": {
+                    "save_idx": fsec["save_idx"],
+                    "off": fsec["off"],
+                    "checksum": ru16(fixed_bytes, fsec["off"] + 0xFF6),
+                },
                 "count": len(sec_changes),
                 "changes": sec_changes,
             }

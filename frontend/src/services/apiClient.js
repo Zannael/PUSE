@@ -1,10 +1,12 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+import { strToU8, zipSync } from 'fflate';
 import {
     resolveItemIconUrl,
     resolvePokemonIconUrl,
 } from '../core/iconResolver.js';
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const MODE_STORAGE_KEY = "runtime_mode";
+const RTC_QUICK_MANIFEST_URL = `${import.meta.env.BASE_URL}data/rtc_manifest_unbound_v1.json`;
 
 export const RUNTIME_MODES = {
     backend: "backend",
@@ -63,6 +65,7 @@ function downloadBlob(blob, filename) {
 
 let itemNameMapCache = null;
 let localCoreModulesPromise = null;
+let quickRtcManifestPromise = null;
 
 async function getLocalCoreModules() {
     if (!localCoreModulesPromise) {
@@ -74,7 +77,8 @@ async function getLocalCoreModules() {
             import('../core/bag.js'),
             import('../core/money.js'),
             import('../core/commit.js'),
-        ]).then(([catalog, party, saveSession, pc, bag, money, commit]) => ({
+            import('../core/rtc.js'),
+        ]).then(([catalog, party, saveSession, pc, bag, money, commit, rtc]) => ({
             ...catalog,
             ...party,
             ...saveSession,
@@ -82,9 +86,35 @@ async function getLocalCoreModules() {
             ...bag,
             ...money,
             ...commit,
+            ...rtc,
         }));
     }
     return localCoreModulesPromise;
+}
+
+function toBaseName(fileName) {
+    return String(fileName || 'save').replace(/\.[^.]+$/, '');
+}
+
+function asZipBlob(entries) {
+    return new Blob([zipSync(entries)], { type: 'application/zip' });
+}
+
+function jsonBytes(value) {
+    return strToU8(JSON.stringify(value, null, 2));
+}
+
+async function getQuickRtcManifest() {
+    if (!quickRtcManifestPromise) {
+        quickRtcManifestPromise = fetch(RTC_QUICK_MANIFEST_URL)
+            .then((res) => {
+                if (!res.ok) {
+                    throw new Error('RTC quick-fix manifest is missing in frontend data assets');
+                }
+                return res.json();
+            });
+    }
+    return quickRtcManifestPromise;
 }
 
 async function getItemNameMap() {
@@ -504,11 +534,77 @@ const localClient = {
         });
         return { message: 'Save completed' };
     },
-    async generateRtcRepairPack() {
-        throw new Error('RTC repair pack is available in backend mode only');
+    async generateRtcRepairPack(brokenFile, fixedFile) {
+        if (!brokenFile || !fixedFile) {
+            throw new Error('Missing broken/fixed file inputs');
+        }
+
+        const {
+            buildManifest,
+            buildCandidatesFromPair,
+            DEFAULT_PROFILES,
+        } = await getLocalCoreModules();
+
+        const brokenBytes = new Uint8Array(await brokenFile.arrayBuffer());
+        const fixedBytes = new Uint8Array(await fixedFile.arrayBuffer());
+        if (brokenBytes.length !== fixedBytes.length) {
+            throw new Error('Save files must have the same size');
+        }
+
+        const manifest = buildManifest(brokenBytes, fixedBytes);
+        const candidates = buildCandidatesFromPair(brokenBytes, fixedBytes, manifest, DEFAULT_PROFILES);
+        const baseName = toBaseName(brokenFile.name);
+
+        const entries = {};
+        entries[`${baseName}_rtc_manifest.json`] = jsonBytes(manifest);
+        entries[`${baseName}_rtc_summary.json`] = jsonBytes({
+            recommended_profile: 'id0_id4_full',
+            fallback_order: DEFAULT_PROFILES,
+            notes: 'Test candidates in order and stop at first valid non-tampered save',
+        });
+
+        DEFAULT_PROFILES.forEach((profile) => {
+            entries[`${baseName}_rtc_${profile}.sav`] = candidates[profile].bytes;
+        });
+
+        const zipBlob = asZipBlob(entries);
+        downloadBlob(zipBlob, `${baseName}_rtc_repair_pack.zip`);
+        return { status: 'ok' };
     },
-    async generateRtcQuickFixPack() {
-        throw new Error('RTC quick fix is available in backend mode only');
+    async generateRtcQuickFixPack(file) {
+        if (!file) {
+            throw new Error('Missing save file input');
+        }
+
+        const {
+            buildQuickCandidatesFromSingle,
+        } = await getLocalCoreModules();
+
+        const raw = new Uint8Array(await file.arrayBuffer());
+        if (raw.length < 0x20000) {
+            throw new Error('Save file is too small');
+        }
+
+        const manifest = await getQuickRtcManifest();
+        const result = buildQuickCandidatesFromSingle(raw, manifest);
+        const baseName = toBaseName(file.name);
+
+        const entries = {};
+        entries[`${baseName}_rtc_quick_summary.json`] = jsonBytes({
+            recommended: 'quick_id0_id4',
+            fallback_order: ['quick_id0_id4', 'quick_id0_id4_id13', 'quick_id0_id4_id13_aux12'],
+            source_idx: result.source_idx,
+            target_idx: result.target_idx,
+            warning: 'Use only when you are sure the issue is RTC tampering',
+        });
+
+        Object.entries(result.candidates).forEach(([profileName, payload]) => {
+            entries[`${baseName}_${profileName}.sav`] = payload;
+        });
+
+        const zipBlob = asZipBlob(entries);
+        downloadBlob(zipBlob, `${baseName}_rtc_quick_fix_pack.zip`);
+        return { status: 'ok' };
     },
 };
 
