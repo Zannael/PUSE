@@ -10,9 +10,6 @@
 - Extend Trainer Profile editing to include identity metadata: name (with character encoding validation), gender/style flags, and appearance parameters (hair color/skin tone).
 - Implement "Costume Box" unlocker and wardrobe editing.
 - Find a way to manually flag "Seen" or "Caught" when editing a species that hasn't be seen/caught before. Leaving the decision to flag it to the user, thus the "manually".
-- Extract ROM-truth move PP metadata (base PP per move ID) and bind it to the existing move catalogs for backend/frontend parity.
-- Add Party/PC move PP safety handling so move swaps cannot leave invalid `M/N` PP states; clamp or reset PP to legal values during move edits.
-- Add PP Up / Max PP editing support (including save-level bitfields) with runtime parity across backend, local mode, and Switch homebrew flows.
 
 #### Community Feedback UX Backlog
 
@@ -56,6 +53,15 @@
 - Party level edits now default to ROM-truth species growth rate when available, with fallback to previous growth inference behavior when metadata is unavailable.
 - PC level editing now defaults to ROM-truth species growth rate in the editor flow (manual override still supported), reducing EXP/level ambiguity.
 - Party and PC payloads now expose full ROM-derived ability metadata (slot 1/slot 2/hidden IDs and names) with runtime parity.
+
+#### Move PP Integrity and Editing
+
+- Added ROM-truth move PP wiring from `move_table_from_rom.json` (`base_pp` by `move_id`) into backend/local PP calculations.
+- Added Party PP fields end-to-end (`move_pp`, `move_pp_ups`, `move_pp_max`) with legality enforcement in save writes.
+- Added move-swap PP safety: changing a move now resets current PP to the new legal max, preventing invalid `M/N` states.
+- Added PC PP Up support (`move_pp_ups`) and legal max PP derivation in payloads for backend/local parity.
+- Extended Party/PC update contracts to accept PP fields and keep backend/local behavior aligned.
+- Added editor controls for per-slot PP/PP Up with `MAX PP` action and live `current/max` display in move editing flows.
 
 #### Party and PC Identity with PID Safety
 
