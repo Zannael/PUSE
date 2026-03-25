@@ -34,7 +34,12 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
     const initialLevel = pokemon?.level ?? (isPcMon ? calcCurrentLevel(inferredSpeciesGrowth, Number(pokemon?.exp || 0)) : 1);
 
     const [activeTab, setActiveTab] = useState('stats');
-    const [localPk, setLocalPk] = useState({ ...pokemon });
+    const [localPk, setLocalPk] = useState({
+        ...pokemon,
+        moves: Array.isArray(pokemon?.moves) ? [...pokemon.moves].slice(0, 4) : [0, 0, 0, 0],
+        move_pp: Array.isArray(pokemon?.move_pp) ? [...pokemon.move_pp].slice(0, 4) : [0, 0, 0, 0],
+        move_pp_ups: Array.isArray(pokemon?.move_pp_ups) ? [...pokemon.move_pp_ups].slice(0, 4) : [0, 0, 0, 0],
+    });
     const [allMoves, setAllMoves] = useState([]);
     const [allAbilities, setAllAbilities] = useState([]);
     const [searchTerm, setSearchTerm] = useState(['', '', '', '']);
@@ -110,13 +115,84 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
     };
 
     const updateMove = (slotIndex, moveId) => {
-        const newMoves = [...localPk.moves];
-        newMoves[slotIndex] = parseInt(moveId);
-        setLocalPk({ ...localPk, moves: newMoves });
+        const nextMoveId = Number.parseInt(moveId, 10) || 0;
+        const newMoves = [...(localPk.moves || [0, 0, 0, 0])];
+        const newMovePp = [...(localPk.move_pp || [0, 0, 0, 0])];
+        const newMovePpUps = [...(localPk.move_pp_ups || [0, 0, 0, 0])];
+        newMoves[slotIndex] = nextMoveId;
+
+        if (nextMoveId <= 0) {
+            newMovePpUps[slotIndex] = 0;
+            newMovePp[slotIndex] = 0;
+        } else {
+            const moveEntry = allMoves.find((m) => Number(m.id) === nextMoveId);
+            const basePp = Number(moveEntry?.base_pp || 0);
+            const ppUp = Math.max(0, Math.min(3, Number(newMovePpUps[slotIndex] || 0)));
+            const maxPp = basePp > 0 ? basePp + Math.floor((basePp * ppUp) / 5) : 0;
+            newMovePp[slotIndex] = maxPp;
+        }
+
+        setLocalPk({ ...localPk, moves: newMoves, move_pp: newMovePp, move_pp_ups: newMovePpUps });
 
         const newSearch = [...searchTerm];
         newSearch[slotIndex] = '';
         setSearchTerm(newSearch);
+    };
+
+    const getSlotMaxPp = (slotIndex) => {
+        const moveId = Number(localPk.moves?.[slotIndex] || 0);
+        if (moveId <= 0) return 0;
+        const moveEntry = allMoves.find((m) => Number(m.id) === moveId);
+        const basePp = Number(moveEntry?.base_pp || 0);
+        const ppUp = Math.max(0, Math.min(3, Number(localPk.move_pp_ups?.[slotIndex] || 0)));
+        if (!Number.isFinite(basePp) || basePp <= 0) return 0;
+        return basePp + Math.floor((basePp * ppUp) / 5);
+    };
+
+    const updateMovePp = (slotIndex, value) => {
+        const maxPp = getSlotMaxPp(slotIndex);
+        const next = [...(localPk.move_pp || [0, 0, 0, 0])];
+        next[slotIndex] = Math.max(0, Math.min(maxPp, clampNumber(value, 0, maxPp || 0)));
+        setLocalPk({ ...localPk, move_pp: next });
+    };
+
+    const updateMovePpUps = (slotIndex, value) => {
+        const moveId = Number(localPk.moves?.[slotIndex] || 0);
+        const nextUps = [...(localPk.move_pp_ups || [0, 0, 0, 0])];
+        if (moveId <= 0) {
+            nextUps[slotIndex] = 0;
+            const nextPp = [...(localPk.move_pp || [0, 0, 0, 0])];
+            nextPp[slotIndex] = 0;
+            setLocalPk({ ...localPk, move_pp_ups: nextUps, move_pp: nextPp });
+            return;
+        }
+
+        nextUps[slotIndex] = Math.max(0, Math.min(3, clampNumber(value, 0, 3)));
+        const basePp = Number(allMoves.find((m) => Number(m.id) === moveId)?.base_pp || 0);
+        const nextMax = basePp > 0 ? basePp + Math.floor((basePp * nextUps[slotIndex]) / 5) : 0;
+        const nextPp = [...(localPk.move_pp || [0, 0, 0, 0])];
+        if (isPcMon) {
+            nextPp[slotIndex] = nextMax;
+        } else {
+            nextPp[slotIndex] = Math.max(0, Math.min(nextMax, Number(nextPp[slotIndex] || 0)));
+        }
+        setLocalPk({ ...localPk, move_pp_ups: nextUps, move_pp: nextPp });
+    };
+
+    const setMoveMaxPp = (slotIndex) => {
+        const moveId = Number(localPk.moves?.[slotIndex] || 0);
+        const nextUps = [...(localPk.move_pp_ups || [0, 0, 0, 0])];
+        const nextPp = [...(localPk.move_pp || [0, 0, 0, 0])];
+        if (moveId <= 0) {
+            nextUps[slotIndex] = 0;
+            nextPp[slotIndex] = 0;
+        } else {
+            nextUps[slotIndex] = 3;
+            const basePp = Number(allMoves.find((m) => Number(m.id) === moveId)?.base_pp || 0);
+            const maxPp = basePp > 0 ? basePp + Math.floor((basePp * 3) / 5) : 0;
+            nextPp[slotIndex] = maxPp;
+        }
+        setLocalPk({ ...localPk, move_pp_ups: nextUps, move_pp: nextPp });
     };
 
     useEffect(() => {
@@ -231,10 +307,18 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
         }
         if (resolved.moveRows.length > 0) {
             const moveIds = [0, 0, 0, 0];
+            const movePp = [0, 0, 0, 0];
+            const movePpUps = [0, 0, 0, 0];
             resolved.moveRows.forEach((m, idx) => {
-                if (idx < 4) moveIds[idx] = Number(m.id);
+                if (idx < 4) {
+                    moveIds[idx] = Number(m.id);
+                    const basePp = Number(m.base_pp || 0);
+                    movePp[idx] = basePp > 0 ? basePp : 0;
+                }
             });
             nextState.moves = moveIds;
+            nextState.move_pp = movePp;
+            nextState.move_pp_ups = movePpUps;
         }
         if (resolved.natureId !== null) {
             nextState.nature_id = resolved.natureId;
@@ -588,6 +672,52 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                                                 <span
                                                     className="text-[10px] font-mono text-slate-600">ID: {moveId}</span>
                                             </div>
+                                        )}
+
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="bg-slate-900/50 p-2 rounded-lg border border-white/5">
+                                                <label className="text-[10px] uppercase text-slate-500 font-black">PP</label>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    max={getSlotMaxPp(idx)}
+                                                    value={Number(localPk.move_pp?.[idx] || 0)}
+                                                    onChange={(e) => updateMovePp(idx, e.target.value)}
+                                                    className="mt-1 w-full bg-slate-900 border border-white/10 rounded-lg px-2 py-1 text-xs"
+                                                    disabled={Number(moveId || 0) <= 0 || isPcMon}
+                                                />
+                                            </div>
+                                            <div className="bg-slate-900/50 p-2 rounded-lg border border-white/5">
+                                                <label className="text-[10px] uppercase text-slate-500 font-black">PP Up</label>
+                                                <select
+                                                    value={Number(localPk.move_pp_ups?.[idx] || 0)}
+                                                    onChange={(e) => updateMovePpUps(idx, e.target.value)}
+                                                    className="mt-1 w-full bg-slate-900 border border-white/10 rounded-lg px-2 py-1 text-xs"
+                                                    disabled={Number(moveId || 0) <= 0}
+                                                >
+                                                    <option value={0}>0</option>
+                                                    <option value={1}>1</option>
+                                                    <option value={2}>2</option>
+                                                    <option value={3}>3</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between text-[10px] text-slate-400">
+                                            <span>
+                                                Usable: <span className="font-bold text-blue-300">{Number(localPk.move_pp?.[idx] || 0)}/{getSlotMaxPp(idx)}</span>
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setMoveMaxPp(idx)}
+                                                disabled={Number(moveId || 0) <= 0}
+                                                className="px-2 py-1 rounded-md bg-blue-600/80 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-[10px] font-bold"
+                                            >
+                                                MAX PP
+                                            </button>
+                                        </div>
+                                        {isPcMon && (
+                                            <p className="text-[9px] text-slate-500">PC boxes keep PP Up (max state). Current PP is restored from max when withdrawn.</p>
                                         )}
                                     </div>
                                 ))}
