@@ -740,3 +740,183 @@
 740:DragonEnergy
 741:Astral Storm
 742:GlacialLance
+743:Dire Claw
+744:PsyshieldRam
+745:Power Shift
+746:Stone Axe
+747:Mystic Power
+748:Raging Fury
+749:Wave Crash
+750:Chloroblast
+751:MountainGale
+752:VictoryDance
+753:HeadlongRush
+754:Barb Barrage
+755:Esper Wing
+756:BitterMalice
+757:Shelter
+758:TripleArrows
+759:InfernalRage
+760:Endless Edge
+761:BleakiceWind
+762:WildboltWind
+763:SandsearWind
+764:Spring Wind
+765:Lunar Bless
+766:Take Heart
+767:Z-Move 1
+768:Z-Move 2
+769:Z-Move 3
+770:Z-Move 4
+771:Z-Move 5
+772:Z-Move 6
+773:Z-Move 7
+774:Z-Move 8
+775:Z-Move 9
+776:Z-Move 10
+777:Z-Move 11
+778:Z-Move 12
+779:Z-Move 13
+780:Z-Move 14
+781:Z-Move 15
+782:Z-Move 16
+783:Z-Move 17
+784:Z-Move 18
+785:Z-Move 19
+786:Z-Move 20
+787:Z-Move 21
+788:Z-Move 22
+789:Z-Move 23
+790:Z-Move 24
+791:Z-Move 25
+792:Z-Move 26
+793:Z-Move 27
+794:Z-Move 28
+795:Z-Move 29
+796:Z-Move 30
+797:Z-Move 31
+798:Z-Move 32
+799:Z-Move 33
+800:Z-Move 34
+801:Z-Move 35
+802:Z-Move 36
+803:Z-Move 37
+804:Z-Move 38
+805:Z-Move 39
+806:Z-Move 40
+807:Z-Move 41
+808:Z-Move 42
+809:Z-Move 43
+810:Z-Move 44
+811:Z-Move 45
+812:Z-Move 46
+813:Z-Move 47
+814:Z-Move 48
+815:Z-Move 49
+816:Z-Move 50
+817:Z-Move 51
+818:Z-Move 52
+819:Z-Move 53
+820:Guard
+821:Strike
+822:Strike
+823:Knuckle
+824:Knuckle
+825:Airstream
+826:Airstream
+827:Ooze
+828:Ooze
+829:Quake
+830:Quake
+831:Rockfall
+832:Rockfall
+833:Flutterby
+834:Flutterby
+835:Phantasm
+836:Phantasm
+837:Steelspike
+838:Steelspike
+839:Flare
+840:Flare
+841:Geyser
+842:Geyser
+843:Overgrowth
+844:Overgrowth
+845:Lightning
+846:Lightning
+847:Mindstorm
+848:Mindstorm
+849:Hailstorm
+850:Hailstorm
+851:Wyrmwind
+852:Wyrmwind
+853:Darkness
+854:Darkness
+855:Starfall
+856:Starfall
+857:Vine Lash
+858:Vine Lash
+859:Wildfire
+860:Wildfire
+861:Cannonade
+862:Cannonade
+863:Befuddle
+864:Befuddle
+865:Voltcrash
+866:Voltcrash
+867:Goldrush
+868:Goldrush
+869:Chistrike
+870:Chistrike
+871:Terror
+872:Terror
+873:Foamburst
+874:Foamburst
+875:Resonance
+876:Resonance
+877:Cuddle
+878:Cuddle
+879:Replenish
+880:Replenish
+881:Malodor
+882:Malodor
+883:Meltdown
+884:Meltdown
+885:Drum Solo
+886:Drum Solo
+887:Fireball
+888:Fireball
+889:Hydrosnipe
+890:Hydrosnipe
+891:Windrage
+892:Windrage
+893:Gravitas
+894:Gravitas
+895:Stonesurge
+896:Stonesurge
+897:Volcalith
+898:Volcalith
+899:Tartness
+900:Tartness
+901:Sweetness
+902:Sweetness
+903:Sandblast
+904:Sandblast
+905:Stunshock
+906:Stunshock
+907:Centiferno
+908:Centiferno
+909:Smite
+910:Smite
+911:Snooze
+912:Snooze
+913:Finale
+914:Finale
+915:Steelsurge
+916:Steelsurge
+917:Depletion
+918:Depletion
+919:One Blow
+920:One Blow
+921:Rapid Flow
+922:Rapid Flow

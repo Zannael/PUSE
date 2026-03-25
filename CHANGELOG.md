@@ -10,6 +10,9 @@
 - Extend Trainer Profile editing to include identity metadata: name (with character encoding validation), gender/style flags, and appearance parameters (hair color/skin tone).
 - Implement "Costume Box" unlocker and wardrobe editing.
 - Find a way to manually flag "Seen" or "Caught" when editing a species that hasn't be seen/caught before. Leaving the decision to flag it to the user, thus the "manually".
+- Extract ROM-truth move PP metadata (base PP per move ID) and bind it to the existing move catalogs for backend/frontend parity.
+- Add Party/PC move PP safety handling so move swaps cannot leave invalid `M/N` PP states; clamp or reset PP to legal values during move edits.
+- Add PP Up / Max PP editing support (including save-level bitfields) with runtime parity across backend, local mode, and Switch homebrew flows.
 
 #### Community Feedback UX Backlog
 
@@ -21,6 +24,8 @@
 #### ROM Truth Data
 
 - Added Unbound ROM move extraction tooling (`backend/tools/extract_unbound_moves_table.py`) with diagnostic output (`backend/data/move_table_from_rom.json`).
+- Move extraction now infers move count directly from ROM (instead of inheriting a previous `moves.txt` cap), and refreshed catalogs now include the full detected Unbound move table (`922` moves).
+- `backend/data/move_table_from_rom.json` now supports merged `base_pp` per move row when PP metadata is provided from ROM-derived extraction.
 - Move catalogs are now synchronized from ROM truth with `backend/data/moves.txt` as canonical runtime source (mirrored to `frontend/public/data/moves.txt` for local mode parity).
 - Added Unbound ROM ability extraction tooling (`backend/tools/extract_unbound_abilities_table.py`) with diagnostic output (`backend/data/ability_table_from_rom.json`).
 - Ability catalogs are now synchronized from ROM truth with `backend/data/abilities.txt` as canonical runtime source (mirrored to `frontend/public/data/abilities.txt` for local mode parity).
