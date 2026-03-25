@@ -34,6 +34,38 @@ backend/icons/items/
 backend/data/*.sav
 backend/data/*.sav.*
 backend/data/Unbound.gba
+backend/data/moves_pp_meta.json
+backend/data/move_pp_probe_diagnostics.json
 
 # Logs
 *.log
+
+# Switch homebrew build outputs
+switch-homebrew/build/
+switch-homebrew/build-local/
+switch-homebrew/*.elf
+switch-homebrew/*.nro
+switch-homebrew/*.nacp
+switch-homebrew/*.npdm
+
+# Switch homebrew non-essential local/reference content
+switch-homebrew/artifacts/
+switch-homebrew/notes/
+switch-homebrew/goldleaf-source/
+switch-homebrew/tools/bag_probe.cpp
+switch-homebrew/tools/party_probe.cpp
+switch-homebrew/tools/pc_probe.cpp
+switch-homebrew/tools/catalog_self_test.cpp
+switch-homebrew/tools/install-devkitpro-pacman
+switch-homebrew/tools/Plutonium/*
+!switch-homebrew/tools/Plutonium/Plutonium/
+!switch-homebrew/tools/Plutonium/Plutonium/**
+switch-homebrew/tools/Plutonium/Plutonium/build/
+switch-homebrew/tools/Plutonium/Plutonium/lib/
+switch-homebrew/NOTES.md
+
+# Local planning/docs not needed for build
+AGENTS.md
+NEXT-RELEASE.md
+backend/SAVE_EDITING_GUIDE.md
+docs/
