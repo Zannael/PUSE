@@ -6,6 +6,7 @@ const cache = {
     abilitiesById: null,
     speciesById: null,
     speciesMetaById: null,
+    moveBasePpById: null,
     loaded: false,
 };
 
@@ -63,17 +64,47 @@ async function fetchText(path) {
     return res.text();
 }
 
+async function fetchJson(path) {
+    const res = await fetch(path);
+    if (!res.ok) {
+        throw new Error(`Failed to load catalog file: ${path}`);
+    }
+    return res.json();
+}
+
+
+function parseMoveBasePp(moveTable) {
+    const out = new Map();
+    const rows = moveTable?.moves;
+    if (!Array.isArray(rows)) {
+        return out;
+    }
+    rows.forEach((row) => {
+        const moveId = Number(row?.move_id);
+        const basePp = Number(row?.base_pp);
+        if (!Number.isInteger(moveId) || moveId <= 0) {
+            return;
+        }
+        if (!Number.isInteger(basePp) || basePp < 0) {
+            return;
+        }
+        out.set(moveId, Math.min(255, basePp));
+    });
+    return out;
+}
+
 export async function loadCatalog() {
     if (cache.loaded) {
         return;
     }
 
-    const [itemsText, movesText, abilitiesText, pokemonText, tmsText] = await Promise.all([
+    const [itemsText, movesText, abilitiesText, pokemonText, tmsText, moveTable] = await Promise.all([
         fetchText(`${DATA_BASE_URL}/items.txt`),
         fetchText(`${DATA_BASE_URL}/moves.txt`),
         fetchText(`${DATA_BASE_URL}/abilities.txt`),
         fetchText(`${DATA_BASE_URL}/pokemon.txt`),
         fetchText(`${DATA_BASE_URL}/tms.txt`),
+        fetchJson(`${DATA_BASE_URL}/move_table_from_rom.json`),
     ]);
 
     cache.itemsById = parseIdNameText(itemsText);
@@ -81,6 +112,7 @@ export async function loadCatalog() {
     cache.abilitiesById = parseIdNameText(abilitiesText);
     cache.speciesById = parseIdNameText(pokemonText);
     cache.speciesMetaById = buildSpeciesFormMeta(cache.speciesById);
+    cache.moveBasePpById = parseMoveBasePp(moveTable);
     applyTmOverlay(cache.itemsById, tmsText);
     cache.loaded = true;
 }
@@ -116,7 +148,28 @@ export async function getMovesList() {
         await loadCatalog();
     }
     ensureLoaded();
-    return mapToList(cache.movesById, { includeZero: true });
+    return mapToList(cache.movesById, { includeZero: true }).map((row) => ({
+        ...row,
+        base_pp: Number(cache.moveBasePpById?.get(row.id) || 0),
+    }));
+}
+
+
+export async function getMoveBasePpMap() {
+    if (!cache.loaded) {
+        await loadCatalog();
+    }
+    ensureLoaded();
+    return cache.moveBasePpById || new Map();
+}
+
+
+export function getMoveBasePpById(moveId) {
+    const id = Number(moveId);
+    if (!cache.loaded || !Number.isInteger(id) || id <= 0) {
+        return 0;
+    }
+    return Number(cache.moveBasePpById?.get(id) || 0);
 }
 
 export async function getAbilitiesList() {

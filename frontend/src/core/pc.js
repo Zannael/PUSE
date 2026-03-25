@@ -7,6 +7,7 @@ import speciesIdentityMeta from './speciesIdentityMeta.json' with { type: 'json'
 import speciesGrowthRates from './speciesGrowthRates.json' with { type: 'json' };
 import speciesAbilitiesMeta from './speciesAbilitiesMeta.json' with { type: 'json' };
 import abilitiesCatalog from './abilitiesCatalog.json' with { type: 'json' };
+import { getMoveBasePpById } from './catalog.js';
 
 const POKEMON_STREAM_SECTORS = [5, 6, 7, 8, 9, 10, 11, 12];
 const PRESET_SECTOR_ID = 0;
@@ -133,7 +134,68 @@ function getMoves(raw) {
     ];
 }
 
-function setMoves(raw, movesList) {
+function getMoveBasePp(moveId) {
+    const value = Number(getMoveBasePpById(moveId) || 0);
+    if (!Number.isInteger(value) || value < 0) {
+        return 0;
+    }
+    return value;
+}
+
+function calcMaxPp(moveId, ppUp) {
+    const move = Number(moveId) || 0;
+    if (move <= 0) {
+        return 0;
+    }
+    const base = getMoveBasePp(move);
+    const up = Math.max(0, Math.min(3, Number(ppUp) || 0));
+    if (base <= 0) {
+        return 0;
+    }
+    return base + Math.floor((base * up) / 5);
+}
+
+function getMovePpUps(raw) {
+    const packed = ru8(raw, 0x24);
+    return [
+        (packed >>> 0) & 0x03,
+        (packed >>> 2) & 0x03,
+        (packed >>> 4) & 0x03,
+        (packed >>> 6) & 0x03,
+    ];
+}
+
+function setMovePpUps(raw, movePpUps) {
+    const next = [0, 0, 0, 0];
+    for (let i = 0; i < 4; i += 1) {
+        next[i] = Math.max(0, Math.min(3, Number(movePpUps?.[i] || 0)));
+    }
+    const moves = getMoves(raw);
+    for (let i = 0; i < 4; i += 1) {
+        if ((Number(moves[i]) || 0) <= 0) {
+            next[i] = 0;
+        }
+    }
+    const packed = (next[0] & 0x03)
+        | ((next[1] & 0x03) << 2)
+        | ((next[2] & 0x03) << 4)
+        | ((next[3] & 0x03) << 6);
+    wu8(raw, 0x24, packed);
+}
+
+function getMovePp(raw) {
+    // Compact PC layout does not expose a separate current-PP byte array.
+    const moves = getMoves(raw);
+    const ppUps = getMovePpUps(raw);
+    return moves.map((moveId, idx) => calcMaxPp(moveId, ppUps[idx]));
+}
+
+function getMovePpMax(raw) {
+    return getMovePp(raw);
+}
+
+function setMoves(raw, movesList, movePp = null, movePpUps = null) {
+    void movePp;
     const curr = [...movesList];
     while (curr.length < 4) {
         curr.push(0);
@@ -152,6 +214,12 @@ function setMoves(raw, movesList) {
 
     for (let i = 0; i < 5; i += 1) {
         raw[0x27 + i] = Number((packed >> BigInt(8 * i)) & 0xFFn);
+    }
+
+    if (Array.isArray(movePpUps)) {
+        setMovePpUps(raw, movePpUps);
+    } else {
+        setMovePpUps(raw, getMovePpUps(raw));
     }
 }
 
@@ -534,6 +602,9 @@ function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
         ivs: getIvs(raw),
         evs: getEvs(raw),
         moves: getMoves(raw),
+        move_pp: getMovePp(raw),
+        move_pp_ups: getMovePpUps(raw),
+        move_pp_max: getMovePpMax(raw),
         current_ability_index: currentAbilityIndex,
         ability_1_id: abilitySlots.ability_1_id,
         ability_1_name: ability1Name,
@@ -961,7 +1032,9 @@ function buildPcMonRaw(payload, speciesMap, context) {
     raw.set(encodeText(nickname, 10), OFF_NICK);
 
     if (payload?.moves) {
-        setMoves(raw, payload.moves);
+        setMoves(raw, payload.moves, payload?.move_pp, payload?.move_pp_ups);
+    } else if (Array.isArray(payload?.move_pp_ups)) {
+        setMovePpUps(raw, payload.move_pp_ups);
     }
     if (payload?.ivs) {
         setIvs(raw, payload.ivs);
@@ -1098,7 +1171,9 @@ export function editPcMonFull(context, payload) {
     }
 
     if (payload.moves) {
-        setMoves(raw, payload.moves);
+        setMoves(raw, payload.moves, payload.move_pp, payload.move_pp_ups);
+    } else if (Array.isArray(payload.move_pp_ups)) {
+        setMovePpUps(raw, payload.move_pp_ups);
     }
     if (payload.item_id !== undefined && payload.item_id !== null) {
         wu16(raw, OFF_ITEM, Number(payload.item_id));

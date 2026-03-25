@@ -6,7 +6,7 @@ import math
 import os
 import json
 
-from core.data_loader import load_id_name_file
+from core.data_loader import load_id_name_file, load_move_base_pp_map
 
 # --- CONFIGURAZIONE TECNICA (PC Unbound) ---
 # Settori che contengono SICURAMENTE Pokémon (Stream Dati Box 1-25)
@@ -67,6 +67,7 @@ DB_SPECIES = {}
 DB_SPECIES_IDENTITY_META = {}
 DB_SPECIES_GROWTH_RATES = {}
 DB_SPECIES_ABILITIES_META = {}
+DB_MOVE_BASE_PP = {}
 
 GENDER_THRESHOLD_MALE_ONLY = 0
 GENDER_THRESHOLD_FEMALE_ONLY = 254
@@ -87,11 +88,13 @@ def load_static_data():
     DB_SPECIES_IDENTITY_META.clear()
     DB_SPECIES_GROWTH_RATES.clear()
     DB_SPECIES_ABILITIES_META.clear()
+    DB_MOVE_BASE_PP.clear()
 
     DB_SPECIES.update(load_id_name_file("pokemon.txt"))
     DB_ITEMS.update(load_id_name_file("items.txt"))
     DB_MOVES.update(load_id_name_file("moves.txt"))
     DB_ABILITIES.update(load_id_name_file("abilities.txt"))
+    DB_MOVE_BASE_PP.update(load_move_base_pp_map("move_table_from_rom.json"))
 
     identity_meta_path = os.path.join(os.path.dirname(__file__), "..", "data", "species_identity_meta.json")
     if os.path.exists(identity_meta_path):
@@ -171,6 +174,21 @@ def get_ability_name(ability_id):
     if ability_id is None:
         return None
     return DB_ABILITIES.get(int(ability_id))
+
+
+def get_move_base_pp(move_id):
+    return int(DB_MOVE_BASE_PP.get(int(move_id), 0))
+
+
+def calculate_max_pp(move_id, pp_up_count):
+    move_id = int(move_id)
+    if move_id <= 0:
+        return 0
+    base_pp = get_move_base_pp(move_id)
+    pp_up = max(0, min(3, int(pp_up_count)))
+    if base_pp <= 0:
+        return 0
+    return int(base_pp + ((base_pp * pp_up) // 5))
 
 
 # Compat legacy name.
@@ -592,7 +610,46 @@ class UnboundPCMon:
             (packed >> 30) & 0x3FF,
         ]
 
-    def set_moves(self, moves_list):
+    def get_move_pp_ups(self):
+        packed = int(self.raw[0x24])
+        return [
+            (packed >> 0) & 0x03,
+            (packed >> 2) & 0x03,
+            (packed >> 4) & 0x03,
+            (packed >> 6) & 0x03,
+        ]
+
+    def set_move_pp_ups(self, move_pp_ups):
+        curr = [0, 0, 0, 0]
+        for i in range(4):
+            if i < len(move_pp_ups):
+                curr[i] = max(0, min(3, int(move_pp_ups[i])))
+
+        # Empty move slots cannot have PP Up applied.
+        moves = self.get_moves()
+        for i in range(4):
+            if int(moves[i]) == 0:
+                curr[i] = 0
+
+        packed = (
+            (curr[0] & 0x03)
+            | ((curr[1] & 0x03) << 2)
+            | ((curr[2] & 0x03) << 4)
+            | ((curr[3] & 0x03) << 6)
+        )
+        self.raw[0x24] = packed & 0xFF
+
+    def get_move_pp(self):
+        # Compact PC layout does not carry per-slot current-PP bytes.
+        # We expose legal per-slot max PP derived from move ID + PP Up state.
+        moves = self.get_moves()
+        pp_ups = self.get_move_pp_ups()
+        return [calculate_max_pp(moves[i], pp_ups[i]) for i in range(4)]
+
+    def get_move_pp_max(self):
+        return self.get_move_pp()
+
+    def set_moves(self, moves_list, move_pp=None, move_pp_ups=None):
         curr_moves = list(moves_list)
         while len(curr_moves) < 4: curr_moves.append(0)
 
@@ -607,6 +664,12 @@ class UnboundPCMon:
 
         for i in range(5):
             self.raw[0x27 + i] = (packed >> (8 * i)) & 0xFF
+
+        if isinstance(move_pp_ups, list):
+            self.set_move_pp_ups(move_pp_ups)
+        else:
+            # Ensure PP Up state is valid for empty move slots.
+            self.set_move_pp_ups(self.get_move_pp_ups())
 
 
 # --- GESTIONE BUFFER & FILE ---

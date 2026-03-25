@@ -9,7 +9,7 @@ import os
 import math
 import json
 
-from core.data_loader import load_id_name_file
+from core.data_loader import load_id_name_file, load_move_base_pp_map
 
 # --- CONFIGURAZIONE SALVATAGGIO ---
 SECTION_SIZE = 0x1000
@@ -43,6 +43,7 @@ DB_SPECIES_BASE_STATS = {}
 DB_SPECIES_IDENTITY_META = {}
 DB_SPECIES_GROWTH_RATES = {}
 DB_SPECIES_ABILITIES_META = {}
+DB_MOVE_BASE_PP = {}
 
 GENDER_THRESHOLD_MALE_ONLY = 0
 GENDER_THRESHOLD_FEMALE_ONLY = 254
@@ -220,11 +221,13 @@ def load_static_data():
     DB_SPECIES_IDENTITY_META.clear()
     DB_SPECIES_GROWTH_RATES.clear()
     DB_SPECIES_ABILITIES_META.clear()
+    DB_MOVE_BASE_PP.clear()
 
     DB_ITEMS.update(load_id_name_file("items.txt"))
     DB_MOVES.update(load_id_name_file("moves.txt"))
     DB_ABILITIES.update(load_id_name_file("abilities.txt"))
     DB_SPECIES.update(load_id_name_file("pokemon.txt"))
+    DB_MOVE_BASE_PP.update(load_move_base_pp_map("move_table_from_rom.json"))
 
     base_stats_path = os.path.join(os.path.dirname(__file__), "..", "data", "species_base_stats.json")
     if os.path.exists(base_stats_path):
@@ -320,6 +323,21 @@ def get_ability_name(ability_id):
     if ability_id is None:
         return None
     return DB_ABILITIES.get(int(ability_id))
+
+
+def get_move_base_pp(move_id):
+    return int(DB_MOVE_BASE_PP.get(int(move_id), 0))
+
+
+def calculate_max_pp(move_id, pp_up_count):
+    move_id = int(move_id)
+    if move_id <= 0:
+        return 0
+    base_pp = get_move_base_pp(move_id)
+    pp_up = max(0, min(3, int(pp_up_count)))
+    if base_pp <= 0:
+        return 0
+    return int(base_pp + ((base_pp * pp_up) // 5))
 
 
 def _shiny_value(otid: int, pid: int) -> int:
@@ -549,6 +567,25 @@ class Pokemon:
     def get_moves_ids(self):
         return [ru16(self.substructs['A'], i * 2) for i in range(4)]
 
+    def get_move_pp(self):
+        a = self.substructs['A']
+        return [int(a[8 + i]) for i in range(4)]
+
+    def get_move_pp_ups(self):
+        b = self.substructs['B']
+        packed = int(b[8])
+        return [
+            (packed >> 0) & 0x03,
+            (packed >> 2) & 0x03,
+            (packed >> 4) & 0x03,
+            (packed >> 6) & 0x03,
+        ]
+
+    def get_move_pp_max(self):
+        moves = self.get_moves_ids()
+        pp_ups = self.get_move_pp_ups()
+        return [calculate_max_pp(moves[i], pp_ups[i]) for i in range(4)]
+
     def get_exp(self):
         return ru32(self.substructs['B'], 4)
 
@@ -671,11 +708,58 @@ class Pokemon:
         wu16(b, 0, species_id)
         self.substructs['B'] = b
 
-    def set_moves(self, moves):
+    def set_moves(self, moves, move_pp=None, move_pp_ups=None):
         a = bytearray(self.substructs['A'])
+        b = bytearray(self.substructs['B'])
+
+        curr_moves = self.get_moves_ids()
+        curr_pp = self.get_move_pp()
+        curr_pp_ups = self.get_move_pp_ups()
+
+        next_moves = [0, 0, 0, 0]
         for i in range(4):
-            if i < len(moves): wu16(a, i * 2, moves[i])
+            if i < len(moves):
+                next_moves[i] = int(moves[i]) & 0x3FF
+
+        next_pp_ups = list(curr_pp_ups)
+        if isinstance(move_pp_ups, list):
+            for i in range(4):
+                if i < len(move_pp_ups):
+                    next_pp_ups[i] = max(0, min(3, int(move_pp_ups[i])))
+
+        next_pp = list(curr_pp)
+        if isinstance(move_pp, list):
+            for i in range(4):
+                if i < len(move_pp):
+                    next_pp[i] = max(0, int(move_pp[i]))
+
+        for i in range(4):
+            move_id = next_moves[i]
+            changed_move = move_id != curr_moves[i]
+
+            if move_id == 0:
+                next_pp_ups[i] = 0
+                next_pp[i] = 0
+            else:
+                max_pp = calculate_max_pp(move_id, next_pp_ups[i])
+                if changed_move:
+                    next_pp[i] = max_pp
+                else:
+                    next_pp[i] = max(0, min(max_pp, int(next_pp[i])))
+
+            wu16(a, i * 2, move_id)
+            a[8 + i] = max(0, min(255, int(next_pp[i])))
+
+        packed_pp_up = (
+            (next_pp_ups[0] & 0x03)
+            | ((next_pp_ups[1] & 0x03) << 2)
+            | ((next_pp_ups[2] & 0x03) << 4)
+            | ((next_pp_ups[3] & 0x03) << 6)
+        )
+        b[8] = packed_pp_up & 0xFF
+
         self.substructs['A'] = a
+        self.substructs['B'] = b
 
     def set_exp(self, exp):
         b = bytearray(self.substructs['B'])

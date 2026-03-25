@@ -687,6 +687,9 @@ async def get_party():
             "species_id": pk.get_species_id(),
             "species_growth_rate": party_mod.get_species_growth_rate(pk.get_species_id()),
             "moves": pk.get_moves_ids(),
+            "move_pp": pk.get_move_pp(),
+            "move_pp_ups": pk.get_move_pp_ups(),
+            "move_pp_max": pk.get_move_pp_max(),
             "ability_slot": pk.get_standard_ability_slot(),  # 0 or 1
             "current_ability_index": current_ability_index,
             "ability_1_id": ability_1_id,
@@ -1102,6 +1105,9 @@ async def get_box(box_id: int):
             "ivs": m.get_ivs(),
             "evs": m.get_evs(),
             "moves": m.get_moves(),
+            "move_pp": m.get_move_pp(),
+            "move_pp_ups": m.get_move_pp_ups(),
+            "move_pp_max": m.get_move_pp_max(),
             "current_ability_index": current_ability_index,
             "ability_1_id": ability_1_id,
             "ability_1_name": ability_1_name,
@@ -1121,6 +1127,8 @@ class PCUpdate(BaseModel):
     box: int
     slot: int
     moves: List[int] = None
+    move_pp: List[int] = None
+    move_pp_ups: List[int] = None
     item_id: int = None
 
 
@@ -1136,7 +1144,10 @@ async def edit_pc_mon(upd: PCUpdate):
     species_before = target.species_id
 
     # Apply object updates
-    if upd.moves: target.set_moves(upd.moves)
+    if upd.moves is not None:
+        target.set_moves(upd.moves, move_pp=upd.move_pp, move_pp_ups=upd.move_pp_ups)
+    elif upd.move_pp_ups is not None:
+        target.set_move_pp_ups(upd.move_pp_ups)
     if upd.item_id is not None: target.set_item_id(upd.item_id)
 
     if target.species_id != species_before:
@@ -1181,6 +1192,8 @@ class AbilityUpdate(BaseModel):
 
 class MovesUpdate(BaseModel):
     moves: List[int]
+    move_pp: List[int] | None = None
+    move_pp_ups: List[int] | None = None
 
 
 class ItemUpdate(BaseModel):
@@ -1229,7 +1242,12 @@ async def update_party_moves(idx: int, data: MovesUpdate):
     pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
     species_before = pk.get_species_id()
 
-    pk.set_moves(data.moves)
+    for move_id in data.moves:
+        mv = int(move_id)
+        if mv < 0 or mv > 1023:
+            raise HTTPException(status_code=400, detail="Invalid move_id in moves payload")
+
+    pk.set_moves(data.moves, move_pp=data.move_pp, move_pp_ups=data.move_pp_ups)
     _assert_species_unchanged(pk, species_before, "party moves update")
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
@@ -1239,7 +1257,14 @@ async def update_party_moves(idx: int, data: MovesUpdate):
 @app.get("/moves")
 async def get_all_moves():
     """Return move list for dropdown."""
-    return [{"id": k, "name": v} for k, v in box_mod.DB_MOVES.items()]
+    out = []
+    for move_id, name in box_mod.DB_MOVES.items():
+        out.append({
+            "id": move_id,
+            "name": name,
+            "base_pp": box_mod.get_move_base_pp(move_id),
+        })
+    return out
 
 
 @app.get("/abilities")
@@ -1254,6 +1279,8 @@ class PCFullUpdate(BaseModel):
     slot: int
     nickname: str = None
     moves: List[int] = None
+    move_pp: List[int] = None
+    move_pp_ups: List[int] = None
     item_id: int = None
     species_id: int = None
     ivs: dict = None
@@ -1295,7 +1322,10 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
 
     # Apply updates using UnboundPCMon methods (v16)
     if upd.nickname is not None: target.set_nickname(upd.nickname)
-    if upd.moves: target.set_moves(upd.moves)
+    if upd.moves is not None:
+        target.set_moves(upd.moves, move_pp=upd.move_pp, move_pp_ups=upd.move_pp_ups)
+    elif upd.move_pp_ups is not None:
+        target.set_move_pp_ups(upd.move_pp_ups)
     if upd.item_id is not None: target.set_item_id(upd.item_id)
     if upd.species_id is not None:
         if upd.species_id <= 0 or upd.species_id not in box_mod.DB_SPECIES:
@@ -1473,6 +1503,9 @@ async def insert_pc_mon(upd: PCInsert):
             "ivs": mon.get_ivs(),
             "evs": mon.get_evs(),
             "moves": mon.get_moves(),
+            "move_pp": mon.get_move_pp(),
+            "move_pp_ups": mon.get_move_pp_ups(),
+            "move_pp_max": mon.get_move_pp_max(),
             "current_ability_index": current_ability_index,
             "ability_1_id": ability_1_id,
             "ability_1_name": ability_1_name,

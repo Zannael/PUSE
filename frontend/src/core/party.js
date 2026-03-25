@@ -5,6 +5,7 @@ import speciesIdentityMeta from './speciesIdentityMeta.json' with { type: 'json'
 import speciesGrowthRates from './speciesGrowthRates.json' with { type: 'json' };
 import speciesAbilitiesMeta from './speciesAbilitiesMeta.json' with { type: 'json' };
 import abilitiesCatalog from './abilitiesCatalog.json' with { type: 'json' };
+import { getMoveBasePpById } from './catalog.js';
 import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
 
 const TRAINER_SECTION_ID = 1;
@@ -205,6 +206,27 @@ function resolveCurrentAbility(currentIndex, ability1Id, ability1Name, ability2I
         ability_name_current: abilityHiddenName,
         ability_label_current: abilityHiddenName || 'Hidden Ability',
     };
+}
+
+function getMoveBasePp(moveId) {
+    const value = Number(getMoveBasePpById(moveId) || 0);
+    if (!Number.isInteger(value) || value < 0) {
+        return 0;
+    }
+    return value;
+}
+
+function calcMaxPp(moveId, ppUp) {
+    const move = Number(moveId) || 0;
+    if (move <= 0) {
+        return 0;
+    }
+    const base = getMoveBasePp(move);
+    const up = Math.max(0, Math.min(3, Number(ppUp) || 0));
+    if (base <= 0) {
+        return 0;
+    }
+    return base + Math.floor((base * up) / 5);
 }
 
 function genderModeFromThreshold(threshold) {
@@ -465,11 +487,86 @@ function getMoves(rawMon) {
     return [ru16(sub.A, 0), ru16(sub.A, 2), ru16(sub.A, 4), ru16(sub.A, 6)];
 }
 
-function setMoves(rawMon, moves) {
+function getMovePp(rawMon) {
     const sub = substructViews(rawMon);
+    return [
+        ru8(sub.A, 8),
+        ru8(sub.A, 9),
+        ru8(sub.A, 10),
+        ru8(sub.A, 11),
+    ];
+}
+
+function getMovePpUps(rawMon) {
+    const sub = substructViews(rawMon);
+    const packed = ru8(sub.B, 8);
+    return [
+        (packed >>> 0) & 0x03,
+        (packed >>> 2) & 0x03,
+        (packed >>> 4) & 0x03,
+        (packed >>> 6) & 0x03,
+    ];
+}
+
+function getMovePpMax(rawMon) {
+    const moves = getMoves(rawMon);
+    const ppUps = getMovePpUps(rawMon);
+    return moves.map((moveId, idx) => calcMaxPp(moveId, ppUps[idx]));
+}
+
+function setMoves(rawMon, moves, movePp = null, movePpUps = null) {
+    const sub = substructViews(rawMon);
+    const currMoves = getMoves(rawMon);
+    const currPp = getMovePp(rawMon);
+    const currPpUps = getMovePpUps(rawMon);
+
+    const nextMoves = [0, 0, 0, 0];
     for (let i = 0; i < 4; i += 1) {
-        wu16(sub.A, i * 2, Number(moves[i] || 0));
+        nextMoves[i] = Number(moves?.[i] || 0) & 0x3FF;
     }
+
+    const nextPpUps = [...currPpUps];
+    if (Array.isArray(movePpUps)) {
+        for (let i = 0; i < 4; i += 1) {
+            if (i < movePpUps.length) {
+                nextPpUps[i] = Math.max(0, Math.min(3, Number(movePpUps[i]) || 0));
+            }
+        }
+    }
+
+    const nextPp = [...currPp];
+    if (Array.isArray(movePp)) {
+        for (let i = 0; i < 4; i += 1) {
+            if (i < movePp.length) {
+                nextPp[i] = Math.max(0, Number(movePp[i]) || 0);
+            }
+        }
+    }
+
+    for (let i = 0; i < 4; i += 1) {
+        const moveId = nextMoves[i];
+        const changedMove = moveId !== currMoves[i];
+        if (moveId <= 0) {
+            nextPpUps[i] = 0;
+            nextPp[i] = 0;
+        } else {
+            const maxPp = calcMaxPp(moveId, nextPpUps[i]);
+            if (changedMove) {
+                nextPp[i] = maxPp;
+            } else {
+                nextPp[i] = Math.max(0, Math.min(maxPp, Number(nextPp[i]) || 0));
+            }
+        }
+        wu16(sub.A, i * 2, moveId);
+        wu8(sub.A, 8 + i, Math.max(0, Math.min(255, Number(nextPp[i]) || 0)));
+    }
+
+    const packedPpUps = (nextPpUps[0] & 0x03)
+        | ((nextPpUps[1] & 0x03) << 2)
+        | ((nextPpUps[2] & 0x03) << 4)
+        | ((nextPpUps[3] & 0x03) << 6);
+    wu8(sub.B, 8, packedPpUps);
+
     writeSubstructs(rawMon, sub);
 }
 
@@ -744,6 +841,9 @@ export function getParty(buffer, speciesById, speciesMetaById = null) {
             species_id: speciesId,
             species_growth_rate: speciesGrowthRate,
             moves: getMoves(rawMon),
+            move_pp: getMovePp(rawMon),
+            move_pp_ups: getMovePpUps(rawMon),
+            move_pp_max: getMovePpMax(rawMon),
             ability_slot: ru32(rawMon, OFF_PID) & 1,
             current_ability_index: currentAbilityIndex,
             ability_1_id: abilitySlots.ability_1_id,
@@ -830,7 +930,7 @@ export function updatePartyEvs(buffer, monIndex, payload) {
 
 export function updatePartyMoves(buffer, monIndex, payload) {
     mutatePartyMon(buffer, monIndex, (rawMon) => {
-        setMoves(rawMon, payload.moves || []);
+        setMoves(rawMon, payload.moves || [], payload.move_pp || null, payload.move_pp_ups || null);
     });
 }
 

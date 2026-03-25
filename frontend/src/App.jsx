@@ -144,6 +144,9 @@ const App = () => {
     const sameMoves = (a = [], b = []) =>
         a.length === b.length && a.every((val, idx) => Number(val) === Number(b[idx]));
 
+    const sameMovePp = (a = [], b = []) =>
+        a.length === b.length && a.every((val, idx) => Number(val) === Number(b[idx]));
+
     const sameStats = (a = {}, b = {}) =>
         Number(a.HP ?? 0) === Number(b.HP ?? 0) &&
         Number(a.Atk ?? 0) === Number(b.Atk ?? 0) &&
@@ -166,8 +169,15 @@ const App = () => {
                 await client.updatePartyEvs(updatedPk.index, evPayload);
             }
 
-            if (!sameMoves(updatedPk.moves, original.moves)) {
-                await client.updatePartyMoves(updatedPk.index, { moves: updatedPk.moves });
+            const movesChanged = !sameMoves(updatedPk.moves, original.moves);
+            const movePpChanged = !sameMovePp(updatedPk.move_pp, original.move_pp);
+            const movePpUpsChanged = !sameMovePp(updatedPk.move_pp_ups, original.move_pp_ups);
+            if (movesChanged || movePpChanged || movePpUpsChanged) {
+                await client.updatePartyMoves(updatedPk.index, {
+                    moves: updatedPk.moves,
+                    move_pp: updatedPk.move_pp,
+                    move_pp_ups: updatedPk.move_pp_ups,
+                });
             }
 
             if (Number(updatedPk.nature_id) !== Number(original.nature_id)) {
@@ -228,6 +238,12 @@ const App = () => {
 
             if (!sameMoves(updatedPk.moves, original.moves)) {
                 payload.moves = updatedPk.moves;
+            }
+            if (!sameMovePp(updatedPk.move_pp, original.move_pp)) {
+                payload.move_pp = updatedPk.move_pp;
+            }
+            if (!sameMovePp(updatedPk.move_pp_ups, original.move_pp_ups)) {
+                payload.move_pp_ups = updatedPk.move_pp_ups;
             }
 
             if (Number(updatedPk.item_id) !== Number(original.item_id)) {
