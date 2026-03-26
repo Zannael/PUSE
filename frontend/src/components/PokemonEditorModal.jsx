@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Zap, Save, Search, Download } from 'lucide-react';
 import { calcCurrentLevel, GROWTH_OPTIONS } from '../core/growth.js';
 import { ITEM_ICON_FALLBACK_URL, POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
-import { NATURES, clampLevel, parseShowdownSet, resolveShowdownSet } from '../core/showdownImport.js';
+import { NATURES, normalizeName, parseShowdownSet, resolveShowdownSet } from '../core/showdownImport.js';
 
 const EV_STAT_MAX = 252;
 const EV_TOTAL_MAX = 510;
@@ -27,6 +27,7 @@ const getTotalEvs = (evs = {}) =>
 
 export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose, onSave }) => {
     const isPcMon = Boolean(pokemon?.isPC);
+    const SAFE_IMPORT_NOTE = 'Existing Pokemon import applies item, moves, IVs, EVs, nature, and ability (if valid). Species, level, and identity metadata are preserved.';
     const initialGrowthMode = 'auto';
     const inferredSpeciesGrowth = Number.isInteger(Number(pokemon?.species_growth_rate))
         ? Number(pokemon?.species_growth_rate)
@@ -215,14 +216,6 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
         return () => window.removeEventListener('keydown', onKeyDown);
     }, [onClose, isSaving]);
 
-    useEffect(() => {
-        if (!isPcMon) {
-            setShowImport(false);
-            setSetImportErrors([]);
-            setSetImportWarnings([]);
-        }
-    }, [isPcMon]);
-
     const applySpeciesSelection = (species) => {
         const previousSpecies = allSpecies.find(s => s.id === localPk.species_id);
         const previousDisplay = previousSpecies?.display_name || previousSpecies?.name || '';
@@ -241,11 +234,6 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
     };
 
     const applyShowdownImport = () => {
-        if (!isPcMon) {
-            setSetImportErrors(['FROM SMOGON is currently disabled for party Pokemon (stability safeguard).']);
-            setSetImportWarnings([]);
-            return;
-        }
         if (!allSpecies.length || !allMoves.length || !allItems.length || !allAbilities.length) {
             setSetImportErrors(['Catalogs are still loading. Try again in a second.']);
             setSetImportWarnings([]);
@@ -272,38 +260,31 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
             return;
         }
 
-        const mapImportedStats = (source, speedKey) => ({
-            HP: Number(source.HP ?? 0),
-            Atk: Number(source.Atk ?? 0),
-            Def: Number(source.Def ?? 0),
-            SpA: Number(source.SpA ?? 0),
-            SpD: Number(source.SpD ?? 0),
-            [speedKey]: Number(source.Spe ?? source.Spd ?? 0),
+        const mapImportedStats = (source, speedKey, fallback = 0) => ({
+            HP: Number(source.HP ?? fallback),
+            Atk: Number(source.Atk ?? fallback),
+            Def: Number(source.Def ?? fallback),
+            SpA: Number(source.SpA ?? fallback),
+            SpD: Number(source.SpD ?? fallback),
+            [speedKey]: Number(source.Spe ?? source.Spd ?? fallback),
         });
 
         const speedIvKey = Object.prototype.hasOwnProperty.call(localPk.ivs || {}, 'Spe') ? 'Spe' : 'Spd';
         const speedEvKey = Object.prototype.hasOwnProperty.call(localPk.evs || {}, 'Spe') ? 'Spe' : 'Spd';
         const nextState = { ...localPk };
+        const ignoredWarnings = [];
 
-        if (resolved.speciesRow) {
-            nextState.species_id = Number(resolved.speciesRow.id);
-            if (resolved.speciesAbilityData) {
-                nextState.ability_1_id = resolved.speciesAbilityData.ability_1_id;
-                nextState.ability_1_name = resolved.speciesAbilityData.ability_1_name;
-                nextState.ability_2_id = resolved.speciesAbilityData.ability_2_id;
-                nextState.ability_2_name = resolved.speciesAbilityData.ability_2_name;
-                nextState.ability_hidden_id = resolved.speciesAbilityData.ability_hidden_id;
-                nextState.ability_hidden_name = resolved.speciesAbilityData.ability_hidden_name;
-            }
+        if (resolved.speciesRow && Number(resolved.speciesRow.id) !== Number(localPk.species_id)) {
+            ignoredWarnings.push(`Ignored imported species ${resolved.speciesRow.label || resolved.speciesRow.name || resolved.speciesRow.id}; existing species is preserved.`);
         }
         if (resolved.itemRow) {
             nextState.item_id = Number(resolved.itemRow.id);
         }
         if (parsed.evs) {
-            nextState.evs = mapImportedStats(parsed.evs, speedEvKey);
+            nextState.evs = mapImportedStats(parsed.evs, speedEvKey, 0);
         }
         if (parsed.ivs) {
-            nextState.ivs = mapImportedStats(parsed.ivs, speedIvKey);
+            nextState.ivs = mapImportedStats(parsed.ivs, speedIvKey, 31);
         }
         if (resolved.moveRows.length > 0) {
             const moveIds = [0, 0, 0, 0];
@@ -322,30 +303,42 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
         }
         if (resolved.natureId !== null) {
             nextState.nature_id = resolved.natureId;
+        } else if (parsed.natureName) {
+            ignoredWarnings.push('Ignored imported nature because it could not be resolved.');
         }
-        if (resolved.abilityIndex !== null) {
-            nextState.current_ability_index = resolved.abilityIndex;
-            if (resolved.abilityIndex === 0) nextState.ability_label_current = nextState.ability_1_name || 'Slot 1 (Standard)';
-            else if (resolved.abilityIndex === 1) nextState.ability_label_current = nextState.ability_2_name || 'Slot 2 (Standard)';
-            else nextState.ability_label_current = nextState.ability_hidden_name || 'Hidden Ability';
+        if (parsed.abilityName) {
+            const wanted = normalizeName(parsed.abilityName);
+            const abilityOptions = [
+                { idx: 0, name: nextState.ability_1_name },
+                { idx: 1, name: nextState.ability_2_name },
+                { idx: 2, name: nextState.ability_hidden_name },
+            ];
+            const matched = abilityOptions.find((opt) => normalizeName(opt.name || '') === wanted);
+            if (matched) {
+                nextState.current_ability_index = matched.idx;
+                if (matched.idx === 0) nextState.ability_label_current = nextState.ability_1_name || 'Slot 1 (Standard)';
+                else if (matched.idx === 1) nextState.ability_label_current = nextState.ability_2_name || 'Slot 2 (Standard)';
+                else nextState.ability_label_current = nextState.ability_hidden_name || 'Hidden Ability';
+            } else {
+                ignoredWarnings.push('Ignored imported ability because it is not available for the current species.');
+            }
         }
         if (parsed.shiny !== null) {
-            nextState.is_shiny = Boolean(parsed.shiny);
+            ignoredWarnings.push('Ignored imported shiny flag; current identity metadata is preserved.');
         }
         if (resolved.levelToApply !== null) {
-            const nextLevel = clampLevel(resolved.levelToApply, Number(localPk.level || initialLevel || 1));
-            setLevelInput(String(nextLevel));
-            setLevelDirty(true);
-            nextState.level = nextLevel;
+            ignoredWarnings.push('Ignored imported level; level/exp are preserved for existing Pokemon.');
         }
         if (parsed.nickname) {
-            nextState.nickname = String(parsed.nickname).slice(0, 10);
+            ignoredWarnings.push('Ignored imported nickname; current nickname is preserved.');
         }
 
         setLocalPk(nextState);
         setSetImportErrors([]);
         setSetImportWarnings([
             ...warnings,
+            ...ignoredWarnings,
+            SAFE_IMPORT_NOTE,
             'Set imported into editor. Review and click SAVE CHANGES to commit.',
         ]);
     };
@@ -422,9 +415,9 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                         <button
                             type="button"
                             onClick={() => setShowImport((prev) => !prev)}
-                            disabled={isSaving || !isPcMon}
+                            disabled={isSaving}
                             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-[10px] font-bold uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
-                            title={isPcMon ? 'Paste a Showdown/Smogon set' : 'Disabled for party Pokemon (stability safeguard)'}
+                            title={SAFE_IMPORT_NOTE}
                         >
                             <Download size={12} /> FROM SMOGON
                         </button>
