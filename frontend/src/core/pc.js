@@ -1093,6 +1093,44 @@ function isPcSlotOccupied(context, box, slot) {
     return false;
 }
 
+function isPcSlotWritable(context, box, slot) {
+    if (box === 26) {
+        if (!context.presetBuffer) {
+            return false;
+        }
+        const off = OFFSET_PRESET_START + ((slot - 1) * MON_SIZE_PC);
+        return off + MON_SIZE_PC <= context.presetBuffer.length;
+    }
+
+    const streamOff = (((box - 1) * 30) + (slot - 1)) * MON_SIZE_PC;
+    if (streamOff + MON_SIZE_PC <= context.pcBuffer.length) {
+        return true;
+    }
+
+    const hasFallback = Boolean(context.fallbackBoxStarts?.[Number(box)]);
+    if (hasFallback && context.sourceBuffer) {
+        const absOff = context.fallbackSlotOffsets?.[Number(box)]?.[Number(slot)]
+            ?? fallbackSlotOffset(box, slot, context.sourceBuffer, context.fallbackSectionOffsets);
+        return Number.isInteger(absOff) && absOff + MON_SIZE_PC <= context.sourceBuffer.length;
+    }
+
+    return false;
+}
+
+export function getWritablePcSlots(context, boxId) {
+    const box = Number(boxId);
+    if (!Number.isInteger(box) || box < 1 || box > 26) {
+        return [];
+    }
+    const out = [];
+    for (let slot = 1; slot <= 30; slot += 1) {
+        if (isPcSlotWritable(context, box, slot)) {
+            out.push(slot);
+        }
+    }
+    return out;
+}
+
 export function insertPcMon(context, payload, speciesMap = null) {
     const box = Number(payload?.box);
     if (!Number.isInteger(box) || box < 1 || box > 26) {

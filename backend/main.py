@@ -1123,6 +1123,46 @@ async def get_box(box_id: int):
     return out
 
 
+@app.get("/pc/writable-slots/{box_id}")
+async def get_pc_writable_slots(box_id: int):
+    if not current_save["data"]:
+        raise HTTPException(status_code=400, detail="Upload a .sav file")
+
+    if current_save["pc_context"].get("pc_buffer") is None:
+        await load_pc()
+
+    box = int(box_id)
+    if box < 1 or box > 26:
+        raise HTTPException(status_code=400, detail="Invalid box")
+
+    writable_slots = []
+    if box == 26:
+        preset = current_save["pc_context"].get("preset_buffer")
+        if preset is not None:
+            for slot in range(1, 31):
+                off = box_mod.OFFSET_PRESET_START + ((slot - 1) * box_mod.MON_SIZE_PC)
+                if off + box_mod.MON_SIZE_PC <= len(preset):
+                    writable_slots.append(slot)
+        return {"box": box, "writable_slots": writable_slots}
+
+    pc_buf = current_save["pc_context"].get("pc_buffer") or bytearray()
+    fallback_starts = current_save["pc_context"].get("fallback_box_starts", {})
+    fallback_offsets = current_save["pc_context"].get("fallback_slot_offsets", {})
+
+    for slot in range(1, 31):
+        stream_off = ((box - 1) * 30 + (slot - 1)) * box_mod.MON_SIZE_PC
+        if stream_off + box_mod.MON_SIZE_PC <= len(pc_buf):
+            writable_slots.append(slot)
+            continue
+
+        if bool(fallback_starts.get(box)):
+            abs_off = fallback_offsets.get(int(box), {}).get(int(slot))
+            if abs_off is not None and abs_off + box_mod.MON_SIZE_PC <= len(current_save["data"]):
+                writable_slots.append(slot)
+
+    return {"box": box, "writable_slots": writable_slots}
+
+
 class PCUpdate(BaseModel):
     box: int
     slot: int

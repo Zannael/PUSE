@@ -246,6 +246,9 @@ const backendClient = {
     getPcBox(boxId) {
         return backendJson(`/pc/box/${boxId}`);
     },
+    getPcWritableSlots(boxId) {
+        return backendJson(`/pc/writable-slots/${boxId}`);
+    },
     editPcFull(payload) {
         return backendJson("/pc/edit-full", {
             method: "POST",
@@ -444,6 +447,21 @@ const localClient = {
         }
         const [speciesMap, speciesMeta] = await Promise.all([getSpeciesMap(), getSpeciesFormMetaMap()]);
         return readPcBox(context, Number(boxId), speciesMap, speciesMeta);
+    },
+    async getPcWritableSlots(boxId) {
+        const {
+            getPcContext,
+            loadPcContext,
+            setPcContext,
+            getBuffer,
+            getWritablePcSlots,
+        } = await getLocalCoreModules();
+        let context = getPcContext();
+        if (!context) {
+            context = loadPcContext(getBuffer());
+            setPcContext(context);
+        }
+        return { box: Number(boxId), writable_slots: getWritablePcSlots(context, Number(boxId)) };
     },
     async editPcFull(payload) {
         const {

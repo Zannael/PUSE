@@ -4,6 +4,7 @@ import { clampLevel, parseShowdownSet, resolveShowdownSet } from '../core/showdo
 
 
 export default function AddPcPokemonModal({ client, target, onClose, onConfirm, legitMode = false }) {
+    const boxLabel = Number(target?.box) === 26 ? 'Preset' : `Box ${target?.box}`;
     const [allSpecies, setAllSpecies] = useState([]);
     const [allMoves, setAllMoves] = useState([]);
     const [allItems, setAllItems] = useState([]);
@@ -149,7 +150,7 @@ export default function AddPcPokemonModal({ client, target, onClose, onConfirm, 
             >
                 <div className="flex items-center justify-between mb-4">
                     <div>
-                        <h3 className="text-lg font-bold">Add Pokemon to Box {target.box}</h3>
+                        <h3 className="text-lg font-bold">Add Pokemon to {boxLabel}</h3>
                         <p className="text-xs text-slate-400">Target slot: {target.slot}</p>
                     </div>
                     <div className="flex items-center gap-2">

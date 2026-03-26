@@ -10,6 +10,7 @@
 - Extend Trainer Profile editing to include identity metadata: name (with character encoding validation), gender/style flags, and appearance parameters (hair color/skin tone).
 - Implement "Costume Box" unlocker and wardrobe editing.
 - Find a way to manually flag "Seen" or "Caught" when editing a species that hasn't be seen/caught before. Leaving the decision to flag it to the user, thus the "manually".
+- Extend PC write-layout support so currently non-writable empty slots/boxes in uncommon save layouts can be edited safely (instead of UI-locked).
 
 #### Community Feedback UX Backlog
 
@@ -87,6 +88,7 @@
 - Pokemon editor Info tab now shows Species controls before level/nature/item controls for faster access.
 - Ability controls now show resolved ROM-truth ability names for slot buttons and current-ability labels (including hidden ability names when available).
 - PC grid empty slots now support in-place add flow via modal (species search + nickname + level) with save-path parity across backend/local modes.
+- PC box navigation now reflects Unbound UX (`Box 1..24` + `Preset`), hides `Box 25` from frontend navigation, and labels internal box `26` as `Preset` in UI.
 - Standardized visible stat abbreviations across party cards and editor sliders to `HP/ATK/DEF/SPA/SPD/SPE`, and enforced the standard display order to avoid `SPD` ambiguity between Special Defense and Speed.
 - Saving edits in PC now preserves the currently selected box instead of resetting to Box 1.
 - Money modal input now enforces whole-number entry and a six-digit cap (`999999`) in UI.

@@ -2,11 +2,16 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Package } from 'lucide-react';
 import { POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 
-const TOTAL_BOXES = 26;
+const VISIBLE_BOX_SEQUENCE = [...Array.from({ length: 24 }, (_, idx) => idx + 1), 26];
 const BOX_SLOTS = 30;
+
+function getBoxLabel(boxId) {
+    return Number(boxId) === 26 ? 'Preset' : `Box ${boxId}`;
+}
 
 const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon }) => {
     const [pokemon, setPokemon] = useState([]);
+    const [writableSlots, setWritableSlots] = useState(new Set());
     const [loading, setLoading] = useState(false);
     const [pcLoaded, setPcLoaded] = useState(false);
     const fetchBox = useCallback(async (id) => {
@@ -17,10 +22,15 @@ const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon }) => 
                 setPcLoaded(true);
             }
 
-            const data = await client.getPcBox(id);
+            const [data, writable] = await Promise.all([
+                client.getPcBox(id),
+                client.getPcWritableSlots(id),
+            ]);
             setPokemon(data);
+            setWritableSlots(new Set((writable?.writable_slots || []).map((slot) => Number(slot))));
         } catch (err) {
             console.error("Box loading error", err);
+            setWritableSlots(new Set());
         } finally {
             setLoading(false);
         }
@@ -34,12 +44,24 @@ const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon }) => 
         setPcLoaded(false);
     }, [client]);
 
+    useEffect(() => {
+        if (!VISIBLE_BOX_SEQUENCE.includes(Number(boxId))) {
+            onBoxChange(1);
+        }
+    }, [boxId, onBoxChange]);
+
     const handlePrevBox = () => {
-        onBoxChange(boxId === 1 ? TOTAL_BOXES : boxId - 1);
+        const idx = VISIBLE_BOX_SEQUENCE.indexOf(Number(boxId));
+        const curr = idx >= 0 ? idx : 0;
+        const prev = (curr - 1 + VISIBLE_BOX_SEQUENCE.length) % VISIBLE_BOX_SEQUENCE.length;
+        onBoxChange(VISIBLE_BOX_SEQUENCE[prev]);
     };
 
     const handleNextBox = () => {
-        onBoxChange(boxId === TOTAL_BOXES ? 1 : boxId + 1);
+        const idx = VISIBLE_BOX_SEQUENCE.indexOf(Number(boxId));
+        const curr = idx >= 0 ? idx : 0;
+        const next = (curr + 1) % VISIBLE_BOX_SEQUENCE.length;
+        onBoxChange(VISIBLE_BOX_SEQUENCE[next]);
     };
 
     const normalizedSlots = Array.from({ length: BOX_SLOTS }, (_, idx) => {
@@ -74,7 +96,7 @@ const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon }) => 
 
                 <div className="text-center">
                     <h2 className="text-xl font-black text-blue-400 uppercase tracking-tighter">
-                        Box {boxId}
+                        {getBoxLabel(boxId)}
                     </h2>
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
                         {pokemon.length} / {BOX_SLOTS} Pokemon
@@ -95,11 +117,16 @@ const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon }) => 
                         Syncing box...
                     </div>
                 ) : (
-                    normalizedSlots.map(({ slot, pokemon: pk }) => (
+                    normalizedSlots.map(({ slot, pokemon: pk }) => {
+                        const writable = writableSlots.has(slot);
+                        return (
                         <div
                             key={slot}
                             onClick={() => {
                                 if (!pk) {
+                                    if (!writable) {
+                                        return;
+                                    }
                                     onAddPokemon?.({ box: boxId, slot });
                                     return;
                                 }
@@ -108,7 +135,9 @@ const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon }) => 
                             className={`group p-2.5 sm:p-3 rounded-2xl border transition-all ${
                                 pk
                                     ? 'bg-[#1e293b] border-white/5 hover:border-blue-500/50 cursor-pointer'
-                                    : 'bg-slate-900/40 border-dashed border-white/10 hover:border-emerald-400/40 cursor-pointer'
+                                    : writable
+                                        ? 'bg-slate-900/40 border-dashed border-white/10 hover:border-emerald-400/40 cursor-pointer'
+                                        : 'bg-slate-900/30 border-dashed border-white/5 opacity-60 cursor-not-allowed'
                             }`}
                         >
                             <div className="relative w-full aspect-square bg-slate-800/50 rounded-xl flex items-center justify-center mb-2 overflow-hidden">
@@ -124,17 +153,21 @@ const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon }) => 
                                         }}
                                     />
                                 ) : (
-                                    <span className="text-[10px] font-mono text-slate-500 group-hover:text-emerald-300">+ ADD</span>
+                                    <span className={`text-[10px] font-mono ${writable ? 'text-slate-500 group-hover:text-emerald-300' : 'text-slate-600'}`}>
+                                        {writable ? '+ ADD' : 'LOCKED'}
+                                    </span>
                                 )}
                             </div>
                             <div className="text-center min-h-10">
                                 <p className={`text-xs font-bold truncate ${pk ? 'text-slate-100' : 'text-slate-500'}`}>
                                     {pk ? pk.nickname : 'Empty Slot'}
                                 </p>
-                                <p className="text-[10px] text-slate-500 font-mono uppercase">Slot {slot}</p>
+                                <p className="text-[10px] text-slate-500 font-mono uppercase">
+                                    Slot {slot}{!pk && !writable ? ' (N/A)' : ''}
+                                </p>
                             </div>
                         </div>
-                    ))
+                    )})
                 )}
             </div>
 
