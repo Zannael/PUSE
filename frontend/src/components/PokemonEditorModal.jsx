@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Zap, Save, Search, Download } from 'lucide-react';
+import { X, Zap, Save, Search, Download, CircleHelp } from 'lucide-react';
 import { calcCurrentLevel, GROWTH_OPTIONS } from '../core/growth.js';
 import { ITEM_ICON_FALLBACK_URL, POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 import { NATURES, normalizeName, parseShowdownSet, resolveShowdownSet } from '../core/showdownImport.js';
@@ -62,6 +62,7 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
     const [setImportWarnings, setSetImportWarnings] = useState([]);
     const [isSaving, setIsSaving] = useState(false);
     const [saveStage, setSaveStage] = useState('Applying changes...');
+    const [showImportHelp, setShowImportHelp] = useState(false);
 
     const hasKnownItemName = (name) => {
         if (!name) return false;
@@ -215,6 +216,14 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
         window.addEventListener('keydown', onKeyDown);
         return () => window.removeEventListener('keydown', onKeyDown);
     }, [onClose, isSaving]);
+
+    useEffect(() => {
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, []);
 
     const applySpeciesSelection = (species) => {
         const previousSpecies = allSpecies.find(s => s.id === localPk.species_id);
@@ -370,16 +379,16 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+            className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 overflow-hidden"
             onClick={isSaving ? undefined : onClose}
         >
             <div
-                className="relative bg-[#0f172a] border border-white/10 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                className="relative bg-[#0f172a] border border-white/10 w-full max-w-2xl rounded-none sm:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90dvh]"
                 onClick={(e) => e.stopPropagation()}
             >
 
-                <div className="p-6 bg-[#1e293b] flex justify-between items-center border-b border-white/5">
-                    <div className="flex items-center gap-4">
+                <div className="p-4 sm:p-6 bg-[#1e293b] flex justify-between items-center border-b border-white/5 gap-3">
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                         <img
                             src={client.getPokemonIconUrl(localPk.species_id)}
                             className="w-12 h-12 pixelated"
@@ -390,8 +399,8 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                                 }
                             }}
                         />
-                        <div>
-                            <h2 className="text-xl font-bold">{localPk.nickname}</h2>
+                        <div className="min-w-0">
+                            <h2 className="text-lg sm:text-xl font-bold truncate">{localPk.nickname}</h2>
                             <p className="text-xs text-slate-500 uppercase font-black">Pokemon Editor</p>
                         </div>
                         <div className="w-10 h-10 bg-slate-900 rounded-xl border border-white/10 flex items-center justify-center overflow-hidden">
@@ -411,15 +420,24 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                             )}
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                         <button
                             type="button"
                             onClick={() => setShowImport((prev) => !prev)}
                             disabled={isSaving}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-[10px] font-bold uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
-                            title={SAFE_IMPORT_NOTE}
+                            className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
                         >
                             <Download size={12} /> FROM SMOGON
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setShowImportHelp((prev) => !prev)}
+                            disabled={isSaving}
+                            className="p-1.5 rounded-lg bg-slate-900 border border-white/10 text-slate-400 hover:text-slate-200 hover:bg-slate-800 disabled:opacity-40"
+                            aria-expanded={showImportHelp}
+                            aria-label="Show import help"
+                        >
+                            <CircleHelp size={13} />
                         </button>
                         <button onClick={onClose} disabled={isSaving} className="p-2 hover:bg-white/5 rounded-full disabled:opacity-40 disabled:cursor-not-allowed"><X /></button>
                     </div>
@@ -431,7 +449,13 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                     <EditorTab active={activeTab === 'info'} label="Info" onClick={() => setActiveTab('info')} />
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-8">
+                {showImportHelp && (
+                    <div className="mx-4 sm:mx-6 mt-3 rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2 text-[11px] text-slate-300">
+                        {SAFE_IMPORT_NOTE}
+                    </div>
+                )}
+
+                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-8">
                     {showImport && (
                         <div className="mb-6 bg-slate-800/40 p-4 rounded-2xl border border-white/5 space-y-3">
                             <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Smogon/Showdown Import</h4>
@@ -937,7 +961,7 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
 
                 </div>
 
-                <div className="p-6 bg-[#1e293b]/80 border-t border-white/5 flex justify-end">
+                <div className="p-4 sm:p-6 bg-[#1e293b]/80 border-t border-white/5 flex justify-end">
                     <button onClick={handleSaveClick}
                             disabled={isSaving}
                             className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-3 rounded-2xl flex items-center gap-2 shadow-lg active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed">

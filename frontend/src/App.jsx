@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useMemo, useState, useEffect } from 'react';
-import { Upload, LayoutGrid, Users, Briefcase, Save, Edit3, X, RotateCcw, Sparkles, Newspaper, ShieldAlert } from 'lucide-react';
+import { Upload, LayoutGrid, Users, Briefcase, Save, Edit3, X, RotateCcw, Sparkles, Newspaper, ShieldAlert, CircleHelp } from 'lucide-react';
 import { createApiClient, getInitialRuntimeMode, persistRuntimeMode, RUNTIME_MODES } from './services/apiClient.js';
 import { getExpAtLevel, getSpeciesGrowthRate } from './core/growth.js';
 
@@ -80,6 +80,7 @@ const App = () => {
     const [rtcQuickFile, setRtcQuickFile] = useState(null);
     const [rtcTab, setRtcTab] = useState('pair');
     const [rtcBusy, setRtcBusy] = useState(false);
+    const [showLegitHelp, setShowLegitHelp] = useState(false);
 
     const handleRtcFixPack = async () => {
         if (!rtcBrokenFile || !rtcFixedFile) {
@@ -391,9 +392,17 @@ const App = () => {
                                     ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
                                     : 'bg-slate-900 border-white/10 text-slate-300 hover:bg-slate-800'
                             }`}
-                            title="When enabled, EV editing enforces 510 total EV limit and keeps level rules explicit (1-100)."
                         >
                             Legit: {legitMode ? 'ON' : 'OFF'}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setShowLegitHelp((prev) => !prev)}
+                            className="p-1.5 rounded-lg bg-slate-900 border border-white/10 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                            aria-expanded={showLegitHelp}
+                            aria-label="Show legit mode help"
+                        >
+                            <CircleHelp size={13} />
                         </button>
                     </div>
                     {isLoaded && (
@@ -404,14 +413,13 @@ const App = () => {
                             <button
                                 onClick={openMoneyModal}
                                 className="p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
-                                title="Edit money"
+                                aria-label="Edit money"
                             >
                                 <Edit3 size={14} />
                             </button>
                             <button
                                 onClick={handleRestartApp}
                                 className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all"
-                                title="Restart app and load a new file"
                             >
                                 <RotateCcw size={14} /> RESTART / LOAD NEW FILE
                             </button>
@@ -424,6 +432,13 @@ const App = () => {
                         </div>
                     )}
                 </div>
+                {showLegitHelp && (
+                    <div className="max-w-6xl mx-auto px-4 pb-3">
+                        <p className="text-[11px] text-slate-300 bg-slate-900/70 border border-white/10 rounded-xl px-3 py-2">
+                            Legit Mode enforces 510 total EV cap and keeps level edits explicit in the 1-100 range.
+                        </p>
+                    </div>
+                )}
             </header>
 
             <main className="w-full max-w-6xl p-4 md:p-8 pb-36">
@@ -631,9 +646,8 @@ const App = () => {
                         />
                         <p
                             className="text-[11px] text-slate-400"
-                            title="Server-side safety always clamps money to the legal in-game range 0..999999, even if a larger value is entered."
                         >
-                            Hover for details: money is safely clamped server-side.
+                            Money is always clamped server-side to the legal range 0..999999, even if a larger value is entered.
                         </p>
                         <div className="flex gap-3">
                             <button

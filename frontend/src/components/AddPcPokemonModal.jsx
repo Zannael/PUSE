@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Search, X, Download } from 'lucide-react';
+import { Search, X, Download, CircleHelp } from 'lucide-react';
 import { clampLevel, parseShowdownSet, resolveShowdownSet } from '../core/showdownImport.js';
 
 
@@ -21,6 +21,7 @@ export default function AddPcPokemonModal({ client, target, onClose, onConfirm, 
     const [setImportWarnings, setSetImportWarnings] = useState([]);
     const [importDraft, setImportDraft] = useState(null);
     const [isApplying, setIsApplying] = useState(false);
+    const [showImportHelp, setShowImportHelp] = useState(false);
 
     useEffect(() => {
         Promise.all([
@@ -41,6 +42,14 @@ export default function AddPcPokemonModal({ client, target, onClose, onConfirm, 
             }
         });
     }, [client, speciesId]);
+
+    useEffect(() => {
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, []);
 
     const filteredSpecies = useMemo(() => {
         const q = speciesSearch.trim().toLowerCase();
@@ -141,14 +150,14 @@ export default function AddPcPokemonModal({ client, target, onClose, onConfirm, 
 
     return (
         <div
-            className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-hidden"
             onClick={isApplying ? undefined : onClose}
         >
             <div
-                className="relative w-full max-w-xl bg-[#0f172a] border border-white/10 rounded-[2rem] p-6"
+                className="relative w-full max-w-xl bg-[#0f172a] border border-white/10 rounded-none sm:rounded-[2rem] h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90dvh] overflow-hidden flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/5 gap-3">
                     <div>
                         <h3 className="text-lg font-bold">Add Pokemon to {boxLabel}</h3>
                         <p className="text-xs text-slate-400">Target slot: {target.slot}</p>
@@ -157,10 +166,18 @@ export default function AddPcPokemonModal({ client, target, onClose, onConfirm, 
                         <button
                             type="button"
                             onClick={() => setShowImport((prev) => !prev)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-[10px] font-bold uppercase tracking-widest"
-                            title="Paste a Showdown/Smogon set"
+                            className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest"
                         >
                             <Download size={12} /> FROM SMOGON
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setShowImportHelp((prev) => !prev)}
+                            className="p-1.5 rounded-lg bg-slate-900 border border-white/10 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                            aria-expanded={showImportHelp}
+                            aria-label="Show import help"
+                        >
+                            <CircleHelp size={13} />
                         </button>
                         <button onClick={onClose} disabled={isApplying} className="text-slate-500 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed">
                             <X size={18} />
@@ -168,7 +185,14 @@ export default function AddPcPokemonModal({ client, target, onClose, onConfirm, 
                     </div>
                 </div>
 
-                <div className="space-y-4">
+                {showImportHelp && (
+                    <div className="mx-4 sm:mx-6 mt-3 rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2 text-[11px] text-slate-300">
+                        Paste a Showdown/Smogon set to prefill species, item, moves, IVs/EVs, level, nature, and ability when possible.
+                    </div>
+                )}
+
+                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6">
+                    <div className="space-y-4">
                     {showImport && (
                         <div className="bg-slate-800/40 p-4 rounded-2xl border border-white/5 space-y-3">
                             <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Smogon/Showdown Import</h4>
@@ -293,6 +317,7 @@ export default function AddPcPokemonModal({ client, target, onClose, onConfirm, 
                         >
                             Add Pokemon
                         </button>
+                    </div>
                     </div>
                 </div>
 

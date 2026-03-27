@@ -25,6 +25,7 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
     const [quickPockets, setQuickPockets] = useState({});
     const [quickLoading, setQuickLoading] = useState(false);
     const [hasUnsavedBagChanges, setHasUnsavedBagChanges] = useState(Boolean(initialUnsaved));
+    const [confidenceOpenKey, setConfidenceOpenKey] = useState(null);
 
     const dropdownRef = useRef(null);
 
@@ -148,6 +149,7 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
         if (!pocket) return;
         const ready = typeof pocket.ready === 'boolean' ? pocket.ready : !!pocket.anchor_offset;
         if (!ready || !pocket.anchor_offset) return;
+        setConfidenceOpenKey(null);
 
         const quickCandidate = {
             anchor_offset: pocket.anchor_offset,
@@ -385,12 +387,27 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
                                     : ready
                                         ? `${pocket.source} | ${pocket.confidence}`
                                         : 'not found (use search)';
+                            const isDisabled = !ready || loading;
+                            const isConfidenceOpen = confidenceOpenKey === cfg.key;
                             return (
-                                <button
+                                <div
                                     key={cfg.key}
-                                    onClick={() => openQuickPocket(pocket)}
-                                    disabled={!ready || loading}
-                                    className="text-left p-4 rounded-2xl border border-white/10 bg-slate-900/60 hover:bg-slate-800/60 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    role={isDisabled ? undefined : 'button'}
+                                    tabIndex={isDisabled ? -1 : 0}
+                                    onClick={() => {
+                                        if (!isDisabled) openQuickPocket(pocket);
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (isDisabled) return;
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            openQuickPocket(pocket);
+                                        }
+                                    }}
+                                    aria-disabled={isDisabled}
+                                    className={`text-left p-4 rounded-2xl border border-white/10 bg-slate-900/60 transition-colors ${
+                                        isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-800/60 cursor-pointer'
+                                    }`}
                                 >
                                     <p className="text-xs font-black uppercase tracking-wider text-slate-300">{cfg.label}</p>
                                     <p className="text-[10px] font-mono text-slate-500 mt-2">
@@ -400,15 +417,30 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
                                         {statusText}
                                     </p>
                                     {ready && (
-                                        <p className="mt-1 text-[10px] text-slate-500 flex items-center gap-1" title={getConfidenceTooltip(pocket)}>
-                                            <CircleHelp size={11} />
-                                            Why this confidence?
-                                        </p>
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setConfidenceOpenKey((prev) => (prev === cfg.key ? null : cfg.key));
+                                                }}
+                                                className="mt-1 text-[10px] text-slate-500 hover:text-slate-300 flex items-center gap-1"
+                                                aria-expanded={isConfidenceOpen}
+                                            >
+                                                <CircleHelp size={11} />
+                                                Why this confidence?
+                                            </button>
+                                            {isConfidenceOpen && (
+                                                <p className="mt-2 text-[10px] leading-relaxed text-slate-300 bg-slate-950/70 border border-white/10 rounded-lg px-2.5 py-2">
+                                                    {getConfidenceTooltip(pocket)}
+                                                </p>
+                                            )}
+                                        </>
                                     )}
                                     {ready && pocket?.unlock_via && (
                                         <p className="text-[10px] mt-1 text-slate-500">unlock via: {pocket.unlock_via}</p>
                                     )}
-                                </button>
+                                </div>
                             );
                         })}
                     </div>
@@ -533,7 +565,7 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
                                             setEditQty(item.qty);
                                             setEditItemId(item.id);
                                         }}
-                                        className="p-2 opacity-0 group-hover:opacity-100 hover:bg-blue-500/20 rounded-lg text-blue-400 transition-all"
+                                        className="p-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:bg-blue-500/20 rounded-lg text-blue-400 transition-all"
                                     >
                                         <Edit3 size={16} />
                                     </button>
