@@ -74,6 +74,17 @@ current_save = {
 }
 
 
+def _should_track_absolute_sector_for_checksum(data, sector_off):
+    if sector_off < 0 or sector_off + box_mod.SECTION_SIZE > len(data):
+        return False
+    sec_id = box_mod.ru16(data, sector_off + 0xFF4)
+    save_idx = box_mod.ru32(data, sector_off + 0xFFC)
+    # Trailer/garbage sectors (typically idx=0) are not part of active checksum flow.
+    if save_idx <= 0:
+        return False
+    return 0 <= sec_id <= 13
+
+
 @app.post("/rtc/repair-candidates")
 async def rtc_repair_candidates(broken: UploadFile = File(...), fixed: UploadFile = File(...)):
     broken_bytes = await broken.read()
@@ -1204,9 +1215,10 @@ async def edit_pc_mon(upd: PCUpdate):
         off = target.buffer_offset
         current_save["data"][off: off + box_mod.MON_SIZE_PC] = target.raw
         sector_off = (off // box_mod.SECTION_SIZE) * box_mod.SECTION_SIZE
-        touched = set(current_save["pc_context"].get("absolute_touched_sectors", []))
-        touched.add(sector_off)
-        current_save["pc_context"]["absolute_touched_sectors"] = sorted(touched)
+        if _should_track_absolute_sector_for_checksum(current_save["data"], sector_off):
+            touched = set(current_save["pc_context"].get("absolute_touched_sectors", []))
+            touched.add(sector_off)
+            current_save["pc_context"]["absolute_touched_sectors"] = sorted(touched)
         return {"status": "Update saved to temporary buffer"}
     else:
         buf = current_save["pc_context"]["pc_buffer"]
@@ -1400,9 +1412,10 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
         off = target.buffer_offset
         current_save["data"][off: off + box_mod.MON_SIZE_PC] = target.raw
         sector_off = (off // box_mod.SECTION_SIZE) * box_mod.SECTION_SIZE
-        touched = set(current_save["pc_context"].get("absolute_touched_sectors", []))
-        touched.add(sector_off)
-        current_save["pc_context"]["absolute_touched_sectors"] = sorted(touched)
+        if _should_track_absolute_sector_for_checksum(current_save["data"], sector_off):
+            touched = set(current_save["pc_context"].get("absolute_touched_sectors", []))
+            touched.add(sector_off)
+            current_save["pc_context"]["absolute_touched_sectors"] = sorted(touched)
         return {"status": "PC updates applied to buffer"}
     else:
         buf = current_save["pc_context"]["pc_buffer"]
@@ -1494,9 +1507,10 @@ async def insert_pc_mon(upd: PCInsert):
         mon.buffer_kind = "absolute"
         current_save["data"][off: off + box_mod.MON_SIZE_PC] = mon.raw
         sector_off = (off // box_mod.SECTION_SIZE) * box_mod.SECTION_SIZE
-        touched = set(current_save["pc_context"].get("absolute_touched_sectors", []))
-        touched.add(sector_off)
-        current_save["pc_context"]["absolute_touched_sectors"] = sorted(touched)
+        if _should_track_absolute_sector_for_checksum(current_save["data"], sector_off):
+            touched = set(current_save["pc_context"].get("absolute_touched_sectors", []))
+            touched.add(sector_off)
+            current_save["pc_context"]["absolute_touched_sectors"] = sorted(touched)
     else:
         current_save["pc_context"]["pc_buffer"][off: off + box_mod.MON_SIZE_PC] = mon.raw
 

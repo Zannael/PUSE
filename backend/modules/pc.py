@@ -31,6 +31,13 @@ PRESET_CAPACITY = 30  # Un solo box
 BOX_SLOT_COUNT = 30
 
 FALLBACK_BOX_LAYOUTS = {
+    # Trailer absolute fragmented area (boxes 20-22).
+    20: [
+        ("absolute", 1, 21, 0x1EB0C),
+    ],
+    21: [
+        ("absolute", 1, 30, 0x1F1E8),
+    ],
     # Stable absolute area observed in this Unbound layout.
     22: [
         ("absolute", 1, 30, 0x1F8B4),
@@ -790,19 +797,27 @@ def _slot_state(data, box_id, slot, section_offsets=None):
 
 def _validate_fallback_box(data, box_id, section_offsets=None):
     # Generic floor: allow only mostly-valid chunks with explicit empty slots.
-    valid_count = 0
-    empty_count = 0
-    for slot in range(1, BOX_SLOT_COUNT + 1):
-        state, mon = _slot_state(data, box_id, slot, section_offsets=section_offsets)
-        if state == "valid":
-            valid_count += 1
-        elif state == "empty":
-            empty_count += 1
+    slots_to_validate = set()
+    for segment in FALLBACK_BOX_LAYOUTS.get(int(box_id), []):
+        if segment[0] == "absolute":
+            _, start_slot, end_slot, _ = segment
+        elif segment[0] == "section":
+            _, _, start_slot, end_slot, _ = segment
         else:
-            return False
+            continue
+        for s in range(int(start_slot), int(end_slot) + 1):
+            slots_to_validate.add(s)
 
-    if valid_count < 20:
-        return False
+    for slot in sorted(slots_to_validate):
+        state, mon = _slot_state(data, box_id, slot, section_offsets=section_offsets)
+        if state in ("valid", "empty"):
+            continue
+        # Box 23 layout crosses the section boundary at slot 4 in this save family.
+        # That slot can decode as structural garbage while the rest of the box is valid.
+        if int(box_id) == 23 and int(slot) == 4 and state == "invalid":
+            continue
+        if state not in ("valid", "empty"):
+            return False
     return True
 
 

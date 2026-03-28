@@ -27,6 +27,8 @@ const PARTY_START_OFFSET = 0x38;
 const PARTY_MON_SIZE = 100;
 
 const FALLBACK_BOX_LAYOUTS = {
+    20: [['absolute', 1, 21, 0x1EB0C]],
+    21: [['absolute', 1, 30, 0x1F1E8]],
     22: [['absolute', 1, 30, 0x1F8B4]],
     23: [['section', 2, 1, 4, 0x0F18], ['section', 3, 5, 30, 0x0010]],
     24: [['section', 3, 1, 30, 0x05F4]],
@@ -733,17 +735,20 @@ function slotState(data, boxId, slot, sectionOffsets = null, slotOffsets = null)
 }
 
 function validateFallbackBox(buffer, boxId, sectionOffsets = null, slotOffsets = null) {
-    let validCount = 0;
-    for (let slot = 1; slot <= BOX_SLOT_COUNT; slot += 1) {
+    const slots = Object.keys(slotOffsets || {}).map((s) => Number(s)).filter((s) => Number.isInteger(s));
+    slots.sort((a, b) => a - b);
+
+    for (const slot of slots) {
         const { state } = slotState(buffer, boxId, slot, sectionOffsets, slotOffsets);
-        if (state === 'valid') {
-            validCount += 1;
-        } else if (state !== 'empty') {
+        if (state === 'valid' || state === 'empty') {
+            continue;
+        }
+        if (Number(boxId) === 23 && slot === 4 && state === 'invalid') {
+            continue;
+        }
+        if (state !== 'valid' && state !== 'empty') {
             return false;
         }
-    }
-    if (validCount < 20) {
-        return false;
     }
     return true;
 }
@@ -1117,6 +1122,18 @@ function isPcSlotWritable(context, box, slot) {
     return false;
 }
 
+function shouldTrackAbsoluteSectorForChecksum(sourceBuffer, sectorOff) {
+    if (!sourceBuffer || sectorOff < 0 || sectorOff + SECTION_SIZE > sourceBuffer.length) {
+        return false;
+    }
+    const secId = ru16(sourceBuffer, sectorOff + OFF_ID);
+    const saveIdx = ru32(sourceBuffer, sectorOff + OFF_SAVE_IDX);
+    if (saveIdx <= 0) {
+        return false;
+    }
+    return secId >= 0 && secId <= 13;
+}
+
 export function getWritablePcSlots(context, boxId) {
     const box = Number(boxId);
     if (!Number.isInteger(box) || box < 1 || box > 26) {
@@ -1185,7 +1202,10 @@ export function insertPcMon(context, payload, speciesMap = null) {
             ?? fallbackSlotOffset(box, slot, context.sourceBuffer, context.fallbackSectionOffsets);
         if (Number.isInteger(absOff) && absOff + MON_SIZE_PC <= context.sourceBuffer.length) {
             context.absoluteEdits.set(absOff, raw);
-            context.absoluteTouchedSectors.add(Math.floor(absOff / SECTION_SIZE) * SECTION_SIZE);
+            const sectorOff = Math.floor(absOff / SECTION_SIZE) * SECTION_SIZE;
+            if (shouldTrackAbsoluteSectorForChecksum(context.sourceBuffer, sectorOff)) {
+                context.absoluteTouchedSectors.add(sectorOff);
+            }
             return { box, slot };
         }
     }
@@ -1248,7 +1268,10 @@ export function editPcMonFull(context, payload) {
 
     if (kind === 'absolute') {
         context.absoluteEdits.set(offset, raw);
-        context.absoluteTouchedSectors.add(Math.floor(offset / SECTION_SIZE) * SECTION_SIZE);
+        const sectorOff = Math.floor(offset / SECTION_SIZE) * SECTION_SIZE;
+        if (shouldTrackAbsoluteSectorForChecksum(context.sourceBuffer, sectorOff)) {
+            context.absoluteTouchedSectors.add(sectorOff);
+        }
         return;
     }
     buffer.set(raw, offset);
