@@ -10,7 +10,7 @@
 - Extend Trainer Profile editing to include identity metadata: name (with character encoding validation), gender/style flags, and appearance parameters (hair color/skin tone).
 - Implement "Costume Box" unlocker and wardrobe editing.
 - Find a way to manually flag "Seen" or "Caught" when editing a species that hasn't be seen/caught before. Leaving the decision to flag it to the user, thus the "manually".
-- Extend PC write-layout support so currently non-writable empty slots/boxes in uncommon save layouts can be edited safely (instead of UI-locked).
+- Complete box 20 fallback mapping for slots `22..30` in the Unbound tail layout. Current support enables slots `1..21` only, because the remaining segment overlaps ambiguous trailer bytes where deterministic slot mapping is not yet proven checksum-safe across save variants.
 
 #### Community Feedback UX Backlog
 
@@ -48,6 +48,9 @@
 - Fixed local-mode 32-bit overflow during 40-bit move bit-packing by switching to `BigInt`, resolving slot corruption cases (for example `DragonAscent`/`V-create` turning into wrong moves in frontend or in-game).
 - Added fragmented absolute-layout fallback support for PC boxes 22-24 in save variants where the standard contiguous PC stream does not include those boxes, with backend/local parity for read/edit/save/checksum flows.
 - Fixed fallback PC box extraction for rotated save-section layouts by resolving box 23/24 offsets from active logical sections (instead of static absolute addresses), with backend/local mode parity and regression verification across local artifact saves.
+- Added reverse-engineered fallback mappings for previously locked Unbound tail boxes with backend/local parity: box 20 (slots `1..21`), box 21 (`1..30`), box 22 (`1..30`), box 23 (`1..30`), and box 24 (`1..30`), while keeping box 25 intentionally non-writable/non-navigable.
+- Absolute PC fallback writes now track touched sectors for checksum recalculation only when the target sector belongs to an active save index (`save_idx > 0`), avoiding trailer-sector checksum side effects.
+- Fallback box validation now evaluates only mapped slots per layout (instead of forcing all 30 slots), improving fragmented-layout safety and reducing false lockouts.
 - Added focused regression coverage for fallback PC boxes (`frontend/scripts/pc-fallback-regression.mjs`) to validate FewTimesDead box 22-24 detection, fallback slot parity, absolute fallback edits, touched-sector checksum updates, and Unbound false-positive guards.
 - Added `PC insert` workflows (backend + local mode parity) to create Pokemon directly in empty box slots, including stream boxes, preset box 26, and fragmented fallback box layouts.
 - Added species drift safety checks for non-species edit flows and tightened save paths to send only changed fields, reducing unintended side effects.
