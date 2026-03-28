@@ -2,61 +2,45 @@
 
 > Live app: **[https://zannael.github.io/PUSE/](https://zannael.github.io/PUSE/)**
 
-Web-based save editor for Pokemon Unbound (v 2.1.1.1) with a frontend-first architecture.
-The app supports local in-browser save editing (recommended) and backend mode (fully compatible) if you prefer Python for debugging/developing purposes.
+Web-based save editor for Pokemon Unbound (v 2.1.1.1) built with a frontend-first architecture.
+The app supports local in-browser save editing (recommended) and backend mode (FastAPI) with parity-focused behavior.
 
 ## Features
 
-- Party editing (IV/EV/moves/ability/nature/item)
-- PC editing
-- Bag editing with pocket discovery (main, balls, berries, TM case)
-- Money editing
-- Save checksum recalculation and save export
+- Party editing (species, nickname, IV/EV, moves, PP/PP Ups, nature, item, ability, level)
+- PC editing (including insert workflows for writable empty slots)
+- Bag editing with quick pocket discovery + search fallback (main, balls, berries, TM case, key items)
+- Money editing (safe clamping)
+- Identity controls (shiny/gender) with PID-aware safety checks
+- RTC metadata recovery tools (pair repair and quick fix)
+- Checksum recalculation and save export
 
 ## Runtime Modes
 
 - **Local mode (`VITE_RUNTIME_MODE=local`)**: parsing/editing/checksum/export run completely in the browser.
 - **Backend mode (`VITE_RUNTIME_MODE=backend`)**: uses FastAPI local endpoints.
 
-## UI Walkthrough
+## End-User UX (Website)
 
-### 1) Party and PC Overview
+The live app home page now contains the UX onboarding flow and static workflow previews.
+If you want to use PUSE as an end user, start directly from the website:
 
-Team section with quick access to your current party Pokemon.
+- **[https://zannael.github.io/PUSE/](https://zannael.github.io/PUSE/)**
 
-![Team section](backend/readme_images/team_section.png)
+Website flow (recommended):
 
-PC box section for browsing and editing boxed Pokemon.
+1. Load a `.sav` or `.srm` file.
+2. Edit Party / PC / Bag / Money.
+3. Download updated save (checksum-safe).
 
-![PC box section](backend/readme_images/box_section.png)
+For advanced recovery scenarios, use the RTC metadata tools section from the home page.
 
-### 2) Pokemon Editing Flow
+## Technical Notes
 
-Edit IVs and EVs with per-stat controls.
-
-![Pokemon edit stats](backend/readme_images/pokemon_edit_stats.png)
-
-Edit moves and ability slot selection.
-
-![Pokemon edit moves](backend/readme_images/pokemon_edit_moves.png)
-
-Edit level, nature and held item in the same modal flow.
-
-![Pokemon edit nature and item](backend/readme_images/pokemon_edit_nature_item.png)
-
-### 3) Bag Editing Flow
-
-Use **Quick Pockets** first for fast access (best on mature saves with many items/TMs).
-
-![Bag section with pockets](backend/readme_images/bag_section_with_pockets.png)
-
-If a pocket is missing (common on early saves), use the search bar as the reliable fallback: search an item you already have in that pocket (for example Potion or a TM/HM), then open the detected candidate.
-
-![Main item pocket view](backend/readme_images/main_item_pocket_view.png)
-
-After a pocket is opened, you can edit quantity/item ID and also add items that were not previously present in that pocket.
-
-![Edit item slot](backend/readme_images/edit_item_slot.png)
+- Frontend local mode and backend mode are designed to remain behaviorally aligned.
+- API contracts are intentionally stable (`nature_id`, `item_id`, `ability_index`, etc.).
+- Catalog data is ROM-truth synchronized across backend and frontend local runtime.
+- Optional icon systems degrade safely with placeholders when mappings/assets are unavailable.
 
 ## Project Structure
 

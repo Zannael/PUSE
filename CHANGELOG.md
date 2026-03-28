@@ -130,6 +130,14 @@
 - PC Box view now renders explicit empty slots and keeps a responsive grid (up to 6 columns where space allows) without forced horizontal scrolling on small devices.
 - Party card icon sizing was adjusted to avoid sprite cropping in slot frames.
 - Nature labels were normalized to English-only for public international UX parity in both backend and local mode flows (`Hardy`, `Adamant`, etc.); fallback text is now `Unknown`.
+- Refreshed the pre-upload home page into a full onboarding layout with clearer product messaging, capability cards, a step-based flow, and responsive static workflow previews for Party/PC/Editor/Bag interactions.
+- Kept the save upload interaction as the primary call to action near the top of the home page while improving first-time-user clarity before file upload.
+- Moved RTC metadata recovery UX into a collapsed advanced section placed directly below the upload container to reduce cognitive load for new users while preserving tool accessibility.
+- Added a footer with repository links and corrected changelog link targeting for the `master` branch.
+
+#### Documentation
+
+- README was streamlined to be more technical and less screenshot-driven, replacing image walkthroughs with website-first onboarding guidance and explicit redirect to the live app UX.
 
 ## v1.1.0 - 2026-03-16
 
