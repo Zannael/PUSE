@@ -527,7 +527,7 @@ const App = () => {
                                             <div>
                                                 <p className="text-[10px] font-black uppercase tracking-widest text-amber-300">Advanced tools</p>
                                                 <h3 className="mt-1 text-lg font-bold text-slate-100">RTC Metadata Recovery</h3>
-                                                <p className="mt-1 text-xs text-slate-300">Collapsed by default to keep first-use flow simple.</p>
+                                                <p className="mt-1 text-xs text-slate-300">Fix RTC tampering issue without Frozen Heights NPC.</p>
                                             </div>
                                             <div className="text-[10px] text-amber-200 uppercase tracking-widest group-open:hidden">Open</div>
                                             <div className="text-[10px] text-amber-200 uppercase tracking-widest hidden group-open:block">Close</div>
