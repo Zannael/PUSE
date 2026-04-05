@@ -47,6 +47,7 @@ switch-homebrew/*.elf
 switch-homebrew/*.nro
 switch-homebrew/*.nacp
 switch-homebrew/*.npdm
+switch-homebrew/tools/Plutonium
 
 # Switch homebrew non-essential local/reference content
 switch-homebrew/artifacts/
