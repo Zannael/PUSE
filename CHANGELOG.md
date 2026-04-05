@@ -4,6 +4,7 @@
 
 ### Planned
 
+- Generate valid mistery gifts
 - Add create/insert workflows to add Pokemon to party (with validation and checksum-safe writes).
 - Add ROM-truth sprites for Pokémons and items with ROM-based sprites extraction.
 - Investigate save flags editing feasibility for difficulty mode and NG+ state.
@@ -50,6 +51,8 @@
 - Fixed fallback PC box extraction for rotated save-section layouts by resolving box 23/24 offsets from active logical sections (instead of static absolute addresses), with backend/local mode parity and regression verification across local artifact saves.
 - Added reverse-engineered fallback mappings for previously locked Unbound tail boxes with backend/local parity: box 20 (slots `1..21`), box 21 (`1..30`), box 22 (`1..30`), box 23 (`1..30`), and box 24 (`1..30`), while keeping box 25 intentionally non-writable/non-navigable.
 - Absolute PC fallback writes now track touched sectors for checksum recalculation only when the target sector belongs to an active save index (`save_idx > 0`), avoiding trailer-sector checksum side effects.
+- Fixed PC stream payload window boundaries in backend/local mode (`0xFEC` bytes from section offset `+0x04`), preventing footer metadata (`valid_len`) overwrite during bulk Party/PC edit commits.
+- Absolute touched-sector checksum reconciliation now skips opaque section `id=4` in backend/local mode, preserving stable save acceptance for Unbound layouts where that section checksum is not safely recomputed with the generic path.
 - Fallback box validation now evaluates only mapped slots per layout (instead of forcing all 30 slots), improving fragmented-layout safety and reducing false lockouts.
 - Added focused regression coverage for fallback PC boxes (`frontend/scripts/pc-fallback-regression.mjs`) to validate FewTimesDead box 22-24 detection, fallback slot parity, absolute fallback edits, touched-sector checksum updates, and Unbound false-positive guards.
 - Added `PC insert` workflows (backend + local mode parity) to create Pokemon directly in empty box slots, including stream boxes, preset box 26, and fragmented fallback box layouts.

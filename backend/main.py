@@ -73,6 +73,8 @@ current_save = {
     }
 }
 
+OPAQUE_SECTION_IDS = {4}
+
 
 def _should_track_absolute_sector_for_checksum(data, sector_off):
     if sector_off < 0 or sector_off + box_mod.SECTION_SIZE > len(data):
@@ -1616,6 +1618,8 @@ async def commit_to_file():
         if sec_off < 0 or sec_off + 0x1000 > len(current_save["data"]):
             continue
         sec_id = party_mod.ru16(current_save["data"], sec_off + 0xFF4)
+        if sec_id in OPAQUE_SECTION_IDS:
+            continue
         if sec_id == 0:
             chk_data = current_save["data"][sec_off: sec_off + 0xADC]
             new_chk = bag_mod.gba_checksum(chk_data)

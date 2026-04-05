@@ -15,7 +15,7 @@ const OTHER_SECTORS = [13];
 const ALL_PC_SECTORS = new Set([...POKEMON_STREAM_SECTORS, ...OTHER_SECTORS, PRESET_SECTOR_ID]);
 
 const SECTOR_HEADER_SIZE = 4;
-const SECTOR_PAYLOAD_SIZE = 0xFF4 - SECTOR_HEADER_SIZE;
+const SECTOR_PAYLOAD_SIZE = 0xFF0 - SECTOR_HEADER_SIZE;
 const MON_SIZE_PC = 58;
 
 const OFFSET_PRESET_START = 0xB0;
@@ -33,6 +33,8 @@ const FALLBACK_BOX_LAYOUTS = {
     23: [['section', 2, 1, 4, 0x0F18], ['section', 3, 5, 30, 0x0010]],
     24: [['section', 3, 1, 30, 0x05F4]],
 };
+
+const OPAQUE_SECTION_IDS = new Set([4]);
 
 const OFF_PID = 0x00;
 const OFF_NICK = 0x08;
@@ -1324,6 +1326,9 @@ export function applyPcContextToSave(buffer, context) {
                 return;
             }
             const secId = ru16(buffer, secOff + OFF_ID);
+            if (OPAQUE_SECTION_IDS.has(secId)) {
+                return;
+            }
             if (secId === 0) {
                 const chk = gbaChecksum(buffer, secOff, UNBOUND_PRESET_MAGIC_LEN);
                 wu16(buffer, secOff + 0xFF6, chk);

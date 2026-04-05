@@ -21,8 +21,8 @@ ALL_PC_SECTORS = POKEMON_STREAM_SECTORS + OTHER_SECTORS + [PRESET_SECTOR_ID]
 
 SECTION_SIZE = 0x1000
 SECTOR_HEADER_SIZE = 4
-# FIX STREAM (Dalla v12/v14): Payload esteso a 4080 byte
-SECTOR_PAYLOAD_SIZE = 0xFF4 - SECTOR_HEADER_SIZE
+# Stream payload ends before footer (0xFF0).
+SECTOR_PAYLOAD_SIZE = 0xFF0 - SECTOR_HEADER_SIZE
 MON_SIZE_PC = 58
 
 # Offset specifico per il Box Preset dentro il Settore 4
