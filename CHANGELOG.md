@@ -20,7 +20,12 @@
 - Add keyboard-assisted stat editing shortcuts (Ctrl+click to set max, Alt+click to set zero) for IV/EV fields.
 - ~Investigate ROM-truth naming mismatch reports (for example Rhyperior shown as `Filter` vs expected `Solid Rock`) and align visible labels where appropriate.~ This now has [an opened issue](https://github.com/Zannael/PUSE/issues/7).
 
-### Changed
+#### Changed
+- 
+
+## v1.2.0 - 2026-04-24
+
+### Added
 
 #### ROM Truth Data
 
