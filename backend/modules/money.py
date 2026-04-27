@@ -10,13 +10,15 @@ TRAINER_SECTION_ID = 1
 # fallback u32 offset we observed; used only if search fails
 FALLBACK_OFF_MONEY = 0x290
 MIN_MONEY = 0
-MAX_MONEY = 999999
+MAX_MONEY = 999999999
 
 def ru16(b,o): return struct.unpack_from("<H", b, o)[0]
 def ru32(b,o): return struct.unpack_from("<I", b, o)[0]
 def wu32(b,o,v): struct.pack_into("<I", b, o, v)
 
 def to_bcd3(n: int) -> bytes:
+    if int(n) > 999999:
+        return None
     s = f"{n:06d}"
     b0 = (int(s[1]) << 4) | int(s[0])
     b1 = (int(s[3]) << 4) | int(s[2])
@@ -107,7 +109,7 @@ def patch_money_everywhere(buf: bytes, new_money: int, dryrun=False):
         u32_candidates = []
         for p in range(0, len(payload)-3):
             val = struct.unpack_from("<I", payload, p)[0]
-            if 0 <= val <= 999999:
+            if 0 <= val <= MAX_MONEY:
                 u32_candidates.append((p,val))
         # prefer ones near FALLBACK_OFF_MONEY
         u32_candidates.sort(key=lambda x: abs(x[0]-FALLBACK_OFF_MONEY))
@@ -148,7 +150,8 @@ def patch_money_everywhere(buf: bytes, new_money: int, dryrun=False):
         # apply changes to payload
         struct.pack_into("<I", payload, u32_offset, new_money)
         bcd = to_bcd3(new_money)
-        payload[bcd_offset:bcd_offset+3] = bcd
+        if bcd is not None:
+            payload[bcd_offset:bcd_offset+3] = bcd
 
         # recompute checksum and write back
         newchk = compute_section_checksum(bytes(payload), valid_len)

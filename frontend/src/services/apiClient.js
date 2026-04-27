@@ -157,10 +157,20 @@ const backendClient = {
     getMoney() {
         return backendJson("/money");
     },
+    getBp() {
+        return backendJson('/bp');
+    },
     async updateMoney(amount) {
         const res = await fetch(`${API_BASE}/money/update?amount=${amount}`, { method: "POST" });
         if (!res.ok) {
             throw new Error("Money update failed");
+        }
+        return res.json();
+    },
+    async updateBp(amount) {
+        const res = await fetch(`${API_BASE}/bp/update?amount=${amount}`, { method: 'POST' });
+        if (!res.ok) {
+            throw new Error('BP update failed');
         }
         return res.json();
     },
@@ -355,12 +365,25 @@ const localClient = {
         const money = readMoney(getBuffer());
         return { money };
     },
+    async getBp() {
+        const { readBp, getBuffer } = await getLocalCoreModules();
+        const bp = readBp(getBuffer());
+        return { bp };
+    },
     async updateMoney(amount) {
         const { updateBuffer, readMoney, updateMoney: patchMoney } = await getLocalCoreModules();
         const newMoney = updateBuffer((next) => patchMoney(next, amount));
         return {
             message: `Money updated to ${readMoney(newMoney)}`,
             new_money: readMoney(newMoney),
+        };
+    },
+    async updateBp(amount) {
+        const { updateBuffer, readBp, updateBp: patchBp } = await getLocalCoreModules();
+        const nextBuffer = updateBuffer((next) => patchBp(next, amount));
+        return {
+            message: `Battle Points updated to ${readBp(nextBuffer)}`,
+            bp: readBp(nextBuffer),
         };
     },
     async downloadSave() {

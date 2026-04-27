@@ -46,8 +46,10 @@ const App = () => {
     const [isLoaded, setIsLoaded] = useState(false);
     const [saveExt, setSaveExt] = useState('.sav');
     const [money, setMoney] = useState(0);
-    const [showMoneyModal, setShowMoneyModal] = useState(false);
+    const [bp, setBp] = useState(0);
+    const [showResourcesModal, setShowResourcesModal] = useState(false);
     const [moneyInput, setMoneyInput] = useState('0');
+    const [bpInput, setBpInput] = useState('0');
     const client = useMemo(() => createApiClient(runtimeMode), [runtimeMode]);
 
     useEffect(() => {
@@ -67,9 +69,11 @@ const App = () => {
 
         try {
             await client.uploadSave(file);
-            const mData = await client.getMoney();
-            setMoney(mData.money);
+            const [mData, bpData] = await Promise.all([client.getMoney(), client.getBp()]);
+            setMoney(Number(mData.money ?? 0));
+            setBp(Number(bpData.bp ?? 0));
             setMoneyInput(String(mData.money ?? 0));
+            setBpInput(String(bpData.bp ?? 0));
             setSaveExt(file.name.toLowerCase().endsWith('.srm') ? '.srm' : '.sav');
             setIsLoaded(true);
         } catch {
@@ -343,21 +347,25 @@ const App = () => {
         }
     };
 
-    const openMoneyModal = () => {
+    const openResourcesModal = () => {
         setMoneyInput(String(money ?? 0));
-        setShowMoneyModal(true);
+        setBpInput(String(bp ?? 0));
+        setShowResourcesModal(true);
     };
 
-    const handleUpdateMoney = async () => {
-        const amount = Math.max(0, parseInt(moneyInput, 10) || 0);
+    const handleUpdateResources = async () => {
+        const amount = Math.max(0, Math.min(999999999, parseInt(moneyInput, 10) || 0));
+        const bpAmount = Math.max(0, Math.min(65535, parseInt(bpInput, 10) || 0));
         try {
-            await client.updateMoney(amount);
-            setMoney(amount);
-            setShowMoneyModal(false);
-            alert('Money updated successfully!');
+            await Promise.all([client.updateMoney(amount), client.updateBp(bpAmount)]);
+            const [mData, bpData] = await Promise.all([client.getMoney(), client.getBp()]);
+            setMoney(Number(mData.money ?? amount));
+            setBp(Number(bpData.bp ?? bpAmount));
+            setShowResourcesModal(false);
+            alert('Resources updated successfully!');
         } catch (err) {
             console.error(err);
-            alert('Failed to update money.');
+            alert('Failed to update resources.');
         }
     };
 
@@ -375,15 +383,15 @@ const App = () => {
     };
 
     useEffect(() => {
-        if (!showMoneyModal) return;
+        if (!showResourcesModal) return;
         const onKeyDown = (e) => {
             if (e.key === 'Escape') {
-                setShowMoneyModal(false);
+                setShowResourcesModal(false);
             }
         };
         window.addEventListener('keydown', onKeyDown);
         return () => window.removeEventListener('keydown', onKeyDown);
-    }, [showMoneyModal]);
+    }, [showResourcesModal]);
 
     return (
         <div className="min-h-screen bg-[#0f172a] text-slate-100 flex flex-col items-center">
@@ -425,15 +433,12 @@ const App = () => {
                     </div>
                     {isLoaded && (
                         <div className="flex items-center gap-2 md:gap-3 flex-wrap justify-end">
-                            <div className="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full text-emerald-400 font-mono text-sm">
-                                ${money.toLocaleString()}
-                            </div>
                             <button
-                                onClick={openMoneyModal}
-                                className="p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
-                                aria-label="Edit money"
+                                onClick={openResourcesModal}
+                                className="px-3 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold transition-colors"
+                                aria-label="Edit resources"
                             >
-                                <Edit3 size={14} />
+                                <span className="inline-flex items-center gap-2"><Edit3 size={14} /> RESOURCES</span>
                             </button>
                             <button
                                 onClick={handleRestartApp}
@@ -748,47 +753,65 @@ const App = () => {
                 )}
             </main>
 
-            {showMoneyModal && (
+            {showResourcesModal && (
                 <div
                     className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
-                    onClick={() => setShowMoneyModal(false)}
+                    onClick={() => setShowResourcesModal(false)}
                 >
                     <div
                         className="w-full max-w-sm bg-[#0f172a] border border-white/10 rounded-[2rem] p-6 space-y-5"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-bold">Edit Money</h3>
-                            <button onClick={() => setShowMoneyModal(false)} className="text-slate-500 hover:text-white">
+                            <h3 className="text-lg font-bold">Edit Resources</h3>
+                            <button onClick={() => setShowResourcesModal(false)} className="text-slate-500 hover:text-white">
                                 <X size={18} />
                             </button>
                         </div>
-                        <input
-                            type="number"
-                            step="1"
-                            min="0"
-                            max="999999"
-                            value={moneyInput}
-                            onChange={(event) => {
-                                const value = event.target.value;
-                                if (value.length <= 6) setMoneyInput(value);
-                            }}
-                            className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 font-mono text-emerald-400 outline-none focus:border-blue-500"
-                        />
-                        <p
-                            className="text-[11px] text-slate-400"
-                        >
-                            Money is always clamped server-side to the legal range 0..999999, even if a larger value is entered.
+                        <div className="space-y-3">
+                            <div>
+                                <label className="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Money</label>
+                                <input
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    max="999999999"
+                                    value={moneyInput}
+                                    onChange={(event) => {
+                                        const value = event.target.value;
+                                        if (value.length <= 9) setMoneyInput(value);
+                                    }}
+                                    className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 font-mono text-emerald-400 outline-none focus:border-blue-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Battle Points</label>
+                                <input
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    max="65535"
+                                    value={bpInput}
+                                    onChange={(event) => {
+                                        const value = event.target.value;
+                                        if (value.length <= 5) setBpInput(value);
+                                    }}
+                                    className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 font-mono text-amber-300 outline-none focus:border-blue-500"
+                                />
+                            </div>
+                        </div>
+                        <p className="text-[11px] text-slate-400">
+                            Money clamps to 0..999999999 and BP clamps to 0..65535.
                         </p>
                         <div className="flex gap-3">
                             <button
-                                onClick={() => setShowMoneyModal(false)}
+                                onClick={() => setShowResourcesModal(false)}
                                 className="flex-1 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700"
                             >
                                 Cancel
                             </button>
                             <button
-                                onClick={handleUpdateMoney}
+                                onClick={handleUpdateResources}
                                 className="flex-1 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 font-bold"
                             >
                                 Apply

@@ -3,6 +3,7 @@ BUILD       := build
 SOURCES     := source source/core source/io
 INCLUDES    := include
 ROMFS       := romfs
+ROMFS_IMAGE = $(TOPDIR)/$(BUILD)/romfs.bin
 
 APP_TITLE   := PUSE Switch
 APP_AUTHOR  := zappaganini
@@ -26,7 +27,7 @@ export TOPDIR := $(CURDIR)
 export VPATH  := $(foreach dir,$(SOURCES),$(CURDIR)/$(dir))
 export DEPSDIR := $(CURDIR)/$(BUILD)
 export LD
-export NROFLAGS += --romfsdir=$(TOPDIR)/romfs
+export NROFLAGS += --romfs=$(ROMFS_IMAGE)
 
 CFILES   := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
@@ -40,30 +41,44 @@ export LIBPATHS := $(foreach dir,$(LIBDIRS),-L$(dir)/lib) -L$(DEVKITPRO)/libnx/l
 
 export APP_TITLE APP_AUTHOR APP_VERSION
 
-.PHONY: all clean
+.PHONY: all clean sync-romfs test-phase1 test-phase2 sd-bundle $(BUILD)
 
-all: $(BUILD) $(TARGET).nro
+all: $(BUILD)
 
 $(BUILD):
 	@mkdir -p $(BUILD)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(TOPDIR)/Makefile
 
-$(TARGET).nro: $(BUILD)
-
 clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(TARGET).nro $(TARGET).elf
+
+sync-romfs:
+	@"$(CURDIR)/scripts/sync_romfs_data.sh"
+
+test-phase1:
+	@"$(CURDIR)/scripts/test_phase1_parity.sh"
+
+test-phase2:
+	@"$(CURDIR)/scripts/test_phase2_party_parity.sh"
+
+sd-bundle:
+	@"$(CURDIR)/scripts/prepare_sd_bundle.sh"
 
 else
 
 .PHONY: all
 
-all: $(OUTPUT).nro
+all: $(ROMFS_IMAGE) $(OUTPUT).nro
 
 $(OUTPUT).elf: $(OFILES)
 
-$(OUTPUT).nro: $(OUTPUT).elf
+$(OUTPUT).nro: $(OUTPUT).elf $(ROMFS_IMAGE)
 
 endif
+
+$(ROMFS_IMAGE):
+	@mkdir -p $(dir $@)
+	@build_romfs "$(TOPDIR)/$(ROMFS)" "$@"
 
 include $(DEVKITPRO)/libnx/switch_rules
