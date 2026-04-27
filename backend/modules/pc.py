@@ -80,6 +80,7 @@ GENDER_THRESHOLD_MALE_ONLY = 0
 GENDER_THRESHOLD_FEMALE_ONLY = 254
 GENDER_THRESHOLD_GENDERLESS = 255
 INV_11_MOD_25 = 16
+SHINY_THRESHOLD = 16
 
 GROWTH_NAMES = {
     0: "Medium Fast (Cubic)", 1: "Erratic", 2: "Fluctuating",
@@ -317,7 +318,7 @@ def shiny_value(otid, pid):
 
 
 def is_shiny_pid(otid, pid):
-    return shiny_value(otid, pid) < 8
+    return shiny_value(otid, pid) < SHINY_THRESHOLD
 
 
 def gender_mode_from_threshold(gender_threshold):
@@ -391,7 +392,7 @@ def find_identity_pid(current_pid, otid, target_nature_id, desired_shiny, desire
         req_high_mod = ((target_nature_id - (low % 25)) * INV_11_MOD_25) % 25
 
         if desired_shiny:
-            for sv in range(8):
+            for sv in range(SHINY_THRESHOLD):
                 high = (tid_sid ^ low ^ sv) & 0xFFFF
                 if high % 25 != req_high_mod:
                     continue

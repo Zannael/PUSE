@@ -83,6 +83,9 @@
 - Implemented identity editing controls in the Pokemon editor for both Party and PC flows (shiny toggle + gender toggle), with PID side-effect warnings in UI.
 - Added identity update flows for Party and PC in both runtime modes (`backend` and `local`) to preserve parity.
 - Identity PID solving now preserves nature and standard ability-slot parity while applying shiny/gender targets when valid across Party and PC edits.
+- Updated shiny recognition + PID shiny-target solving to use Unbound/CFRU 1/4096 parity (`SV < 16`) in backend/local mode, fixing false non-shiny reports for legitimate in-game conversions (for example scammer-method shinies).
+- Added backend regression coverage for scammer-method shiny + BP deltas (`backend/tools/shiny_bp_regression.py`) using saved before/after fixtures.
+- Added issue-focused validation coverage for #11 (`Shiny Pokemon Not Showing Up as Shiny`) by asserting party-slot shiny recognition on the reported Zoroark/Necrozma fixture.
 - Added species identity metadata (`gender_threshold`) extracted from ROM truth and mirrored to frontend local mode.
 - Added explicit validation for incompatible gender requests (fixed male/fixed female/genderless species), returning clear errors instead of silent mutation.
 - Added PID-focused regression coverage (`frontend/scripts/identity-regression.mjs`) for Party and PC shiny/gender toggles, HA preservation, invalid-gender guards, and mixed PID edit sequences across backend/local parity.
@@ -96,6 +99,7 @@
 - Bag UX now keeps save actions visible at the top of pocket view and warns users when navigating back/changing sections with unsaved bag edits.
 - Fixed item-sector checksum window for Unbound main items sector (`id=13`) to `0x450` in both backend and local mode, preventing intermittent save corruption caused by extra trailing bytes.
 - Backend money updates now clamp requested values to the legal in-game range (`0..999999`) and return clamp metadata (`requested_money`, `was_clamped`) for safer API behavior.
+- Added backend Battle Points read/update endpoints (`GET /bp`, `POST /bp/update`) using active section `id=4` offset `0xF34` with safe clamp metadata.
 
 #### Editor UX
 

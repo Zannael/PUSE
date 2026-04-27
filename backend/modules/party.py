@@ -49,6 +49,7 @@ GENDER_THRESHOLD_MALE_ONLY = 0
 GENDER_THRESHOLD_FEMALE_ONLY = 254
 GENDER_THRESHOLD_GENDERLESS = 255
 _INV_11_MOD_25 = 16
+SHINY_THRESHOLD = 16
 
 DB_NATURES = {
     0: "Hardy", 1: "Lonely", 2: "Brave", 3: "Adamant",
@@ -347,7 +348,7 @@ def _shiny_value(otid: int, pid: int) -> int:
 
 
 def _is_shiny_pid(otid: int, pid: int) -> bool:
-    return _shiny_value(otid, pid) < 8
+    return _shiny_value(otid, pid) < SHINY_THRESHOLD
 
 
 def _gender_from_pid(pid: int, gender_threshold: int | None) -> str:
@@ -429,7 +430,7 @@ def _find_identity_pid(
         req_high_mod = ((target_nature_id - (low % 25)) * _INV_11_MOD_25) % 25
 
         if desired_shiny:
-            for sv in range(8):
+            for sv in range(SHINY_THRESHOLD):
                 high = (tid_sid ^ low ^ sv) & 0xFFFF
                 if high % 25 != req_high_mod:
                     continue

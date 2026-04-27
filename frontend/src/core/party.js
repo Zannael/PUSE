@@ -30,6 +30,7 @@ const GENDER_THRESHOLD_MALE_ONLY = 0;
 const GENDER_THRESHOLD_FEMALE_ONLY = 254;
 const GENDER_THRESHOLD_GENDERLESS = 255;
 const INV_11_MOD_25 = 16;
+const SHINY_THRESHOLD = 16;
 
 const GROWTH_RATE_COUNT = 6;
 
@@ -268,7 +269,7 @@ function shinyValue(otid, pid) {
 }
 
 function isShinyPid(otid, pid) {
-    return shinyValue(otid, pid) < 8;
+    return shinyValue(otid, pid) < SHINY_THRESHOLD;
 }
 
 function nearestHighForMod(reqMod, preferredHigh) {
@@ -340,7 +341,7 @@ function findIdentityPid(rawMon, payload = {}) {
         const reqHighMod = (((targetNatureId - (low % 25)) * INV_11_MOD_25) % 25 + 25) % 25;
 
         if (desiredShiny) {
-            for (let sv = 0; sv < 8; sv += 1) {
+            for (let sv = 0; sv < SHINY_THRESHOLD; sv += 1) {
                 const high = (tidSid ^ low ^ sv) & 0xFFFF;
                 if ((high % 25) !== reqHighMod) {
                     continue;

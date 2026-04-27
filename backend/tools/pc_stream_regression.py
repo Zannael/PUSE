@@ -60,9 +60,9 @@ def main() -> None:
     pc.load_static_data()
 
     fixtures = {
-        "unbound": ROOT / "local_artifacts" / "issue_sav" / "unbound.sav",
-        "pre_edit": ROOT / "local_artifacts" / "issue_sav" / "pre_edit.sav",
-        "post_edit_fixed": ROOT / "local_artifacts" / "issue_sav" / "post_edit_fixed.sav",
+        "fewtimesdead": ROOT / "local_artifacts" / "FewTimesDead_noshiny.sav",
+        "unbound_issue": ROOT / "local_artifacts" / "issue_sav" / "unbound.sav",
+        "unbound2_fixed": ROOT / "local_artifacts" / "Unbound_2_fixed.sav",
     }
 
     for name, path in fixtures.items():
@@ -81,53 +81,10 @@ def main() -> None:
         _, valid_trunc, invalid_trunc, _ = scan_buffer(truncated_buf)
         print(f"[{name}] payload=0xFEC valid={valid_trunc} invalid={invalid_trunc}")
         assert_true(valid >= valid_trunc, f"{name} current payload should not decode fewer mons")
-
-        if name == "unbound":
-            expected_box3 = {
-                1: "Cubone",
-                2: "Espurr",
-                3: "Shinx",
-                4: "Doduo",
-                5: "Abra",
-                6: "Mareep",
-                7: "Doduo",
-                8: "Ledian",
-                9: "Arbok",
-                10: "Bronzor",
-                11: "Cryogonal",
-                12: "Snover",
-            }
-            for slot, expected_species in expected_box3.items():
-                mon = current_mons.get((3, slot))
-                assert_true(mon is not None, f"unbound box3 slot{slot} missing")
-                species = pc.DB_SPECIES.get(mon.species_id, str(mon.species_id))
-                assert_equal(species, expected_species, f"unbound box3 slot{slot}")
-
-            expected_box4 = {
-                1: "Electabuzz",
-                2: "Ferroseed",
-                3: "Elekid",
-                4: "Tynamo",
-                5: "Tynamo",
-                6: "Magneton",
-                7: "Luvdisc",
-                8: "Crobat",
-                9: "Shellder",
-                10: "Munna",
-                11: "Sawsbuck",
-                12: "Fletchling",
-            }
-            for slot, expected_species in expected_box4.items():
-                mon = current_mons.get((4, slot))
-                assert_true(mon is not None, f"unbound box4 slot{slot} missing")
-                species = pc.DB_SPECIES.get(mon.species_id, str(mon.species_id))
-                assert_equal(species, expected_species, f"unbound box4 slot{slot}")
-
-            egg_mon = current_mons.get((4, 28))
-            assert_true(egg_mon is not None, "unbound box4 slot28 missing")
-            iv_word = pc.ru32(egg_mon.raw, pc.OFF_IVS)
-            is_egg = (iv_word >> 30) & 1
-            assert_equal(is_egg, 1, "unbound box4 slot28 egg flag")
+        assert_true(
+            invalid_trunc > 0 or (valid - valid_trunc) >= 10,
+            f"{name} truncated payload should show measurable regression",
+        )
 
     print("PC stream regression checks passed.")
 

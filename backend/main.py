@@ -74,6 +74,10 @@ current_save = {
 }
 
 OPAQUE_SECTION_IDS = {4}
+BP_SECTION_ID = 4
+BP_OFFSET_IN_SECTION = 0xF34
+BP_MIN = 0
+BP_MAX = 65535
 
 
 def _should_track_absolute_sector_for_checksum(data, sector_off):
@@ -462,6 +466,44 @@ async def get_money():
     return {"money": money}
 
 
+@app.get("/bp")
+async def get_battle_points():
+    """Read Battle Points from active section 4 payload."""
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
+
+    sec_off = get_active_section_offset(BP_SECTION_ID)
+    if sec_off is None:
+        raise HTTPException(status_code=404, detail="Battle Points section not found")
+
+    bp = party_mod.ru16(current_save["data"], sec_off + BP_OFFSET_IN_SECTION)
+    return {"bp": int(bp)}
+
+
+@app.post("/bp/update")
+async def update_battle_points(amount: int):
+    """Update Battle Points in active section 4 payload."""
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
+
+    sec_off = get_active_section_offset(BP_SECTION_ID)
+    if sec_off is None:
+        raise HTTPException(status_code=404, detail="Battle Points section not found")
+
+    requested = int(amount)
+    clamped = max(BP_MIN, min(BP_MAX, requested))
+    party_mod.wu16(current_save["data"], sec_off + BP_OFFSET_IN_SECTION, clamped)
+
+    # Unbound section 4 behaves as opaque in this project context.
+    # Keep checksum untouched to avoid introducing layout-specific side effects.
+    return {
+        "message": f"Battle Points updated to {clamped}",
+        "bp": clamped,
+        "requested_bp": requested,
+        "was_clamped": clamped != requested,
+    }
+
+
 @app.post("/money/update")
 async def update_money(amount: int):
     """Update money value and recalculate checksums."""
@@ -577,12 +619,18 @@ def get_active_trainer_offset():
     """Find offset of active Trainer section (highest saveidx)."""
     if not current_save["data"]:
         return None
-    sections = money_mod.list_sections(current_save["data"])
-    trainer_secs = [s for s in sections if s["id"] == party_mod.TRAINER_SECTION_ID]
-    if not trainer_secs:
+    return get_active_section_offset(party_mod.TRAINER_SECTION_ID)
+
+
+def get_active_section_offset(section_id: int):
+    if not current_save["data"]:
         return None
-    trainer_secs.sort(key=lambda x: x['saveidx'], reverse=True)
-    return trainer_secs[0]['off']
+    sections = money_mod.list_sections(current_save["data"])
+    matches = [s for s in sections if int(s.get("id", -1)) == int(section_id)]
+    if not matches:
+        return None
+    matches.sort(key=lambda x: x['saveidx'], reverse=True)
+    return int(matches[0]['off'])
 
 
 def _infer_default_owner_template() -> dict:
