@@ -102,6 +102,9 @@ const App = () => {
     const [rtcQuickFile, setRtcQuickFile] = useState(null);
     const [rtcTab, setRtcTab] = useState('pair');
     const [rtcBusy, setRtcBusy] = useState(false);
+    const [convertFile, setConvertFile] = useState(null);
+    const [convertTarget, setConvertTarget] = useState('.sav');
+    const [convertBusy, setConvertBusy] = useState(false);
     const [showLegitHelp, setShowLegitHelp] = useState(false);
 
     const handleRtcFixPack = async () => {
@@ -135,6 +138,23 @@ const App = () => {
             alert('Failed to generate RTC quick-fix pack.');
         } finally {
             setRtcBusy(false);
+        }
+    };
+
+    const handleSaveConvert = async () => {
+        if (!convertFile) {
+            alert('Please select one save file to convert.');
+            return;
+        }
+
+        try {
+            setConvertBusy(true);
+            await client.convertSaveFile(convertFile, convertTarget);
+            alert(`Converted and downloaded as ${convertTarget}.`);
+        } catch {
+            alert('Save conversion failed. Supported sizes are 131072 and 131088 bytes.');
+        } finally {
+            setConvertBusy(false);
         }
     };
 
@@ -627,6 +647,64 @@ const App = () => {
                                                     </p>
                                                 </>
                                             )}
+                                        </div>
+                                    </details>
+
+                                    <details className="group rounded-[1.75rem] border border-cyan-500/30 bg-cyan-500/5 p-5 md:p-6">
+                                        <summary className="list-none cursor-pointer flex items-start justify-between gap-3">
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-cyan-300">Utility</p>
+                                                <h3 className="mt-1 text-lg font-bold text-slate-100">SRM / SAV Converter</h3>
+                                                <p className="mt-1 text-xs text-slate-300">Convert emulator save container format without opening the main editor.</p>
+                                            </div>
+                                            <div className="text-[10px] text-cyan-200 uppercase tracking-widest group-open:hidden">Open</div>
+                                            <div className="text-[10px] text-cyan-200 uppercase tracking-widest hidden group-open:block">Close</div>
+                                        </summary>
+
+                                        <div className="mt-5 border-t border-cyan-500/20 pt-5">
+                                            <div className="text-xs text-slate-300">
+                                                <label className="block">
+                                                    <span className="block mb-1 text-slate-400">Input file (.sav or .srm)</span>
+                                                    <input
+                                                        type="file"
+                                                        accept=".sav,.srm"
+                                                        onChange={(e) => setConvertFile(e.target.files?.[0] || null)}
+                                                        className="w-full text-xs"
+                                                    />
+                                                </label>
+                                            </div>
+
+                                            <div className="mt-4 inline-flex rounded-xl border border-white/10 bg-slate-900/60 p-1 text-[10px] uppercase tracking-widest font-bold">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setConvertTarget('.sav')}
+                                                    className={`px-3 py-1 rounded-lg transition-colors ${
+                                                        convertTarget === '.sav' ? 'bg-cyan-600 text-white' : 'text-slate-300 hover:bg-white/5'
+                                                    }`}
+                                                >
+                                                    To .sav
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setConvertTarget('.srm')}
+                                                    className={`px-3 py-1 rounded-lg transition-colors ${
+                                                        convertTarget === '.srm' ? 'bg-cyan-600 text-white' : 'text-slate-300 hover:bg-white/5'
+                                                    }`}
+                                                >
+                                                    To .srm
+                                                </button>
+                                            </div>
+
+                                            <button
+                                                onClick={handleSaveConvert}
+                                                disabled={convertBusy}
+                                                className="mt-4 inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-cyan-900/60 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all"
+                                            >
+                                                <Save size={14} /> {convertBusy ? 'CONVERTING...' : `CONVERT TO ${convertTarget.toUpperCase()}`}
+                                            </button>
+                                            <p className="mt-2 text-[11px] text-slate-400">
+                                                Supports 128 KiB and 128 KiB + 16 byte layouts. The original file is never modified.
+                                            </p>
                                         </div>
                                     </details>
                                 </div>

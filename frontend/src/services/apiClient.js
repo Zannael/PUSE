@@ -78,7 +78,8 @@ async function getLocalCoreModules() {
             import('../core/money.js'),
             import('../core/commit.js'),
             import('../core/rtc.js'),
-        ]).then(([catalog, party, saveSession, pc, bag, money, commit, rtc]) => ({
+            import('../core/saveConvert.js'),
+        ]).then(([catalog, party, saveSession, pc, bag, money, commit, rtc, saveConvert]) => ({
             ...catalog,
             ...party,
             ...saveSession,
@@ -87,6 +88,7 @@ async function getLocalCoreModules() {
             ...money,
             ...commit,
             ...rtc,
+            ...saveConvert,
         }));
     }
     return localCoreModulesPromise;
@@ -339,6 +341,28 @@ const backendClient = {
 
         const blob = await res.blob();
         const fallbackName = `${(file?.name || 'save').replace(/\.[^.]+$/, '')}_rtc_quick_fix_pack.zip`;
+        const contentDisposition = res.headers.get('Content-Disposition') || '';
+        const match = contentDisposition.match(/filename=([^;]+)/i);
+        const fileName = match ? match[1].replace(/"/g, '').trim() : fallbackName;
+        downloadBlob(blob, fileName);
+        return { status: 'ok' };
+    },
+    async convertSaveFile(file, targetExt) {
+        const ext = String(targetExt || '').trim().toLowerCase();
+        const normalizedExt = ext.startsWith('.') ? ext : `.${ext}`;
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const res = await fetch(`${API_BASE}/save/convert?target_ext=${encodeURIComponent(normalizedExt)}`, {
+            method: 'POST',
+            body: formData,
+        });
+        if (!res.ok) {
+            throw new Error('Save conversion failed');
+        }
+
+        const blob = await res.blob();
+        const fallbackName = `${toBaseName(file?.name)}${normalizedExt}`;
         const contentDisposition = res.headers.get('Content-Disposition') || '';
         const match = contentDisposition.match(/filename=([^;]+)/i);
         const fileName = match ? match[1].replace(/"/g, '').trim() : fallbackName;
@@ -645,6 +669,17 @@ const localClient = {
 
         const zipBlob = asZipBlob(entries);
         downloadBlob(zipBlob, `${baseName}_rtc_quick_fix_pack.zip`);
+        return { status: 'ok' };
+    },
+    async convertSaveFile(file, targetExt) {
+        if (!file) {
+            throw new Error('Missing save file input');
+        }
+        const { convertSaveBytes, buildConvertedFileName } = await getLocalCoreModules();
+        const source = new Uint8Array(await file.arrayBuffer());
+        const converted = convertSaveBytes(source, targetExt);
+        const fileName = buildConvertedFileName(file.name, targetExt);
+        downloadBlob(new Blob([converted], { type: 'application/octet-stream' }), fileName);
         return { status: 'ok' };
     },
 };

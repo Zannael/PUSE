@@ -19,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.item_icon_resolver import ItemIconResolver
 from tools import rtc_repair_from_pair as rtc_repair
 from tools import rtc_patch
+from tools import save_convert
 
 
 SAVE_FILE_NAME = "edited_save.sav"
@@ -174,6 +175,27 @@ async def rtc_quick_fix(file: UploadFile = File(...)):
         content=zip_buffer.getvalue(),
         media_type="application/zip",
         headers={"Content-Disposition": f"attachment; filename={base_name}_rtc_quick_fix_pack.zip"},
+    )
+
+
+@app.post("/save/convert")
+async def convert_save(file: UploadFile = File(...), target_ext: str = ".sav"):
+    raw = await file.read()
+    if not raw:
+        raise HTTPException(status_code=400, detail="Save file is required")
+
+    try:
+        normalized_ext = save_convert.normalize_target_ext(target_ext)
+        converted = save_convert.convert_save_bytes(raw, normalized_ext)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    base_name = Path(file.filename or "save").stem
+    out_name = f"{base_name}{normalized_ext}"
+    return Response(
+        content=converted,
+        media_type="application/octet-stream",
+        headers={"Content-Disposition": f"attachment; filename={out_name}"},
     )
 
 # Keep BASE_DIR and icon paths defined before endpoint handlers
