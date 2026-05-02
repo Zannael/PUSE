@@ -14,9 +14,6 @@
 - Implement "Costume Box" unlocker and wardrobe editing.
 - Find a way to manually flag "Seen" or "Caught" when editing a species that hasn't be seen/caught before. Leaving the decision to flag it to the user, thus the "manually".
 - Complete box 20 fallback mapping for slots `22..30` in the Unbound tail layout. Current support enables slots `1..21` only, because the remaining segment overlaps ambiguous trailer bytes where deterministic slot mapping is not yet proven checksum-safe across save variants.
-
-#### Community Feedback UX Backlog
-
 - Add keyboard-assisted stat editing shortcuts (Ctrl+click to set max, Alt+click to set zero) for IV/EV fields.
 - ~Investigate ROM-truth naming mismatch reports (for example Rhyperior shown as `Filter` vs expected `Solid Rock`) and align visible labels where appropriate.~ This now has [an opened issue](https://github.com/Zannael/PUSE/issues/7).
 
@@ -27,6 +24,7 @@
 - Added backend Battle Points read/update endpoints (`GET /bp`, `POST /bp/update`) using active section `id=4` offset `0xF34` with clamp metadata.
 - Replaced the money-only modal with an `Edit Resources` flow that updates both Money and Battle Points with backend/local parity.
 - Resource inputs now enforce whole-number bounds in UI: Money (`0..999999999`) and Battle Points (`0..65535`).
+- Added a standalone SRM/SAV conversion utility (separate from the main editor, similar to RTC tools) with backend/local mode parity, including `POST /save/convert`, local in-browser conversion logic, and a dedicated pre-upload `SRM / SAV Converter` panel.
 
 ## v1.2.0 - 2026-04-24
 
