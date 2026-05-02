@@ -14,6 +14,7 @@ const MAX_GLOBAL_POCKET_SLOTS = 400;
 const MAX_STRICT_POCKET_SLOTS = 80;
 const MAX_STRICT_DUP_RATIO = 0.35;
 const MAX_MEDIUM_DUP_RATIO = 0.6;
+const MIN_POCKET_TRAILER_HEADROOM = 0x80;
 
 function toIdSet(list) {
     if (!Array.isArray(list)) return new Set();
@@ -457,6 +458,9 @@ export function scanForItemCandidates(buffer, itemId) {
         }
 
         for (let rel = 0; rel < OFF_VALID_LEN - 3; rel += 2) {
+            if (rel >= (OFF_VALID_LEN - MIN_POCKET_TRAILER_HEADROOM)) {
+                continue;
+            }
             const absOff = secOff + rel;
             [false, true].forEach((swapped) => {
                 const [iid, qty] = decodeSlot(buffer, absOff, swapped);
@@ -692,6 +696,15 @@ export function mapPocketFromAnchor(buffer, anchorOffset, itemNameById) {
 }
 
 function candidateFromAnchor(buffer, anchorOffset) {
+    const sectorBase = Math.floor(anchorOffset / SECTION_SIZE) * SECTION_SIZE;
+    const rel = anchorOffset - sectorBase;
+    if (rel < 0 || rel >= OFF_VALID_LEN) {
+        return [null, []];
+    }
+    if (rel >= (OFF_VALID_LEN - MIN_POCKET_TRAILER_HEADROOM)) {
+        return [null, []];
+    }
+
     const items = mapPocketFromAnchor(buffer, anchorOffset, new Map());
     if (items.length === 0) {
         return [null, []];
@@ -741,6 +754,21 @@ function resolveFamilyPocket(buffer, pocketType, knownAnchor, probeItemId, valid
     const [candidate, items] = candidateFromAnchor(buffer, knownAnchor);
     if (candidate && candidate.quality !== 'reject') {
         const [slotCount, familyHits] = slotFamilyStats(items, validSet);
+        if (pocketType === 'ball' && slotCount >= 2 && slotCount < minSlots && candidate.quality === 'strict') {
+            const purity = slotCount > 0 ? familyHits / slotCount : 0;
+            return {
+                pocket_type: pocketType,
+                anchor_offset: knownAnchor,
+                quality: candidate.quality,
+                score: candidate.score,
+                slot_count: candidate.pocket_slots,
+                dup_count: candidate.pocket_dups,
+                family_purity: Number(purity.toFixed(3)),
+                source: 'validated_sparse',
+                confidence: 'medium',
+                detection_note: `sparse ball pocket accepted at static anchor (${slotCount} slots)`,
+            };
+        }
         if (slotCount >= minSlots && familyHits >= Math.max(minSlots - 2, Math.floor(slotCount * 0.7))) {
             const purity = slotCount > 0 ? familyHits / slotCount : 0;
             return {

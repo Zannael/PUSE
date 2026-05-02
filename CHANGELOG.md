@@ -24,6 +24,7 @@
 - Added backend Battle Points read/update endpoints (`GET /bp`, `POST /bp/update`) using active section `id=4` offset `0xF34` with clamp metadata.
 - Replaced the money-only modal with an `Edit Resources` flow that updates both Money and Battle Points with backend/local parity.
 - Resource inputs now enforce whole-number bounds in UI: Money (`0..999999999`) and Battle Points (`0..65535`).
+- Fixed sparse Ball pocket resolution in both backend and local mode by preferring validated static anchors for low-slot pockets and skipping footer-adjacent false candidates; this resolves `.srm` reports where Ball edits targeted decoy offsets (for example Ultra/Master/Net/Nest ghost pockets) instead of the real in-game Ball pouch.
 - Added a standalone SRM/SAV conversion utility (separate from the main editor, similar to RTC tools) with backend/local mode parity, including `POST /save/convert`, local in-browser conversion logic, and a dedicated pre-upload `SRM / SAV Converter` panel.
 
 ## v1.2.0 - 2026-04-24

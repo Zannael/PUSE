@@ -35,6 +35,7 @@ MAX_GLOBAL_POCKET_SLOTS = 400
 MAX_STRICT_POCKET_SLOTS = 80
 MAX_STRICT_DUP_RATIO = 0.35
 MAX_MEDIUM_DUP_RATIO = 0.60
+MIN_POCKET_TRAILER_HEADROOM = 0x80
 
 def _fallback_pocket_sets():
     ball = {
@@ -132,6 +133,13 @@ def _slot_family_stats(items, valid_ids):
 
 
 def _candidate_from_anchor(data, anchor_offset):
+    sec_off = (int(anchor_offset) // SECTION_SIZE) * SECTION_SIZE
+    rel = int(anchor_offset) - int(sec_off)
+    if rel < 0 or rel >= OFF_VALID_LEN:
+        return None, []
+    if rel >= (OFF_VALID_LEN - MIN_POCKET_TRAILER_HEADROOM):
+        return None, []
+
     items = map_pocket_from_anchor(data, anchor_offset)
     if not items:
         return None, []
@@ -172,6 +180,20 @@ def _resolve_family_pocket(data, pocket_type, known_anchor, probe_item_id, valid
         candidate, items = _candidate_from_anchor(data, known_anchor)
         if candidate and candidate['quality'] != 'reject':
             slot_count, family_hits = _slot_family_stats(items, valid_ids)
+            if pocket_type == 'ball' and 2 <= slot_count < min_slots and candidate.get('quality') == 'strict':
+                purity = family_hits / slot_count if slot_count > 0 else 0
+                return {
+                    'pocket_type': pocket_type,
+                    'anchor_offset': known_anchor,
+                    'quality': candidate['quality'],
+                    'score': candidate['score'],
+                    'slot_count': candidate['pocket_slots'],
+                    'dup_count': candidate['pocket_dups'],
+                    'family_purity': round(purity, 3),
+                    'source': 'validated_sparse',
+                    'confidence': 'medium',
+                    'detection_note': f'sparse ball pocket accepted at static anchor ({slot_count} slots)',
+                }
             if slot_count >= min_slots and family_hits >= max(min_slots - 2, int(slot_count * 0.7)):
                 purity = family_hits / slot_count if slot_count > 0 else 0
                 return {
@@ -190,6 +212,8 @@ def _resolve_family_pocket(data, pocket_type, known_anchor, probe_item_id, valid
             if slot_count > 0:
                 purity = family_hits / slot_count
                 sparse_floor = max(4, min_slots // 3)
+                if pocket_type == 'ball':
+                    sparse_floor = 2
                 if slot_count >= sparse_floor and purity >= 0.90:
                     return {
                         'pocket_type': pocket_type,
@@ -999,6 +1023,8 @@ def scan_for_item_candidates(data, item_id):
         # Gli slot sono larghi 4 byte ma possono iniziare su allineamento 0 oppure 2.
         for rel in range(0, OFF_VALID_LEN - 3, 2):
             abs_off = sec_off + rel
+            if rel >= (OFF_VALID_LEN - MIN_POCKET_TRAILER_HEADROOM):
+                continue
             for swapped in (False, True):
                 iid, qty = _decode_slot(data, abs_off, swapped=swapped)
 
