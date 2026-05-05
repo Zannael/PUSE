@@ -3,6 +3,7 @@ import { Zap, Shield, Heart, Target, Wind, Activity } from 'lucide-react';
 import { POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 
 const PokemonCard = ({ pokemon, onEdit, getPokemonIconUrl }) => {
+    const [showHiddenAbilityHint, setShowHiddenAbilityHint] = React.useState(false);
     // Funzione per il colore delle barre IV (0-31)
     const getIvColor = (val) => {
         if (val === 31) return 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]';
@@ -59,12 +60,26 @@ const PokemonCard = ({ pokemon, onEdit, getPokemonIconUrl }) => {
                             {pokemon.ability_label_current || 'Ability'}
                         </span>
                     </div>
+                    {pokemon.is_hidden_ability && showHiddenAbilityHint && (
+                        <p className="mt-2 text-[10px] bg-amber-500/10 border border-amber-500/25 text-amber-200 px-2.5 py-1 rounded-lg inline-block">
+                            Hidden Ability
+                        </p>
+                    )}
                 </div>
 
                 {pokemon.is_hidden_ability && (
-                    <div className="bg-amber-500/20 text-amber-500 p-2 rounded-xl border border-amber-500/20">
-                        <Zap size={16} fill="currentColor" />
-                    </div>
+                    <button
+                        type="button"
+                        title="Hidden Ability"
+                        aria-label="Hidden Ability"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setShowHiddenAbilityHint((prev) => !prev);
+                        }}
+                        className="bg-amber-500/20 text-amber-400 px-2 py-1 rounded-xl border border-amber-500/30 text-[10px] font-black tracking-widest"
+                    >
+                        HA
+                    </button>
                 )}
             </div>
 
