@@ -15,6 +15,7 @@
 - Find a way to manually flag "Seen" or "Caught" when editing a species that hasn't be seen/caught before. Leaving the decision to flag it to the user, thus the "manually".
 - Complete box 20 fallback mapping for slots `22..30` in the Unbound tail layout. Current support enables slots `1..21` only, because the remaining segment overlaps ambiguous trailer bytes where deterministic slot mapping is not yet proven checksum-safe across save variants.
 - Add keyboard-assisted stat editing shortcuts (Ctrl+click to set max, Alt+click to set zero) for IV/EV fields.
+- Happiness editing
 - ~Investigate ROM-truth naming mismatch reports (for example Rhyperior shown as `Filter` vs expected `Solid Rock`) and align visible labels where appropriate.~ This now has [an opened issue](https://github.com/Zannael/PUSE/issues/7).
 
 #### Changed
