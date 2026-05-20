@@ -1,0 +1,1550 @@
+{
+  "1020": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "RATTATA_A"
+  },
+  "1021": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "RATICATE_A"
+  },
+  "1022": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "RAICHU_A"
+  },
+  "1023": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SANDSHREW_A"
+  },
+  "1024": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SANDSLASH_A"
+  },
+  "1025": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "VULPIX_A"
+  },
+  "1026": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "NINETALES_A"
+  },
+  "1027": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "DIGLETT_A"
+  },
+  "1028": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "DUGTRIO_A"
+  },
+  "1029": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MEOWTH_A"
+  },
+  "1030": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "PERSIAN_A"
+  },
+  "1031": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "GEODUDE_A"
+  },
+  "1032": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "GRAVELER_A"
+  },
+  "1033": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "GOLEM_A"
+  },
+  "1034": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "GRIMER_A"
+  },
+  "1035": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MUK_A"
+  },
+  "1036": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "EXEGGCUTE_A"
+  },
+  "1037": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "EXEGGUTOR_A"
+  },
+  "1038": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "CUBONE_A"
+  },
+  "1039": {
+    "alias": "Alolan",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MAROWAK_A"
+  },
+  "1040": {
+    "alias": "Attack Forme",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "DEOXYS_ATTACK"
+  },
+  "1041": {
+    "alias": "Defense Forme",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "DEOXYS_DEFENSE"
+  },
+  "1042": {
+    "alias": "Speed Forme",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "DEOXYS_SPEED"
+  },
+  "1043": {
+    "alias": "Form Y",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ORICORIO_Y"
+  },
+  "1044": {
+    "alias": "Form P",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ORICORIO_P"
+  },
+  "1045": {
+    "alias": "Form S",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ORICORIO_S"
+  },
+  "1046": {
+    "alias": "Form N",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "LYCANROC_N"
+  },
+  "1047": {
+    "alias": "School Form",
+    "confidence": "high",
+    "rule": "special",
+    "token": "WISHIWASHI_S"
+  },
+  "1048": {
+    "alias": "Fight Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SILVALLY_FIGHT"
+  },
+  "1049": {
+    "alias": "Flying Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SILVALLY_FLYING"
+  },
+  "1050": {
+    "alias": "Poison Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SILVALLY_POISON"
+  },
+  "1051": {
+    "alias": "Ground Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SILVALLY_GROUND"
+  },
+  "1052": {
+    "alias": "Rock Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SILVALLY_ROCK"
+  },
+  "1053": {
+    "alias": "Bug Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SILVALLY_BUG"
+  },
+  "1054": {
+    "alias": "Ghost Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SILVALLY_GHOST"
+  },
+  "1055": {
+    "alias": "Steel Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SILVALLY_STEEL"
+  },
+  "1056": {
+    "alias": "Fire Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SILVALLY_FIRE"
+  },
+  "1057": {
+    "alias": "Water Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SILVALLY_WATER"
+  },
+  "1058": {
+    "alias": "Grass Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SILVALLY_GRASS"
+  },
+  "1059": {
+    "alias": "Electric Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SILVALLY_ELECTRIC"
+  },
+  "1060": {
+    "alias": "Psychic Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SILVALLY_PSYCHIC"
+  },
+  "1061": {
+    "alias": "Ice Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SILVALLY_ICE"
+  },
+  "1062": {
+    "alias": "Dragon Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SILVALLY_DRAGON"
+  },
+  "1063": {
+    "alias": "Dark Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SILVALLY_DARK"
+  },
+  "1064": {
+    "alias": "Fairy Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SILVALLY_FAIRY"
+  },
+  "1065": {
+    "alias": "Red Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MINIOR_RED"
+  },
+  "1066": {
+    "alias": "Blue Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MINIOR_BLUE"
+  },
+  "1067": {
+    "alias": "Orange Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MINIOR_ORANGE"
+  },
+  "1068": {
+    "alias": "Yellow Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MINIOR_YELLOW"
+  },
+  "1069": {
+    "alias": "Indigo Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MINIOR_INDIGO"
+  },
+  "1070": {
+    "alias": "Green Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MINIOR_GREEN"
+  },
+  "1071": {
+    "alias": "Violet Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MINIOR_VIOLET"
+  },
+  "1073": {
+    "alias": "Form P",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MAGEARNA_P"
+  },
+  "1086": {
+    "alias": "Flying Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "PIKACHU_FLYING"
+  },
+  "1141": {
+    "alias": "Amped Form",
+    "confidence": "high",
+    "rule": "special",
+    "token": "TOXTRICITY"
+  },
+  "1146": {
+    "alias": "Phony Form",
+    "confidence": "high",
+    "rule": "special",
+    "token": "SINISTEA"
+  },
+  "1147": {
+    "alias": "Phony Form",
+    "confidence": "high",
+    "rule": "special",
+    "token": "POLTEAGEIST"
+  },
+  "1167": {
+    "alias": "Ice Face",
+    "confidence": "high",
+    "rule": "special",
+    "token": "EISCUE"
+  },
+  "1169": {
+    "alias": "Full Belly Mode",
+    "confidence": "high",
+    "rule": "special",
+    "token": "MORPEKO"
+  },
+  "1180": {
+    "alias": "Hero of Many Battles",
+    "confidence": "high",
+    "rule": "special",
+    "token": "ZACIAN"
+  },
+  "1181": {
+    "alias": "Hero of Many Battles",
+    "confidence": "high",
+    "rule": "special",
+    "token": "ZAMAZENTA"
+  },
+  "1184": {
+    "alias": "Single Strike Style",
+    "confidence": "high",
+    "rule": "special",
+    "token": "URSHIFU_SINGLE"
+  },
+  "1193": {
+    "alias": "Low Key Form",
+    "confidence": "high",
+    "rule": "special",
+    "token": "TOXTRICITY_LOW_KEY"
+  },
+  "1194": {
+    "alias": "Chipped Form",
+    "confidence": "high",
+    "rule": "special",
+    "token": "SINISTEA_CHIPPED"
+  },
+  "1195": {
+    "alias": "Chipped Form",
+    "confidence": "high",
+    "rule": "special",
+    "token": "POLTEAGEIST_CHIPPED"
+  },
+  "1202": {
+    "alias": "Noice Face",
+    "confidence": "high",
+    "rule": "special",
+    "token": "EISCUE_NOICE"
+  },
+  "1203": {
+    "alias": "Female Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "INDEEDEE_FEMALE"
+  },
+  "1204": {
+    "alias": "Hangry Mode",
+    "confidence": "high",
+    "rule": "special",
+    "token": "MORPEKO_HANGRY"
+  },
+  "1205": {
+    "alias": "Crowned Sword",
+    "confidence": "high",
+    "rule": "special",
+    "token": "ZACIAN_CROWNED"
+  },
+  "1206": {
+    "alias": "Crowned Shield",
+    "confidence": "high",
+    "rule": "special",
+    "token": "ZAMAZENTA_CROWNED"
+  },
+  "1208": {
+    "alias": "Rapid Strike Style",
+    "confidence": "high",
+    "rule": "special",
+    "token": "URSHIFU_RAPID"
+  },
+  "1210": {
+    "alias": "Ice Rider",
+    "confidence": "high",
+    "rule": "special",
+    "token": "CALYREX_ICE_RIDER"
+  },
+  "1211": {
+    "alias": "Shadow Rider",
+    "confidence": "high",
+    "rule": "special",
+    "token": "CALYREX_SHADOW_RIDER"
+  },
+  "1212": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MEOWTH_G"
+  },
+  "1213": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "PONYTA_G"
+  },
+  "1214": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "RAPIDASH_G"
+  },
+  "1215": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SLOWPOKE_G"
+  },
+  "1216": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SLOWBRO_G"
+  },
+  "1217": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "FARFETCHD_G"
+  },
+  "1218": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "KOFFING_G"
+  },
+  "1219": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "WEEZING_G"
+  },
+  "1220": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MR_MIME_G"
+  },
+  "1221": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARTICUNO_G"
+  },
+  "1222": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ZAPDOS_G"
+  },
+  "1223": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MOLTRES_G"
+  },
+  "1224": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SLOWKING_G"
+  },
+  "1225": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "CORSOLA_G"
+  },
+  "1226": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ZIGZAGOON_G"
+  },
+  "1227": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "LINOONE_G"
+  },
+  "1228": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MIME_JR_G"
+  },
+  "1229": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "DARUMAKA_G"
+  },
+  "1230": {
+    "alias": "Galarian Standard Mode",
+    "confidence": "high",
+    "rule": "special",
+    "token": "DARMANITAN_G"
+  },
+  "1231": {
+    "alias": "Galarian Zen Mode",
+    "confidence": "high",
+    "rule": "special",
+    "token": "DARMANITAN_G_ZEN"
+  },
+  "1232": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "YAMASK_G"
+  },
+  "1233": {
+    "alias": "Galarian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "STUNFISK_G"
+  },
+  "1234": {
+    "alias": "Hisuian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "GROWLITHE_H"
+  },
+  "1235": {
+    "alias": "Hisuian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCANINE_H"
+  },
+  "1236": {
+    "alias": "Hisuian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "VOLTORB_H"
+  },
+  "1237": {
+    "alias": "Hisuian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ELECTRODE_H"
+  },
+  "1238": {
+    "alias": "Hisuian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "TYPHLOSION_H"
+  },
+  "1239": {
+    "alias": "Hisuian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "QWILFISH_H"
+  },
+  "1240": {
+    "alias": "Hisuian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SNEASEL_H"
+  },
+  "1241": {
+    "alias": "Hisuian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SAMUROTT_H"
+  },
+  "1242": {
+    "alias": "Hisuian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "LILLIGANT_H"
+  },
+  "1243": {
+    "alias": "Hisuian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "BASCULIN_H"
+  },
+  "1244": {
+    "alias": "Hisuian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ZORUA_H"
+  },
+  "1245": {
+    "alias": "Hisuian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ZOROARK_H"
+  },
+  "1246": {
+    "alias": "Hisuian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "BRAVIARY_H"
+  },
+  "1247": {
+    "alias": "Hisuian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SLIGGOO_H"
+  },
+  "1248": {
+    "alias": "Hisuian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "GOODRA_H"
+  },
+  "1249": {
+    "alias": "Hisuian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "AVALUGG_H"
+  },
+  "1250": {
+    "alias": "Hisuian",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "DECIDUEYE_H"
+  },
+  "1254": {
+    "alias": "Male Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "BASCULEGION_M"
+  },
+  "1255": {
+    "alias": "Female Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "BASCULEGION_F"
+  },
+  "1259": {
+    "alias": "Therian Forme",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ENAMORUS_THERIAN"
+  },
+  "1260": {
+    "alias": "Gigantamax",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "VENUSAUR_GIGA"
+  },
+  "1261": {
+    "alias": "Gigantamax",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "CHARIZARD_GIGA"
+  },
+  "1262": {
+    "alias": "Gigantamax",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "BLASTOISE_GIGA"
+  },
+  "1263": {
+    "alias": "Gigantamax",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "BUTTERFREE_GIGA"
+  },
+  "1264": {
+    "alias": "Gigantamax",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "PIKACHU_GIGA"
+  },
+  "1265": {
+    "alias": "Gigantamax",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MEOWTH_GIGA"
+  },
+  "1266": {
+    "alias": "Gigantamax",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MACHAMP_GIGA"
+  },
+  "1267": {
+    "alias": "Gigantamax",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "GENGAR_GIGA"
+  },
+  "29": {
+    "alias": "Female Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "NIDORAN_F"
+  },
+  "32": {
+    "alias": "Male Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "NIDORAN_M"
+  },
+  "438": {
+    "alias": "Exclamation Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "UNOWN_EXCLAMATION"
+  },
+  "439": {
+    "alias": "Question Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "UNOWN_QUESTION"
+  },
+  "603": {
+    "alias": "Red Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "BASCULIN_RED"
+  },
+  "608": {
+    "alias": "Standard Mode",
+    "confidence": "high",
+    "rule": "special",
+    "token": "DARMANITAN"
+  },
+  "703": {
+    "alias": "Female Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "UNFEZANT_F"
+  },
+  "704": {
+    "alias": "Female Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "FRILLISH_F"
+  },
+  "705": {
+    "alias": "Female Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "JELLICENT_F"
+  },
+  "707": {
+    "alias": "Sandy Cloak",
+    "confidence": "high",
+    "rule": "special",
+    "token": "BURMY_SANDY"
+  },
+  "708": {
+    "alias": "Trash Cloak",
+    "confidence": "high",
+    "rule": "special",
+    "token": "BURMY_TRASH"
+  },
+  "709": {
+    "alias": "Sandy Cloak",
+    "confidence": "high",
+    "rule": "special",
+    "token": "WORMADAM_SANDY"
+  },
+  "710": {
+    "alias": "Trash Cloak",
+    "confidence": "high",
+    "rule": "special",
+    "token": "WORMADAM_TRASH"
+  },
+  "713": {
+    "alias": "Heat Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ROTOM_HEAT"
+  },
+  "714": {
+    "alias": "Wash Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ROTOM_WASH"
+  },
+  "715": {
+    "alias": "Frost Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ROTOM_FROST"
+  },
+  "716": {
+    "alias": "Fan Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ROTOM_FAN"
+  },
+  "717": {
+    "alias": "Mow Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ROTOM_MOW"
+  },
+  "718": {
+    "alias": "Origin Forme",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "GIRATINA_ORIGIN"
+  },
+  "719": {
+    "alias": "Sky Forme",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SHAYMIN_SKY"
+  },
+  "720": {
+    "alias": "Fight Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCEUS_FIGHT"
+  },
+  "721": {
+    "alias": "Flying Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCEUS_FLYING"
+  },
+  "722": {
+    "alias": "Poison Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCEUS_POISON"
+  },
+  "723": {
+    "alias": "Ground Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCEUS_GROUND"
+  },
+  "724": {
+    "alias": "Rock Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCEUS_ROCK"
+  },
+  "725": {
+    "alias": "Bug Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCEUS_BUG"
+  },
+  "726": {
+    "alias": "Ghost Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCEUS_GHOST"
+  },
+  "727": {
+    "alias": "Steel Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCEUS_STEEL"
+  },
+  "728": {
+    "alias": "Fire Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCEUS_FIRE"
+  },
+  "729": {
+    "alias": "Water Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCEUS_WATER"
+  },
+  "730": {
+    "alias": "Grass Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCEUS_GRASS"
+  },
+  "731": {
+    "alias": "Electric Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCEUS_ELECTRIC"
+  },
+  "732": {
+    "alias": "Psychic Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCEUS_PSYCHIC"
+  },
+  "733": {
+    "alias": "Ice Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCEUS_ICE"
+  },
+  "734": {
+    "alias": "Dragon Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCEUS_DRAGON"
+  },
+  "735": {
+    "alias": "Dark Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCEUS_DARK"
+  },
+  "736": {
+    "alias": "Blue Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "BASCULIN_BLUE"
+  },
+  "737": {
+    "alias": "Zen Mode",
+    "confidence": "high",
+    "rule": "special",
+    "token": "DARMANITANZEN"
+  },
+  "738": {
+    "alias": "Summer Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "DEERLING_SUMMER"
+  },
+  "739": {
+    "alias": "Autumn Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "DEERLING_AUTUMN"
+  },
+  "740": {
+    "alias": "Winter Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "DEERLING_WINTER"
+  },
+  "741": {
+    "alias": "Summer Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SAWSBUCK_SUMMER"
+  },
+  "742": {
+    "alias": "Autumn Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SAWSBUCK_AUTUMN"
+  },
+  "743": {
+    "alias": "Winter Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SAWSBUCK_WINTER"
+  },
+  "744": {
+    "alias": "Female Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "HIPPOPOTAS_F"
+  },
+  "745": {
+    "alias": "Female Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "HIPPOWDON_F"
+  },
+  "753": {
+    "alias": "White Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "KYUREM_WHITE"
+  },
+  "754": {
+    "alias": "Therian Forme",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "TORNADUS_THERIAN"
+  },
+  "755": {
+    "alias": "Therian Forme",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "THUNDURUS_THERIAN"
+  },
+  "756": {
+    "alias": "Therian Forme",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "LANDORUS_THERIAN"
+  },
+  "789": {
+    "alias": "Shield Forme",
+    "confidence": "high",
+    "rule": "special",
+    "token": "AEGISLASH"
+  },
+  "831": {
+    "alias": "Female Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "PYROAR_FEMALE"
+  },
+  "832": {
+    "alias": "Female Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MEOWSTIC_FEMALE"
+  },
+  "833": {
+    "alias": "Blade Forme",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "AEGISLASH_BLADE"
+  },
+  "834": {
+    "alias": "Fairy Type",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ARCEUS_FAIRY"
+  },
+  "839": {
+    "alias": "Ash",
+    "confidence": "high",
+    "rule": "special",
+    "token": "ASHGRENINJA"
+  },
+  "840": {
+    "alias": "Blue Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "FLABEBE_BLUE"
+  },
+  "841": {
+    "alias": "Orange Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "FLABEBE_ORANGE"
+  },
+  "842": {
+    "alias": "Yellow Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "FLABEBE_YELLOW"
+  },
+  "843": {
+    "alias": "White Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "FLABEBE_WHITE"
+  },
+  "844": {
+    "alias": "Blue Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "FLOETTE_BLUE"
+  },
+  "845": {
+    "alias": "Orange Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "FLOETTE_ORANGE"
+  },
+  "846": {
+    "alias": "Yellow Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "FLOETTE_YELLOW"
+  },
+  "847": {
+    "alias": "White Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "FLOETTE_WHITE"
+  },
+  "848": {
+    "alias": "Eternal Flower",
+    "confidence": "high",
+    "rule": "special",
+    "token": "FLOETTE_ETERNAL"
+  },
+  "849": {
+    "alias": "Blue Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "FLORGES_BLUE"
+  },
+  "850": {
+    "alias": "Orange Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "FLORGES_ORANGE"
+  },
+  "851": {
+    "alias": "Yellow Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "FLORGES_YELLOW"
+  },
+  "852": {
+    "alias": "White Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "FLORGES_WHITE"
+  },
+  "854": {
+    "alias": "Form L",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "PUMPKABOO_L"
+  },
+  "855": {
+    "alias": "Male Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "PUMPKABOO_M"
+  },
+  "857": {
+    "alias": "Form L",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "GOURGEIST_L"
+  },
+  "858": {
+    "alias": "Male Form",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "GOURGEIST_M"
+  },
+  "859": {
+    "alias": "Heart Trim",
+    "confidence": "high",
+    "rule": "special",
+    "token": "FURFROU_HEART"
+  },
+  "860": {
+    "alias": "Diamond Trim",
+    "confidence": "high",
+    "rule": "special",
+    "token": "FURFROU_DIAMOND"
+  },
+  "861": {
+    "alias": "Star Trim",
+    "confidence": "high",
+    "rule": "special",
+    "token": "FURFROU_STAR"
+  },
+  "862": {
+    "alias": "Pharaoh Trim",
+    "confidence": "high",
+    "rule": "special",
+    "token": "FURFROU_PHAROAH"
+  },
+  "863": {
+    "alias": "Kabuki Trim",
+    "confidence": "high",
+    "rule": "special",
+    "token": "FURFROU_KABUKI"
+  },
+  "864": {
+    "alias": "La Reine Trim",
+    "confidence": "high",
+    "rule": "special",
+    "token": "FURFROU_LA_REINE"
+  },
+  "865": {
+    "alias": "Matron Trim",
+    "confidence": "high",
+    "rule": "special",
+    "token": "FURFROU_MATRON"
+  },
+  "866": {
+    "alias": "Dandy Trim",
+    "confidence": "high",
+    "rule": "special",
+    "token": "FURFROU_DANDY"
+  },
+  "867": {
+    "alias": "Debutante Trim",
+    "confidence": "high",
+    "rule": "special",
+    "token": "FURFROU_DEBUTANTE"
+  },
+  "869": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "VENUSAUR_MEGA"
+  },
+  "870": {
+    "alias": "Mega X",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "CHARIZARD_MEGA_X"
+  },
+  "871": {
+    "alias": "Mega Y",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "CHARIZARD_MEGA_Y"
+  },
+  "872": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "BLASTOISE_MEGA"
+  },
+  "873": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "BEEDRILL_MEGA"
+  },
+  "874": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "PIDGEOT_MEGA"
+  },
+  "875": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ALAKAZAM_MEGA"
+  },
+  "876": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SLOWBRO_MEGA"
+  },
+  "877": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "GENGAR_MEGA"
+  },
+  "878": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "KANGASKHAN_MEGA"
+  },
+  "879": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "PINSIR_MEGA"
+  },
+  "880": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "GYARADOS_MEGA"
+  },
+  "881": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "AERODACTYL_MEGA"
+  },
+  "882": {
+    "alias": "Mega X",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MEWTWO_MEGA_X"
+  },
+  "883": {
+    "alias": "Mega Y",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MEWTWO_MEGA_Y"
+  },
+  "884": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "AMPHAROS_MEGA"
+  },
+  "885": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "STEELIX_MEGA"
+  },
+  "886": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SCIZOR_MEGA"
+  },
+  "887": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "HERACROSS_MEGA"
+  },
+  "888": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "HOUNDOOM_MEGA"
+  },
+  "889": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "TYRANITAR_MEGA"
+  },
+  "890": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SCEPTILE_MEGA"
+  },
+  "891": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "BLAZIKEN_MEGA"
+  },
+  "892": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SWAMPERT_MEGA"
+  },
+  "893": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "GARDEVOIR_MEGA"
+  },
+  "894": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SABLEYE_MEGA"
+  },
+  "895": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MAWILE_MEGA"
+  },
+  "896": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "AGGRON_MEGA"
+  },
+  "897": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MEDICHAM_MEGA"
+  },
+  "898": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "MANECTRIC_MEGA"
+  },
+  "899": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SHARPEDO_MEGA"
+  },
+  "900": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "CAMERUPT_MEGA"
+  },
+  "901": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ALTARIA_MEGA"
+  },
+  "902": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "BANETTE_MEGA"
+  },
+  "903": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ABSOL_MEGA"
+  },
+  "904": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "GLALIE_MEGA"
+  },
+  "905": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "SALAMENCE_MEGA"
+  },
+  "906": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "METAGROSS_MEGA"
+  },
+  "907": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "LATIAS_MEGA"
+  },
+  "908": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "LATIOS_MEGA"
+  },
+  "909": {
+    "alias": "Primal",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "GROUDON_PRIMAL"
+  },
+  "910": {
+    "alias": "Primal",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "KYOGRE_PRIMAL"
+  },
+  "911": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "RAYQUAZA_MEGA"
+  },
+  "912": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "LOPUNNY_MEGA"
+  },
+  "913": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "GARCHOMP_MEGA"
+  },
+  "914": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "LUCARIO_MEGA"
+  },
+  "915": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "ABOMASNOW_MEGA"
+  },
+  "916": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "GALLADE_MEGA"
+  },
+  "917": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "AUDINO_MEGA"
+  },
+  "918": {
+    "alias": "Mega",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "DIANCIE_MEGA"
+  },
+  "919": {
+    "alias": "Origin Forme",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "DIALGA_ORIGIN"
+  },
+  "920": {
+    "alias": "Origin Forme",
+    "confidence": "high",
+    "rule": "suffix",
+    "token": "PALKIA_ORIGIN"
+  },
+  "963": {
+    "alias": "Solo Form",
+    "confidence": "high",
+    "rule": "special",
+    "token": "WISHIWASHI"
+  }
+}

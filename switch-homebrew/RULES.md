@@ -52,14 +52,83 @@ These rules define how we port this project to Nintendo Switch (`.nro`) while ke
 ## 6) UI/UX Rules for Switch
 
 - UI framework: **Plutonium**.
+- UI implementation must follow the mandatory UI/UX reference workflow below for every UI touch.
+- Frontend (`frontend/`) can be used as flow/feature-division inspiration (what screens and controls exist), but not as a direct implementation template.
 - Keep feature parity with existing app flows while adapting layout to controller-based navigation.
 - Replicate frontend interaction patterns as closely as feasible (navigation flow, edit affordances, feedback timing, validation messaging).
 - Prioritize user-friendly interaction over strict visual matching when controller ergonomics require adaptation.
 - UI restyling is allowed, but behavior is not:
   - Same operations.
   - Same validation outcomes.
-  - Same resulting save modifications.
+- Same resulting save modifications.
 - If icons are used, load them from ROMFS paths mapped from `backend/icons/`.
+
+### 6.1) Mandatory UI Reference Workflow (Non-Negotiable)
+
+- Any time code is touched in a UI/UX way, you must explicitly review both of these before coding:
+  - Goldleaf UI sources under `switch-homebrew/tools/Goldleaf/ui/`
+  - Plutonium docs under `switch-homebrew/tools/Plutonium/docs/`
+- For new screens or layout rewrites, also review the Plutonium example app under `switch-homebrew/tools/Plutonium/example/`.
+- Skipping this review is not allowed. If these references are unavailable, UI work must stop until access is restored.
+- PRs/patch notes for UI changes must state which Goldleaf files and which Plutonium doc pages were checked.
+
+### 6.2) Where Plutonium Pre-Made UI Components Are (Must Be Used First)
+
+- Canonical component index (docs): `switch-homebrew/tools/Plutonium/docs/files.html`
+- Canonical component headers (source of truth): `switch-homebrew/tools/Plutonium/Plutonium/include/pu/ui/`
+- Core ready-to-use UI elements are in: `switch-homebrew/tools/Plutonium/Plutonium/include/pu/ui/elm/`
+  - `elm_Button.hpp`
+  - `elm_Menu.hpp` (includes `MenuItem`, selection callbacks, per-item icon support)
+  - `elm_Toggle.hpp`
+  - `elm_ProgressBar.hpp`
+  - `elm_TextBlock.hpp`
+  - `elm_Image.hpp`
+  - `elm_Rectangle.hpp`
+- Other built-ins to use before custom widgets:
+  - `switch-homebrew/tools/Plutonium/Plutonium/include/pu/ui/ui_Dialog.hpp` (dialogs, option lists, dialog icon)
+  - `switch-homebrew/tools/Plutonium/Plutonium/include/pu/ui/ui_Overlay.hpp`
+  - `switch-homebrew/tools/Plutonium/Plutonium/include/pu/ui/extras/extras_Toast.hpp`
+
+### 6.3) Component Selection Policy
+
+- This policy is mandatory and applies to every UI/UX change, including very small components.
+- If a component might already exist in Plutonium (even with slight doubt), the required sequence is:
+  1) Search for the component in Plutonium docs/headers (`tools/Plutonium/docs/`, `tools/Plutonium/Plutonium/include/pu/ui/`).
+  2) Check Goldleaf UI for real usage patterns (`tools/Goldleaf/ui/`).
+  3) Understand constraints/API from docs + usage.
+  4) Only then implement.
+- Do not create custom controls if an existing Plutonium control can do the job.
+- In this vendored Plutonium snapshot, there is no dedicated `Card` or `Slider` element in `pu/ui/elm`; build those by composition (`Rectangle` + `TextBlock` + `Image`/`Menu`) only when required.
+- In this vendored Plutonium snapshot, Nintendo button icons are not exposed as a dedicated built-in Plutonium widget; use explicit assets/glyphs and keep usage consistent across screens.
+
+### 6.5) Mandatory Escalation When Component Is Missing or Hard
+
+- If a UI/UX idea cannot be mapped cleanly to existing Plutonium + known Goldleaf patterns, implementation must pause and an explicit decision note must be provided before continuing.
+- The decision note is mandatory and must include:
+  - what was searched (docs pages, headers, Goldleaf files),
+  - why existing components/patterns are insufficient,
+  - 1-3 concrete implementation options,
+  - trade-offs (UX quality, complexity, maintenance risk, parity risk),
+  - recommended option.
+- No speculative custom widget should be implemented without this explicit note/decision step.
+
+### 6.6) Mandatory Multi-Page Navigation and Full-Screen Usage
+
+- This policy is mandatory for all information navigation flows.
+- When changing information context (list -> details, details -> edit form, category -> subcategory, etc.), navigate to another full page/layout.
+- Do not open nested sub-blocks/sub-boxes inside the same view for major information changes.
+- Every page must have a deterministic way to return to the previous page (standard back-stack behavior, typically `B`).
+- Navigation must be implemented as an explicit page stack (`push` on enter, `pop` on back), preserving consistent return behavior.
+- For every screen, use the maximum available screen area intentionally; avoid partial-screen layouts that leave large unused regions without purpose.
+- Re-check Goldleaf multi-view patterns whenever implementing or changing navigation:
+  - `switch-homebrew/tools/Goldleaf/ui/ui_MainApplication.cpp`
+  - related feature layouts under `switch-homebrew/tools/Goldleaf/ui/`
+
+### 6.4) Goldleaf UI Reference Points For Icons/Patterns
+
+- Goldleaf UI source reference: `switch-homebrew/tools/Goldleaf/ui/`
+- Common icon loading pattern reference: `switch-homebrew/tools/Goldleaf/ui/ui_Utils.cpp`
+- App shell/layout stack and dialog usage reference: `switch-homebrew/tools/Goldleaf/ui/ui_MainApplication.cpp`
 
 ## 7) Implementation Discipline
 
@@ -95,6 +164,18 @@ These rules define how we port this project to Nintendo Switch (`.nro`) while ke
 ## 10) Build and Repo Hygiene
 
 - Build target is `.nro` via `switch-homebrew/Makefile` and toolchain under `switch-homebrew/tools/`.
+- Preferred build environment is Docker using `switch-homebrew/tools/Dockerfile` to avoid host toolchain/glibc mismatches.
+- Standard Docker build flow:
+  - `docker build -t switch-plutonium-dev -f switch-homebrew/tools/Dockerfile switch-homebrew/tools`
+  - `docker run --rm -v "$(pwd)/switch-homebrew":/work -w /work switch-plutonium-dev make clean && docker run --rm -v "$(pwd)/switch-homebrew":/work -w /work switch-plutonium-dev make`
+- After building `.nro`, SD artifacts must also be refreshed (mandatory):
+  - `switch-homebrew/scripts/prepare_sd_bundle.sh`
+  - This updates `switch-homebrew/artifacts/sdmc/switch/puse/puse-switch.nro` and required `data/` (and `icons/` when enabled).
+- After Docker build, fix artifact ownership on host (mandatory):
+  - `docker run --rm -v "$(pwd)/switch-homebrew":/work switch-plutonium-dev sh -lc "chown -R $(id -u):$(id -g) /work/puse-switch.nro /work/puse-switch.elf /work/build /work/artifacts/sdmc"`
+- Preferred one-command path:
+  - `switch-homebrew/scripts/build_docker.sh`
+  - This performs Docker image build, project build, SD bundle refresh, and ownership fix.
 - Local functional/parity tests must pass before packaging `.nro` binaries.
 - Maintain support for two final variants:
   - Standard `.nro` with media/icons.

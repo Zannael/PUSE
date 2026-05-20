@@ -40,6 +40,8 @@ backend/data/move_pp_probe_diagnostics.json
 # Logs
 *.log
 
+pkhex/
+
 # Switch homebrew build outputs
 switch-homebrew/build/
 switch-homebrew/build-local/
@@ -47,12 +49,14 @@ switch-homebrew/*.elf
 switch-homebrew/*.nro
 switch-homebrew/*.nacp
 switch-homebrew/*.npdm
+switch-homebrew/*.map
 switch-homebrew/tools/Plutonium
 
 # Switch homebrew non-essential local/reference content
 switch-homebrew/artifacts/
 switch-homebrew/notes/
 switch-homebrew/goldleaf-source/
+switch-homebrew/tools/Goldleaf/
 switch-homebrew/tools/bag_probe.cpp
 switch-homebrew/tools/party_probe.cpp
 switch-homebrew/tools/pc_probe.cpp
@@ -64,6 +68,7 @@ switch-homebrew/tools/Plutonium/*
 switch-homebrew/tools/Plutonium/Plutonium/build/
 switch-homebrew/tools/Plutonium/Plutonium/lib/
 switch-homebrew/NOTES.md
+switch-homebrew/romfs/icons
 
 # Local planning/docs not needed for build
 AGENTS.md

@@ -3,6 +3,7 @@
 > Live app: **[https://zannael.github.io/PUSE/](https://zannael.github.io/PUSE/)**
 
 Web-based save editor for Pokemon Unbound (v 2.1.1.1) built with a frontend-first architecture.
+The project **now also includes a Nintendo Switch Homebrew version!**
 The app supports local in-browser save editing (recommended) and backend mode (FastAPI) with parity-focused behavior.
 
 ## Features
@@ -88,6 +89,49 @@ uvicorn main:app --reload --host ${BACKEND_HOST:-0.0.0.0} --port ${BACKEND_PORT:
 ```bash
 docker compose up --build
 ```
+
+## Switch Homebrew (NRO)
+
+A Nintendo Switch `.nro` port of PUSE is available under `switch-homebrew/`. Build requires Docker and devkitPro — no host C++ toolchain needed.
+
+### Prerequisites
+
+- Docker Desktop (or Docker Engine on Linux)
+- The `switch-homebrew/tools/Dockerfile` provides the full devkitPro + Plutonium build environment automatically
+
+### Build
+
+```bash
+# Full build: Docker image + compile + SD card bundle
+switch-homebrew/scripts/build_docker.sh
+
+# If backend/data changed, sync static data into ROMFS first
+switch-homebrew/scripts/sync_romfs_data.sh
+```
+
+Output: `switch-homebrew/artifacts/sdmc/switch/puse/` ready to copy to an SD card.
+
+### SD Card Setup
+
+1. Copy `switch-homebrew/artifacts/sdmc/switch/puse/` to the root of your Switch SD card.
+2. Place your save file at `sdmc:/switch/puse/Unbound.sav`.
+3. Launch `hbmenu`, then open PUSE.
+
+### Controls
+
+| Button | Action |
+|--------|--------|
+| A | Select / confirm edit |
+| B | Back / cancel |
+| X | Save changes to SD card |
+| + | Exit to hbmenu |
+
+### Capabilities
+
+- Browse and edit all 6 party Pokémon (species, nickname, level, nature, item, ability, IVs, EVs, moves + PP/PP-Up, shiny/gender)
+- Browse all 18 PC boxes; edit any stored Pokémon (same fields as party, PP-Up editable)
+- Read and write trainer money (up to 999,999,999)
+- Save written in-place to `Unbound.sav` on SD card; toast confirmation on success
 
 ## Optional Pokemon Sprites
 
