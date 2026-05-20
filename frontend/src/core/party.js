@@ -967,6 +967,18 @@ export function updatePartyAbilitySwitch(buffer, monIndex, payload) {
     });
 }
 
+export function fixPartyMonChecksums(buffer) {
+    const active = findActiveTrainerSection(buffer);
+    if (!active) return;
+    const teamCount = Math.min(6, ru32(buffer, active.off + PARTY_COUNT_OFFSET));
+    for (let i = 0; i < teamCount; i += 1) {
+        const monOffset = partyMonOffset(active.off, i);
+        const rawMon = buffer.slice(monOffset, monOffset + PARTY_MON_SIZE);
+        addMonChecksum(rawMon);
+        buffer.set(rawMon, monOffset);
+    }
+}
+
 export function updatePartyIdentity(buffer, monIndex, payload) {
     mutatePartyMon(buffer, monIndex, (rawMon) => {
         const nextPid = findIdentityPid(rawMon, payload || {});

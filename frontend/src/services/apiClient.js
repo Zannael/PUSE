@@ -176,7 +176,8 @@ const backendClient = {
         }
         return res.json();
     },
-    downloadSave() {
+    async downloadSave() {
+        await backendJson('/save-all', { method: 'POST' });
         window.location.href = `${API_BASE}/download`;
     },
     getParty() {
@@ -411,8 +412,15 @@ const localClient = {
         };
     },
     async downloadSave() {
-        const { exportBlob, getFilename } = await getLocalCoreModules();
-        downloadBlob(exportBlob(), getFilename());
+        const {
+            getBuffer,
+            getFilename,
+            getPcContext,
+            saveAll,
+        } = await getLocalCoreModules();
+        const finalized = new Uint8Array(getBuffer());
+        saveAll(finalized, getPcContext());
+        downloadBlob(new Blob([finalized], { type: 'application/octet-stream' }), getFilename());
     },
     async getParty() {
         const { getSpeciesMap, getSpeciesFormMetaMap, getParty: readParty, getBuffer } = await getLocalCoreModules();

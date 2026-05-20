@@ -1654,6 +1654,17 @@ async def commit_to_file():
 
     sections = money_mod.list_sections(current_save["data"])
 
+    # 0. Recompute per-mon checksums for all party mons in the active trainer section.
+    # This fixes stale checksums (e.g. item given without checksum update) that would
+    # cause the game to corrupt the Pokemon when entering battle.
+    active_trainer_off = get_active_trainer_offset()
+    if active_trainer_off is not None:
+        team_count = min(6, party_mod.ru32(current_save["data"], active_trainer_off + 0x34))
+        for idx in range(team_count):
+            mon_off = active_trainer_off + 0x38 + idx * 100
+            pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+            current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+
     # 1. Recalculate trainer section checksums (ID 1)
     for sec in sections:
         if sec['id'] == party_mod.TRAINER_SECTION_ID:
