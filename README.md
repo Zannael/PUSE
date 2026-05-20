@@ -133,6 +133,24 @@ Output: `switch-homebrew/artifacts/sdmc/switch/puse/` ready to copy to an SD car
 - Read and write trainer money (up to 999,999,999)
 - Save written in-place to `Unbound.sav` on SD card; toast confirmation on success
 
+### Optional: Pokémon and Item Icons
+
+Sprites are not required to run the NRO — the app boots and all editing works without them; menu items simply show no icon.
+
+**Pokémon icons** — copy the `gFrontSprite*.png` sprite sheet into:
+```
+sdmc:/switch/puse/icons/pokemon/
+```
+Sources:
+- [Skeli789/Dynamic-Pokemon-Expansion](https://github.com/Skeli789/Dynamic-Pokemon-Expansion/tree/master/graphics/frontspr) (original)
+- [Shiny-Miner/Dynamic-Pokemon-Expansion-Gen-9](https://github.com/Shiny-Miner/Dynamic-Pokemon-Expansion-Gen-9/tree/master/graphics/frontspr) (Gen 9 extended)
+
+**Item icons** — copy item PNG files into:
+```
+sdmc:/switch/puse/icons/items/
+```
+Source: [PokeAPI/sprites](https://github.com/PokeAPI/sprites) item icons or Leon's ROM Base item icon pack.
+
 ## Optional Pokemon Sprites
 
 - Pokemon icon sprites are optional and not required to run the app.

@@ -562,7 +562,7 @@ std::string MainApplication::GetDbName(const std::unordered_map<int, std::string
 
 pu::sdl2::TextureHandle::Ref MainApplication::LoadTextureHandle(const std::string &path) const {
     auto tex = pu::ui::render::LoadImageFromFile(path);
-    return tex ? pu::sdl2::TextureHandle::New(tex) : pu::sdl2::TextureHandle::New();
+    return tex ? pu::sdl2::TextureHandle::New(tex) : nullptr;
 }
 
 pu::sdl2::TextureHandle::Ref MainApplication::GetPokemonIcon(const uint16_t species_id) {
@@ -647,7 +647,7 @@ pu::sdl2::TextureHandle::Ref MainApplication::GetPokemonIcon(const uint16_t spec
 
 pu::sdl2::TextureHandle::Ref MainApplication::GetItemIcon(const uint16_t item_id) {
     if (item_id == 0) {
-        return pu::sdl2::TextureHandle::New();
+        return nullptr;
     }
 
     auto cache_it = this->item_icon_cache_.find(item_id);
@@ -656,7 +656,7 @@ pu::sdl2::TextureHandle::Ref MainApplication::GetItemIcon(const uint16_t item_id
     }
 
     BuildItemIconIndex();
-    pu::sdl2::TextureHandle::Ref icon = pu::sdl2::TextureHandle::New();
+    pu::sdl2::TextureHandle::Ref icon = nullptr;
 
     const std::string item_name = GetDbName(this->items_db_, item_id);
     if (!LooksUnknownItemName(item_name)) {
