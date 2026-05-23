@@ -28,6 +28,7 @@ struct PcMon {
     bool is_shiny;
     std::string gender;
     bool hidden_ability;
+    int current_ability_index;  // 0 or 1 = standard (pid & 1), 2 = hidden
     std::array<uint8_t, 6> ivs;       // [HP, Atk, Def, Spe, SpA, SpD]
     std::array<uint8_t, 6> evs;       // [HP, Atk, Def, Spe, SpA, SpD]
     std::array<uint16_t, 4> move_ids;
@@ -67,5 +68,22 @@ bool UpdatePcMonMoves(
 bool UpdatePcMonNature(std::vector<uint8_t> &stream, int box, int slot, uint8_t nature_id, std::string *error = nullptr);
 bool UpdatePcMonShiny(std::vector<uint8_t> &stream, int box, int slot, bool shiny, std::string *error = nullptr);
 bool UpdatePcMonHiddenAbility(std::vector<uint8_t> &stream, int box, int slot, bool hidden, std::string *error = nullptr);
+// ability_index: 0 or 1 = standard slot (modifies PID bit 0 while preserving nature), 2 = hidden (HA flag).
+bool UpdatePcMonAbilitySwitch(std::vector<uint8_t> &stream, int box, int slot, int ability_index, std::string *error = nullptr);
+
+// Insert a new mon into an empty slot. Returns false if slot is occupied or out of bounds.
+// Sets all IVs to 31 and Hardy nature by default.
+// otid / ot_name should be taken from an existing party mon when available.
+bool InsertPcMon(
+    std::vector<uint8_t> &stream,
+    int box, int slot,
+    uint16_t species_id,
+    int level,
+    const std::string &nickname,       // empty = use species name
+    uint32_t otid,
+    const std::string &ot_name,
+    const std::unordered_map<int, std::string> &species_db,
+    std::string *error = nullptr
+);
 
 } // namespace puse::core

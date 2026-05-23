@@ -8,8 +8,10 @@
 #include <unordered_map>
 #include <vector>
 
+#include <puse/core/Bag.hpp>
 #include <puse/core/Party.hpp>
 #include <puse/core/Pc.hpp>
+#include <puse/core/Rtc.hpp>
 #include <puse/core/SaveSession.hpp>
 
 namespace puse::ui {
@@ -148,6 +150,36 @@ class PcBoxLayout : public BasePageLayout {
     PU_SMART_CTOR(PcBoxLayout)
 };
 
+class BagLayout : public BasePageLayout {
+  private:
+    pu::ui::elm::Menu::Ref menu_;
+
+  public:
+    BagLayout(const UiTheme &theme, pu::sdl2::TextureHandle::Ref header_icon);
+    pu::ui::elm::Menu::Ref GetMenu();
+    PU_SMART_CTOR(BagLayout)
+};
+
+class BagPocketLayout : public BasePageLayout {
+  private:
+    pu::ui::elm::Menu::Ref menu_;
+
+  public:
+    BagPocketLayout(const UiTheme &theme, pu::sdl2::TextureHandle::Ref header_icon);
+    pu::ui::elm::Menu::Ref GetMenu();
+    PU_SMART_CTOR(BagPocketLayout)
+};
+
+class RtcLayout : public BasePageLayout {
+  private:
+    pu::ui::elm::Menu::Ref menu_;
+
+  public:
+    RtcLayout(const UiTheme &theme, pu::sdl2::TextureHandle::Ref header_icon);
+    pu::ui::elm::Menu::Ref GetMenu();
+    PU_SMART_CTOR(RtcLayout)
+};
+
 enum class EditContext { Party, Pc };
 
 class MainApplication : public pu::ui::Application {
@@ -165,6 +197,9 @@ class MainApplication : public pu::ui::Application {
     MoneyEditLayout::Ref money_edit_layout_;
     PcBoxListLayout::Ref pc_box_list_layout_;
     PcBoxLayout::Ref pc_box_layout_;
+    BagLayout::Ref bag_layout_;
+    BagPocketLayout::Ref bag_pocket_layout_;
+    RtcLayout::Ref rtc_layout_;
 
     std::vector<core::PartyEntry> party_;
     std::unordered_map<int, std::string> species_db_;
@@ -193,6 +228,13 @@ class MainApplication : public pu::ui::Application {
     int selected_pc_slot_;  // 1-based
     core::PcMon selected_pc_mon_;
 
+    // Bag state
+    std::unordered_map<std::string, core::BagPocket> bag_pockets_;
+    std::string selected_bag_pocket_type_;
+
+    // RTC state
+    core::RtcManifest rtc_manifest_;
+
     // Edit context for shared layouts (sections / fields / moves)
     EditContext edit_context_;
 
@@ -214,13 +256,20 @@ class MainApplication : public pu::ui::Application {
     void RebuildMoneyMenu();
     void RebuildPcBoxListMenu();
     void RebuildPcBoxMenu();
+    void RebuildBagMenu();
+    void RebuildBagPocketMenu();
+    void RebuildRtcMenu();
+    void HandleRtcQuickFix();
+    void HandleRtcPairRepair();
     void HandleFieldEdit(int section_index, const std::string &field_key);
     void HandlePcFieldEdit(int section_index, const std::string &field_key);
     void HandleMoveSlotEdit(const std::string &field_key);
+    void HandleBagSlotEdit(int slot_index);
     void OpenSelectedPartyPage();
     void OpenSelectedSectionPage(int section_index);
     void OpenMoveSlotPage(int slot);
     void OpenPcMonPage(int box, int slot);
+    void OpenBagPocketPage(const std::string &pocket_type);
     void ShowSaveToast(const std::string &msg);
     void ShowLayoutScreen(pu::ui::Layout::Ref layout);
     bool PopLayoutScreen();

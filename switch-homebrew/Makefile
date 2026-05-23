@@ -3,7 +3,7 @@ BUILD       := build
 SOURCES     := source source/core source/io
 INCLUDES    := include
 ROMFS       := romfs
-ROMFS_IMAGE = $(TOPDIR)/$(BUILD)/romfs.bin
+ROMFS_IMAGE  = $(TOPDIR)/$(BUILD)/romfs.bin
 
 APP_TITLE   := PUSE Switch
 APP_AUTHOR  := zappaganini
@@ -41,7 +41,7 @@ export LIBPATHS := $(foreach dir,$(LIBDIRS),-L$(dir)/lib) -L$(DEVKITPRO)/libnx/l
 
 export APP_TITLE APP_AUTHOR APP_VERSION
 
-.PHONY: all clean sync-romfs test-phase1 test-phase2 sd-bundle $(BUILD)
+.PHONY: all clean clean-lite lite sync-romfs test-phase1 test-phase2 sd-bundle $(BUILD)
 
 all: $(BUILD)
 
@@ -49,9 +49,20 @@ $(BUILD):
 	@mkdir -p $(BUILD)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(TOPDIR)/Makefile
 
+# Lite build: data-only ROMFS (no icon assets).
+# Produces puse-switch-lite.nro alongside the standard NRO.
+lite:
+	@mkdir -p romfs-lite
+	@[ -L romfs-lite/data ] || ln -sf $(CURDIR)/romfs/data romfs-lite/data
+	@$(MAKE) TARGET=puse-switch-lite BUILD=build-lite ROMFS=romfs-lite
+
 clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(TARGET).nro $(TARGET).elf
+
+clean-lite:
+	@echo clean-lite ...
+	@rm -fr build-lite puse-switch-lite.nro puse-switch-lite.elf romfs-lite
 
 sync-romfs:
 	@"$(CURDIR)/scripts/sync_romfs_data.sh"

@@ -13,8 +13,10 @@
 #include <sys/stat.h>
 #include <switch.h>
 
+#include <puse/core/Bag.hpp>
 #include <puse/core/Money.hpp>
 #include <puse/core/Pc.hpp>
+#include <puse/core/Rtc.hpp>
 #include <puse/core/SaveSession.hpp>
 #include <puse/io/DataLoader.hpp>
 
@@ -201,8 +203,8 @@ HomeLayout::HomeLayout(const UiTheme &theme, pu::sdl2::TextureHandle::Ref header
     const s32 menu_y = ui.content_y + ui.pad;
     const s32 menu_w = ui.screen_w - (2 * ui.pad);
     const s32 menu_h = ui.content_h - (2 * ui.pad);
-    const s32 item_h = std::max(90, menu_h / 3);
-    this->menu_ = pu::ui::elm::Menu::New(menu_x, menu_y, menu_w, theme_.menu_item, theme_.menu_focus, item_h, 3);
+    const s32 item_h = std::max(68, menu_h / 5);
+    this->menu_ = pu::ui::elm::Menu::New(menu_x, menu_y, menu_w, theme_.menu_item, theme_.menu_focus, item_h, 5);
     this->Add(this->menu_);
 }
 
@@ -370,9 +372,9 @@ void PokemonMoveEditLayout::SetMoveSlotHeader(const std::string &pokemon_name, c
 }
 
 MoneyEditLayout::MoneyEditLayout(const UiTheme &theme, pu::sdl2::TextureHandle::Ref header_icon)
-    : BasePageLayout(theme, "Money", header_icon) {
+    : BasePageLayout(theme, "Money & Battle Points", header_icon) {
     const auto ui = GetUiMetrics();
-    this->SetSubtitle("Current trainer money");
+    this->SetSubtitle("Trainer money and Battle Points");
     this->SetHints("[A] Edit   [B] Back   [X] Save   [+] Exit");
 
     const s32 menu_x = ui.pad;
@@ -422,6 +424,62 @@ PcBoxLayout::PcBoxLayout(const UiTheme &theme, pu::sdl2::TextureHandle::Ref head
 }
 
 pu::ui::elm::Menu::Ref PcBoxLayout::GetMenu() {
+    return this->menu_;
+}
+
+BagLayout::BagLayout(const UiTheme &theme, pu::sdl2::TextureHandle::Ref header_icon)
+    : BasePageLayout(theme, "Bag", header_icon) {
+    const auto ui = GetUiMetrics();
+    this->SetSubtitle("Select pocket to browse");
+    this->SetHints("[A] Open   [B] Back   [X] Save   [+] Exit");
+
+    const s32 menu_x = ui.pad;
+    const s32 menu_y = ui.content_y + ui.pad;
+    const s32 menu_w = ui.screen_w - (2 * ui.pad);
+    const s32 menu_h = ui.content_h - (2 * ui.pad);
+    const s32 item_h = std::max(72, menu_h / 5);
+    this->menu_ = pu::ui::elm::Menu::New(menu_x, menu_y, menu_w, theme_.menu_item, theme_.menu_focus, item_h, 5);
+    this->Add(this->menu_);
+}
+
+pu::ui::elm::Menu::Ref BagLayout::GetMenu() {
+    return this->menu_;
+}
+
+BagPocketLayout::BagPocketLayout(const UiTheme &theme, pu::sdl2::TextureHandle::Ref header_icon)
+    : BasePageLayout(theme, "Pocket", header_icon) {
+    const auto ui = GetUiMetrics();
+    this->SetHints("[A] Edit   [B] Back   [X] Save   [+] Exit");
+
+    const s32 menu_x = ui.pad;
+    const s32 menu_y = ui.content_y + ui.pad;
+    const s32 menu_w = ui.screen_w - (2 * ui.pad);
+    const s32 menu_h = ui.content_h - (2 * ui.pad);
+    const s32 item_h = std::max(56, menu_h / 8);
+    this->menu_ = pu::ui::elm::Menu::New(menu_x, menu_y, menu_w, theme_.menu_item, theme_.menu_focus, item_h, 8);
+    this->Add(this->menu_);
+}
+
+pu::ui::elm::Menu::Ref BagPocketLayout::GetMenu() {
+    return this->menu_;
+}
+
+RtcLayout::RtcLayout(const UiTheme &theme, pu::sdl2::TextureHandle::Ref header_icon)
+    : BasePageLayout(theme, "RTC Recovery", header_icon) {
+    const auto ui = GetUiMetrics();
+    this->SetSubtitle("Fix RTC tampering — no Frozen Heights NPC needed");
+    this->SetHints("[A] Run   [B] Back   [+] Exit");
+
+    const s32 menu_x = ui.pad;
+    const s32 menu_y = ui.content_y + ui.pad;
+    const s32 menu_w = ui.screen_w - (2 * ui.pad);
+    const s32 menu_h = ui.content_h - (2 * ui.pad);
+    const s32 item_h = std::max(90, menu_h / 2);
+    this->menu_ = pu::ui::elm::Menu::New(menu_x, menu_y, menu_w, theme_.menu_item, theme_.menu_focus, item_h, 2);
+    this->Add(this->menu_);
+}
+
+pu::ui::elm::Menu::Ref RtcLayout::GetMenu() {
     return this->menu_;
 }
 
@@ -784,6 +842,14 @@ bool MainApplication::SaveCurrentSession(std::string *error) {
         }
     }
 
+    // Safety net: re-checksum all party mons before committing section checksum.
+    // Mirrors backend /save-all step 0; catches any edge case where a mutation
+    // might not have refreshed the per-mon checksum.
+    puse::core::RefreshPartyMonChecksums(this->save_session_.MutableBuffer());
+
+    // Commit bag sector checksums (IDs 13-16; id=13 uses fixed 0x450 length).
+    puse::core::CommitBagSectorChecksums(this->save_session_.MutableBuffer(), nullptr);
+
     if (!puse::core::CommitPartySectionChecksums(this->save_session_.MutableBuffer(), error)) {
         return false;
     }
@@ -813,6 +879,9 @@ void MainApplication::UpdateDirtyUi() {
     this->money_edit_layout_->SetHints("[A] Edit   [B] Back   [X] Save   [+] Exit" + dirty_suffix);
     this->pc_box_list_layout_->SetHints("[A] Open Box   [B] Back   [X] Save   [+] Exit" + dirty_suffix);
     this->pc_box_layout_->SetHints("[A] Edit   [B] Back   [X] Save   [+] Exit" + dirty_suffix);
+    this->bag_layout_->SetHints("[A] Open   [B] Back   [X] Save   [+] Exit" + dirty_suffix);
+    this->bag_pocket_layout_->SetHints("[A] Edit   [B] Back   [X] Save   [+] Exit" + dirty_suffix);
+    this->rtc_layout_->SetHints("[A] Run   [B] Back   [+] Exit" + dirty_suffix);
     this->diagnostics_layout_->SetHints("[B] Back   [X] Save   [+] Exit" + dirty_suffix);
 
     if (!this->party_.empty()) {
@@ -964,9 +1033,11 @@ void MainApplication::RebuildHomeMenu() {
 
     struct HomeItem { const char *label; const char *desc; };
     const std::vector<HomeItem> items = {
-        {"Party",  "Edit your active party (up to 6 Pokemon)"},
-        {"PC",     "Browse and edit PC boxes (boxes 1-18)"},
-        {"Money",  "Edit trainer money"},
+        {"Party",        "Edit your active party (up to 6 Pokemon)"},
+        {"PC",           "Browse and edit PC boxes (boxes 1-18)"},
+        {"Bag",          "Browse and edit bag pockets"},
+        {"Money & BP",   "Edit trainer money and Battle Points"},
+        {"RTC Recovery", "Fix RTC tampering (no Frozen Heights NPC needed)"},
     };
 
     for (size_t i = 0; i < items.size(); ++i) {
@@ -985,8 +1056,14 @@ void MainApplication::RebuildHomeMenu() {
                 this->RebuildPcBoxListMenu();
                 this->ShowLayoutScreen(this->pc_box_list_layout_);
             } else if (idx == 2) {
+                this->RebuildBagMenu();
+                this->ShowLayoutScreen(this->bag_layout_);
+            } else if (idx == 3) {
                 this->RebuildMoneyMenu();
                 this->ShowLayoutScreen(this->money_edit_layout_);
+            } else if (idx == 4) {
+                this->RebuildRtcMenu();
+                this->ShowLayoutScreen(this->rtc_layout_);
             }
         }, HidNpadButton_A);
         menu->AddItem(item);
@@ -1031,6 +1108,29 @@ void MainApplication::RebuildMoneyMenu() {
         }
     }, HidNpadButton_A);
     menu->AddItem(item);
+
+    // BP item
+    uint16_t bp = 0;
+    if (!puse::core::ReadBp(this->save_session_.Buffer(), &bp, nullptr)) {
+        bp = 0;
+    }
+
+    auto bp_item = pu::ui::elm::MenuItem::New("Battle Points   " + std::to_string(bp) + " BP");
+    bp_item->SetColor({255, 255, 255, 255});
+    bp_item->AddOnKey([this, bp]() {
+        int new_bp = 0;
+        if (this->PromptNumber("Set Battle Points (0-65535)", std::to_string(bp), 0, 65535, &new_bp)) {
+            std::string err;
+            if (puse::core::WriteBp(this->save_session_.MutableBuffer(), static_cast<uint16_t>(new_bp), &err)) {
+                this->dirty_ = true;
+                this->UpdateDirtyUi();
+                this->RebuildMoneyMenu();
+            } else {
+                this->CreateShowDialog("BP edit failed", err.empty() ? "Unknown error" : err, {"OK"}, true);
+            }
+        }
+    }, HidNpadButton_A);
+    menu->AddItem(bp_item);
 
     menu->ForceReloadItems();
     menu->SetSelectedIndex(0);
@@ -1102,6 +1202,40 @@ void MainApplication::RebuildPcBoxMenu() {
             item->AddOnKey([this, s]() {
                 this->OpenPcMonPage(this->selected_pc_box_, s);
             }, HidNpadButton_A);
+        } else {
+            // Empty slot — offer to insert a new Pokemon
+            const int s = slot;
+            item->SetColor({160, 180, 210, 255});
+            item->AddOnKey([this, s]() {
+                int species_id = 0;
+                if (!this->PromptCatalogChoice("Choose species to insert", this->species_db_, 0, &species_id)) return;
+                int level = 5;
+                if (!this->PromptNumber("Level (1-100)", "5", 1, 100, &level)) return;
+
+                const uint32_t otid = this->party_.empty() ? 0u : this->party_[0].otid;
+                const std::string ot_name = this->party_.empty() ? "" : this->party_[0].ot_name;
+
+                std::string err;
+                if (puse::core::InsertPcMon(
+                        this->pc_stream_,
+                        this->selected_pc_box_, s,
+                        static_cast<uint16_t>(species_id), level,
+                        "", otid, ot_name,
+                        this->species_db_, &err))
+                {
+                    // Commit the updated stream back to the save buffer
+                    if (puse::core::CommitPcStream(this->save_session_.MutableBuffer(),
+                                                    this->pc_stream_, &err)) {
+                        this->dirty_ = true;
+                        this->UpdateDirtyUi();
+                        this->RebuildPcBoxMenu();
+                    } else {
+                        this->CreateShowDialog("PC commit failed", err.empty() ? "Unknown error" : err, {"OK"}, true);
+                    }
+                } else {
+                    this->CreateShowDialog("Insert failed", err.empty() ? "Unknown error" : err, {"OK"}, true);
+                }
+            }, HidNpadButton_A);
         }
         menu->AddItem(item);
     }
@@ -1156,8 +1290,9 @@ void MainApplication::RebuildPcFieldsMenu(const int section_index) {
         rows.push_back({"Shiny", m.is_shiny ? "Yes" : "No"});
     } else if (section_index == 1) {
         section_title = "Battle";
+        const std::string slot_str = (m.current_ability_index == 2) ? "3 (Hidden)" : std::to_string(m.current_ability_index + 1);
         rows.push_back({"Item", GetDbName(this->items_db_, m.item_id)});
-        rows.push_back({"Hidden Ability", m.hidden_ability ? "Yes" : "No"});
+        rows.push_back({"Ability", std::string(m.hidden_ability ? "Hidden" : "Standard") + "   Slot " + slot_str});
         rows.push_back({"PID", std::to_string(m.pid)});
         rows.push_back({"OTID", std::to_string(m.otid)});
     } else if (section_index == 2) {
@@ -1254,14 +1389,16 @@ void MainApplication::HandlePcFieldEdit(const int section_index, const std::stri
             if (PromptCatalogChoice("Item", this->items_db_, static_cast<int>(m.item_id), &item_id)) {
                 changed = puse::core::UpdatePcMonItem(this->pc_stream_, box, slot, static_cast<uint16_t>(item_id), &error);
             }
-        } else if (field_key == "Hidden Ability") {
-            const int opt = this->CreateShowDialog("Hidden Ability",
-                std::string("Current: ") + (m.hidden_ability ? "Hidden" : "Standard"),
-                {"Set Hidden", "Set Standard", "Cancel"}, true);
-            if (opt == 0) {
-                changed = puse::core::UpdatePcMonHiddenAbility(this->pc_stream_, box, slot, true, &error);
-            } else if (opt == 1) {
-                changed = puse::core::UpdatePcMonHiddenAbility(this->pc_stream_, box, slot, false, &error);
+        } else if (field_key == "Ability") {
+            const std::string cur_slot = (m.current_ability_index == 2) ? "3 (Hidden)" : std::to_string(m.current_ability_index + 1);
+            const int opt = this->CreateShowDialog(
+                "Set Ability Slot",
+                "Current: Slot " + cur_slot,
+                {"Slot 1", "Slot 2", "Hidden (Slot 3)"},
+                false
+            );
+            if ((opt >= 0) && (opt <= 2)) {
+                changed = puse::core::UpdatePcMonAbilitySwitch(this->pc_stream_, box, slot, opt, &error);
             }
         }
     } else if (section_index == 2) {
@@ -1846,6 +1983,8 @@ void MainApplication::OnLoad() {
     this->dirty_ = false;
     this->edit_context_ = EditContext::Party;
     this->item_index_ready_ = false;
+    this->selected_bag_pocket_type_ = "main";
+    this->bag_pockets_.clear();
     this->pokemon_icon_cache_.clear();
     this->item_icon_cache_.clear();
     this->item_norm_to_path_.clear();
@@ -1862,6 +2001,9 @@ void MainApplication::OnLoad() {
     this->money_edit_layout_         = MoneyEditLayout::New(this->theme_, this->app_icon_);
     this->pc_box_list_layout_        = PcBoxListLayout::New(this->theme_, this->app_icon_);
     this->pc_box_layout_             = PcBoxLayout::New(this->theme_, this->app_icon_);
+    this->bag_layout_                = BagLayout::New(this->theme_, this->app_icon_);
+    this->bag_pocket_layout_         = BagPocketLayout::New(this->theme_, this->app_icon_);
+    this->rtc_layout_                = RtcLayout::New(this->theme_, this->app_icon_);
 
     this->toast_text_ = pu::ui::elm::TextBlock::New(0, 0, "");
     this->toast_text_->SetColor(this->theme_.text_primary);
@@ -1901,6 +2043,17 @@ void MainApplication::OnLoad() {
     // Load PC stream (non-fatal if it fails).
     this->pc_stream_loaded_ = this->LoadPcStream(nullptr);
 
+    // Load bag pocket ID sets (non-fatal).
+    puse::core::EnsureBagDataLoaded(nullptr);
+
+    // Load RTC manifest (non-fatal).
+    {
+        const std::string mpath = io::ResolveAssetPath("data/rtc_manifest_unbound_v1.json");
+        if (!mpath.empty()) {
+            puse::core::LoadRtcManifest(mpath, &this->rtc_manifest_, nullptr);
+        }
+    }
+
     if (this->party_.empty()) {
         this->party_list_layout_->SetSubtitle("Party is empty");
     } else {
@@ -1911,6 +2064,344 @@ void MainApplication::OnLoad() {
     this->UpdateDirtyUi();
     this->RebuildHomeMenu();
     this->ShowLayoutScreen(this->home_layout_);
+}
+
+void MainApplication::RebuildBagMenu() {
+    this->bag_pockets_ = puse::core::ResolveQuickPockets(this->save_session_.Buffer());
+
+    const auto menu = this->bag_layout_->GetMenu();
+    menu->ClearItems();
+
+    struct PocketDef { const char *key; const char *name; };
+    const std::vector<PocketDef> defs = {
+        {"main",  "Main Pocket"},
+        {"ball",  "Balls"},
+        {"key",   "Key Items"},
+        {"tm",    "TM / HM Case"},
+        {"berry", "Berry Pouch"},
+    };
+
+    for (const auto &def : defs) {
+        const auto it = this->bag_pockets_.find(def.key);
+        std::string label = def.name;
+        if (it == this->bag_pockets_.end() || !it->second.ready) {
+            label += "   [locked]";
+        } else if (it->second.is_empty_candidate) {
+            label += "   [empty, unlocked]";
+        } else {
+            label += "   " + std::to_string(it->second.slot_count) + " items";
+        }
+
+        auto item = pu::ui::elm::MenuItem::New(label);
+        item->SetColor({255, 255, 255, 255});
+        const std::string type = def.key;
+        item->AddOnKey([this, type]() {
+            this->OpenBagPocketPage(type);
+        }, HidNpadButton_A);
+        menu->AddItem(item);
+    }
+
+    menu->ForceReloadItems();
+    menu->SetSelectedIndex(0);
+}
+
+void MainApplication::RebuildBagPocketMenu() {
+    const auto pit = this->bag_pockets_.find(this->selected_bag_pocket_type_);
+    if (pit == this->bag_pockets_.end() || !pit->second.ready) { return; }
+    const auto &pocket = pit->second;
+
+    const auto slots = puse::core::MapPocketFromAnchor(
+        this->save_session_.Buffer(), pocket.anchor_offset);
+
+    const auto menu = this->bag_pocket_layout_->GetMenu();
+    menu->ClearItems();
+
+    for (size_t i = 0; i < slots.size(); ++i) {
+        const auto &slot = slots[i];
+        std::string label;
+        if (slot.item_id == 0) {
+            label = "(empty slot)";
+        } else {
+            const std::string name = GetDbName(this->items_db_, slot.item_id);
+            label = TruncateText(name, 36) + "   x" + std::to_string(slot.qty);
+        }
+
+        auto item = pu::ui::elm::MenuItem::New(label);
+        item->SetColor({255, 255, 255, 255});
+        if (slot.item_id != 0) {
+            item->SetIcon(GetItemIcon(slot.item_id));
+        }
+        const int idx = static_cast<int>(i);
+        item->AddOnKey([this, idx]() {
+            this->HandleBagSlotEdit(idx);
+        }, HidNpadButton_A);
+        menu->AddItem(item);
+    }
+
+    menu->ForceReloadItems();
+    if (!slots.empty()) { menu->SetSelectedIndex(0); }
+}
+
+void MainApplication::OpenBagPocketPage(const std::string &pocket_type) {
+    const auto pit = this->bag_pockets_.find(pocket_type);
+    if (pit == this->bag_pockets_.end() || !pit->second.ready) {
+        const std::string reason =
+            (pit == this->bag_pockets_.end()) ? "Pocket not found in save." :
+            (pit->second.locked_reason.empty() ? "Pocket is locked." :
+             "Locked: " + pit->second.locked_reason);
+        this->CreateShowDialog("Pocket unavailable", reason, {"OK"}, true);
+        return;
+    }
+
+    this->selected_bag_pocket_type_ = pocket_type;
+
+    static const std::unordered_map<std::string, std::string> kNames = {
+        {"main", "Main Pocket"}, {"ball", "Balls"},
+        {"key", "Key Items"}, {"tm", "TM / HM Case"}, {"berry", "Berry Pouch"},
+    };
+    const auto nit = kNames.find(pocket_type);
+    const std::string display = (nit != kNames.end()) ? nit->second : pocket_type;
+
+    this->bag_pocket_layout_->SetTitle(display);
+    const auto &pocket = pit->second;
+    const std::string sub = pocket.is_empty_candidate ?
+        "Empty — add items" :
+        (std::to_string(pocket.slot_count) + " item(s)   ["
+         + pocket.quality + " / " + pocket.confidence + "]");
+    this->bag_pocket_layout_->SetSubtitle(sub);
+
+    this->RebuildBagPocketMenu();
+    this->ShowLayoutScreen(this->bag_pocket_layout_);
+}
+
+void MainApplication::HandleBagSlotEdit(const int slot_index) {
+    const auto pit = this->bag_pockets_.find(this->selected_bag_pocket_type_);
+    if (pit == this->bag_pockets_.end() || !pit->second.ready) { return; }
+
+    const auto slots = puse::core::MapPocketFromAnchor(
+        this->save_session_.Buffer(), pit->second.anchor_offset);
+    if (slot_index < 0 || slot_index >= static_cast<int>(slots.size())) { return; }
+    const auto &slot = slots[static_cast<size_t>(slot_index)];
+
+    uint16_t new_id = slot.item_id;
+    uint16_t new_qty = slot.qty;
+
+    if (slot.item_id == 0) {
+        // Empty slot: offer to add an item
+        const int choice = this->CreateShowDialog(
+            "Empty slot", "Add an item to this slot?", {"Add Item", "Cancel"}, true);
+        if (choice != 0) { return; }
+
+        int out_id = 0;
+        if (!this->PromptCatalogChoice("Select Item", this->items_db_, 0, &out_id)) { return; }
+        new_id = static_cast<uint16_t>(out_id);
+
+        const bool fixed_qty = puse::core::GetTmHmItemIds().count(new_id) ||
+                               puse::core::GetKeyItemIds().count(new_id);
+        if (fixed_qty) {
+            new_qty = 1;
+        } else {
+            int out_qty = 1;
+            if (!this->PromptNumber("Quantity", "1", 1, 2000, &out_qty)) { return; }
+            new_qty = static_cast<uint16_t>(out_qty);
+        }
+    } else {
+        const std::string item_name = GetDbName(this->items_db_, slot.item_id);
+        const int choice = this->CreateShowDialog(
+            item_name + "  x" + std::to_string(slot.qty),
+            "What would you like to do?",
+            {"Change Item & Qty", "Change Qty Only", "Remove", "Cancel"}, true);
+
+        if (choice == 3 || choice < 0) { return; }
+
+        if (choice == 0) {
+            int out_id = static_cast<int>(slot.item_id);
+            if (!this->PromptCatalogChoice("Select Item", this->items_db_, out_id, &out_id)) { return; }
+            new_id = static_cast<uint16_t>(out_id);
+
+            const bool fixed_qty = puse::core::GetTmHmItemIds().count(new_id) ||
+                                   puse::core::GetKeyItemIds().count(new_id);
+            if (fixed_qty) {
+                new_qty = 1;
+            } else {
+                int out_qty = static_cast<int>(slot.qty);
+                if (!this->PromptNumber("Quantity", std::to_string(slot.qty), 1, 2000, &out_qty)) { return; }
+                new_qty = static_cast<uint16_t>(out_qty);
+            }
+        } else if (choice == 1) {
+            const bool fixed_qty = puse::core::GetTmHmItemIds().count(slot.item_id) ||
+                                   puse::core::GetKeyItemIds().count(slot.item_id);
+            if (fixed_qty) {
+                this->CreateShowDialog("Info",
+                    "TM/HM and Key Items always have quantity 1.", {"OK"}, true);
+                return;
+            }
+            int out_qty = static_cast<int>(slot.qty);
+            if (!this->PromptNumber("Quantity", std::to_string(slot.qty), 1, 2000, &out_qty)) { return; }
+            new_qty = static_cast<uint16_t>(out_qty);
+        } else {
+            // Remove: write item_id=0, qty=0
+            new_id = 0; new_qty = 0;
+        }
+    }
+
+    puse::core::WriteSlot(this->save_session_.MutableBuffer(),
+                          slot.offset, new_id, new_qty, slot.encoding_swapped);
+
+    // Re-resolve pockets so slot counts update
+    this->bag_pockets_ = puse::core::ResolveQuickPockets(this->save_session_.Buffer());
+    this->dirty_ = true;
+    this->UpdateDirtyUi();
+    this->RebuildBagPocketMenu();
+
+    // Refresh pocket subtitle
+    const auto new_pit = this->bag_pockets_.find(this->selected_bag_pocket_type_);
+    if (new_pit != this->bag_pockets_.end() && new_pit->second.ready) {
+        const auto &np = new_pit->second;
+        const std::string sub = np.is_empty_candidate ?
+            "Empty — add items" :
+            (std::to_string(np.slot_count) + " item(s)");
+        this->bag_pocket_layout_->SetSubtitle(sub);
+    }
+}
+
+void MainApplication::RebuildRtcMenu() {
+    const auto menu = this->rtc_layout_->GetMenu();
+    menu->ClearItems();
+
+    const bool manifest_ok = this->rtc_manifest_.loaded;
+    const std::string manifest_tag = manifest_ok ? "" : "   [manifest missing]";
+
+    auto quick_item = pu::ui::elm::MenuItem::New(
+        "Quick Fix" + manifest_tag +
+        "   Generate 3 candidates from current save + built-in manifest");
+    quick_item->SetColor({255, 255, 255, 255});
+    quick_item->AddOnKey([this]() { this->HandleRtcQuickFix(); }, HidNpadButton_A);
+    menu->AddItem(quick_item);
+
+    auto pair_item = pu::ui::elm::MenuItem::New(
+        "Pair Repair   Generate 7 candidates from broken save + NPC-fixed save");
+    pair_item->SetColor({255, 255, 255, 255});
+    pair_item->AddOnKey([this]() { this->HandleRtcPairRepair(); }, HidNpadButton_A);
+    menu->AddItem(pair_item);
+
+    menu->ForceReloadItems();
+    menu->SetSelectedIndex(0);
+}
+
+void MainApplication::HandleRtcQuickFix() {
+    if (!this->rtc_manifest_.loaded) {
+        this->CreateShowDialog("Manifest unavailable",
+            "rtc_manifest_unbound_v1.json could not be loaded from ROMFS.",
+            {"OK"}, true);
+        return;
+    }
+
+    const int choice = this->CreateShowDialog(
+        "RTC Quick Fix",
+        "Generate 3 candidate saves from your current save.\n"
+        "Output: sdmc:/switch/puse/rtc/\n\n"
+        "Test candidates in order; stop at first valid save.\n"
+        "Unsaved edits will NOT be included — save first if needed.",
+        {"Generate", "Cancel"}, true);
+    if (choice != 0) return;
+
+    puse::core::RtcQuickResult result;
+    std::string err;
+    if (!puse::core::BuildQuickCandidates(this->save_session_.Buffer(),
+                                          this->rtc_manifest_, &result, &err)) {
+        this->CreateShowDialog("Quick Fix failed", err.empty() ? "Unknown error" : err, {"OK"}, true);
+        return;
+    }
+
+    const int written = puse::core::WriteRtcCandidates(
+        result.candidates,
+        puse::core::kQuickProfileOrder, 3, &err);
+
+    if (written == 0) {
+        this->CreateShowDialog("Write failed",
+            err.empty() ? "Could not write to sdmc:/switch/puse/rtc/" : err,
+            {"OK"}, true);
+        return;
+    }
+
+    this->CreateShowDialog(
+        "Quick Fix complete",
+        std::to_string(written) + " candidate(s) written to sdmc:/switch/puse/rtc/\n\n"
+        "Test in this order:\n"
+        "1. candidate_quick_id0_id4.sav\n"
+        "2. candidate_quick_id0_id4_id13.sav\n"
+        "3. candidate_quick_id0_id4_id13_aux12.sav\n\n"
+        "Save idx: " + std::to_string(result.source_idx) +
+        " -> " + std::to_string(result.target_idx),
+        {"OK"}, true);
+}
+
+void MainApplication::HandleRtcPairRepair() {
+    const int choice = this->CreateShowDialog(
+        "RTC Pair Repair",
+        "Place your NPC-fixed save at:\n"
+        "sdmc:/switch/puse/Unbound_fixed.sav\n\n"
+        "Your current loaded save will be used as the broken save.\n"
+        "Output: sdmc:/switch/puse/rtc/",
+        {"Load & Generate", "Cancel"}, true);
+    if (choice != 0) return;
+
+    // Load the fixed save
+    const std::string fixed_path = "sdmc:/switch/puse/Unbound_fixed.sav";
+    FILE *fp = std::fopen(fixed_path.c_str(), "rb");
+    if (!fp) {
+        this->CreateShowDialog("Fixed save not found",
+            "Could not open sdmc:/switch/puse/Unbound_fixed.sav\n"
+            "Place the NPC-fixed save there and try again.",
+            {"OK"}, true);
+        return;
+    }
+    std::fseek(fp, 0, SEEK_END);
+    const long fsz = std::ftell(fp);
+    std::fseek(fp, 0, SEEK_SET);
+    if (fsz < static_cast<long>(0x20000)) {
+        std::fclose(fp);
+        this->CreateShowDialog("Fixed save invalid", "File is too small to be a valid save.", {"OK"}, true);
+        return;
+    }
+    std::vector<uint8_t> fixed_buf(static_cast<size_t>(fsz));
+    std::fread(fixed_buf.data(), 1, static_cast<size_t>(fsz), fp);
+    std::fclose(fp);
+
+    puse::core::RtcPairResult result;
+    std::string err;
+    if (!puse::core::BuildPairCandidates(this->save_session_.Buffer(), fixed_buf, &result, &err)) {
+        this->CreateShowDialog("Pair Repair failed", err.empty() ? "Unknown error" : err, {"OK"}, true);
+        return;
+    }
+
+    // Collect candidate bytes in profile order for writing
+    std::unordered_map<std::string, std::vector<uint8_t>> cand_bytes;
+    for (const auto &[name, info] : result.candidates) {
+        cand_bytes[name] = info.bytes;
+    }
+
+    const int written = puse::core::WriteRtcCandidates(
+        cand_bytes, puse::core::kPairProfileOrder, 7, &err);
+
+    // Count profiles with issues
+    int issue_count = 0;
+    for (const auto &[name, info] : result.candidates) {
+        if (!info.issues.empty()) issue_count++;
+    }
+
+    const std::string issue_note = (issue_count > 0) ?
+        "\n\nNote: " + std::to_string(issue_count) + " candidate(s) had validation issues." : "";
+
+    this->CreateShowDialog(
+        "Pair Repair complete",
+        std::to_string(written) + " candidate(s) written to sdmc:/switch/puse/rtc/\n\n"
+        "Manifest found changes in " +
+        std::to_string(result.manifest.changes_by_id.size()) + " section(s).\n"
+        "Test candidates in order: control, id0_full, id0_id4_full, ..." +
+        issue_note,
+        {"OK"}, true);
 }
 
 } // namespace puse::ui

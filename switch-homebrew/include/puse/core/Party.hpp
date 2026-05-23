@@ -13,6 +13,7 @@ struct PartyEntry {
     int index;
     uint32_t pid;
     uint32_t otid;
+    std::string ot_name;
     std::string nickname;
     uint16_t species_id;
     std::string species_name;
@@ -106,5 +107,9 @@ int GetMoveBasePp(int move_id);
 int CalcMaxMovePp(int move_id, int pp_ups);
 bool IsShinyFromOtidPid(uint32_t otid, uint32_t pid);
 std::string GenderFromPidAndSpecies(uint16_t species_id, uint32_t pid);
+
+// Re-checksum all party mons in the active trainer section.
+// Call before saving to match backend /save-all step 0 defensive behavior.
+void RefreshPartyMonChecksums(std::vector<uint8_t> &buffer);
 
 } // namespace puse::core

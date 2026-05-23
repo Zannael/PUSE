@@ -394,6 +394,7 @@ std::vector<PcMon> ParsePcBox(
         e.nature_name = kNatureNames[e.nature_id];
         e.is_shiny = IsShinyFromOtidPid(e.otid, e.pid);
         e.hidden_ability = GetHaFlag(mon);
+        e.current_ability_index = e.hidden_ability ? 2 : static_cast<int>(e.pid & 1U);
         e.gender = GenderFromPidAndSpecies(e.species_id, e.pid);
 
         const int growth_rate = GetSpeciesGrowthRate(static_cast<int>(e.species_id));
@@ -553,6 +554,103 @@ bool UpdatePcMonHiddenAbility(std::vector<uint8_t> &stream, const int box, const
         return false;
     }
     SetHaFlag(mon, hidden);
+    return true;
+}
+
+// Set ability slot 0/1 (standard, modifies PID bit 0 while preserving nature) or 2 (hidden).
+// Mirrors pc.py set_ability_slot.
+bool UpdatePcMonAbilitySwitch(std::vector<uint8_t> &stream, const int box, const int slot, const int ability_index, std::string *error) {
+    if ((ability_index < 0) || (ability_index > 2)) {
+        if (error) { *error = "ability_index must be 0, 1, or 2"; }
+        return false;
+    }
+    if (!ValidatePcSlotArgs(stream, box, slot, error)) { return false; }
+    uint8_t *mon = MutableSlot(stream, box, slot);
+    if (!IsPcMonValid(mon)) {
+        if (error) { *error = "slot is empty or invalid"; }
+        return false;
+    }
+
+    if (ability_index == 2) {
+        SetHaFlag(mon, true);
+        return true;
+    }
+
+    // Standard slot 0 or 1: clear HA flag, then walk PID to set PID bit 0 == ability_index
+    // while preserving nature (pid % 25).
+    SetHaFlag(mon, false);
+    uint32_t pid = ReadU32Le(mon, kPcPidOff);
+    const int target_nature = static_cast<int>(pid % 25U);
+    const uint32_t target_bit = static_cast<uint32_t>(ability_index);
+    for (int iter = 0; iter < 0x100000; ++iter) {
+        const bool nature_ok = (static_cast<int>(pid % 25U) == target_nature);
+        const bool bit_ok = ((pid & 1U) == target_bit);
+        if (nature_ok && bit_ok) { break; }
+        pid = (pid + 1U) & 0xFFFFFFFFU;
+    }
+    WriteU32Le(mon, kPcPidOff, pid);
+    return true;
+}
+
+bool InsertPcMon(std::vector<uint8_t> &stream,
+                 const int box, const int slot,
+                 const uint16_t species_id,
+                 const int level,
+                 const std::string &nickname,
+                 const uint32_t otid,
+                 const std::string &ot_name,
+                 const std::unordered_map<int, std::string> &species_db,
+                 std::string *error)
+{
+    if (!ValidatePcSlotArgs(stream, box, slot, error)) { return false; }
+    uint8_t *mon = MutableSlot(stream, box, slot);
+    if (IsPcMonValid(mon)) {
+        if (error) *error = "slot is occupied";
+        return false;
+    }
+    if (species_id == 0 || species_id > kMaxValidSpecies) {
+        if (error) *error = "invalid species_id";
+        return false;
+    }
+
+    // Zero-fill the slot
+    std::fill(mon, mon + kPcMonSize, 0);
+
+    // PID: deterministic from species (matches backend formula)
+    const uint32_t pid = static_cast<uint32_t>((static_cast<uint64_t>(species_id) * 2654435761ULL) & 0xFFFFFFFFULL);
+    WriteU32Le(mon, kPcPidOff, pid);
+    WriteU32Le(mon, kPcOtidOff, otid);
+
+    // OT name (7 bytes, 0xFF-padded)
+    EncodeText(ot_name.substr(0, 7), mon + 0x14, 7);
+
+    // Nickname (10 bytes): use provided nickname or default to species name
+    const std::string raw_nick = nickname.empty() ?
+        [&]() -> std::string {
+            auto it = species_db.find(static_cast<int>(species_id));
+            return (it != species_db.end()) ? it->second : "Pokemon";
+        }() : nickname;
+    EncodeText(raw_nick.substr(0, 10), mon + kPcNickOff, 10);
+
+    // Species
+    WriteU16Le(mon, kPcSpeciesOff, species_id);
+
+    // EXP from level
+    {
+        const int target_level = std::max(1, std::min(100, level));
+        int gr = GetSpeciesGrowthRate(static_cast<int>(species_id));
+        if (gr < 0) gr = 0;
+        const uint32_t exp = GetExpForLevel(gr, target_level);
+        WriteU32Le(mon, kPcExpOff, std::max(1u, exp));
+    }
+
+    // All IVs = 31 (packed at kPcIvsOff: 5 bits each, 6 stats)
+    {
+        uint32_t iv_pack = 0;
+        for (int s = 0; s < 6; ++s) { iv_pack |= (31u << (s * 5)); }
+        WriteU32Le(mon, kPcIvsOff, iv_pack);
+    }
+
     return true;
 }
 

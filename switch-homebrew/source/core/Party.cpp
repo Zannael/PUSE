@@ -31,6 +31,8 @@ constexpr size_t kPartyBaseOff = 0x38;
 constexpr size_t kMonNickOff = 0x08;
 constexpr size_t kMonPidOff = 0x00;
 constexpr size_t kMonOtidOff = 0x04;
+constexpr size_t kMonOtNameOff = 0x14;
+constexpr size_t kMonOtNameLen = 7;
 constexpr size_t kMonChecksumOff = 0x1C;
 constexpr size_t kMonLevelVisualOff = 0x54;
 constexpr size_t kMonCurrHpOff = 0x56;
@@ -1179,6 +1181,7 @@ std::vector<PartyEntry> ParseParty(
         e.index = static_cast<int>(i);
         e.pid = ReadU32Le(raw_mon, kMonPidOff);
         e.otid = ReadU32Le(raw_mon, kMonOtidOff);
+        e.ot_name = DecodeText(raw_mon + kMonOtNameOff, kMonOtNameLen);
         e.nickname = DecodeText(raw_mon + kMonNickOff, 10);
         e.species_id = GetSpeciesId(raw_mon);
         e.item_id = GetItemId(raw_mon);
@@ -1476,6 +1479,21 @@ bool IsShinyFromOtidPid(const uint32_t otid, const uint32_t pid) {
 
 std::string GenderFromPidAndSpecies(const uint16_t species_id, const uint32_t pid) {
     return GenderFromPid(pid, GetGenderThreshold(species_id));
+}
+
+void RefreshPartyMonChecksums(std::vector<uint8_t> &buffer) {
+    const auto sections = ListSections(buffer);
+    for (const auto &sec : sections) {
+        if (sec.section_id != kTrainerSectionId) { continue; }
+        if ((sec.offset + kSectionSize) > buffer.size()) { continue; }
+        uint8_t *trainer = &buffer[sec.offset];
+        const uint32_t team_count = std::min(6U, ReadU32Le(trainer, kTeamCountOff));
+        for (uint32_t i = 0; i < team_count; ++i) {
+            const size_t mon_off = kPartyBaseOff + (i * kMonSize);
+            if ((sec.offset + mon_off + kMonSize) > buffer.size()) { break; }
+            WriteMonChecksum(trainer + mon_off);
+        }
+    }
 }
 
 } // namespace puse::core

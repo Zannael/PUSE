@@ -69,6 +69,10 @@ switch-homebrew/tools/Plutonium/Plutonium/build/
 switch-homebrew/tools/Plutonium/Plutonium/lib/
 switch-homebrew/NOTES.md
 switch-homebrew/romfs/icons
+switch-homebrew/romfs-lite/
+switch-homebrew/build-lite/
+switch-homebrew/puse-switch-lite.nro
+switch-homebrew/puse-switch-lite.elf
 
 # Local planning/docs not needed for build
 AGENTS.md

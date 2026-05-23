@@ -12,6 +12,9 @@ constexpr size_t kMoneyU32Off = 0x290;
 constexpr size_t kMoneyBcdOff = 0x28D;
 constexpr uint32_t kMaxBcdMoney = 999999U;
 
+constexpr uint16_t kBpSectionId = 4;
+constexpr size_t kBpOffset = 0xF34;
+
 // Python to_bcd3: b0=(s[1]<<4)|s[0], b1=(s[3]<<4)|s[2], b2=(s[5]<<4)|s[4]
 // s[0..5] are most-significant to least-significant decimal digits.
 // d0=units...d5=hundred-thousands. So s[0]=d5, s[1]=d4, etc.
@@ -91,6 +94,64 @@ bool WriteMoney(std::vector<uint8_t> &buffer, const uint32_t money, std::string 
     if (!any) {
         if (error != nullptr) {
             *error = "no trainer section found";
+        }
+        return false;
+    }
+    return true;
+}
+
+bool ReadBp(const std::vector<uint8_t> &buffer, uint16_t *out_bp, std::string *error) {
+    const auto sections = ListSections(buffer);
+
+    const SaveSection *best = nullptr;
+    for (const auto &s : sections) {
+        if (s.section_id != kBpSectionId) {
+            continue;
+        }
+        if ((best == nullptr) || (s.save_index > best->save_index)) {
+            best = &s;
+        }
+    }
+
+    if (best == nullptr) {
+        if (error != nullptr) {
+            *error = "BP section not found";
+        }
+        return false;
+    }
+
+    const size_t abs_off = best->offset + kBpOffset;
+    if ((abs_off + 2U) > buffer.size()) {
+        if (error != nullptr) {
+            *error = "BP offset out of bounds";
+        }
+        return false;
+    }
+
+    *out_bp = ReadU16Le(buffer.data() + best->offset, kBpOffset);
+    return true;
+}
+
+bool WriteBp(std::vector<uint8_t> &buffer, const uint16_t bp, std::string *error) {
+    const auto sections = ListSections(buffer);
+    bool any = false;
+
+    for (const auto &s : sections) {
+        if (s.section_id != kBpSectionId) {
+            continue;
+        }
+        any = true;
+
+        const size_t abs_off = s.offset + kBpOffset;
+        if ((abs_off + 2U) <= buffer.size()) {
+            WriteU16Le(buffer.data() + s.offset, kBpOffset, bp);
+        }
+        // Section 4 is opaque — no checksum update (mirrors backend behavior).
+    }
+
+    if (!any) {
+        if (error != nullptr) {
+            *error = "no BP section found";
         }
         return false;
     }

@@ -32,5 +32,12 @@ else
   rm -rf "$OUT_ROOT/icons"
 fi
 
+# Include lite NRO if present
+LITE_NRO_PATH="$SWITCH_ROOT/puse-switch-lite.nro"
+if [[ -f "$LITE_NRO_PATH" ]]; then
+  cp "$LITE_NRO_PATH" "$OUT_ROOT/puse-switch-lite.nro"
+  echo "Lite NRO included: puse-switch-lite.nro"
+fi
+
 echo "Prepared SD bundle under: $OUT_ROOT"
 echo "Copy 'switch/puse' to SD card root."
