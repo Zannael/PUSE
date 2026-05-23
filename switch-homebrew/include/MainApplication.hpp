@@ -2,6 +2,7 @@
 
 #include <pu/Plutonium>
 
+#include <functional>
 #include <string>
 #include <tuple>
 #include <unordered_set>
@@ -180,6 +181,24 @@ class RtcLayout : public BasePageLayout {
     PU_SMART_CTOR(RtcLayout)
 };
 
+class FileBrowserLayout : public BasePageLayout {
+  public:
+    using FileSelectedCallback = std::function<void(const std::string &)>;
+    FileBrowserLayout(const UiTheme &theme, pu::sdl2::TextureHandle::Ref header_icon,
+                      std::string start_path, FileSelectedCallback on_selected);
+    PU_SMART_CTOR(FileBrowserLayout)
+    pu::ui::elm::Menu::Ref GetMenu();
+    void OpenAt(const std::string &path);
+
+  private:
+    std::string current_path_;
+    std::string start_path_;
+    FileSelectedCallback on_selected_;
+    pu::ui::elm::Menu::Ref file_menu_;
+    void PopulateMenu();
+    static std::string ParentOf(const std::string &path);
+};
+
 enum class EditContext { Party, Pc };
 
 class MainApplication : public pu::ui::Application {
@@ -200,6 +219,7 @@ class MainApplication : public pu::ui::Application {
     BagLayout::Ref bag_layout_;
     BagPocketLayout::Ref bag_pocket_layout_;
     RtcLayout::Ref rtc_layout_;
+    FileBrowserLayout::Ref file_browser_layout_;
 
     std::vector<core::PartyEntry> party_;
     std::unordered_map<int, std::string> species_db_;
@@ -241,6 +261,10 @@ class MainApplication : public pu::ui::Application {
     void ConfigureTheme();
     bool LoadSpeciesIdTokens();
     void BuildItemIconIndex();
+    bool LoadStaticData(std::string *error);
+    bool LoadSaveFromPath(const std::string &path, std::string *error);
+    void OpenFileBrowser(const std::string &start_path);
+    void OnSaveFileSelected(const std::string &path);
     bool RefreshPartyData(std::string *error);
     bool LoadPcStream(std::string *error);
     void RefreshSelectedPcMon();

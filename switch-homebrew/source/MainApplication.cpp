@@ -203,8 +203,8 @@ HomeLayout::HomeLayout(const UiTheme &theme, pu::sdl2::TextureHandle::Ref header
     const s32 menu_y = ui.content_y + ui.pad;
     const s32 menu_w = ui.screen_w - (2 * ui.pad);
     const s32 menu_h = ui.content_h - (2 * ui.pad);
-    const s32 item_h = std::max(68, menu_h / 5);
-    this->menu_ = pu::ui::elm::Menu::New(menu_x, menu_y, menu_w, theme_.menu_item, theme_.menu_focus, item_h, 5);
+    const s32 item_h = std::max(60, menu_h / 6);
+    this->menu_ = pu::ui::elm::Menu::New(menu_x, menu_y, menu_w, theme_.menu_item, theme_.menu_focus, item_h, 6);
     this->Add(this->menu_);
 }
 
@@ -481,6 +481,130 @@ RtcLayout::RtcLayout(const UiTheme &theme, pu::sdl2::TextureHandle::Ref header_i
 
 pu::ui::elm::Menu::Ref RtcLayout::GetMenu() {
     return this->menu_;
+}
+
+FileBrowserLayout::FileBrowserLayout(const UiTheme &theme, pu::sdl2::TextureHandle::Ref header_icon,
+                                     std::string start_path, FileSelectedCallback on_selected)
+    : BasePageLayout(theme, "Select Save File", header_icon),
+      start_path_(std::move(start_path)),
+      on_selected_(std::move(on_selected)) {
+    const auto ui = GetUiMetrics();
+    this->SetSubtitle("Browse to a .sav file");
+    this->SetHints("[A] Open/Select   [B] Back   [+] Exit");
+
+    const s32 menu_x = ui.pad;
+    const s32 menu_y = ui.content_y + ui.pad;
+    const s32 menu_w = ui.screen_w - (2 * ui.pad);
+    const s32 menu_h = ui.content_h - (2 * ui.pad);
+    const s32 item_h = std::max(56, menu_h / 10);
+    this->file_menu_ = pu::ui::elm::Menu::New(menu_x, menu_y, menu_w, theme_.menu_item, theme_.menu_focus, item_h, 10);
+    this->Add(this->file_menu_);
+}
+
+pu::ui::elm::Menu::Ref FileBrowserLayout::GetMenu() {
+    return this->file_menu_;
+}
+
+std::string FileBrowserLayout::ParentOf(const std::string &path) {
+    std::string p = path;
+    while (p.size() > 1 && p.back() == '/') { p.pop_back(); }
+    const auto pos = p.rfind('/');
+    if (pos == std::string::npos) { return p + "/"; }
+    return p.substr(0, pos + 1);
+}
+
+void FileBrowserLayout::OpenAt(const std::string &path) {
+    this->current_path_ = path;
+    std::string display = path;
+    if (!display.empty() && display.back() != '/') { display += '/'; }
+    this->SetSubtitle(display);
+    this->PopulateMenu();
+}
+
+void FileBrowserLayout::PopulateMenu() {
+    this->file_menu_->ClearItems();
+
+    // Normalize paths to compare without trailing slash
+    std::string norm_current = this->current_path_;
+    if (!norm_current.empty() && norm_current.back() == '/') { norm_current.pop_back(); }
+    std::string norm_start = this->start_path_;
+    if (!norm_start.empty() && norm_start.back() == '/') { norm_start.pop_back(); }
+
+    // ".." item when not at the start root
+    if (norm_current != norm_start) {
+        auto up_item = pu::ui::elm::MenuItem::New(".. (up)");
+        up_item->SetColor({191, 205, 226, 255});
+        up_item->AddOnKey([this]() { this->OpenAt(ParentOf(this->current_path_)); }, HidNpadButton_A);
+        this->file_menu_->AddItem(up_item);
+    }
+
+    std::string dir_path = this->current_path_;
+    if (dir_path.empty()) { dir_path = "/"; }
+
+    DIR *dir = opendir(dir_path.c_str());
+    if (dir == nullptr) {
+        auto err_item = pu::ui::elm::MenuItem::New("[Cannot open directory]");
+        err_item->SetColor({236, 74, 80, 255});
+        this->file_menu_->AddItem(err_item);
+        this->file_menu_->ForceReloadItems();
+        return;
+    }
+
+    std::vector<std::string> subdirs;
+    std::vector<std::string> sav_files;
+
+    struct dirent *ent;
+    while ((ent = readdir(dir)) != nullptr) {
+        const std::string name = ent->d_name;
+        if (name == "." || name == "..") { continue; }
+        const std::string full = (dir_path.back() == '/' ? dir_path : dir_path + "/") + name;
+        if (ent->d_type == DT_DIR) {
+            subdirs.push_back(name);
+        } else if (ent->d_type == DT_REG) {
+            if (EndsWith(ToLower(name), ".sav")) { sav_files.push_back(name); }
+        } else {
+            struct stat st{};
+            if (stat(full.c_str(), &st) == 0) {
+                if (S_ISDIR(st.st_mode)) {
+                    subdirs.push_back(name);
+                } else if (S_ISREG(st.st_mode) && EndsWith(ToLower(name), ".sav")) {
+                    sav_files.push_back(name);
+                }
+            }
+        }
+    }
+    closedir(dir);
+
+    std::sort(subdirs.begin(), subdirs.end());
+    std::sort(sav_files.begin(), sav_files.end());
+
+    const std::string base = (dir_path.back() == '/' ? dir_path : dir_path + "/");
+
+    for (const auto &dname : subdirs) {
+        auto dir_item = pu::ui::elm::MenuItem::New("[DIR] " + dname);
+        dir_item->SetColor({160, 210, 255, 255});
+        const std::string target = base + dname;
+        dir_item->AddOnKey([this, target]() { this->OpenAt(target); }, HidNpadButton_A);
+        this->file_menu_->AddItem(dir_item);
+    }
+
+    for (const auto &fname : sav_files) {
+        const std::string fpath = base + fname;
+        auto file_item = pu::ui::elm::MenuItem::New(fname);
+        file_item->SetColor({255, 255, 200, 255});
+        const FileSelectedCallback cb = this->on_selected_;
+        file_item->AddOnKey([cb, fpath]() { if (cb) { cb(fpath); } }, HidNpadButton_A);
+        this->file_menu_->AddItem(file_item);
+    }
+
+    if (subdirs.empty() && sav_files.empty()) {
+        auto empty_item = pu::ui::elm::MenuItem::New("(no directories or .sav files)");
+        empty_item->SetColor({191, 205, 226, 255});
+        this->file_menu_->AddItem(empty_item);
+    }
+
+    this->file_menu_->ForceReloadItems();
+    this->file_menu_->SetSelectedIndex(0);
 }
 
 void MainApplication::ConfigureTheme() {
@@ -772,15 +896,13 @@ pu::sdl2::TextureHandle::Ref MainApplication::GetItemIcon(const uint16_t item_id
     return icon;
 }
 
-bool MainApplication::RefreshPartyData(std::string *error) {
+bool MainApplication::LoadStaticData(std::string *error) {
     const std::string species_path = io::ResolveAssetPath("data/pokemon.txt");
     const std::string items_path = io::ResolveAssetPath("data/items.txt");
     const std::string moves_path = io::ResolveAssetPath("data/moves.txt");
 
     if (species_path.empty() || items_path.empty() || moves_path.empty()) {
-        if (error != nullptr) {
-            *error = "missing ROMFS data files";
-        }
+        if (error) { *error = "missing ROMFS data files"; }
         return false;
     }
 
@@ -789,17 +911,59 @@ bool MainApplication::RefreshPartyData(std::string *error) {
     this->moves_db_ = io::LoadIdNameFile(moves_path);
     this->LoadSpeciesIdTokens();
 
-    if (!puse::core::EnsurePartyStaticDataLoaded(error)) {
-        return false;
-    }
+    return puse::core::EnsurePartyStaticDataLoaded(error);
+}
 
-    if (!this->save_session_.LoadFromFile("sdmc:/switch/puse/Unbound.sav", error)) {
+bool MainApplication::LoadSaveFromPath(const std::string &path, std::string *error) {
+    if (!this->save_session_.LoadFromFile(path, error)) {
         return false;
     }
 
     this->party_ = puse::core::ParseParty(this->save_session_.Buffer(), this->species_db_);
     this->dirty_ = false;
+    this->pc_stream_loaded_ = false;
+    this->pc_stream_.clear();
+    this->pc_stream_loaded_ = this->LoadPcStream(nullptr);
+
+    puse::core::EnsureBagDataLoaded(nullptr);
+
+    const std::string mpath = io::ResolveAssetPath("data/rtc_manifest_unbound_v1.json");
+    if (!mpath.empty()) {
+        puse::core::LoadRtcManifest(mpath, &this->rtc_manifest_, nullptr);
+    }
+
     return true;
+}
+
+void MainApplication::OpenFileBrowser(const std::string &start_path) {
+    this->file_browser_layout_->OpenAt(start_path);
+    this->ShowLayoutScreen(this->file_browser_layout_);
+}
+
+void MainApplication::OnSaveFileSelected(const std::string &path) {
+    std::string error;
+    if (!this->LoadSaveFromPath(path, &error)) {
+        this->CreateShowDialog("Load failed", error.empty() ? "Unknown error" : error, {"OK"}, true);
+        return;
+    }
+
+    if (this->party_.empty()) {
+        this->party_list_layout_->SetSubtitle("Party is empty");
+    } else {
+        this->party_list_layout_->SetSubtitle("Loaded " + std::to_string(this->party_.size()) + " slot(s)");
+        this->RebuildPartyMenu();
+    }
+    this->UpdateDirtyUi();
+    this->RebuildHomeMenu();
+
+    // Replace the entire layout stack with home
+    this->layout_stack_.clear();
+    this->ShowLayoutScreen(this->home_layout_);
+}
+
+bool MainApplication::RefreshPartyData(std::string *error) {
+    if (!this->LoadStaticData(error)) { return false; }
+    return this->LoadSaveFromPath("sdmc:/switch/puse/Unbound.sav", error);
 }
 
 bool MainApplication::LoadPcStream(std::string *error) {
@@ -1038,6 +1202,7 @@ void MainApplication::RebuildHomeMenu() {
         {"Bag",          "Browse and edit bag pockets"},
         {"Money & BP",   "Edit trainer money and Battle Points"},
         {"RTC Recovery", "Fix RTC tampering (no Frozen Heights NPC needed)"},
+        {"Load Save",    "Browse SD card for a .sav file"},
     };
 
     for (size_t i = 0; i < items.size(); ++i) {
@@ -1064,6 +1229,8 @@ void MainApplication::RebuildHomeMenu() {
             } else if (idx == 4) {
                 this->RebuildRtcMenu();
                 this->ShowLayoutScreen(this->rtc_layout_);
+            } else if (idx == 5) {
+                this->OpenFileBrowser("sdmc:/switch/");
             }
         }, HidNpadButton_A);
         menu->AddItem(item);
@@ -2004,6 +2171,11 @@ void MainApplication::OnLoad() {
     this->bag_layout_                = BagLayout::New(this->theme_, this->app_icon_);
     this->bag_pocket_layout_         = BagPocketLayout::New(this->theme_, this->app_icon_);
     this->rtc_layout_                = RtcLayout::New(this->theme_, this->app_icon_);
+    this->file_browser_layout_       = FileBrowserLayout::New(
+        this->theme_, this->app_icon_,
+        "sdmc:/switch/",
+        [this](const std::string &path) { this->OnSaveFileSelected(path); }
+    );
 
     this->toast_text_ = pu::ui::elm::TextBlock::New(0, 0, "");
     this->toast_text_->SetColor(this->theme_.text_primary);
@@ -2017,7 +2189,10 @@ void MainApplication::OnLoad() {
             } else {
                 std::string save_error;
                 if (this->SaveCurrentSession(&save_error)) {
-                    this->ShowSaveToast("Saved to Unbound.sav");
+                    const std::string &sp = this->save_session_.SourcePath();
+                    const auto spos = sp.rfind('/');
+                    const std::string save_fname = (spos != std::string::npos) ? sp.substr(spos + 1) : sp;
+                    this->ShowSaveToast("Saved: " + (save_fname.empty() ? "save" : save_fname));
                 } else {
                     this->CreateShowDialog("Save failed", save_error.empty() ? "Unknown save error" : save_error, {"OK"}, true);
                 }
@@ -2031,39 +2206,18 @@ void MainApplication::OnLoad() {
         }
     });
 
+    // Load static data (species/items/moves DBs + party stat tables)
     std::string error;
-    const bool ok = this->RefreshPartyData(&error);
-    if (!ok) {
-        this->diagnostics_layout_->SetSubtitle("Failed to load save");
-        this->diagnostics_layout_->SetLines({"Unable to boot.", error, "Expected: sdmc:/switch/puse/Unbound.sav"});
+    if (!this->LoadStaticData(&error)) {
+        this->diagnostics_layout_->SetSubtitle("Failed to load ROMFS data");
+        this->diagnostics_layout_->SetLines({"Unable to boot.", error, "Check ROMFS data files."});
         this->ShowLayoutScreen(this->diagnostics_layout_);
         return;
     }
 
-    // Load PC stream (non-fatal if it fails).
-    this->pc_stream_loaded_ = this->LoadPcStream(nullptr);
-
-    // Load bag pocket ID sets (non-fatal).
-    puse::core::EnsureBagDataLoaded(nullptr);
-
-    // Load RTC manifest (non-fatal).
-    {
-        const std::string mpath = io::ResolveAssetPath("data/rtc_manifest_unbound_v1.json");
-        if (!mpath.empty()) {
-            puse::core::LoadRtcManifest(mpath, &this->rtc_manifest_, nullptr);
-        }
-    }
-
-    if (this->party_.empty()) {
-        this->party_list_layout_->SetSubtitle("Party is empty");
-    } else {
-        this->party_list_layout_->SetSubtitle("Loaded " + std::to_string(this->party_.size()) + " slot(s)");
-        this->RebuildPartyMenu();
-    }
-
-    this->UpdateDirtyUi();
-    this->RebuildHomeMenu();
-    this->ShowLayoutScreen(this->home_layout_);
+    // Show file browser — user picks the .sav file
+    this->file_browser_layout_->OpenAt("sdmc:/switch/");
+    this->ShowLayoutScreen(this->file_browser_layout_);
 }
 
 void MainApplication::RebuildBagMenu() {
