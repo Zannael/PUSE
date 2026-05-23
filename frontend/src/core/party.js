@@ -99,11 +99,10 @@ function encodeText(text, maxLen = 10) {
 }
 
 function addMonChecksum(rawMon) {
-    let checksum = 0;
-    for (let i = 0; i < 48; i += 2) {
-        checksum = (checksum + ru16(rawMon, OFF_DATA_START + i)) & 0xFFFF;
-    }
-    wu16(rawMon, OFF_CHECKSUM, checksum);
+    // In Unbound/CFRU party runtime, a non-zero value here can be reused as
+    // species during battle init for one working party copy. Keep this field
+    // zero for party mons to avoid runtime substitution.
+    wu16(rawMon, OFF_CHECKSUM, 0);
 }
 
 function substructViews(rawMon) {

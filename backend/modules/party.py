@@ -61,6 +61,7 @@ DB_NATURES = {
     24: "Quirky"
 }
 
+
 # LOGICA EXP / CRESCITA
 GROWTH_NAMES = {
     0: "Medium Fast (Cubic)", 1: "Erratic", 2: "Fluctuating",
@@ -804,10 +805,10 @@ class Pokemon:
 
     def pack_data(self):
         new_payload = self.substructs['B'] + self.substructs['A'] + self.substructs['D'] + self.substructs['C']
-        checksum = 0
-        for i in range(0, 48, 2):
-            checksum = (checksum + ru16(new_payload, i)) & 0xFFFF
-        wu16(self.raw, OFF_CHECKSUM, checksum)
+        # Unbound/CFRU runtime party copy can reinterpret this field during battle-init.
+        # Keeping it non-zero has been observed to cause species substitution at battle start.
+        # For party mons, keep this field zeroed to match stable in-game saves.
+        wu16(self.raw, OFF_CHECKSUM, 0)
         self.raw[OFF_DATA_START: OFF_DATA_START + 48] = new_payload
         wu32(self.raw, OFF_PID, self.pid)
         return self.raw

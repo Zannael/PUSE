@@ -567,11 +567,10 @@ uint8_t GetStandardAbilitySlot(const uint8_t *raw_mon) {
 }
 
 void WriteMonChecksum(uint8_t *raw_mon) {
-    uint16_t checksum = 0;
-    for (size_t i = 0; i < 48; i += 2) {
-        checksum = static_cast<uint16_t>((checksum + ReadU16Le(raw_mon, kMonDataStart + i)) & 0xFFFFU);
-    }
-    WriteU16Le(raw_mon, kMonChecksumOff, checksum);
+    // Unbound/CFRU battle init can treat non-zero party 0x1C as a species source
+    // in one working-copy path. Keep party mon field 0x1C zeroed to prevent
+    // runtime species substitution when entering battle.
+    WriteU16Le(raw_mon, kMonChecksumOff, 0);
 }
 
 void SetItemId(uint8_t *raw_mon, const uint16_t item_id) {
