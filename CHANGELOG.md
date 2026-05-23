@@ -4,6 +4,8 @@
 
 ### Planned
 
+- Save state files editing
+- 3DS porting
 - Generate .pkm files from existing Unbound mons
 - Pokémon trainer editing
 - Pokémon ball editing
