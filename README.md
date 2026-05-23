@@ -1,4 +1,4 @@
-# PUSE - A Pokemon Unbound (online) Save Editor
+# PUSE - Pokémon Unbound Save Editor
 
 > Live app: **[https://zannael.github.io/PUSE/](https://zannael.github.io/PUSE/)**
 

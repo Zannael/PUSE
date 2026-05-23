@@ -19,7 +19,10 @@
 - Happiness editing
 - ~Investigate ROM-truth naming mismatch reports (for example Rhyperior shown as `Filter` vs expected `Solid Rock`) and align visible labels where appropriate.~ This now has [an opened issue](https://github.com/Zannael/PUSE/issues/7).
 
-#### Changed
+## v1.3.0 - 2026-05-23
+
+### Added
+
 - Added Nintendo Switch homebrew port (`switch-homebrew/`) built with Plutonium (SDL2) + libnx: party editing (species, nickname, level, nature, item, ability slot, IVs, EVs, moves + PP/PP-Up, shiny, gender), PC box browsing (18 boxes × 30 slots) with full per-mon field editing, money read/write (u32 + BCD3 up to 999,999,999), home menu navigation, and in-place `.sav` write with X-button save + toast confirmation. Checksum recalculation (GBA section checksum + per-section commit) matches backend behavior exactly.
 - Updated shiny recognition + PID shiny-target solving to use Unbound/CFRU 1/4096 parity (`SV < 16`) in backend/local mode, fixing false non-shiny reports for legitimate in-game conversions (for example scammer-method shinies).
 - Added backend regression coverage for scammer-method shiny + BP deltas (`backend/tools/shiny_bp_regression.py`) using saved before/after fixtures, including issue `#11` validation on reported party mons.
