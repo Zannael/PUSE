@@ -6,6 +6,7 @@
 
 - Generate .pkm files from existing Unbound mons
 - Pokémon trainer editing
+- Pokémon ball editing
 - Generate valid mistery gifts
 - Add create/insert workflows to add Pokemon to party (with validation and checksum-safe writes).
 - Add ROM-truth sprites for Pokémons and items with ROM-based sprites extraction.
