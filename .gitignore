@@ -79,3 +79,15 @@ AGENTS.md
 NEXT-RELEASE.md
 backend/SAVE_EDITING_GUIDE.md
 docs/
+
+# 3DS homebrew build outputs
+3ds-homebrew/build/
+3ds-homebrew/*.3dsx
+3ds-homebrew/*.elf
+3ds-homebrew/*.smdh
+3ds-homebrew/*.map
+
+# 3DS homebrew non-essential local content
+3ds-homebrew/artifacts/
+3ds-homebrew/tools/tmp/
+3ds-homebrew/tools/imgui-backends/

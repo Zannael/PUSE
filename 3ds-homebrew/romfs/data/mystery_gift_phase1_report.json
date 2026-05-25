@@ -1,0 +1,1752 @@
+{
+  "rom": "backend/local_artifacts/Unbound.gba",
+  "rom_sha1": "b4776b82a4c7915d0fadeaa27e013523f99dfd94",
+  "rom_size": 33554432,
+  "gift_code_file": "backend/data/mistery_gifts.json",
+  "gift_code_count": 34,
+  "gift_code_malformed": [],
+  "known_code_verbatim_search": {
+    "ascii_hits": [],
+    "encoded_hits": [],
+    "ascii_hit_count": 0,
+    "encoded_hit_count": 0
+  },
+  "keyword_text_hits_count": 85,
+  "keyword_text_hits_strict_count": 36,
+  "keyword_text_hits_loose_count": 49,
+  "keyword_text_hits": [
+    {
+      "offset": 1654895,
+      "offset_hex": "0x19406F",
+      "text": "Oh, no!?I had a nice gift for you, but you\nhave no room for it!",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        1487900
+      ]
+    },
+    {
+      "offset": 1676158,
+      "offset_hex": "0x19937E",
+      "text": "Oh, no!?I had a gift for you, but you have\nno room for it!",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        1497228
+      ]
+    },
+    {
+      "offset": 1701012,
+      "offset_hex": "0x19F494",
+      "text": "Oh, no!?I had a gift for you, but you have\nno room for it.",
+      "relevance": "loose",
+      "xref_count": 2,
+      "xrefs_sample": [
+        1507191,
+        1507423
+      ]
+    },
+    {
+      "offset": 1729235,
+      "offset_hex": "0x1A62D3",
+      "text": "Oh, hello!\nYou know those words??That means you must know about\nthe MYSTERY GIFT.?From now on, you should be\nreceiving MYSTERY GIFTS!",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        1734512
+      ]
+    },
+    {
+      "offset": 1729369,
+      "offset_hex": "0x1A6359",
+      "text": "Once you save your game, you can\naccess the MYSTERY GIFT.",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        1734529
+      ]
+    },
+    {
+      "offset": 1729427,
+      "offset_hex": "0x1A6393",
+      "text": "Thank you for accessing the\nMYSTERY GIFT System.",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        1815014
+      ]
+    },
+    {
+      "offset": 4107193,
+      "offset_hex": "0x3EABB9",
+      "text": "MYSTERY",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        4107960
+      ]
+    },
+    {
+      "offset": 4283018,
+      "offset_hex": "0x415A8A",
+      "text": "MYSTERY GIFT",
+      "relevance": "strict",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 4283031,
+      "offset_hex": "0x415A97",
+      "text": "MYSTERY GIFT",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        51644
+      ]
+    },
+    {
+      "offset": 4283083,
+      "offset_hex": "0x415ACB",
+      "text": "MYSTERY GIFT can't be used while\nthe Wireless Adapter is attached.",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        52228
+      ]
+    },
+    {
+      "offset": 4319267,
+      "offset_hex": "0x41E823",
+      "text": "You haven't received the CARD's gift\nyet. Input a new CARD anyway?",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        1323524
+      ]
+    },
+    {
+      "offset": 4320142,
+      "offset_hex": "0x41EB8E",
+      "text": "A GIFT has been sent to <VAR>?.",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        1322508
+      ]
+    },
+    {
+      "offset": 4320362,
+      "offset_hex": "0x41EC6A",
+      "text": "You can't send a MYSTERY GIFT to\nthis Trainer.",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        1322524
+      ]
+    },
+    {
+      "offset": 4320505,
+      "offset_hex": "0x41ECF9",
+      "text": "You haven't received the\nGIFT. Is it okay to discard?",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        1324024
+      ]
+    },
+    {
+      "offset": 4320701,
+      "offset_hex": "0x41EDBD",
+      "text": "MYSTERY GIFT",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        1319856
+      ]
+    },
+    {
+      "offset": 4514397,
+      "offset_hex": "0x44E25D",
+      "text": "It is entirely composed of rocks with no\nsign of a brain or heart. It is a mystery\neven to modern scientists.",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        27495648
+      ]
+    },
+    {
+      "offset": 4743633,
+      "offset_hex": "0x4861D1",
+      "text": "The foe is given a\nbooby-trapped gift.\nIt restores HP\nsometimes, however.",
+      "relevance": "loose",
+      "xref_count": 3,
+      "xrefs_sample": [
+        4753992,
+        9454432,
+        10089716
+      ]
+    },
+    {
+      "offset": 4755344,
+      "offset_hex": "0x488F90",
+      "text": "mon CENTER we\nhave a gift - a Pok?mon Egg!?Please raise it with love and\nkindness.",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 4755993,
+      "offset_hex": "0x489219",
+      "text": "We hope you will enjoy\nbattling the visiting Trainer.?You may invite other Trainers by\nentering other passwords.?Try looking for other passwords\nthat may work.",
+      "relevance": "strict",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 4756774,
+      "offset_hex": "0x489526",
+      "text": "Thank you for using the MYSTERY\nGIFT System.?You must be <VAR>?.\nThere is a ticket here for you.",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        4756707
+      ]
+    },
+    {
+      "offset": 4756968,
+      "offset_hex": "0x4895E8",
+      "text": "Thank you for using the MYSTERY\nGIFT System.",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        4756766
+      ]
+    },
+    {
+      "offset": 4757247,
+      "offset_hex": "0x4896FF",
+      "text": "Thank you for using the MYSTERY\nGIFT System.?You must be <VAR>?.\nThere is a ticket here for you.",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        4757180
+      ]
+    },
+    {
+      "offset": 4757441,
+      "offset_hex": "0x4897C1",
+      "text": "Thank you for using the MYSTERY\nGIFT System.",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        4757239
+      ]
+    },
+    {
+      "offset": 7621599,
+      "offset_hex": "0x744BDF",
+      "text": "Welcome to your first Gym\nChallenge!?Let me start you off with a small\ngift.?-COUGH- -WHEEZE-",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 7670825,
+      "offset_hex": "0x750C29",
+      "text": "9999999999999Crater Town is an ideal place for\nresearchers like myself.?So much history...?So much mystery...",
+      "relevance": "strict",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 7804865,
+      "offset_hex": "0x7717C1",
+      "text": "Hmm...?It appears that you have no space\nfor my gift.",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        7603629
+      ]
+    },
+    {
+      "offset": 7861925,
+      "offset_hex": "0x77F6A5",
+      "text": "Gym Leader, they'll give you a?free gift??Didja? Didja?",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 7901904,
+      "offset_hex": "0x7892D0",
+      "text": "beating the Gym Leader, they'll?give you a gift then, also??Didja? Didja?",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 8129815,
+      "offset_hex": "0x7C0D17",
+      "text": "Hey there! Please, enjoy this gift!",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        8129783
+      ]
+    },
+    {
+      "offset": 8143823,
+      "offset_hex": "0x7C43CF",
+      "text": "mon\nare now able to Mega Evolve?mid-battle.?However, a large part of Mega\nEvolution still remains a mystery.",
+      "relevance": "strict",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 8152940,
+      "offset_hex": "0x7C676C",
+      "text": "We forgot to give a gift to the\n<VAR>? who helped me!",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        8151888
+      ]
+    },
+    {
+      "offset": 8185874,
+      "offset_hex": "0x7CE812",
+      "text": "Sorry, it doesn't look like you\nhave any space for my gift.",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        8145707
+      ]
+    },
+    {
+      "offset": 8304655,
+      "offset_hex": "0x7EB80F",
+      "text": "4F: TM Corner?5F: Medicine Box?6F: Wiseman Gifts",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 8335920,
+      "offset_hex": "0x7F3230",
+      "text": "Password",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        8335773
+      ]
+    },
+    {
+      "offset": 8338390,
+      "offset_hex": "0x7F3BD6",
+      "text": "!\nWe could use your assistance.?Try to help that scientist figure\nout the password for the door.?If you interrogate everyone you\nsee, someone will spill it.",
+      "relevance": "strict",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 8341122,
+      "offset_hex": "0x7F4682",
+      "text": "That's not the correct password...",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        8340802
+      ]
+    },
+    {
+      "offset": 8341236,
+      "offset_hex": "0x7F46F4",
+      "text": "Good work, scientist.?I should've known that arrogant\nfool would make the password his?own name...",
+      "relevance": "strict",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 8341340,
+      "offset_hex": "0x7F475C",
+      "text": "I'm back.?And I was able to figure out the\nrest of the password.",
+      "relevance": "strict",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 8341465,
+      "offset_hex": "0x7F47D9",
+      "text": "And he brought the password\ntoo, <VAR>?.",
+      "relevance": "strict",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 8341513,
+      "offset_hex": "0x7F4809",
+      "text": "And she brought the password\ntoo, <VAR>?.",
+      "relevance": "strict",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 10711349,
+      "offset_hex": "0xA37135",
+      "text": "Flower Gift",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 10757058,
+      "offset_hex": "0xA423C2",
+      "text": "Natural Gift",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 10802397,
+      "offset_hex": "0xA4D4DD",
+      "text": "All daily events such as gifts\nand Raids may cease to function?properly until the day after.?Please refrain from tampering\nwith the RTC again.",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 10805650,
+      "offset_hex": "0xA4E192",
+      "text": "Enter Password",
+      "relevance": "strict",
+      "xref_count": 2,
+      "xrefs_sample": [
+        10931828,
+        10931840
+      ]
+    },
+    {
+      "offset": 15413379,
+      "offset_hex": "0xEB3083",
+      "text": "No practical use other than for\nthe move Natural Gift.",
+      "relevance": "loose",
+      "xref_count": 9,
+      "xrefs_sample": [
+        8879464,
+        8879508,
+        8879552,
+        8879596,
+        8879640,
+        8879684,
+        8879728,
+        8879772,
+        8879816
+      ]
+    },
+    {
+      "offset": 23501009,
+      "offset_hex": "0x16698D1",
+      "text": "It functions thanks to its artificial soul.\nThe vivid decoration is proof that it\nwas presented as a gift to royalty.",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        27481744
+      ]
+    },
+    {
+      "offset": 32406395,
+      "offset_hex": "0x1EE7B7B",
+      "text": "Whoa...\nYou look exhausted.?Did you climb all the way up the\nmountain from Crater Town??Then I'm sure our greeter gave you\na nice gift!",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        31811875
+      ]
+    },
+    {
+      "offset": 32430394,
+      "offset_hex": "0x1EED93A",
+      "text": "Gym Leader, they'll give you a?free gift??Didja? Didja?",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 32430516,
+      "offset_hex": "0x1EED9B4",
+      "text": "beating the Gym Leader, they'll?give you a gift then, too??Didja? Didja?",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 32468253,
+      "offset_hex": "0x1EF6D1D",
+      "text": "Moleman's Fossil Gift",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        31856464
+      ]
+    },
+    {
+      "offset": 32527598,
+      "offset_hex": "0x1F054EE",
+      "text": "An odd Pok?mon Egg obtained\nas a gift.",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        4603612
+      ]
+    },
+    {
+      "offset": 32555197,
+      "offset_hex": "0x1F0C0BD",
+      "text": "to move through it quickly.?Oh, and you can even use it to\nstore this parting gift I prepared!",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 32557581,
+      "offset_hex": "0x1F0CA0D",
+      "text": "Oh, by the way, <VAR>? left a\ngift for you on the table.",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        31909506
+      ]
+    },
+    {
+      "offset": 32605607,
+      "offset_hex": "0x1F185A7",
+      "text": "Tell me that ain't useful!?Oh yeah... I guess you can have\nthis.?Call it a goodwill gift from\nBig Mo.",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 32608919,
+      "offset_hex": "0x1F19297",
+      "text": ".?Additionally, take this TM as a gift\nfor your outstanding achievement.",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 32620475,
+      "offset_hex": "0x1F1BFBB",
+      "text": "Welcome to your first Gym\nChallenge!?Let me start you off with a\nsmall gift.?-COUGH- -WHEEZE-",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 32665837,
+      "offset_hex": "0x1F270ED",
+      "text": "Magnificent...\nYou've made my dream a reality.?Please, take this one final\nVivillon as a gift from me.",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        31961072
+      ]
+    },
+    {
+      "offset": 32665938,
+      "offset_hex": "0x1F27152",
+      "text": "Magnificent...\nYou've made my dream a reality.?However...?The gift I would like to give you\nneeds an open space in your party.",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        31961258
+      ]
+    },
+    {
+      "offset": 32670352,
+      "offset_hex": "0x1F28290",
+      "text": "last.?Thank heavens you were around to\npick it up!?Please, as my thanks, I want you to\ngraciously accept this gift.",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 32686257,
+      "offset_hex": "0x1F2C0B1",
+      "text": "An unfamiliar face!\nThis is a gift for such a person.",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        31968440
+      ]
+    },
+    {
+      "offset": 32782705,
+      "offset_hex": "0x1F43971",
+      "text": "That doesn't look like the correct\npassword...",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        32103333
+      ]
+    },
+    {
+      "offset": 32782808,
+      "offset_hex": "0x1F439D8",
+      "text": "Good work, scientist.?I should have known that arrogant\nfool would make the password his?own name...",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        32100392
+      ]
+    },
+    {
+      "offset": 32850961,
+      "offset_hex": "0x1F54411",
+      "text": "more in total!?If you collect all of them, I'll\ngive you a great gift!",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 32851173,
+      "offset_hex": "0x1F544E5",
+      "text": "You are a TM Master!?Thank you!\nI was thrilled to see them!?As a reward, please accept this\nas a gift!",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 32855228,
+      "offset_hex": "0x1F554BC",
+      "text": "This TM was received as a gift in\nthe Mart.",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        31983444
+      ]
+    },
+    {
+      "offset": 32857817,
+      "offset_hex": "0x1F55ED9",
+      "text": "This TM was received as a gift in\nthe marketplace.",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        31984148
+      ]
+    },
+    {
+      "offset": 32858012,
+      "offset_hex": "0x1F55F9C",
+      "text": "This TM was received as a gift in\none of the southern houses.",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        31984212
+      ]
+    },
+    {
+      "offset": 32938921,
+      "offset_hex": "0x1F69BA9",
+      "text": "Natural Gift<CTRL>?? of?",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 32938978,
+      "offset_hex": "0x1F69BE2",
+      "text": "That's not a Berry!?Natural Gift can only be used with\nBerries!",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        32038629
+      ]
+    },
+    {
+      "offset": 32966140,
+      "offset_hex": "0x1F705FC",
+      "text": "But I should also be grateful you\ntook time from your busy life to?keep him amused.?Please, accept this gift from me.",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 32970676,
+      "offset_hex": "0x1F717B4",
+      "text": "4F: TM Corner?5F: Medicine Box?6F: Wiseman Gifts",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 32970867,
+      "offset_hex": "0x1F71873",
+      "text": "6F: Wiseman Gifts",
+      "relevance": "loose",
+      "xref_count": 2,
+      "xrefs_sample": [
+        32060089,
+        33234604
+      ]
+    },
+    {
+      "offset": 33009021,
+      "offset_hex": "0x1F7AD7D",
+      "text": "Triumph over me, and show me you are\nworthy of wielding my greatest gift!",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        32066684
+      ]
+    },
+    {
+      "offset": 33011517,
+      "offset_hex": "0x1F7B73D",
+      "text": "mon\nare now able to Mega Evolve?during battle.?However, a large part of Mega\nEvolution still remains a mystery.",
+      "relevance": "strict",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 33012384,
+      "offset_hex": "0x1F7BAA0",
+      "text": "can't be purchased.?The only way you can get them is by\nfinding them lying around, or by?receiving them as gifts.",
+      "relevance": "loose",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 33021895,
+      "offset_hex": "0x1F7DFC7",
+      "text": "Hey, there!?Please, enjoy this gift!",
+      "relevance": "loose",
+      "xref_count": 1,
+      "xrefs_sample": [
+        32071147
+      ]
+    },
+    {
+      "offset": 33059171,
+      "offset_hex": "0x1F87163",
+      "text": "Password",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        32098999
+      ]
+    },
+    {
+      "offset": 33060964,
+      "offset_hex": "0x1F87864",
+      "text": "Aklove<CTRL>??'s cronies\nmust know the password.",
+      "relevance": "strict",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 33108356,
+      "offset_hex": "0x1F93184",
+      "text": "Mystery Gift<CTRL>???",
+      "relevance": "strict",
+      "xref_count": 0,
+      "xrefs_sample": []
+    },
+    {
+      "offset": 33108373,
+      "offset_hex": "0x1F93195",
+      "text": "I haven't received any gifts\nfor you.?We look forward to your next visit.",
+      "relevance": "strict",
+      "xref_count": 1,
+      "xrefs_sample": [
+        32117433
+      ]
+    }
+  ],
+  "xref_clusters": [
+    {
+      "start": 51644,
+      "end": 52228,
+      "count": 2,
+      "start_hex": "0xC9BC",
+      "end_hex": "0xCC04"
+    },
+    {
+      "start": 1319856,
+      "end": 1319856,
+      "count": 1,
+      "start_hex": "0x1423B0",
+      "end_hex": "0x1423B0"
+    },
+    {
+      "start": 1322508,
+      "end": 1322524,
+      "count": 2,
+      "start_hex": "0x142E0C",
+      "end_hex": "0x142E1C"
+    },
+    {
+      "start": 1323524,
+      "end": 1324024,
+      "count": 2,
+      "start_hex": "0x143204",
+      "end_hex": "0x1433F8"
+    },
+    {
+      "start": 1487900,
+      "end": 1487900,
+      "count": 1,
+      "start_hex": "0x16B41C",
+      "end_hex": "0x16B41C"
+    },
+    {
+      "start": 1497228,
+      "end": 1497228,
+      "count": 1,
+      "start_hex": "0x16D88C",
+      "end_hex": "0x16D88C"
+    },
+    {
+      "start": 1507191,
+      "end": 1507423,
+      "count": 2,
+      "start_hex": "0x16FF77",
+      "end_hex": "0x17005F"
+    },
+    {
+      "start": 1734512,
+      "end": 1734529,
+      "count": 2,
+      "start_hex": "0x1A7770",
+      "end_hex": "0x1A7781"
+    },
+    {
+      "start": 1815014,
+      "end": 1815014,
+      "count": 1,
+      "start_hex": "0x1BB1E6",
+      "end_hex": "0x1BB1E6"
+    },
+    {
+      "start": 4107960,
+      "end": 4107960,
+      "count": 1,
+      "start_hex": "0x3EAEB8",
+      "end_hex": "0x3EAEB8"
+    },
+    {
+      "start": 4603612,
+      "end": 4603612,
+      "count": 1,
+      "start_hex": "0x463EDC",
+      "end_hex": "0x463EDC"
+    },
+    {
+      "start": 4753992,
+      "end": 4753992,
+      "count": 1,
+      "start_hex": "0x488A48",
+      "end_hex": "0x488A48"
+    },
+    {
+      "start": 4756707,
+      "end": 4757239,
+      "count": 4,
+      "start_hex": "0x4894E3",
+      "end_hex": "0x4896F7"
+    },
+    {
+      "start": 7603629,
+      "end": 7603629,
+      "count": 1,
+      "start_hex": "0x7405AD",
+      "end_hex": "0x7405AD"
+    },
+    {
+      "start": 8129783,
+      "end": 8129783,
+      "count": 1,
+      "start_hex": "0x7C0CF7",
+      "end_hex": "0x7C0CF7"
+    },
+    {
+      "start": 8145707,
+      "end": 8145707,
+      "count": 1,
+      "start_hex": "0x7C4B2B",
+      "end_hex": "0x7C4B2B"
+    },
+    {
+      "start": 8151888,
+      "end": 8151888,
+      "count": 1,
+      "start_hex": "0x7C6350",
+      "end_hex": "0x7C6350"
+    },
+    {
+      "start": 8335773,
+      "end": 8335773,
+      "count": 1,
+      "start_hex": "0x7F319D",
+      "end_hex": "0x7F319D"
+    },
+    {
+      "start": 8340802,
+      "end": 8340802,
+      "count": 1,
+      "start_hex": "0x7F4542",
+      "end_hex": "0x7F4542"
+    },
+    {
+      "start": 8879464,
+      "end": 8879816,
+      "count": 9,
+      "start_hex": "0x877D68",
+      "end_hex": "0x877EC8"
+    },
+    {
+      "start": 9454432,
+      "end": 9454432,
+      "count": 1,
+      "start_hex": "0x904360",
+      "end_hex": "0x904360"
+    },
+    {
+      "start": 10089716,
+      "end": 10089716,
+      "count": 1,
+      "start_hex": "0x99F4F4",
+      "end_hex": "0x99F4F4"
+    },
+    {
+      "start": 10931828,
+      "end": 10931840,
+      "count": 2,
+      "start_hex": "0xA6CE74",
+      "end_hex": "0xA6CE80"
+    },
+    {
+      "start": 27481744,
+      "end": 27481744,
+      "count": 1,
+      "start_hex": "0x1A35690",
+      "end_hex": "0x1A35690"
+    },
+    {
+      "start": 27495648,
+      "end": 27495648,
+      "count": 1,
+      "start_hex": "0x1A38CE0",
+      "end_hex": "0x1A38CE0"
+    },
+    {
+      "start": 31811875,
+      "end": 31811875,
+      "count": 1,
+      "start_hex": "0x1E56923",
+      "end_hex": "0x1E56923"
+    },
+    {
+      "start": 31856464,
+      "end": 31856464,
+      "count": 1,
+      "start_hex": "0x1E61750",
+      "end_hex": "0x1E61750"
+    },
+    {
+      "start": 31909506,
+      "end": 31909506,
+      "count": 1,
+      "start_hex": "0x1E6E682",
+      "end_hex": "0x1E6E682"
+    },
+    {
+      "start": 31961072,
+      "end": 31961258,
+      "count": 2,
+      "start_hex": "0x1E7AFF0",
+      "end_hex": "0x1E7B0AA"
+    },
+    {
+      "start": 31968440,
+      "end": 31968440,
+      "count": 1,
+      "start_hex": "0x1E7CCB8",
+      "end_hex": "0x1E7CCB8"
+    },
+    {
+      "start": 31983444,
+      "end": 31983444,
+      "count": 1,
+      "start_hex": "0x1E80754",
+      "end_hex": "0x1E80754"
+    },
+    {
+      "start": 31984148,
+      "end": 31984212,
+      "count": 2,
+      "start_hex": "0x1E80A14",
+      "end_hex": "0x1E80A54"
+    },
+    {
+      "start": 32038629,
+      "end": 32038629,
+      "count": 1,
+      "start_hex": "0x1E8DEE5",
+      "end_hex": "0x1E8DEE5"
+    },
+    {
+      "start": 32060089,
+      "end": 32060089,
+      "count": 1,
+      "start_hex": "0x1E932B9",
+      "end_hex": "0x1E932B9"
+    },
+    {
+      "start": 32066684,
+      "end": 32066684,
+      "count": 1,
+      "start_hex": "0x1E94C7C",
+      "end_hex": "0x1E94C7C"
+    },
+    {
+      "start": 32071147,
+      "end": 32071147,
+      "count": 1,
+      "start_hex": "0x1E95DEB",
+      "end_hex": "0x1E95DEB"
+    },
+    {
+      "start": 32098999,
+      "end": 32098999,
+      "count": 1,
+      "start_hex": "0x1E9CAB7",
+      "end_hex": "0x1E9CAB7"
+    },
+    {
+      "start": 32100392,
+      "end": 32100392,
+      "count": 1,
+      "start_hex": "0x1E9D028",
+      "end_hex": "0x1E9D028"
+    },
+    {
+      "start": 32103333,
+      "end": 32103333,
+      "count": 1,
+      "start_hex": "0x1E9DBA5",
+      "end_hex": "0x1E9DBA5"
+    },
+    {
+      "start": 32117433,
+      "end": 32117433,
+      "count": 1,
+      "start_hex": "0x1EA12B9",
+      "end_hex": "0x1EA12B9"
+    },
+    {
+      "start": 33234604,
+      "end": 33234604,
+      "count": 1,
+      "start_hex": "0x1FB1EAC",
+      "end_hex": "0x1FB1EAC"
+    }
+  ],
+  "native_pointer_candidates": [
+    {
+      "target_offset": 15413379,
+      "target_hex": "0xEB3083",
+      "score": 39,
+      "xrefs_sample": [
+        8879464,
+        8879508,
+        8879552,
+        8879596,
+        8879640,
+        8879684,
+        8879728,
+        8879772
+      ]
+    },
+    {
+      "target_offset": 664121,
+      "target_hex": "0xA2239",
+      "score": 33,
+      "xrefs_sample": [
+        8879464,
+        8879508,
+        8879552,
+        8879596,
+        8879640,
+        8879684,
+        8879728,
+        8879772
+      ]
+    },
+    {
+      "target_offset": 31984272,
+      "target_hex": "0x1E80A90",
+      "score": 32,
+      "xrefs_sample": [
+        31983444,
+        31984148,
+        31984212
+      ]
+    },
+    {
+      "target_offset": 31909210,
+      "target_hex": "0x1E6E55A",
+      "score": 18,
+      "xrefs_sample": [
+        31909506,
+        31961072,
+        31961258,
+        31984212,
+        32038629,
+        32066684,
+        32071147,
+        32098999
+      ]
+    },
+    {
+      "target_offset": 652445,
+      "target_hex": "0x9F49D",
+      "score": 13,
+      "xrefs_sample": [
+        10931828,
+        10931840
+      ]
+    },
+    {
+      "target_offset": 32201169,
+      "target_hex": "0x1EB59D1",
+      "score": 13,
+      "xrefs_sample": [
+        31909506,
+        32066684,
+        32100392
+      ]
+    },
+    {
+      "target_offset": 32808200,
+      "target_hex": "0x1F49D08",
+      "score": 11,
+      "xrefs_sample": [
+        10931828,
+        10931840
+      ]
+    },
+    {
+      "target_offset": 16777600,
+      "target_hex": "0x1000180",
+      "score": 10,
+      "xrefs_sample": [
+        1507423,
+        4756707,
+        4756766,
+        4757180,
+        4757239,
+        7603629,
+        8145707,
+        32071147
+      ]
+    },
+    {
+      "target_offset": 1815079,
+      "target_hex": "0x1BB227",
+      "score": 7,
+      "xrefs_sample": [
+        1815014
+      ]
+    },
+    {
+      "target_offset": 4757238,
+      "target_hex": "0x4896F6",
+      "score": 7,
+      "xrefs_sample": [
+        4757180,
+        4757239
+      ]
+    },
+    {
+      "target_offset": 17430296,
+      "target_hex": "0x109F718",
+      "score": 7,
+      "xrefs_sample": [
+        32060089
+      ]
+    },
+    {
+      "target_offset": 4756765,
+      "target_hex": "0x48951D",
+      "score": 6,
+      "xrefs_sample": [
+        4756707,
+        4756766
+      ]
+    },
+    {
+      "target_offset": 18622688,
+      "target_hex": "0x11C28E0",
+      "score": 5,
+      "xrefs_sample": [
+        1323524,
+        1324024
+      ]
+    },
+    {
+      "target_offset": 17308148,
+      "target_hex": "0x10819F4",
+      "score": 5,
+      "xrefs_sample": [
+        1507191,
+        1507423
+      ]
+    },
+    {
+      "target_offset": 8132174,
+      "target_hex": "0x7C164E",
+      "score": 5,
+      "xrefs_sample": [
+        7603629,
+        8145707,
+        8340802
+      ]
+    },
+    {
+      "target_offset": 12321468,
+      "target_hex": "0xBC02BC",
+      "score": 4,
+      "xrefs_sample": [
+        1322508,
+        1322524
+      ]
+    },
+    {
+      "target_offset": 17308051,
+      "target_hex": "0x1081993",
+      "score": 4,
+      "xrefs_sample": [
+        1497228
+      ]
+    },
+    {
+      "target_offset": 1734129,
+      "target_hex": "0x1A75F1",
+      "score": 4,
+      "xrefs_sample": [
+        1734512,
+        1734529
+      ]
+    },
+    {
+      "target_offset": 17308258,
+      "target_hex": "0x1081A62",
+      "score": 4,
+      "xrefs_sample": [
+        1734512,
+        1734529
+      ]
+    },
+    {
+      "target_offset": 7603648,
+      "target_hex": "0x7405C0",
+      "score": 4,
+      "xrefs_sample": [
+        7603629
+      ]
+    },
+    {
+      "target_offset": 17333351,
+      "target_hex": "0x1087C67",
+      "score": 4,
+      "xrefs_sample": [
+        8151888
+      ]
+    },
+    {
+      "target_offset": 17334086,
+      "target_hex": "0x1087F46",
+      "score": 4,
+      "xrefs_sample": [
+        8340802
+      ]
+    },
+    {
+      "target_offset": 4072564,
+      "target_hex": "0x3E2474",
+      "score": 4,
+      "xrefs_sample": [
+        10931828,
+        10931840
+      ]
+    },
+    {
+      "target_offset": 10805650,
+      "target_hex": "0xA4E192",
+      "score": 4,
+      "xrefs_sample": [
+        10931828,
+        10931840
+      ]
+    },
+    {
+      "target_offset": 17428079,
+      "target_hex": "0x109EE6F",
+      "score": 4,
+      "xrefs_sample": [
+        31811875
+      ]
+    },
+    {
+      "target_offset": 17430298,
+      "target_hex": "0x109F71A",
+      "score": 4,
+      "xrefs_sample": [
+        32060089
+      ]
+    },
+    {
+      "target_offset": 17429561,
+      "target_hex": "0x109F439",
+      "score": 4,
+      "xrefs_sample": [
+        32100392,
+        32103333
+      ]
+    },
+    {
+      "target_offset": 17430834,
+      "target_hex": "0x109F932",
+      "score": 4,
+      "xrefs_sample": [
+        32117433
+      ]
+    },
+    {
+      "target_offset": 3148060,
+      "target_hex": "0x30091C",
+      "score": 3,
+      "xrefs_sample": [
+        1323524,
+        1324024
+      ]
+    },
+    {
+      "target_offset": 17307968,
+      "target_hex": "0x1081940",
+      "score": 3,
+      "xrefs_sample": [
+        1487900
+      ]
+    },
+    {
+      "target_offset": 16843136,
+      "target_hex": "0x1010180",
+      "score": 3,
+      "xrefs_sample": [
+        1487900,
+        1497228,
+        1507191
+      ]
+    },
+    {
+      "target_offset": 17367297,
+      "target_hex": "0x1090101",
+      "score": 3,
+      "xrefs_sample": [
+        1487900,
+        1497228,
+        1507191
+      ]
+    },
+    {
+      "target_offset": 17308147,
+      "target_hex": "0x10819F3",
+      "score": 3,
+      "xrefs_sample": [
+        1507423
+      ]
+    },
+    {
+      "target_offset": 1734538,
+      "target_hex": "0x1A778A",
+      "score": 3,
+      "xrefs_sample": [
+        1734512,
+        1734529
+      ]
+    },
+    {
+      "target_offset": 17308259,
+      "target_hex": "0x1081A63",
+      "score": 3,
+      "xrefs_sample": [
+        1734512,
+        1734529,
+        1815014
+      ]
+    },
+    {
+      "target_offset": 4299544,
+      "target_hex": "0x419B18",
+      "score": 3,
+      "xrefs_sample": [
+        4603612
+      ]
+    },
+    {
+      "target_offset": 4741973,
+      "target_hex": "0x485B55",
+      "score": 3,
+      "xrefs_sample": [
+        4753992,
+        9454432,
+        10089716
+      ]
+    },
+    {
+      "target_offset": 4742044,
+      "target_hex": "0x485B9C",
+      "score": 3,
+      "xrefs_sample": [
+        4753992,
+        9454432,
+        10089716
+      ]
+    },
+    {
+      "target_offset": 4742110,
+      "target_hex": "0x485BDE",
+      "score": 3,
+      "xrefs_sample": [
+        4753992,
+        9454432,
+        10089716
+      ]
+    },
+    {
+      "target_offset": 4742180,
+      "target_hex": "0x485C24",
+      "score": 3,
+      "xrefs_sample": [
+        4753992,
+        9454432,
+        10089716
+      ]
+    }
+  ],
+  "code_like_sequences_count": 35,
+  "code_like_sequences": [
+    {
+      "offset": 2424054,
+      "text": "COMPOUNDEYES",
+      "next_byte": 255
+    },
+    {
+      "offset": 2424275,
+      "text": "LIGHTNINGROD",
+      "next_byte": 255
+    },
+    {
+      "offset": 2767464,
+      "text": "B1C1R1S1B1C1",
+      "next_byte": 0
+    },
+    {
+      "offset": 2771316,
+      "text": "999999999999",
+      "next_byte": 255
+    },
+    {
+      "offset": 2771828,
+      "text": "999999999999",
+      "next_byte": 255
+    },
+    {
+      "offset": 2771892,
+      "text": "999999999999",
+      "next_byte": 252
+    },
+    {
+      "offset": 4095826,
+      "text": "ENCYCLOPEDIA",
+      "next_byte": 255
+    },
+    {
+      "offset": 4096974,
+      "text": "LIGHTNINGROD",
+      "next_byte": 255
+    },
+    {
+      "offset": 4096987,
+      "text": "COMPOUNDEYES",
+      "next_byte": 255
+    },
+    {
+      "offset": 4102099,
+      "text": "UNBELIEVABLE",
+      "next_byte": 255
+    },
+    {
+      "offset": 4105536,
+      "text": "DISAPPOINTED",
+      "next_byte": 255
+    },
+    {
+      "offset": 4106917,
+      "text": "ENTERTAINING",
+      "next_byte": 255
+    },
+    {
+      "offset": 4107011,
+      "text": "OVERWHELMING",
+      "next_byte": 255
+    },
+    {
+      "offset": 4107108,
+      "text": "PREPOSTEROUS",
+      "next_byte": 255
+    },
+    {
+      "offset": 4113327,
+      "text": "ANTICIPATION",
+      "next_byte": 255
+    },
+    {
+      "offset": 4165888,
+      "text": "999999999999",
+      "next_byte": 255
+    },
+    {
+      "offset": 4291390,
+      "text": "BOULDERBADGE",
+      "next_byte": 255
+    },
+    {
+      "offset": 4291403,
+      "text": "CASCADEBADGE",
+      "next_byte": 255
+    },
+    {
+      "offset": 4291416,
+      "text": "THUNDERBADGE",
+      "next_byte": 255
+    },
+    {
+      "offset": 4291429,
+      "text": "RAINBOWBADGE",
+      "next_byte": 255
+    },
+    {
+      "offset": 4291463,
+      "text": "VOLCANOBADGE",
+      "next_byte": 255
+    },
+    {
+      "offset": 4292569,
+      "text": "BOULDERBADGE",
+      "next_byte": 255
+    },
+    {
+      "offset": 4292582,
+      "text": "CASCADEBADGE",
+      "next_byte": 255
+    },
+    {
+      "offset": 4292595,
+      "text": "THUNDERBADGE",
+      "next_byte": 255
+    },
+    {
+      "offset": 4292608,
+      "text": "RAINBOWBADGE",
+      "next_byte": 255
+    },
+    {
+      "offset": 4292642,
+      "text": "VOLCANOBADGE",
+      "next_byte": 255
+    },
+    {
+      "offset": 4292775,
+      "text": "ENERGYPOWDER",
+      "next_byte": 252
+    },
+    {
+      "offset": 9023572,
+      "text": "MRRRMRRRMRRR",
+      "next_byte": 255
+    },
+    {
+      "offset": 11575090,
+      "text": "URRRTRRRTRRR",
+      "next_byte": 252
+    },
+    {
+      "offset": 11595884,
+      "text": "VAAAVAAAVCAA",
+      "next_byte": 0
+    },
+    {
+      "offset": 12066384,
+      "text": "ZLZL8H8H8H8H",
+      "next_byte": 0
+    },
+    {
+      "offset": 15131260,
+      "text": "BAARQAQRQABA",
+      "next_byte": 255
+    },
+    {
+      "offset": 15133732,
+      "text": "RQABRAABRARB",
+      "next_byte": 255
+    },
+    {
+      "offset": 17000488,
+      "text": "9999AAAARRRR",
+      "next_byte": 255
+    },
+    {
+      "offset": 17000520,
+      "text": "9999AAAARRRR",
+      "next_byte": 255
+    }
+  ],
+  "code_like_clusters": [
+    {
+      "start": 2424054,
+      "end": 2424275,
+      "count": 2,
+      "start_hex": "0x24FCF6",
+      "end_hex": "0x24FDD3"
+    },
+    {
+      "start": 2767464,
+      "end": 2767464,
+      "count": 1,
+      "start_hex": "0x2A3A68",
+      "end_hex": "0x2A3A68"
+    },
+    {
+      "start": 2771316,
+      "end": 2771892,
+      "count": 3,
+      "start_hex": "0x2A4974",
+      "end_hex": "0x2A4BB4"
+    },
+    {
+      "start": 4095826,
+      "end": 4095826,
+      "count": 1,
+      "start_hex": "0x3E7F52",
+      "end_hex": "0x3E7F52"
+    },
+    {
+      "start": 4096974,
+      "end": 4096987,
+      "count": 2,
+      "start_hex": "0x3E83CE",
+      "end_hex": "0x3E83DB"
+    },
+    {
+      "start": 4102099,
+      "end": 4102099,
+      "count": 1,
+      "start_hex": "0x3E97D3",
+      "end_hex": "0x3E97D3"
+    },
+    {
+      "start": 4105536,
+      "end": 4105536,
+      "count": 1,
+      "start_hex": "0x3EA540",
+      "end_hex": "0x3EA540"
+    },
+    {
+      "start": 4106917,
+      "end": 4107108,
+      "count": 3,
+      "start_hex": "0x3EAAA5",
+      "end_hex": "0x3EAB64"
+    },
+    {
+      "start": 4113327,
+      "end": 4113327,
+      "count": 1,
+      "start_hex": "0x3EC3AF",
+      "end_hex": "0x3EC3AF"
+    },
+    {
+      "start": 4165888,
+      "end": 4165888,
+      "count": 1,
+      "start_hex": "0x3F9100",
+      "end_hex": "0x3F9100"
+    },
+    {
+      "start": 4291390,
+      "end": 4291463,
+      "count": 5,
+      "start_hex": "0x417B3E",
+      "end_hex": "0x417B87"
+    },
+    {
+      "start": 4292569,
+      "end": 4292775,
+      "count": 6,
+      "start_hex": "0x417FD9",
+      "end_hex": "0x4180A7"
+    },
+    {
+      "start": 9023572,
+      "end": 9023572,
+      "count": 1,
+      "start_hex": "0x89B054",
+      "end_hex": "0x89B054"
+    },
+    {
+      "start": 11575090,
+      "end": 11575090,
+      "count": 1,
+      "start_hex": "0xB09F32",
+      "end_hex": "0xB09F32"
+    },
+    {
+      "start": 11595884,
+      "end": 11595884,
+      "count": 1,
+      "start_hex": "0xB0F06C",
+      "end_hex": "0xB0F06C"
+    },
+    {
+      "start": 12066384,
+      "end": 12066384,
+      "count": 1,
+      "start_hex": "0xB81E50",
+      "end_hex": "0xB81E50"
+    },
+    {
+      "start": 15131260,
+      "end": 15131260,
+      "count": 1,
+      "start_hex": "0xE6E27C",
+      "end_hex": "0xE6E27C"
+    },
+    {
+      "start": 15133732,
+      "end": 15133732,
+      "count": 1,
+      "start_hex": "0xE6EC24",
+      "end_hex": "0xE6EC24"
+    },
+    {
+      "start": 17000488,
+      "end": 17000520,
+      "count": 2,
+      "start_hex": "0x1036828",
+      "end_hex": "0x1036848"
+    }
+  ]
+}

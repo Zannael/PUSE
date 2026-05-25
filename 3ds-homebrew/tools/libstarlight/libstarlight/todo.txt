@@ -1,0 +1,137 @@
+
+
+
+roadmap to v0.5.1 {
+    - make font-not-found not outright crash the app (hopefully)
+    - fix UICanvas garbage-on-empty
+    make asset gc actually sweep every 5sec
+    maybe entirely replace clearing with transparent knockout on bind?
+    implement more blend modes??
+    
+    make button glyphs usable in conjunction with text (left edge, margin etc.)
+    give glyphs a color mode where they aren't set to text color
+    
+    predrawoffscreen on hidden forms
+    
+    paged field
+    
+    figure out why first-draw in a given font sometimes derps up?
+    ^ mitigate with a force-load-on-set for now
+    
+    - libctru console as ui element
+    
+    - pngcrush the biggest assets (default and osk backdrops etc.)
+    - profile image loading (for large images, loading the png and spanned copy/premult take about the same time; memset to preclear is only ~2ms with a 512x512)
+    
+    - fix the hang on osk when pressing (L|R)+up+left
+    figure out what (else) to put on the left side of the keyboard (opposite backspace and enter)
+    temporary drawable loading, local themeref, discard etc.
+    ^ both png and raw load
+    maybe rgb565 for smdh icon loading?
+    some examples (minesweeper?)
+    fix `, ' and " glyph spacing/offset
+    adjust /\ some?
+    proper thread dispatch? {
+        - Application main loop keeps a(n abstracted) libctru TickCounter and keeps track of frame time
+        - thread objects are held in a std::list, Application dispatches resume events and splice()s them to the end until frame time reaches some proportion of 1/60s
+        - thread gets a yield function that calls svcWaitSynchronization on its resume event
+        ...and some mechanism for allowing it to opt out of the rest of the cycle
+        
+        Trackable sideclass for threads; float progress 0..1, etc.
+        ^ make progress bar and use it for a progress/"please wait" dialog
+        - MAKE THREADS END CLEANLY
+        ^ observed a single instance of being stalled on redscreen, not really sure what that was about
+        lambda task thread
+    }
+} then by v0.5.5 {
+    refactor ResolveAsset/FontPath to use Path objects for cleaner code
+    event propagation system of some sort; threadsafe to whatever extent is needed on 3DS
+    figure out how to *actually* fix the clear bug...?
+    some sort of tagging for longer retention for large drawables such as backgrounds (particularly for the OSK)
+    convert the profiler from "single static thing" to "here, have an instance on the stack"
+} then consider these before 1.0 "gold" {
+    replace some of the OptRef stuffs on invalidatable types with invalid checks; add implicit conversions from nullptr to invalid
+    make closing forms a bit less finicky (add them to a separate list and let the Application remove them from the list)
+    garbage collection for not-recently-used theme assets {
+        - keep track of last-use in ThemeRefContainer
+        have ThemeManager sweep gc every so often
+        - rework redirects (proxy drawable I guess...?) or a pointer to another container
+    }
+    HANDLE CANVAS OVERRUNS FOR LABELS AND OSK PREVIEW {
+        - well, it doesn't actually *crash* anymore... or at least nowhere near as fast
+        use a "windowed" approach; only cache a bit more than is visible and redraw when the viewport changes enough
+        have a way for text rendering to skip lines that won't be visible, and use that with windowing to cut down render times further
+    }
+    actual cursor image for OSK instead of just using a | glypyh
+    input prompt dialog
+    make the panel background not just the button image
+    "shortcut" overloads for InputManager::OpenKeyboard
+    language config and atlas support
+    maybe implement some way of "knocking out" and replacing metrics during runtime for theme switching
+    fix font glyph padding to eliminate slight "crosstalk" in bordered variants
+    
+    SOUND.
+    
+    UI heirarchy from json
+    
+    quick includes for all UI elements, etc.
+    
+    cross-app integrations {
+        app icon and manifest.json in romfs, copied into .starlight on launch {
+            app name, description etc.
+            themeLevel: 0 (default) as fallback only, 1 or 2 to override user theme unless opted out, 1 for "just by default", 2 for "this doesn't look so good otherwise"
+        }
+        settings pane data for each app, contained in manifest.json and used by Starlight Settings to provide centralized configuration, iOS-style
+        some standard means of passing parameters into another application, which works on a cia (probably a json file)
+    }
+}
+
+today's agenda {
+    ...
+} then {
+    change Label to move the rect instead of resizing to accomodate drops (add an offset thing to Font)
+    kill scroll velocity when hitting the edge (or rapid decel)
+    make scrollfield autofit a flag
+    make le scrollfield check threshold itself and only count directions it can actually scroll
+    visual sugar such as "bump glow" for scrollfields
+}
+
+unordered_roadmap {
+    moar UI elements {
+        checkbox
+        radio box
+        tabs?
+        auto-layout/list boxes
+        combo box
+        slider
+        progress bar
+        
+    }
+    maybe switch drawoffset system from a stack to a pass-in
+    moar utility stuff in basic types
+    make textbox scrollable when text is larger than container
+    tween system
+    ...
+    use ctrulib sync features for WorkerThread instead of spinlocks at some point
+    - http://smealum.github.io/ctrulib/synchronization_8h.html#a9fe83ca3ec3c6ae269203acf367ad5a9
+    duck l'orange
+    
+    ... tweenable drawable format?
+    figure out the whole font y offset deal
+}
+
+configurator for ui elements? maybe crtp after all
+noap, macro/include shenanigans
+new Button().at(40, 40).within(container).ofSize(64, 32).withText("Popsicles!");
+shelved for now because shared_from_this is kind of dumb for what I need it for :D :D :D
+(though maybe some trickery with putting the last-created-element in a static, combined with static factory pattern...)
+
+maybe LoosePtr (wraps weak_ptr for expired check but references by raw pointer)
+implement this to replace weak_ptr parent if it ends up impacting performance too much
+
+maybe implement this: https://probablydance.com/2013/01/13/a-faster-implementation-of-stdfunction/
+
+// notes {
+    bitmap font converter - https://github.com/playcanvas/fonts/blob/master/fnt_to_json.py
+    pretty print - jsonprettyprint.com
+}
