@@ -90,6 +90,67 @@ uvicorn main:app --reload --host ${BACKEND_HOST:-0.0.0.0} --port ${BACKEND_PORT:
 docker compose up --build
 ```
 
+## 3DS Homebrew (3DSX / CIA)
+EXPERIMENTAL, USE AT YOUR OWN RISK!
+Any help in developing it will be appreciated.
+
+A Nintendo 3DS port of PUSE is available under `3ds-homebrew/`. Requires Docker — no host C++ toolchain needed.
+
+### Prerequisites
+
+- Docker Desktop (or Docker Engine on Linux)
+- `3ds-homebrew/tools/Dockerfile` builds the full devkitARM + libstarlight environment automatically
+- Place your save at `sdmc:/3ds/puse/Unbound.sav` before launching
+
+### Build .3dsx (Homebrew Launcher)
+
+```bash
+# First build or after any source change
+3ds-homebrew/scripts/build_docker.sh
+```
+
+Output: `3ds-homebrew/puse-3ds.3dsx`
+
+Copy to `sdmc:/3ds/puse-3ds/puse-3ds.3dsx` and launch via Homebrew Launcher.
+
+### Build .cia (FBI install — Home Menu title)
+
+```bash
+# Rebuild Docker image first (only needed once, or after Dockerfile changes)
+docker build -t puse-3ds-dev -f 3ds-homebrew/tools/Dockerfile 3ds-homebrew/tools/
+
+# Then build the .3dsx + .cia
+3ds-homebrew/scripts/build_docker.sh
+3ds-homebrew/scripts/build_cia.sh
+```
+
+Output: `3ds-homebrew/puse-3ds.cia`
+
+Install via FBI from SD card. The CIA uses test/false keys and is compatible with Luma3DS.
+
+### Controls
+
+| Button | Action |
+|--------|--------|
+| A | Select / confirm |
+| B | Back |
+| L | PC boxes |
+| R | Bag |
+| Select | Money & BP |
+| Y | Toggle legit mode (510 EV cap) |
+| X | Save (backup created automatically) |
+| Start | Exit |
+
+### RTC Quick Fix
+
+For saves broken by the RTC bug: go to **Select → Money screen → RTC Quick Fix**. Generates three candidate saves and applies your chosen profile directly to `Unbound.sav`. Restart PUSE after applying.
+
+### Optional: Pokémon Icons
+
+Place 48×48 PNG icons at `sdmc:/3ds/puse/icons/pokemon/{id:04d}.png`. Missing icons are silently skipped.
+
+---
+
 ## Switch Homebrew (NRO)
 
 A Nintendo Switch `.nro` port of PUSE is available under `switch-homebrew/`. Build requires Docker and devkitPro — no host C++ toolchain needed.

@@ -33,13 +33,14 @@ docker run --rm \
             icon.png \
             icon.icn 2>/dev/null || cp puse-3ds.smdh icon.icn
 
-        # Build CIA (no -banner: bannertool unavailable; CIA is still valid and installable)
+        # Build CIA; -desc app:4 fills in access descriptor template; -target t = test/false keys (Luma3DS compatible)
         makerom \
             -f cia \
             -o puse-3ds.cia \
             -elf puse-3ds.elf \
             -rsf puse-3ds.rsf \
             -icon icon.icn \
+            -desc app:4 \
             -target t
 
         echo ">>> puse-3ds.cia built"

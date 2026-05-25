@@ -2,7 +2,6 @@ BasicInfo:
   Title:          PUSE 3DS
   CompanyCode:    00
   ProductCode:    CTR-P-PUSE
-  SaveDataSize:   0x0
 
 Option:
   UseOnSD:        true
@@ -13,11 +12,10 @@ Option:
 RomFs:
   RootPath:       romfs
 
-ExeFs:
-  StackSize:      0x80000
-
 SystemControlInfo:
   AppType:        Application
   JumpId:         0
+  StackSize:      0x80000
 
-UniqueId:         0xF8100
+TitleInfo:
+  UniqueId:       0xF8100
