@@ -57,18 +57,44 @@ def decode_name(entry: bytes) -> str:
     return "".join(out).strip()
 
 
-def load_species_count_from_txt(path: Path) -> int:
-    max_id = 0
-    for raw in path.read_text(encoding="utf-8", errors="ignore").splitlines():
-        line = raw.strip()
-        if not line or ":" not in line:
-            continue
-        left = line.split(":", 1)[0].strip()
-        if left.isdigit():
-            max_id = max(max_id, int(left))
-    if max_id <= 0:
-        raise RuntimeError(f"Could not infer species count from {path}")
-    return max_id
+def _is_valid_species_name_entry(entry: bytes) -> bool:
+    if len(entry) != SPECIES_NAME_ENTRY_SIZE:
+        return False
+    if 0xFF not in entry:
+        return False
+    term = entry.index(0xFF)
+    payload = entry[:term]
+    padding = entry[term + 1 :]
+    if len(payload) == 0:
+        return False
+    if any(b != 0xFF for b in padding):
+        return False
+    allowed = set(DECODE.keys())
+    allowed.discard(0xFF)
+    if any(b not in allowed for b in payload):
+        return False
+    name = decode_name(entry)
+    return bool(name)
+
+
+def infer_species_count_from_rom(rom: bytes, base: int, max_scan: int = 4096, invalid_streak_stop: int = 128) -> int:
+    last_valid = 0
+    invalid_streak = 0
+    for idx in range(1, max_scan + 1):
+        off = base + (idx - 1) * SPECIES_NAME_ENTRY_SIZE
+        if off + SPECIES_NAME_ENTRY_SIZE > len(rom):
+            break
+        entry = rom[off : off + SPECIES_NAME_ENTRY_SIZE]
+        if _is_valid_species_name_entry(entry):
+            last_valid = idx
+            invalid_streak = 0
+        else:
+            invalid_streak += 1
+            if invalid_streak >= invalid_streak_stop and last_valid > 0:
+                break
+    if last_valid <= 0:
+        raise RuntimeError("Could not infer species count from ROM table")
+    return last_valid
 
 
 def find_species_table_base(rom: bytes) -> int:
@@ -113,7 +139,7 @@ def main() -> int:
         "--count",
         type=int,
         default=None,
-        help="Number of species IDs to extract (default: infer from backend/data/pokemon.txt)",
+        help="Number of species IDs to extract (default: infer directly from ROM)",
     )
     parser.add_argument(
         "--out-json",
@@ -130,13 +156,11 @@ def main() -> int:
     args = parser.parse_args()
 
     rom = args.rom.read_bytes()
+    base = find_species_table_base(rom)
     if args.count is None:
-        fallback_species_txt = Path(__file__).resolve().parents[1] / "data" / "pokemon.txt"
-        species_count = load_species_count_from_txt(fallback_species_txt)
+        species_count = infer_species_count_from_rom(rom, base)
     else:
         species_count = int(args.count)
-
-    base = find_species_table_base(rom)
     rows = extract_species(rom, base, species_count)
 
     payload = {

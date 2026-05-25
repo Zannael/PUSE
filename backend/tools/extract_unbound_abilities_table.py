@@ -12,15 +12,8 @@ import argparse
 import json
 from pathlib import Path
 
-from core.data_loader import data_path
-
 
 ABILITY_NAME_ENTRY_SIZE = 17
-SPECIES_STRUCT_SIZE = 0x1C
-OFF_ABILITY_1 = 0x16
-OFF_ABILITY_2 = 0x17
-
-
 def build_charmap() -> dict[int, str]:
     decode: dict[int, str] = {
         0x00: " ",
@@ -62,62 +55,44 @@ def decode_name(entry: bytes) -> str:
     return "".join(out).strip()
 
 
-def load_species_ids() -> list[int]:
-    ids: list[int] = []
-    text = data_path("pokemon.txt").read_text(encoding="utf-8", errors="ignore")
-    for raw in text.splitlines():
-        line = raw.strip()
-        if not line or ":" not in line:
-            continue
-        left = line.split(":", 1)[0].strip()
-        if not left.isdigit():
-            continue
-        sid = int(left)
-        if sid > 0:
-            ids.append(sid)
-    return sorted(set(ids))
+def _is_valid_ability_name_entry(entry: bytes) -> bool:
+    if len(entry) != ABILITY_NAME_ENTRY_SIZE:
+        return False
+    if 0xFF not in entry:
+        return False
+    term = entry.index(0xFF)
+    payload = entry[:term]
+    padding = entry[term + 1 :]
+    if len(payload) == 0:
+        return False
+    if any(b != 0xFF for b in padding):
+        return False
+    allowed = set(DECODE.keys())
+    allowed.discard(0xFF)
+    if any(b not in allowed for b in payload):
+        return False
+    name = decode_name(entry)
+    return bool(name and "?" not in name)
 
 
-def find_species_table_base(rom: bytes) -> int:
-    bulba = bytes([45, 49, 49, 45, 65, 65])
-    ivysaur = bytes([60, 62, 63, 60, 80, 80])
-    venusaur = bytes([80, 82, 83, 80, 100, 100])
-    charmander = bytes([39, 52, 43, 65, 60, 50])
-
-    start = 0
-    while True:
-        pos = rom.find(bulba, start)
-        if pos < 0:
+def infer_ability_count_from_rom(rom: bytes, base: int, max_scan: int = 512, invalid_streak_stop: int = 6) -> int:
+    last_valid = 0
+    invalid_streak = 0
+    for idx in range(1, max_scan + 1):
+        off = base + (idx - 1) * ABILITY_NAME_ENTRY_SIZE
+        if off + ABILITY_NAME_ENTRY_SIZE > len(rom):
             break
-
-        ok = True
-        checks = [ivysaur, venusaur, charmander]
-        for idx, expected in enumerate(checks, start=1):
-            probe = pos + (idx * SPECIES_STRUCT_SIZE)
-            if probe + len(expected) > len(rom) or rom[probe: probe + len(expected)] != expected:
-                ok = False
+        entry = rom[off : off + ABILITY_NAME_ENTRY_SIZE]
+        if _is_valid_ability_name_entry(entry):
+            last_valid = idx
+            invalid_streak = 0
+        else:
+            invalid_streak += 1
+            if invalid_streak >= invalid_streak_stop and last_valid > 0:
                 break
-
-        if ok:
-            return pos
-
-        start = pos + 1
-
-    raise RuntimeError("Species base stat table not found in ROM")
-
-
-def infer_ability_count_from_species(rom: bytes, species_base: int, species_ids: list[int]) -> int:
-    max_ability = 0
-    for sid in species_ids:
-        off = species_base + ((sid - 1) * SPECIES_STRUCT_SIZE)
-        if off + SPECIES_STRUCT_SIZE > len(rom):
-            continue
-        a1 = int(rom[off + OFF_ABILITY_1]) & 0xFF
-        a2 = int(rom[off + OFF_ABILITY_2]) & 0xFF
-        max_ability = max(max_ability, a1, a2)
-    if max_ability <= 0:
-        raise RuntimeError("Could not infer ability count from species table")
-    return max_ability
+    if last_valid <= 0:
+        raise RuntimeError("Could not infer ability count from ROM table")
+    return last_valid
 
 
 def find_abilities_table_base(rom: bytes) -> int:
@@ -166,7 +141,7 @@ def main() -> int:
         "--count",
         type=int,
         default=None,
-        help="Number of ability IDs to extract (default: infer from species ability usage)",
+        help="Number of ability IDs to extract (default: infer directly from ROM)",
     )
     parser.add_argument(
         "--out-json",
@@ -183,15 +158,13 @@ def main() -> int:
     args = parser.parse_args()
 
     rom = args.rom.read_bytes()
-    species_base = find_species_table_base(rom)
-    species_ids = load_species_ids()
+    base = find_abilities_table_base(rom)
 
     if args.count is None:
-        ability_count = infer_ability_count_from_species(rom, species_base, species_ids)
+        ability_count = infer_ability_count_from_rom(rom, base)
     else:
         ability_count = int(args.count)
 
-    base = find_abilities_table_base(rom)
     rows = extract_abilities(rom, base, ability_count)
 
     payload = {

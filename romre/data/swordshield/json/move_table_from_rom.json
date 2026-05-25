@@ -1,0 +1,92 @@
+{
+  "source_rom": "/home/zappaganini/PycharmProjects/pokemon/romre/roms/SwordShield.gba",
+  "table_base": 2388129,
+  "entry_size": 13,
+  "move_count": 14,
+  "moves": [
+    {
+      "move_id": 1,
+      "offset": 2388129,
+      "name": "Pound",
+      "raw_hex": "cae3e9e2d8ff00000000000000"
+    },
+    {
+      "move_id": 2,
+      "offset": 2388142,
+      "name": "Karate Chop",
+      "raw_hex": "c5d5e6d5e8d900bddce3e4ff00"
+    },
+    {
+      "move_id": 3,
+      "offset": 2388155,
+      "name": "Double Slap",
+      "raw_hex": "bee3e9d6e0d900cde0d5e4ff00"
+    },
+    {
+      "move_id": 4,
+      "offset": 2388168,
+      "name": "Comet Punch",
+      "raw_hex": "bde3e1d9e800cae9e2d7dcff00"
+    },
+    {
+      "move_id": 5,
+      "offset": 2388181,
+      "name": "Mega Punch",
+      "raw_hex": "c7d9dbd500cae9e2d7dcff0000"
+    },
+    {
+      "move_id": 6,
+      "offset": 2388194,
+      "name": "Pay Day",
+      "raw_hex": "cad5ed00bed5edff0000000000"
+    },
+    {
+      "move_id": 7,
+      "offset": 2388207,
+      "name": "Fire Punch",
+      "raw_hex": "c0dde6d900cae9e2d7dcff0000"
+    },
+    {
+      "move_id": 8,
+      "offset": 2388220,
+      "name": "Ice Punch",
+      "raw_hex": "c3d7d900cae9e2d7dcff000000"
+    },
+    {
+      "move_id": 9,
+      "offset": 2388233,
+      "name": "ThunderPunch",
+      "raw_hex": "cedce9e2d8d9e6cae9e2d7dcff"
+    },
+    {
+      "move_id": 10,
+      "offset": 2388246,
+      "name": "Scratch",
+      "raw_hex": "cdd7e6d5e8d7dcff0000000000"
+    },
+    {
+      "move_id": 11,
+      "offset": 2388259,
+      "name": "Vise Grip",
+      "raw_hex": "d0dde7d900c1e6dde4ff000000"
+    },
+    {
+      "move_id": 12,
+      "offset": 2388272,
+      "name": "Guillotine",
+      "raw_hex": "c1e9dde0e0e3e8dde2d9ff0000"
+    },
+    {
+      "move_id": 13,
+      "offset": 2388285,
+      "name": "Razor Wind",
+      "raw_hex": "ccd5eee3e600d1dde2d8ff0000"
+    },
+    {
+      "move_id": 14,
+      "offset": 2388298,
+      "name": "Swords Dance",
+      "raw_hex": "cdebe3e6d8e700bed5e2d7d9ff"
+    }
+  ]
+}

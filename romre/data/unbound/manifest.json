@@ -1,0 +1,174 @@
+{
+  "rom": {
+    "path": "/home/zappaganini/PycharmProjects/pokemon/romre/roms/Unbound.gba",
+    "filename": "Unbound.gba",
+    "size_bytes": 33554432,
+    "sha256": "7aa25bbf568f7cfcf6ee1cf2e9e6ff637350b3d0705c2375cabb6baa7d9739f7"
+  },
+  "profile": "unbound",
+  "generated_at_utc": "2026-05-25T10:24:59.775268+00:00",
+  "pipeline": "romre/run_extract.py",
+  "tasks": [
+    {
+      "key": "species_table",
+      "data_type": "species",
+      "script": "backend/tools/extract_unbound_species_table.py",
+      "command": [
+        "/usr/bin/python3",
+        "tools/extract_unbound_species_table.py",
+        "/home/zappaganini/PycharmProjects/pokemon/romre/roms/Unbound.gba",
+        "--out-json",
+        "/home/zappaganini/PycharmProjects/pokemon/romre/data/unbound/json/species_table_from_rom.json",
+        "--out-txt",
+        "/home/zappaganini/PycharmProjects/pokemon/romre/data/unbound/txt/pokemon.txt"
+      ],
+      "exit_code": 0,
+      "ok": true,
+      "missing_outputs": [],
+      "log": "reports/species_table.log",
+      "outputs": [
+        "json/species_table_from_rom.json",
+        "txt/pokemon.txt"
+      ]
+    },
+    {
+      "key": "abilities_table",
+      "data_type": "abilities",
+      "script": "backend/tools/extract_unbound_abilities_table.py",
+      "command": [
+        "/usr/bin/python3",
+        "tools/extract_unbound_abilities_table.py",
+        "/home/zappaganini/PycharmProjects/pokemon/romre/roms/Unbound.gba",
+        "--out-json",
+        "/home/zappaganini/PycharmProjects/pokemon/romre/data/unbound/json/ability_table_from_rom.json",
+        "--out-txt",
+        "/home/zappaganini/PycharmProjects/pokemon/romre/data/unbound/txt/abilities.txt"
+      ],
+      "exit_code": 0,
+      "ok": true,
+      "missing_outputs": [],
+      "log": "reports/abilities_table.log",
+      "outputs": [
+        "json/ability_table_from_rom.json",
+        "txt/abilities.txt"
+      ]
+    },
+    {
+      "key": "moves_table",
+      "data_type": "moves",
+      "script": "backend/tools/extract_unbound_moves_table.py",
+      "command": [
+        "/usr/bin/python3",
+        "tools/extract_unbound_moves_table.py",
+        "/home/zappaganini/PycharmProjects/pokemon/romre/roms/Unbound.gba",
+        "--out-json",
+        "/home/zappaganini/PycharmProjects/pokemon/romre/data/unbound/json/move_table_from_rom.json",
+        "--out-txt",
+        "/home/zappaganini/PycharmProjects/pokemon/romre/data/unbound/txt/moves.txt"
+      ],
+      "exit_code": 0,
+      "ok": true,
+      "missing_outputs": [],
+      "log": "reports/moves_table.log",
+      "outputs": [
+        "json/move_table_from_rom.json",
+        "txt/moves.txt"
+      ]
+    },
+    {
+      "key": "species_base_stats",
+      "data_type": "species_meta",
+      "script": "backend/tools/extract_unbound_species_base_stats.py",
+      "command": [
+        "/usr/bin/python3",
+        "tools/extract_unbound_species_base_stats.py",
+        "/home/zappaganini/PycharmProjects/pokemon/romre/roms/Unbound.gba",
+        "--out",
+        "/home/zappaganini/PycharmProjects/pokemon/romre/data/unbound/json/species_base_stats.json",
+        "--species-count",
+        "1293"
+      ],
+      "exit_code": 0,
+      "ok": true,
+      "missing_outputs": [],
+      "log": "reports/species_base_stats.log",
+      "outputs": [
+        "json/species_base_stats.json"
+      ]
+    },
+    {
+      "key": "species_growth_rates",
+      "data_type": "species_meta",
+      "script": "backend/tools/extract_unbound_species_growth_rates.py",
+      "command": [
+        "/usr/bin/python3",
+        "tools/extract_unbound_species_growth_rates.py",
+        "/home/zappaganini/PycharmProjects/pokemon/romre/roms/Unbound.gba",
+        "--out",
+        "/home/zappaganini/PycharmProjects/pokemon/romre/data/unbound/json/species_growth_rates.json",
+        "--species-count",
+        "1293"
+      ],
+      "exit_code": 0,
+      "ok": true,
+      "missing_outputs": [],
+      "log": "reports/species_growth_rates.log",
+      "outputs": [
+        "json/species_growth_rates.json"
+      ]
+    },
+    {
+      "key": "species_identity_meta",
+      "data_type": "species_meta",
+      "script": "backend/tools/extract_unbound_species_identity_meta.py",
+      "command": [
+        "/usr/bin/python3",
+        "tools/extract_unbound_species_identity_meta.py",
+        "/home/zappaganini/PycharmProjects/pokemon/romre/roms/Unbound.gba",
+        "--out",
+        "/home/zappaganini/PycharmProjects/pokemon/romre/data/unbound/json/species_identity_meta.json",
+        "--species-count",
+        "1293"
+      ],
+      "exit_code": 0,
+      "ok": true,
+      "missing_outputs": [],
+      "log": "reports/species_identity_meta.log",
+      "outputs": [
+        "json/species_identity_meta.json"
+      ]
+    },
+    {
+      "key": "species_abilities_meta",
+      "data_type": "species_meta",
+      "script": "backend/tools/extract_unbound_species_abilities_meta.py",
+      "command": [
+        "/usr/bin/python3",
+        "tools/extract_unbound_species_abilities_meta.py",
+        "/home/zappaganini/PycharmProjects/pokemon/romre/roms/Unbound.gba",
+        "--out",
+        "/home/zappaganini/PycharmProjects/pokemon/romre/data/unbound/json/species_abilities_meta.json",
+        "--species-count",
+        "1293",
+        "--skip-anchor-validation"
+      ],
+      "exit_code": 0,
+      "ok": true,
+      "missing_outputs": [],
+      "log": "reports/species_abilities_meta.log",
+      "outputs": [
+        "json/species_abilities_meta.json"
+      ]
+    }
+  ],
+  "summary": {
+    "total": 7,
+    "ok": 7,
+    "failed": 0
+  },
+  "notes": [
+    "Current pipeline reuses backend/tools/extract_unbound_*.py and will be generalized for non-Unbound CFRU hacks.",
+    "Pipeline currently contains only ROM-pure extractors.",
+    "icons/ is reserved for future icon extraction/manifests."
+  ]
+}

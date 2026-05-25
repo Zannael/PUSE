@@ -131,19 +131,37 @@ def main() -> int:
         default=data_path("species_abilities_meta.json"),
         help="Output JSON path",
     )
+    parser.add_argument(
+        "--species-count",
+        type=int,
+        default=None,
+        help="Species count to read from ROM (pure mode). If omitted, falls back to pokemon.txt IDs.",
+    )
+    parser.add_argument(
+        "--skip-anchor-validation",
+        action="store_true",
+        help="Skip ability-name anchor validation (avoids dependencies on abilities.txt).",
+    )
     args = parser.parse_args()
 
     rom = args.rom.read_bytes()
-    species_ids = load_species_ids()
+    if args.species_count is not None and int(args.species_count) > 0:
+        species_ids = list(range(1, int(args.species_count) + 1))
+    else:
+        species_ids = load_species_ids()
     base = find_species_table_base(rom)
     table = extract_species_abilities_meta(rom, base, species_ids)
-    validate_anchors(table, load_ability_names())
+    if not args.skip_anchor_validation:
+        validate_anchors(table, load_ability_names())
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(table, indent=2, sort_keys=True), encoding="utf-8")
 
     print(f"[OK] Found species table base at 0x{base:X}")
-    print(f"[OK] Anchor validation passed for Gliscor and Raticate base")
+    if args.skip_anchor_validation:
+        print("[OK] Anchor validation skipped")
+    else:
+        print(f"[OK] Anchor validation passed for Gliscor and Raticate base")
     print(f"[OK] Wrote {len(table)} species abilities entries -> {args.out}")
     return 0
 

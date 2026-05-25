@@ -90,10 +90,19 @@ def main() -> None:
         default=data_path("species_identity_meta.json"),
         help="Output JSON path",
     )
+    parser.add_argument(
+        "--species-count",
+        type=int,
+        default=None,
+        help="Species count to read from ROM (pure mode). If omitted, falls back to pokemon.txt IDs.",
+    )
     args = parser.parse_args()
 
     rom = args.rom.read_bytes()
-    species_ids = load_species_ids()
+    if args.species_count is not None and int(args.species_count) > 0:
+        species_ids = list(range(1, int(args.species_count) + 1))
+    else:
+        species_ids = load_species_ids()
     base = find_species_table_base(rom)
     identity = extract_identity_meta(rom, base, species_ids)
 

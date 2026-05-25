@@ -223,6 +223,12 @@ def main() -> int:
         default=None,
         help="Optional move->PP JSON to merge as base_pp into move_table_from_rom output",
     )
+    parser.add_argument(
+        "--min-inferred-count",
+        type=int,
+        default=128,
+        help="Fail if ROM-inferred move count is below this threshold (guards against false-positive anchors)",
+    )
     args = parser.parse_args()
 
     rom = args.rom.read_bytes()
@@ -234,6 +240,10 @@ def main() -> int:
         move_count = load_move_count_from_txt(fallback_moves_txt)
     else:
         move_count = infer_move_count_from_rom(rom, base)
+        if move_count < int(args.min_inferred_count):
+            raise RuntimeError(
+                f"Inferred move count too small ({move_count}) at base 0x{base:X}; likely false-positive anchor"
+            )
 
     pp_by_move_id = load_pp_by_move_id(args.pp_json) if args.pp_json else {}
     rows = extract_moves(rom, base, move_count, pp_by_move_id=pp_by_move_id)

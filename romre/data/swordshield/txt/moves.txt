@@ -1,0 +1,14 @@
+1:Pound
+2:Karate Chop
+3:Double Slap
+4:Comet Punch
+5:Mega Punch
+6:Pay Day
+7:Fire Punch
+8:Ice Punch
+9:ThunderPunch
+10:Scratch
+11:Vise Grip
+12:Guillotine
+13:Razor Wind
+14:Swords Dance
