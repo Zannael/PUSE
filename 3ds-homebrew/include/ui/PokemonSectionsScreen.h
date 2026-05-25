@@ -3,6 +3,7 @@
 #include <memory>
 #include "ui/BaseScreen.h"
 #include "starlight/ui/Label.h"
+#include "starlight/ui/Image.h"
 #include <puse/core/Party.hpp>
 
 namespace puse::ui {
@@ -17,6 +18,7 @@ private:
     int slot_;
     puse::core::PartyEntry entry_;
     std::shared_ptr<sl::ui::Label> preview_label_;
+    std::shared_ptr<sl::ui::Image> icon_img_;
     bool was_focused_ = false;
 
     void LoadEntry();

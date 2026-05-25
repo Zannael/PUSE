@@ -1,6 +1,8 @@
 #include "ui/PartyListScreen.h"
 #include "ui/PokemonSectionsScreen.h"
 #include "ui/PcBoxScreen.h"
+#include "ui/BagScreen.h"
+#include "ui/MoneyScreen.h"
 #include "Core.h"
 
 #include "starlight/InputManager.h"
@@ -25,7 +27,7 @@ namespace puse::ui {
 PartyListScreen::PartyListScreen()
     : BaseScreen(true)
 {
-    InitChrome("A: Edit   L: PC   Y: Legit   X: Save   START: Exit");
+    InitChrome("A: Edit  L:PC  R:Bag  SEL:$  Y:Legit  X:Save");
 
     // 6-slot button list on bottom screen (fits without scroll: 6*36=216 < 218)
     scroll_ = touchScreen->AddNew<sl::ui::ScrollField>(VRect(0, 0, 320, 218));
@@ -117,10 +119,9 @@ void PartyListScreen::Update(bool focused) {
         was_focused_ = true;
     }
 
-    // L: open PC boxes
-    if (InputManager::Pressed(Keys::L)) {
-        PcBoxScreen::Make()->Open();
-    }
+    if (InputManager::Pressed(Keys::L))      PcBoxScreen::Make()->Open();
+    if (InputManager::Pressed(Keys::R))      BagScreen::Make()->Open();
+    if (InputManager::Pressed(Keys::Select)) MoneyScreen::Make()->Open();
 
     // Y: toggle legit mode
     Core* core = Core::Get();

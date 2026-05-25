@@ -86,6 +86,11 @@ docs/
 3ds-homebrew/*.elf
 3ds-homebrew/*.smdh
 3ds-homebrew/*.map
+3ds-homebrew/*.cia
+3ds-homebrew/*.bnr
+3ds-homebrew/icon.icn
+3ds-homebrew/banner.png
+3ds-homebrew/banner.wav
 
 # 3DS homebrew non-essential local content
 3ds-homebrew/artifacts/

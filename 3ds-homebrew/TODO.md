@@ -53,34 +53,37 @@ Save editor for Pokemon Unbound v2.1.1.1 on Nintendo 3DS. Mirrors `switch-homebr
 - [ ] Box name editing (GBA PC box names in save — deferred to Phase 9 polish)
 
 ## Phase 6 — Bag
-- [ ] Copy `Bag.{cpp,hpp}`
-- [ ] Pocket tabs (Items / Key / Pokeballs / TMs / Berries)
-- [ ] Count edit + add/remove items
+- [x] Copy `Bag.{cpp,hpp}` (no ARM32 fixes needed)
+- [x] `BagScreen`: 5 pocket tabs (Items/Balls/Key/TMs/Berries), L/R to cycle pockets
+- [x] Qty edit via OSK (Key items display-only); `CommitBagSectorChecksums` after write
+- [x] Top screen: pocket status + item count; pocket tab buttons wired to touchscreen
 
 ## Phase 7 — Money + RTC
-- [ ] Copy `Money.{cpp,hpp}` + `Rtc.{cpp,hpp}`
-- [ ] Money editor via numeric OSK
-- [ ] RTC date/time editor
+- [x] Copy `Money.{cpp,hpp}` + `Rtc.{cpp,hpp}` (no ARM32 fixes; Rtc SD path `sdmc:/3ds/puse/rtc`)
+- [x] `MoneyScreen`: money + BP display, OSK edit for both; `WriteMoney` handles own checksum, BP opaque (no checksum, mirrors backend)
+- [ ] RTC quick-fix UI — deferred (requires romfs rtc_manifest.json and two-save workflow; see Phase 9)
 
 ## Phase 8 — Icons + assets
-- [ ] Reuse Switch icon-resolution logic (token table, TM/HM regex, fallback chain)
-- [ ] Search roots: `romfs:/icons/pokemon`, `sdmc:/3ds/puse/icons/pokemon`
-- [ ] Texture cache (`unordered_map<u16, C3D_Tex*>`)
-- [ ] Lite-build variant (no icons in romfs, SD-only) — like Switch
+- [x] `io/IconLoader.{h,cpp}`: resolves mon/item icon paths from `romfs:/icons/pokemon` + `sdmc:/3ds/puse/icons/pokemon`; tries `{id:04d}.png`, `{id:03d}.png`, `gFrontSprite{id:03d}*` prefix; no icons in romfs by default (SD-only = lite mode)
+- [x] `ThemeManager::GetAsset` handles PNG load + cache by path string; missing icons silently no-draw
+- [x] Pokemon icon shown in `PokemonSectionsScreen` top-right (80×80) when available
 
 ## Phase 9 — Polish + save flow
-- [ ] Dialog flows: confirm overwrite, error, success (libstarlight `MessageBox`)
-- [ ] Backup-on-save: rename existing `.sav` → `.bak` before write
-- [ ] Checksum verify after every write
-- [ ] Battery-low warning
-- [ ] Suspend hook (auto-flush on aptHook PAUSE)
+- [x] `SaveWithBackup()`: checksums → backup `.sav→.bak` → write → restore on failure
+- [x] X button uses `SaveWithBackup` (was direct ExportToFile)
+- [x] Battery polling via `PTMU_GetBatteryLevel` every ~5s; `[LOW BATT]` shown in header
+- [x] Suspend auto-flush: `aptHook(APTHOOK_ONSUSPEND)` calls `SaveWithBackup` when dirty
+- [ ] Success/error toast after save (libstarlight `MessageBox` — minor; save returns bool already)
+- [ ] RTC quick-fix UI (requires `rtc_manifest.json` in romfs; deferred)
 
 ## Phase 10 — Distribution
-- [ ] CIA build via `makerom` + `bannertool`
-- [ ] `.rsf` manifest, unique ID in homebrew range `0xF8000–0xFFFFF`
-- [ ] Banner (256×128 PNG) + audio (16-bit WAV) → `.bnr`
+- [x] `makerom` + `bannertool` added to Dockerfile (built from source: Project_CTR + Steveice10/bannertool)
+- [x] `puse-3ds.rsf`: UniqueId `0xF8100`, UseOnSD, FreeProductCode, AppType Application
+- [x] `scripts/build_cia.sh`: auto-generates placeholder banner.png (256×128 navy) + banner.wav (silence) if none provided; calls bannertool + makerom; fixes ownership
+- [ ] Supply real banner.png (256×128 art) + banner.wav (jingle) for release quality
 - [ ] README: install via Homebrew Launcher (.3dsx) or FBI (.cia)
 - [ ] Optional: Universal-Updater UniStore entry
+- [ ] Rebuild Docker image to include makerom/bannertool (`scripts/build_docker.sh` rebuilds on Dockerfile change)
 
 ---
 

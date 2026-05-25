@@ -3,6 +3,7 @@
 #include "starlight/Application.h"
 #include <puse/core/SaveSession.hpp>
 #include <puse/io/DataLoader.hpp>
+#include <3ds.h>
 #include <unordered_map>
 #include <string>
 #include <vector>
@@ -44,6 +45,24 @@ public:
     int SelectedPcBox() const { return selected_pc_box_; }
     void SetSelectedPcBox(int b) { selected_pc_box_ = b; }
 
+    // Bag pocket cache — resolved once after save load.
+    bool BagReady() const { return bag_ready_; }
+    bool EnsureBagReady(std::string* error = nullptr);
+
+    // Money / BP helpers (thin wrappers; no cache needed).
+    bool ReadMoney(uint32_t* out, std::string* error = nullptr) const;
+    bool WriteMoney(uint32_t val, std::string* error = nullptr);
+    bool ReadBp(uint16_t* out, std::string* error = nullptr) const;
+    bool WriteBp(uint16_t val, std::string* error = nullptr);
+
+    // Save with backup; returns true on success.
+    bool SaveWithBackup(std::string* error = nullptr);
+
+    // Battery low flag (set in Update, polled by UI).
+    bool BatteryLow() const { return battery_low_; }
+
+    static constexpr const char* kRtcDir = "sdmc:/3ds/puse/rtc";
+
 private:
     puse::core::SaveSession session_;
     bool dirty_      = false;
@@ -54,6 +73,11 @@ private:
 
     std::vector<uint8_t> pc_stream_;
     int selected_pc_box_ = 1;
+    bool bag_ready_ = false;
+    bool battery_low_ = false;
+    int battery_poll_frames_ = 0;
+    aptHookCookie apt_hook_cookie_{};
+    bool apt_hooked_ = false;
 
     void LoadConfig();
     void SaveConfig();

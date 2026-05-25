@@ -1,11 +1,13 @@
 #include "ui/PokemonSectionsScreen.h"
 #include "ui/PokemonFieldsScreen.h"
 #include "Core.h"
+#include "io/IconLoader.h"
 
 #include "starlight/datatypes/Color.h"
 #include "starlight/datatypes/VRect.h"
 #include "starlight/datatypes/Vector2.h"
 #include "starlight/ui/Button.h"
+#include "starlight/ui/Image.h"
 
 #include <puse/core/Party.hpp>
 #include <cstdio>
@@ -31,11 +33,14 @@ PokemonSectionsScreen::PokemonSectionsScreen(int slot)
         };
     }
 
-    // Preview label on top screen
-    preview_label_ = topScreen->AddNew<sl::ui::Label>(VRect(0, 35, 400, 200));
+    // Top screen: icon (right side, 80×80) + info label (left side)
+    preview_label_ = topScreen->AddNew<sl::ui::Label>(VRect(0, 35, 310, 200));
     preview_label_->SetPreset("normal.16");
     preview_label_->textConfig->justification = Vector2::half;
     preview_label_->textConfig->borderColor = Color::black;
+
+    // Icon placeholder — updated in RefreshPreview once entry is loaded
+    icon_img_ = nullptr;
 
     LoadEntry();
     RefreshPreview();
@@ -56,6 +61,7 @@ void PokemonSectionsScreen::LoadEntry() {
 
 void PokemonSectionsScreen::RefreshPreview() {
     if (!preview_label_) return;
+
     char buf[256];
     snprintf(buf, sizeof(buf),
         "%s  /  %s\n"
@@ -69,6 +75,19 @@ void PokemonSectionsScreen::RefreshPreview() {
         entry_.is_shiny ? "[Shiny]   " : "",
         entry_.effective_ability_name.c_str());
     preview_label_->SetText(buf);
+
+    // Update icon — remove old, add new if path found
+    if (icon_img_) {
+        topScreen->Remove(icon_img_);
+        icon_img_ = nullptr;
+    }
+    if (entry_.species_id > 0) {
+        std::string ipath = puse::io::ResolveMonIconPath(entry_.species_id);
+        if (!ipath.empty()) {
+            // 80×80 icon in top-right area of top screen
+            icon_img_ = topScreen->AddNew<sl::ui::Image>(VRect(312, 50, 80, 80), ipath);
+        }
+    }
 }
 
 void PokemonSectionsScreen::Update(bool focused) {

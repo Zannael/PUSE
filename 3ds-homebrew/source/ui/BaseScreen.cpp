@@ -54,6 +54,8 @@ void BaseScreen::UpdateHeader(const std::string& save_name, bool dirty) {
         text += "   " + save_name;
         if (dirty) text += " *";
     }
+    Core* core = Core::Get();
+    if (core && core->BatteryLow()) text += "  [LOW BATT]";
     header_label_->SetText(text);
 }
 
