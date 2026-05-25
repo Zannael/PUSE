@@ -4,27 +4,20 @@ FROM devkitpro/devkitarm:20260221
 RUN dkp-pacman -Syyu --noconfirm \
     3ds-dev
 
-# rsync + build deps for makerom/bannertool
+# rsync for sync_romfs_data.sh
 RUN apt-get update -qq \
     && apt-get install -y --no-install-recommends \
-        rsync cmake libmbedtls-dev \
+        rsync \
     && rm -rf /var/lib/apt/lists/*
 
-# makerom (Project_CTR) — CIA/CCI packer
+# makerom (Project_CTR) — all deps (mbedtls, blz, yaml) are bundled in deps/
+# Build sequence: make deps (builds bundled libs) then make program sequentially
+# Note: bannertool (Steveice10) no longer available on GitHub; smdhtool from 3dstools handles SMDH
 RUN git clone --depth 1 https://github.com/profi200/Project_CTR.git /tmp/pcttr \
     && cd /tmp/pcttr/makerom \
-    && cmake -DCMAKE_BUILD_TYPE=Release . \
-    && make -j$(nproc) \
-    && cp makerom /usr/local/bin/ \
+    && make -j$(nproc) deps && make program \
+    && cp bin/makerom /usr/local/bin/ \
     && rm -rf /tmp/pcttr
-
-# bannertool — 3DS banner + audio packer
-RUN git clone --depth 1 https://github.com/Steveice10/bannertool.git /tmp/bannertool \
-    && cd /tmp/bannertool \
-    && cmake -DCMAKE_BUILD_TYPE=Release . \
-    && make -j$(nproc) \
-    && find . -maxdepth 3 -name bannertool -type f -exec cp {} /usr/local/bin/ \; \
-    && rm -rf /tmp/bannertool
 
 # Build libstarlight from source and install to $DEVKITPRO/libstarlight
 # (testbed Makefile expects -L$(DEVKITPRO)/libstarlight/lib and -I$(DEVKITPRO)/libstarlight/include)

@@ -60,7 +60,7 @@ Save editor for Pokemon Unbound v2.1.1.1 on Nintendo 3DS. Mirrors `switch-homebr
 ## Phase 7 — Money + RTC
 - [x] Copy `Money.{cpp,hpp}` + `Rtc.{cpp,hpp}` (no ARM32 fixes; Rtc SD path `sdmc:/3ds/puse/rtc`)
 - [x] `MoneyScreen`: money + BP display, OSK edit for both; `WriteMoney` handles own checksum, BP opaque (no checksum, mirrors backend)
-- [ ] RTC quick-fix UI — deferred (requires romfs rtc_manifest.json and two-save workflow; see Phase 9)
+- [x] RTC quick-fix UI — 3 profiles, applies directly to Unbound.sav, entered from MoneyScreen
 
 ## Phase 8 — Icons + assets
 - [x] `io/IconLoader.{h,cpp}`: resolves mon/item icon paths from `romfs:/icons/pokemon` + `sdmc:/3ds/puse/icons/pokemon`; tries `{id:04d}.png`, `{id:03d}.png`, `gFrontSprite{id:03d}*` prefix; no icons in romfs by default (SD-only = lite mode)
@@ -73,7 +73,7 @@ Save editor for Pokemon Unbound v2.1.1.1 on Nintendo 3DS. Mirrors `switch-homebr
 - [x] Battery polling via `PTMU_GetBatteryLevel` every ~5s; `[LOW BATT]` shown in header
 - [x] Suspend auto-flush: `aptHook(APTHOOK_ONSUSPEND)` calls `SaveWithBackup` when dirty
 - [x] Success/error toast after save (libstarlight `MessageBox` — minor; save returns bool already)
-- [ ] RTC quick-fix UI (requires `rtc_manifest.json` in romfs; deferred)
+- [x] RTC quick-fix UI (manifest at romfs:/data/rtc_manifest_unbound_v1.json; entered from MoneyScreen)
 
 ## Phase 10 — Distribution
 - [x] `makerom` + `bannertool` added to Dockerfile (built from source: Project_CTR + Steveice10/bannertool)
@@ -82,7 +82,7 @@ Save editor for Pokemon Unbound v2.1.1.1 on Nintendo 3DS. Mirrors `switch-homebr
 - [x] Supply real banner.png (256×128 art) — navy bg + icon; banner.wav stays silent placeholder
 - [x] README: install via Homebrew Launcher (.3dsx) or FBI (.cia)
 - [ ] Optional: Universal-Updater UniStore entry
-- [ ] Rebuild Docker image to include makerom/bannertool — run: `docker build -t puse-3ds-dev -f 3ds-homebrew/tools/Dockerfile 3ds-homebrew/tools/`
+- [x] Rebuild Docker image — makerom built from source; bannertool removed (repo gone, smdhtool from 3dstools handles SMDH, CIA built without banner section)
 
 ---
 

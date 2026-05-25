@@ -17,6 +17,7 @@ private:
     std::shared_ptr<sl::ui::Label> info_label_;
     std::shared_ptr<sl::ui::Button> money_btn_;
     std::shared_ptr<sl::ui::Button> bp_btn_;
+    std::shared_ptr<sl::ui::Button> rtc_btn_;
     bool was_focused_ = false;
 
     void Refresh();

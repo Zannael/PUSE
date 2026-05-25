@@ -1,4 +1,5 @@
 #include "ui/MoneyScreen.h"
+#include "ui/RtcScreen.h"
 #include "Core.h"
 
 #include "starlight/InputManager.h"
@@ -23,7 +24,7 @@ namespace puse::ui {
 MoneyScreen::MoneyScreen()
     : BaseScreen(false)
 {
-    InitChrome("B: Back   A: Edit   X: Save");
+    InitChrome("B: Back   A: Edit   X: Save   RTC: Fix");
 
     // Top: show money + BP
     info_label_ = topScreen->AddNew<sl::ui::Label>(VRect(0, 35, 400, 100));
@@ -68,6 +69,12 @@ MoneyScreen::MoneyScreen()
                     Refresh();
                 }
             }));
+    };
+
+    rtc_btn_ = touchScreen->AddNew<sl::ui::Button>(VRect(20, 170, 280, 48));
+    rtc_btn_->SetText("RTC Quick Fix...");
+    rtc_btn_->eOnTap = [](sl::ui::Button&) {
+        puse::ui::RtcScreen::Make()->Open();
     };
 
     Refresh();
