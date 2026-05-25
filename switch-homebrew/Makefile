@@ -8,6 +8,7 @@ ROMFS_IMAGE  = $(TOPDIR)/$(BUILD)/romfs.bin
 APP_TITLE   := PUSE Switch
 APP_AUTHOR  := zappaganini
 APP_VERSION := 0.1.0
+APP_ICON    := $(CURDIR)/icon.jpg
 
 ARCH        := -march=armv8-a+crc+crypto -mtune=cortex-a57 -fPIE
 

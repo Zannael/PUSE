@@ -15,11 +15,13 @@
 #include <puse/core/SaveSections.hpp>
 #include <puse/io/DataLoader.hpp>
 
+#include "starlight/dialog/MessageBox.h"
 #include "ui/DiagnosticsScreen.h"
 #include "ui/PartyListScreen.h"
 
 using starlight::Application;
 using starlight::InputManager;
+using starlight::dialog::MessageBox;
 
 void Core::Init() {
     clearColor = sl::Color(0.063f, 0.086f, 0.137f);
@@ -85,7 +87,9 @@ void Core::Update() {
     if (InputManager::Pressed(Keys::X)) {
         if (session_.IsLoaded()) {
             std::string err;
-            SaveWithBackup(&err);
+            bool ok = SaveWithBackup(&err);
+            std::string msg = ok ? "Saved!" : ("Save failed!\n" + err);
+            MessageBox::New(MessageBox::Ok, msg)->Open();
         }
     }
 

@@ -8,7 +8,7 @@ Save editor for Pokemon Unbound v2.1.1.1 on Nintendo 3DS. Mirrors `switch-homebr
 - [x] Create `3ds-homebrew/{source,include,romfs,scripts,artifacts,tests}/` dirs
 - [x] Write Makefile (based on libstarlight testbed) — TARGET, ARCH, link `-lstarlight -lcitro3d -lctru`
 - [x] Write minimal `source/main.cpp` — libstarlight Application init + hello-world layer
-- [ ] Replace libctru default icon with project `icon.png` (48×48) — currently falls back
+- [x] Replace libctru default icon with project `icon.png` (48×48) — currently falls back
 - [x] Write `scripts/build_docker.sh` (mirrors switch pattern, runs `puse-3ds-dev`)
 - [x] Write `scripts/sync_romfs_data.sh` (copies `backend/data/` → `romfs/data/`)
 - [x] Bundle libstarlight default theme into `romfs/` (theme files at romfs root)
@@ -18,7 +18,7 @@ Save editor for Pokemon Unbound v2.1.1.1 on Nintendo 3DS. Mirrors `switch-homebr
 - [x] Copy `SaveSession.{cpp,hpp}` from switch-homebrew (pure C++, zero changes expected)
 - [x] Copy `SaveSections.{cpp,hpp}` (GBA checksum logic)
 - [x] Copy `DataLoader.{cpp,hpp}`, adjust ROMFS path resolution (`romfs:/data/`) + SD path → `sdmc:/3ds/puse/`
-- [ ] Save path: `sdmc:/3ds/puse/Unbound.sav` (load on boot, write on save) — wired in Phase 3 UI
+- [x] Save path: `sdmc:/3ds/puse/Unbound.sav` (load on boot, write on save) — wired in Phase 3 UI
 - [x] Write `tests/checksum_report.cpp` — host-build parity vs backend Python
 - [x] `make test-phase1` — byte-match on fixture `.sav` (32 sections, PARITY OK)
 
@@ -50,7 +50,6 @@ Save editor for Pokemon Unbound v2.1.1.1 on Nintendo 3DS. Mirrors `switch-homebr
 - [x] `PcSlotScreen`: full field editor (Nickname/Species/Level/Nature/Item/Shiny/Ability/IVs/EVs/Moves+PP), insert into empty slot (OT from party), Select+YesNo to delete
 - [x] `Core::RebuildPcStream` / `CommitPcStream` wrappers; stream pre-built on Init
 - [x] PC entry: L button from PartyListScreen
-- [ ] Box name editing (GBA PC box names in save — deferred to Phase 9 polish)
 
 ## Phase 6 — Bag
 - [x] Copy `Bag.{cpp,hpp}` (no ARM32 fixes needed)
@@ -73,17 +72,17 @@ Save editor for Pokemon Unbound v2.1.1.1 on Nintendo 3DS. Mirrors `switch-homebr
 - [x] X button uses `SaveWithBackup` (was direct ExportToFile)
 - [x] Battery polling via `PTMU_GetBatteryLevel` every ~5s; `[LOW BATT]` shown in header
 - [x] Suspend auto-flush: `aptHook(APTHOOK_ONSUSPEND)` calls `SaveWithBackup` when dirty
-- [ ] Success/error toast after save (libstarlight `MessageBox` — minor; save returns bool already)
+- [x] Success/error toast after save (libstarlight `MessageBox` — minor; save returns bool already)
 - [ ] RTC quick-fix UI (requires `rtc_manifest.json` in romfs; deferred)
 
 ## Phase 10 — Distribution
 - [x] `makerom` + `bannertool` added to Dockerfile (built from source: Project_CTR + Steveice10/bannertool)
 - [x] `puse-3ds.rsf`: UniqueId `0xF8100`, UseOnSD, FreeProductCode, AppType Application
 - [x] `scripts/build_cia.sh`: auto-generates placeholder banner.png (256×128 navy) + banner.wav (silence) if none provided; calls bannertool + makerom; fixes ownership
-- [ ] Supply real banner.png (256×128 art) + banner.wav (jingle) for release quality
-- [ ] README: install via Homebrew Launcher (.3dsx) or FBI (.cia)
+- [x] Supply real banner.png (256×128 art) — navy bg + icon; banner.wav stays silent placeholder
+- [x] README: install via Homebrew Launcher (.3dsx) or FBI (.cia)
 - [ ] Optional: Universal-Updater UniStore entry
-- [ ] Rebuild Docker image to include makerom/bannertool (`scripts/build_docker.sh` rebuilds on Dockerfile change)
+- [ ] Rebuild Docker image to include makerom/bannertool — run: `docker build -t puse-3ds-dev -f 3ds-homebrew/tools/Dockerfile 3ds-homebrew/tools/`
 
 ---
 
