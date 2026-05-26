@@ -48,9 +48,9 @@ class ExtractTask:
         if self.key == "species_table":
             cmd += [str(rom_path), "--out-json", str(json_dir / "species_table_from_rom.json"), "--out-txt", str(txt_dir / "pokemon.txt")]
         elif self.key == "abilities_table":
-            cmd += [str(rom_path), "--out-json", str(json_dir / "ability_table_from_rom.json"), "--out-txt", str(txt_dir / "abilities.txt")]
+            cmd += [str(rom_path), "--structural-scan", "--out-json", str(json_dir / "ability_table_from_rom.json"), "--out-txt", str(txt_dir / "abilities.txt")]
         elif self.key == "moves_table":
-            cmd += [str(rom_path), "--out-json", str(json_dir / "move_table_from_rom.json"), "--out-txt", str(txt_dir / "moves.txt")]
+            cmd += [str(rom_path), "--generic-scan", "--out-json", str(json_dir / "move_table_from_rom.json"), "--out-txt", str(txt_dir / "moves.txt")]
         elif self.key == "item_table":
             cmd += [str(rom_path), "--out", str(json_dir / "item_table_from_rom.json")]
         elif self.key == "species_base_stats":

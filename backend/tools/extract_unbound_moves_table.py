@@ -141,6 +141,41 @@ def find_moves_table_base(rom: bytes) -> int:
     raise RuntimeError("Could not locate move-name table base in ROM")
 
 
+def find_moves_table_base_generic(rom: bytes, min_run: int = 128) -> int:
+    best_base = None
+    best_run = 0
+
+    for align in range(MOVE_NAME_ENTRY_SIZE):
+        pos = align
+        run_start = None
+        run_len = 0
+
+        while pos + MOVE_NAME_ENTRY_SIZE <= len(rom):
+            entry = rom[pos : pos + MOVE_NAME_ENTRY_SIZE]
+            if _is_valid_move_name_entry(entry):
+                if run_start is None:
+                    run_start = pos
+                    run_len = 1
+                else:
+                    run_len += 1
+            else:
+                if run_start is not None and run_len > best_run:
+                    best_base = run_start
+                    best_run = run_len
+                run_start = None
+                run_len = 0
+            pos += MOVE_NAME_ENTRY_SIZE
+
+        if run_start is not None and run_len > best_run:
+            best_base = run_start
+            best_run = run_len
+
+    if best_base is None or best_run < min_run:
+        raise RuntimeError(f"Could not locate move-name table via generic scan (best_run={best_run})")
+
+    return best_base
+
+
 def load_pp_by_move_id(path: Path) -> dict[int, int]:
     if not path.exists():
         return {}
@@ -229,10 +264,18 @@ def main() -> int:
         default=128,
         help="Fail if ROM-inferred move count is below this threshold (guards against false-positive anchors)",
     )
+    parser.add_argument(
+        "--generic-scan",
+        action="store_true",
+        help="Use generic fixed-width string-run scan instead of hardcoded name anchors",
+    )
     args = parser.parse_args()
 
     rom = args.rom.read_bytes()
-    base = find_moves_table_base(rom)
+    if args.generic_scan:
+        base = find_moves_table_base_generic(rom, min_run=max(32, int(args.min_inferred_count)))
+    else:
+        base = find_moves_table_base(rom)
     if args.count is not None:
         move_count = int(args.count)
     elif args.count_from_txt:

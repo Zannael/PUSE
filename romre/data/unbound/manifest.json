@@ -6,7 +6,7 @@
     "sha256": "7aa25bbf568f7cfcf6ee1cf2e9e6ff637350b3d0705c2375cabb6baa7d9739f7"
   },
   "profile": "unbound",
-  "generated_at_utc": "2026-05-25T10:24:59.775268+00:00",
+  "generated_at_utc": "2026-05-25T20:31:05.265382+00:00",
   "pipeline": "romre/run_extract.py",
   "tasks": [
     {
@@ -39,6 +39,7 @@
         "/usr/bin/python3",
         "tools/extract_unbound_abilities_table.py",
         "/home/zappaganini/PycharmProjects/pokemon/romre/roms/Unbound.gba",
+        "--structural-scan",
         "--out-json",
         "/home/zappaganini/PycharmProjects/pokemon/romre/data/unbound/json/ability_table_from_rom.json",
         "--out-txt",
@@ -61,6 +62,7 @@
         "/usr/bin/python3",
         "tools/extract_unbound_moves_table.py",
         "/home/zappaganini/PycharmProjects/pokemon/romre/roms/Unbound.gba",
+        "--generic-scan",
         "--out-json",
         "/home/zappaganini/PycharmProjects/pokemon/romre/data/unbound/json/move_table_from_rom.json",
         "--out-txt",

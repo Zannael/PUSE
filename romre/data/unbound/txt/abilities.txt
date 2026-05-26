@@ -1,292 +1,293 @@
-1:Stench
-2:Drizzle
-3:Speed Boost
-4:Battle Armor
-5:Sturdy
-6:Damp
-7:Limber
-8:Sand Veil
-9:Static
-10:Volt Absorb
-11:Water Absorb
-12:Oblivious
-13:Cloud Nine
-14:Compound Eyes
-15:Insomnia
-16:Color Change
-17:Immunity
-18:Flash Fire
-19:Shield Dust
-20:Own Tempo
-21:Suction Cups
-22:Intimidate
-23:Shadow Tag
-24:Rough Skin
-25:Wonder Guard
-26:Levitate
-27:Effect Spore
-28:Synchronize
-29:Clear Body
-30:Natural Cure
-31:Lightning Rod
-32:Serene Grace
-33:Swift Swim
-34:Chlorophyll
-35:Illuminate
-36:Trace
-37:Huge Power
-38:Poison Point
-39:Inner Focus
-40:Magma Armor
-41:Water Veil
-42:Magnet Pull
-43:Soundproof
-44:Rain Dish
-45:Sand Stream
-46:Pressure
-47:Thick Fat
-48:Early Bird
-49:Flame Body
-50:Run Away
-51:Keen Eye
-52:Hyper Cutter
-53:Pickup
-54:Truant
-55:Hustle
-56:Cute Charm
-57:Plus
-58:Minus
-59:Forecast
-60:Sticky Hold
-61:Shed Skin
-62:Guts
-63:Marvel Scale
-64:Liquid Ooze
-65:Overgrow
-66:Blaze
-67:Torrent
-68:Swarm
-69:Rock Head
-70:Drought
-71:Arena Trap
-72:Transistor
-73:Dragon's Maw
-74:Neutralize Gas
-75:Shell Armor
-76:Hunger Switch
-77:Unused
-78:Sweet Veil
-79:Skill Link
-80:Motor Drive
-81:Multiscale
-82:Technician
-83:Scrappy
-84:Super Luck
-85:Sniper
-86:Regenerator
-87:Prankster
-88:Adaptability
-89:Big Pecks
-90:Magic Bounce
-91:Reckless
-92:Sheer Force
-93:Iron Fist
-94:Rivalry
-95:Sand Force
-96:Solar Power
-97:Heatproof
-98:Dry Skin
-99:Tinted Lens
-100:Unseen Fist
-101:Filter
-102:Infiltrator
-103:Download
-104:Poison Heal
-105:Ice Body
-106:Moody
-107:Hydration
-108:Healer
-109:Snow Cloak
-110:Tangled Feet
-111:Snow Warning
-112:Quick Feet
-113:Sap Sipper
-114:Overcoat
-115:Magic Guard
-116:Bulletproof
-117:Gale Wings
-118:Moxie
-119:Aftermath
-120:Cursed Body
-121:Gooey
-122:Mummy
-123:Grim Neigh
-124:Sand Rush
-125:Analytic
-126:No Guard
-127:Mega Launcher
-128:Tough Claws
-129:Strong Jaw
-130:Victory Star
-131:Storm Drain
-132:Dark Aura
-133:Fairy Aura
-134:Aura Break
-135:Refrigerate
-136:Pixilate
-137:Aerilate
-138:Normalize
-139:Unburden
-140:Simple
-141:Unaware
-142:Defiant
-143:Competitive
-144:Defeatist
-145:Slow Start
-146:Toxic Boost
-147:Flare Boost
-148:Fur Coat
-149:Wonder Skin
-150:Protean
-151:Parental Bond
-152:Mold Breaker
-153:As One
+1:-------
+2:Stench
+3:Drizzle
+4:Speed Boost
+5:Battle Armor
+6:Sturdy
+7:Damp
+8:Limber
+9:Sand Veil
+10:Static
+11:Volt Absorb
+12:Water Absorb
+13:Oblivious
+14:Cloud Nine
+15:Compound Eyes
+16:Insomnia
+17:Color Change
+18:Immunity
+19:Flash Fire
+20:Shield Dust
+21:Own Tempo
+22:Suction Cups
+23:Intimidate
+24:Shadow Tag
+25:Rough Skin
+26:Wonder Guard
+27:Levitate
+28:Effect Spore
+29:Synchronize
+30:Clear Body
+31:Natural Cure
+32:Lightning Rod
+33:Serene Grace
+34:Swift Swim
+35:Chlorophyll
+36:Illuminate
+37:Trace
+38:Huge Power
+39:Poison Point
+40:Inner Focus
+41:Magma Armor
+42:Water Veil
+43:Magnet Pull
+44:Soundproof
+45:Rain Dish
+46:Sand Stream
+47:Pressure
+48:Thick Fat
+49:Early Bird
+50:Flame Body
+51:Run Away
+52:Keen Eye
+53:Hyper Cutter
+54:Pickup
+55:Truant
+56:Hustle
+57:Cute Charm
+58:Plus
+59:Minus
+60:Forecast
+61:Sticky Hold
+62:Shed Skin
+63:Guts
+64:Marvel Scale
+65:Liquid Ooze
+66:Overgrow
+67:Blaze
+68:Torrent
+69:Swarm
+70:Rock Head
+71:Drought
+72:Arena Trap
+73:Transistor
+74:Dragon's Maw
+75:Neutralize Gas
+76:Shell Armor
+77:Hunger Switch
+78:Unused
+79:Sweet Veil
+80:Skill Link
+81:Motor Drive
+82:Multiscale
+83:Technician
+84:Scrappy
+85:Super Luck
+86:Sniper
+87:Regenerator
+88:Prankster
+89:Adaptability
+90:Big Pecks
+91:Magic Bounce
+92:Reckless
+93:Sheer Force
+94:Iron Fist
+95:Rivalry
+96:Sand Force
+97:Solar Power
+98:Heatproof
+99:Dry Skin
+100:Tinted Lens
+101:Unseen Fist
+102:Filter
+103:Infiltrator
+104:Download
+105:Poison Heal
+106:Ice Body
+107:Moody
+108:Hydration
+109:Healer
+110:Snow Cloak
+111:Tangled Feet
+112:Snow Warning
+113:Quick Feet
+114:Sap Sipper
+115:Overcoat
+116:Magic Guard
+117:Bulletproof
+118:Gale Wings
+119:Moxie
+120:Aftermath
+121:Cursed Body
+122:Gooey
+123:Mummy
+124:Grim Neigh
+125:Sand Rush
+126:Analytic
+127:No Guard
+128:Mega Launcher
+129:Tough Claws
+130:Strong Jaw
+131:Victory Star
+132:Storm Drain
+133:Dark Aura
+134:Fairy Aura
+135:Aura Break
+136:Refrigerate
+137:Pixilate
+138:Aerilate
+139:Normalize
+140:Unburden
+141:Simple
+142:Unaware
+143:Defiant
+144:Competitive
+145:Defeatist
+146:Slow Start
+147:Toxic Boost
+148:Flare Boost
+149:Fur Coat
+150:Wonder Skin
+151:Protean
+152:Parental Bond
+153:Mold Breaker
 154:As One
-155:Zen Mode
-156:Battle Bond
-157:Beast Boost
-158:Corrosion
-159:Disguise
-160:Emergency Exit
-161:Fluffy
-162:Steely Spirit
-163:Perish Body
-164:Wandering Soul
-165:Power Construct
-166:Prism Armor
-167:RKS System
-168:Schooling
-169:Shadow Shield
-170:Shields Down
-171:Slush Rush
-172:Soul-Heart
-173:Stamina
-174:Steelworker
-175:Full Metal Body
-176:Triage
-177:Water Bubble
-178:Water Compact
-179:Stall
-180:Multitype
-181:Electric Surge
-182:Grassy Surge
-183:Misty Surge
-184:Psychic Surge
-185:Surge Surfer
-186:Grass Pelt
-187:Anger Point
-188:Anticipation
-189:Forewarn
-190:Frisk
-191:Contrary
-192:Unnerve
-193:Weak Armor
-194:Heavy Metal
-195:Light Metal
-196:Steadfast
-197:Imposter
-198:Justified
-199:Rattled
-200:Merciless
-201:Aroma Veil
-202:Flower Veil
-203:Leaf Guard
-204:Klutz
-205:Flower Gift
-206:Bad Dreams
-207:Pickpocket
-208:Portal Power
-209:Poison Touch
-210:Magician
-211:Stance Change
-212:Primordial Sea
-213:Desolate Land
-214:Delta Stream
-215:Gorilla Tactics
-216:Berserk
-217:Long Reach
-218:Liquid Voice
-219:Quick Draw
-220:Innards Out
-221:Dazzling
-222:Gluttony
-223:Honey Gather
-224:Friend Guard
-225:Harvest
-226:Telepathy
-227:Illusion
-228:Cheek Pouch
-229:Symbiosis
-230:Stakeout
-231:Comatose
-232:Dancer
-233:Battery
-234:Receiver
-235:Odd Medicine
-236:Neuroforce
-237:Galvanize
-238:Intrepid Sword
-239:Valiant Shield
-240:Ball Fetch
-241:Cotton Down
-242:Mirror Armor
-243:Gulp Missile
-244:Stalwart
-245:Steam Engine
-246:Punk Rock
-247:Sand Spit
-248:Ice Scales
-249:Ripen
-250:Ice Face
-251:Power Spot
-252:Mimicry
-253:Screen Cleaner
-254:Pastel Veil
-255:-
-256:Air Lock
-257:Vital Spirit
-258:White Smoke
-259:Pure Power
-260:Iron Barbs
-261:Solid Rock
-262:Turboblaze
-263:Teravolt
-264:Chilling Neigh
-265:Libero
-266:Tangling Hair
-267:Wimp Out
-268:Queenly Majesty
-269:Alchemic Power
-270:Propeller Tail
-271:Nine Lives
-272:Focus Belt
-273:Evaporate
-274:Fiery Neigh
-275:Shocking Neigh
-276:Pride
-277:Multieye
-278:Subterfuge
-279:Honey Armor
-280:Tangling Wool
-281:Brain Bond
-282:Grass Dash
-283:Slippery Tail
-284:Drill Beak
-285:Cotton Cloud
-286:Bellow
-287:Sound Waves
-288:Icy Skin
-289:Dusty Scales
-290:Crabby Tactics
-291:Face Shield
-292:Royal Roar
+155:As One
+156:Zen Mode
+157:Battle Bond
+158:Beast Boost
+159:Corrosion
+160:Disguise
+161:Emergency Exit
+162:Fluffy
+163:Steely Spirit
+164:Perish Body
+165:Wandering Soul
+166:Power Construct
+167:Prism Armor
+168:RKS System
+169:Schooling
+170:Shadow Shield
+171:Shields Down
+172:Slush Rush
+173:Soul-Heart
+174:Stamina
+175:Steelworker
+176:Full Metal Body
+177:Triage
+178:Water Bubble
+179:Water Compact
+180:Stall
+181:Multitype
+182:Electric Surge
+183:Grassy Surge
+184:Misty Surge
+185:Psychic Surge
+186:Surge Surfer
+187:Grass Pelt
+188:Anger Point
+189:Anticipation
+190:Forewarn
+191:Frisk
+192:Contrary
+193:Unnerve
+194:Weak Armor
+195:Heavy Metal
+196:Light Metal
+197:Steadfast
+198:Imposter
+199:Justified
+200:Rattled
+201:Merciless
+202:Aroma Veil
+203:Flower Veil
+204:Leaf Guard
+205:Klutz
+206:Flower Gift
+207:Bad Dreams
+208:Pickpocket
+209:Portal Power
+210:Poison Touch
+211:Magician
+212:Stance Change
+213:Primordial Sea
+214:Desolate Land
+215:Delta Stream
+216:Gorilla Tactics
+217:Berserk
+218:Long Reach
+219:Liquid Voice
+220:Quick Draw
+221:Innards Out
+222:Dazzling
+223:Gluttony
+224:Honey Gather
+225:Friend Guard
+226:Harvest
+227:Telepathy
+228:Illusion
+229:Cheek Pouch
+230:Symbiosis
+231:Stakeout
+232:Comatose
+233:Dancer
+234:Battery
+235:Receiver
+236:Odd Medicine
+237:Neuroforce
+238:Galvanize
+239:Intrepid Sword
+240:Valiant Shield
+241:Ball Fetch
+242:Cotton Down
+243:Mirror Armor
+244:Gulp Missile
+245:Stalwart
+246:Steam Engine
+247:Punk Rock
+248:Sand Spit
+249:Ice Scales
+250:Ripen
+251:Ice Face
+252:Power Spot
+253:Mimicry
+254:Screen Cleaner
+255:Pastel Veil
+256:-
+257:Air Lock
+258:Vital Spirit
+259:White Smoke
+260:Pure Power
+261:Iron Barbs
+262:Solid Rock
+263:Turboblaze
+264:Teravolt
+265:Chilling Neigh
+266:Libero
+267:Tangling Hair
+268:Wimp Out
+269:Queenly Majesty
+270:Alchemic Power
+271:Propeller Tail
+272:Nine Lives
+273:Focus Belt
+274:Evaporate
+275:Fiery Neigh
+276:Shocking Neigh
+277:Pride
+278:Multieye
+279:Subterfuge
+280:Honey Armor
+281:Tangling Wool
+282:Brain Bond
+283:Grass Dash
+284:Slippery Tail
+285:Drill Beak
+286:Cotton Cloud
+287:Bellow
+288:Sound Waves
+289:Icy Skin
+290:Dusty Scales
+291:Crabby Tactics
+292:Face Shield
+293:Royal Roar

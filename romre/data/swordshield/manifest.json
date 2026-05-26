@@ -6,7 +6,7 @@
     "sha256": "f6d2e7092831b983318b685132a19567ff5e6428665255738c4e5a63371bcce3"
   },
   "profile": "swordshield",
-  "generated_at_utc": "2026-05-25T10:29:24.305654+00:00",
+  "generated_at_utc": "2026-05-25T20:34:07.643720+00:00",
   "pipeline": "romre/run_extract.py",
   "tasks": [
     {
@@ -39,6 +39,7 @@
         "/usr/bin/python3",
         "tools/extract_unbound_abilities_table.py",
         "/home/zappaganini/PycharmProjects/pokemon/romre/roms/SwordShield.gba",
+        "--structural-scan",
         "--out-json",
         "/home/zappaganini/PycharmProjects/pokemon/romre/data/swordshield/json/ability_table_from_rom.json",
         "--out-txt",
@@ -46,12 +47,12 @@
       ],
       "exit_code": 1,
       "ok": false,
-      "missing_outputs": [
+      "missing_outputs": [],
+      "log": "reports/abilities_table.log",
+      "outputs": [
         "json/ability_table_from_rom.json",
         "txt/abilities.txt"
-      ],
-      "log": "reports/abilities_table.log",
-      "outputs": []
+      ]
     },
     {
       "key": "moves_table",
@@ -61,13 +62,14 @@
         "/usr/bin/python3",
         "tools/extract_unbound_moves_table.py",
         "/home/zappaganini/PycharmProjects/pokemon/romre/roms/SwordShield.gba",
+        "--generic-scan",
         "--out-json",
         "/home/zappaganini/PycharmProjects/pokemon/romre/data/swordshield/json/move_table_from_rom.json",
         "--out-txt",
         "/home/zappaganini/PycharmProjects/pokemon/romre/data/swordshield/txt/moves.txt"
       ],
-      "exit_code": 1,
-      "ok": false,
+      "exit_code": 0,
+      "ok": true,
       "missing_outputs": [],
       "log": "reports/moves_table.log",
       "outputs": [
@@ -163,8 +165,8 @@
   ],
   "summary": {
     "total": 7,
-    "ok": 5,
-    "failed": 2
+    "ok": 6,
+    "failed": 1
   },
   "notes": [
     "Current pipeline reuses backend/tools/extract_unbound_*.py and will be generalized for non-Unbound CFRU hacks.",
