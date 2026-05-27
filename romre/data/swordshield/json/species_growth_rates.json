@@ -713,29 +713,290 @@
   "312": {
     "growth_rate": 0
   },
+  "313": {
+    "growth_rate": 2
+  },
+  "314": {
+    "growth_rate": 2
+  },
+  "315": {
+    "growth_rate": 4
+  },
+  "316": {
+    "growth_rate": 4
+  },
+  "317": {
+    "growth_rate": 3
+  },
+  "318": {
+    "growth_rate": 0
+  },
+  "319": {
+    "growth_rate": 0
+  },
   "32": {
     "growth_rate": 3
+  },
+  "320": {
+    "growth_rate": 0
+  },
+  "321": {
+    "growth_rate": 0
+  },
+  "322": {
+    "growth_rate": 3
+  },
+  "323": {
+    "growth_rate": 0
+  },
+  "324": {
+    "growth_rate": 0
+  },
+  "325": {
+    "growth_rate": 4
+  },
+  "326": {
+    "growth_rate": 2
+  },
+  "327": {
+    "growth_rate": 2
+  },
+  "328": {
+    "growth_rate": 1
+  },
+  "329": {
+    "growth_rate": 1
   },
   "33": {
     "growth_rate": 3
   },
+  "330": {
+    "growth_rate": 5
+  },
+  "331": {
+    "growth_rate": 5
+  },
+  "332": {
+    "growth_rate": 3
+  },
+  "333": {
+    "growth_rate": 3
+  },
+  "334": {
+    "growth_rate": 3
+  },
+  "335": {
+    "growth_rate": 2
+  },
+  "336": {
+    "growth_rate": 2
+  },
+  "337": {
+    "growth_rate": 5
+  },
+  "338": {
+    "growth_rate": 5
+  },
+  "339": {
+    "growth_rate": 0
+  },
   "34": {
     "growth_rate": 3
+  },
+  "340": {
+    "growth_rate": 0
+  },
+  "341": {
+    "growth_rate": 3
+  },
+  "342": {
+    "growth_rate": 3
+  },
+  "343": {
+    "growth_rate": 3
+  },
+  "344": {
+    "growth_rate": 3
+  },
+  "345": {
+    "growth_rate": 3
+  },
+  "346": {
+    "growth_rate": 0
+  },
+  "347": {
+    "growth_rate": 0
+  },
+  "348": {
+    "growth_rate": 4
+  },
+  "349": {
+    "growth_rate": 4
   },
   "35": {
     "growth_rate": 4
   },
+  "350": {
+    "growth_rate": 4
+  },
+  "351": {
+    "growth_rate": 4
+  },
+  "352": {
+    "growth_rate": 4
+  },
+  "353": {
+    "growth_rate": 0
+  },
+  "354": {
+    "growth_rate": 0
+  },
+  "355": {
+    "growth_rate": 4
+  },
+  "356": {
+    "growth_rate": 0
+  },
+  "357": {
+    "growth_rate": 0
+  },
+  "358": {
+    "growth_rate": 1
+  },
+  "359": {
+    "growth_rate": 1
+  },
   "36": {
     "growth_rate": 4
+  },
+  "360": {
+    "growth_rate": 0
+  },
+  "361": {
+    "growth_rate": 4
+  },
+  "362": {
+    "growth_rate": 4
+  },
+  "363": {
+    "growth_rate": 3
+  },
+  "364": {
+    "growth_rate": 5
+  },
+  "365": {
+    "growth_rate": 5
+  },
+  "366": {
+    "growth_rate": 5
+  },
+  "367": {
+    "growth_rate": 2
+  },
+  "368": {
+    "growth_rate": 2
+  },
+  "369": {
+    "growth_rate": 5
   },
   "37": {
     "growth_rate": 0
   },
+  "370": {
+    "growth_rate": 3
+  },
+  "371": {
+    "growth_rate": 3
+  },
+  "372": {
+    "growth_rate": 3
+  },
+  "373": {
+    "growth_rate": 1
+  },
+  "374": {
+    "growth_rate": 1
+  },
+  "375": {
+    "growth_rate": 1
+  },
+  "376": {
+    "growth_rate": 3
+  },
+  "377": {
+    "growth_rate": 4
+  },
+  "378": {
+    "growth_rate": 4
+  },
+  "379": {
+    "growth_rate": 2
+  },
   "38": {
     "growth_rate": 0
   },
+  "380": {
+    "growth_rate": 1
+  },
+  "381": {
+    "growth_rate": 5
+  },
+  "382": {
+    "growth_rate": 5
+  },
+  "383": {
+    "growth_rate": 5
+  },
+  "384": {
+    "growth_rate": 5
+  },
+  "385": {
+    "growth_rate": 0
+  },
+  "386": {
+    "growth_rate": 1
+  },
+  "387": {
+    "growth_rate": 2
+  },
+  "388": {
+    "growth_rate": 1
+  },
+  "389": {
+    "growth_rate": 1
+  },
   "39": {
     "growth_rate": 4
+  },
+  "390": {
+    "growth_rate": 1
+  },
+  "391": {
+    "growth_rate": 1
+  },
+  "392": {
+    "growth_rate": 5
+  },
+  "393": {
+    "growth_rate": 5
+  },
+  "394": {
+    "growth_rate": 5
+  },
+  "395": {
+    "growth_rate": 5
+  },
+  "396": {
+    "growth_rate": 5
+  },
+  "397": {
+    "growth_rate": 5
+  },
+  "398": {
+    "growth_rate": 5
+  },
+  "399": {
+    "growth_rate": 5
   },
   "4": {
     "growth_rate": 3
@@ -743,8 +1004,44 @@
   "40": {
     "growth_rate": 4
   },
+  "400": {
+    "growth_rate": 5
+  },
+  "401": {
+    "growth_rate": 5
+  },
+  "402": {
+    "growth_rate": 5
+  },
+  "403": {
+    "growth_rate": 5
+  },
+  "404": {
+    "growth_rate": 5
+  },
+  "405": {
+    "growth_rate": 5
+  },
+  "406": {
+    "growth_rate": 5
+  },
+  "407": {
+    "growth_rate": 5
+  },
+  "408": {
+    "growth_rate": 5
+  },
+  "409": {
+    "growth_rate": 5
+  },
   "41": {
     "growth_rate": 0
+  },
+  "410": {
+    "growth_rate": 5
+  },
+  "411": {
+    "growth_rate": 4
   },
   "42": {
     "growth_rate": 0

@@ -6,7 +6,7 @@
     "sha256": "f6d2e7092831b983318b685132a19567ff5e6428665255738c4e5a63371bcce3"
   },
   "profile": "swordshield",
-  "generated_at_utc": "2026-05-25T20:34:07.643720+00:00",
+  "generated_at_utc": "2026-05-26T14:00:12.252926+00:00",
   "pipeline": "romre/run_extract.py",
   "tasks": [
     {
@@ -88,7 +88,7 @@
         "--out",
         "/home/zappaganini/PycharmProjects/pokemon/romre/data/swordshield/json/species_base_stats.json",
         "--species-count",
-        "312"
+        "411"
       ],
       "exit_code": 0,
       "ok": true,
@@ -109,7 +109,7 @@
         "--out",
         "/home/zappaganini/PycharmProjects/pokemon/romre/data/swordshield/json/species_growth_rates.json",
         "--species-count",
-        "312"
+        "411"
       ],
       "exit_code": 0,
       "ok": true,
@@ -130,7 +130,7 @@
         "--out",
         "/home/zappaganini/PycharmProjects/pokemon/romre/data/swordshield/json/species_identity_meta.json",
         "--species-count",
-        "312"
+        "411"
       ],
       "exit_code": 0,
       "ok": true,
@@ -151,7 +151,7 @@
         "--out",
         "/home/zappaganini/PycharmProjects/pokemon/romre/data/swordshield/json/species_abilities_meta.json",
         "--species-count",
-        "312",
+        "411",
         "--skip-anchor-validation"
       ],
       "exit_code": 0,

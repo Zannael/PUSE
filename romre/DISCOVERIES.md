@@ -12,6 +12,15 @@ Living notes for structural discoveries while extracting CFRU ROM data.
 - This means species IDs are not guaranteed to be a dense "real mon only" sequence.
 - Pipeline policy: keep raw rows as ROM truth; do not renumber IDs.
 - Practical consequence: downstream logic should avoid assuming every ID corresponds to a normal species.
+- Additional boundary issue seen on `SwordShield.gba`: after `Chimecho`, 11-byte decoding can drift into move text (`Pound`, `Karate`, etc.) if cutoff is too permissive.
+- Species cutoff logic now includes:
+  - rolling quality windows,
+  - gap recovery for placeholder blocks,
+  - explicit move-bleed guard (`-`, `Pound`, `Karate*` pattern),
+  - suspicious-tail trimming.
+- Current extracted endpoints:
+  - `Unbound.gba`: ends at `1293: Urshifu`
+  - `SwordShield.gba`: ends at `411: Chimecho`
 
 ## Anchor Reliability Findings
 

@@ -1189,8 +1189,93 @@
     "ability_2_id": 0,
     "hidden_ability_id": 0
   },
+  "313": {
+    "ability_1_id": 41,
+    "ability_2_id": 12,
+    "hidden_ability_id": 0
+  },
+  "314": {
+    "ability_1_id": 41,
+    "ability_2_id": 12,
+    "hidden_ability_id": 0
+  },
+  "315": {
+    "ability_1_id": 56,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "316": {
+    "ability_1_id": 56,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "317": {
+    "ability_1_id": 16,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "318": {
+    "ability_1_id": 26,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "319": {
+    "ability_1_id": 26,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
   "32": {
     "ability_1_id": 38,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "320": {
+    "ability_1_id": 5,
+    "ability_2_id": 42,
+    "hidden_ability_id": 0
+  },
+  "321": {
+    "ability_1_id": 73,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "322": {
+    "ability_1_id": 51,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "323": {
+    "ability_1_id": 12,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "324": {
+    "ability_1_id": 12,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "325": {
+    "ability_1_id": 33,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "326": {
+    "ability_1_id": 52,
+    "ability_2_id": 75,
+    "hidden_ability_id": 0
+  },
+  "327": {
+    "ability_1_id": 52,
+    "ability_2_id": 75,
+    "hidden_ability_id": 0
+  },
+  "328": {
+    "ability_1_id": 33,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "329": {
+    "ability_1_id": 63,
     "ability_2_id": 0,
     "hidden_ability_id": 0
   },
@@ -1199,8 +1284,108 @@
     "ability_2_id": 0,
     "hidden_ability_id": 0
   },
+  "330": {
+    "ability_1_id": 24,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "331": {
+    "ability_1_id": 24,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "332": {
+    "ability_1_id": 52,
+    "ability_2_id": 71,
+    "hidden_ability_id": 0
+  },
+  "333": {
+    "ability_1_id": 26,
+    "ability_2_id": 26,
+    "hidden_ability_id": 0
+  },
+  "334": {
+    "ability_1_id": 26,
+    "ability_2_id": 26,
+    "hidden_ability_id": 0
+  },
+  "335": {
+    "ability_1_id": 47,
+    "ability_2_id": 62,
+    "hidden_ability_id": 0
+  },
+  "336": {
+    "ability_1_id": 47,
+    "ability_2_id": 62,
+    "hidden_ability_id": 0
+  },
+  "337": {
+    "ability_1_id": 9,
+    "ability_2_id": 31,
+    "hidden_ability_id": 0
+  },
+  "338": {
+    "ability_1_id": 9,
+    "ability_2_id": 31,
+    "hidden_ability_id": 0
+  },
+  "339": {
+    "ability_1_id": 12,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
   "34": {
     "ability_1_id": 38,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "340": {
+    "ability_1_id": 40,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "341": {
+    "ability_1_id": 47,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "342": {
+    "ability_1_id": 47,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "343": {
+    "ability_1_id": 47,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "344": {
+    "ability_1_id": 8,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "345": {
+    "ability_1_id": 8,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "346": {
+    "ability_1_id": 39,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "347": {
+    "ability_1_id": 39,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "348": {
+    "ability_1_id": 26,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "349": {
+    "ability_1_id": 26,
     "ability_2_id": 0,
     "hidden_ability_id": 0
   },
@@ -1209,8 +1394,108 @@
     "ability_2_id": 0,
     "hidden_ability_id": 0
   },
+  "350": {
+    "ability_1_id": 47,
+    "ability_2_id": 37,
+    "hidden_ability_id": 0
+  },
+  "351": {
+    "ability_1_id": 47,
+    "ability_2_id": 20,
+    "hidden_ability_id": 0
+  },
+  "352": {
+    "ability_1_id": 47,
+    "ability_2_id": 20,
+    "hidden_ability_id": 0
+  },
+  "353": {
+    "ability_1_id": 57,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "354": {
+    "ability_1_id": 58,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "355": {
+    "ability_1_id": 52,
+    "ability_2_id": 22,
+    "hidden_ability_id": 0
+  },
+  "356": {
+    "ability_1_id": 74,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "357": {
+    "ability_1_id": 74,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "358": {
+    "ability_1_id": 30,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "359": {
+    "ability_1_id": 30,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
   "36": {
     "ability_1_id": 56,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "360": {
+    "ability_1_id": 23,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "361": {
+    "ability_1_id": 26,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "362": {
+    "ability_1_id": 46,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "363": {
+    "ability_1_id": 30,
+    "ability_2_id": 38,
+    "hidden_ability_id": 0
+  },
+  "364": {
+    "ability_1_id": 54,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "365": {
+    "ability_1_id": 72,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "366": {
+    "ability_1_id": 54,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "367": {
+    "ability_1_id": 64,
+    "ability_2_id": 60,
+    "hidden_ability_id": 0
+  },
+  "368": {
+    "ability_1_id": 64,
+    "ability_2_id": 60,
+    "hidden_ability_id": 0
+  },
+  "369": {
+    "ability_1_id": 34,
     "ability_2_id": 0,
     "hidden_ability_id": 0
   },
@@ -1219,13 +1504,163 @@
     "ability_2_id": 0,
     "hidden_ability_id": 0
   },
+  "370": {
+    "ability_1_id": 43,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "371": {
+    "ability_1_id": 43,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "372": {
+    "ability_1_id": 43,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "373": {
+    "ability_1_id": 75,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "374": {
+    "ability_1_id": 33,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "375": {
+    "ability_1_id": 33,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "376": {
+    "ability_1_id": 46,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "377": {
+    "ability_1_id": 15,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "378": {
+    "ability_1_id": 15,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "379": {
+    "ability_1_id": 61,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
   "38": {
     "ability_1_id": 18,
     "ability_2_id": 0,
     "hidden_ability_id": 0
   },
+  "380": {
+    "ability_1_id": 17,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "381": {
+    "ability_1_id": 33,
+    "ability_2_id": 69,
+    "hidden_ability_id": 0
+  },
+  "382": {
+    "ability_1_id": 5,
+    "ability_2_id": 69,
+    "hidden_ability_id": 0
+  },
+  "383": {
+    "ability_1_id": 5,
+    "ability_2_id": 69,
+    "hidden_ability_id": 0
+  },
+  "384": {
+    "ability_1_id": 5,
+    "ability_2_id": 69,
+    "hidden_ability_id": 0
+  },
+  "385": {
+    "ability_1_id": 59,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "386": {
+    "ability_1_id": 35,
+    "ability_2_id": 68,
+    "hidden_ability_id": 0
+  },
+  "387": {
+    "ability_1_id": 12,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "388": {
+    "ability_1_id": 21,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "389": {
+    "ability_1_id": 21,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
   "39": {
     "ability_1_id": 56,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "390": {
+    "ability_1_id": 4,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "391": {
+    "ability_1_id": 4,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "392": {
+    "ability_1_id": 28,
+    "ability_2_id": 36,
+    "hidden_ability_id": 0
+  },
+  "393": {
+    "ability_1_id": 28,
+    "ability_2_id": 36,
+    "hidden_ability_id": 0
+  },
+  "394": {
+    "ability_1_id": 28,
+    "ability_2_id": 36,
+    "hidden_ability_id": 0
+  },
+  "395": {
+    "ability_1_id": 69,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "396": {
+    "ability_1_id": 69,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "397": {
+    "ability_1_id": 22,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "398": {
+    "ability_1_id": 29,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "399": {
+    "ability_1_id": 29,
     "ability_2_id": 0,
     "hidden_ability_id": 0
   },
@@ -1239,8 +1674,68 @@
     "ability_2_id": 0,
     "hidden_ability_id": 0
   },
+  "400": {
+    "ability_1_id": 29,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "401": {
+    "ability_1_id": 29,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "402": {
+    "ability_1_id": 29,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "403": {
+    "ability_1_id": 29,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "404": {
+    "ability_1_id": 2,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "405": {
+    "ability_1_id": 70,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "406": {
+    "ability_1_id": 77,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "407": {
+    "ability_1_id": 26,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "408": {
+    "ability_1_id": 26,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "409": {
+    "ability_1_id": 32,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
   "41": {
     "ability_1_id": 39,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "410": {
+    "ability_1_id": 46,
+    "ability_2_id": 0,
+    "hidden_ability_id": 0
+  },
+  "411": {
+    "ability_1_id": 26,
     "ability_2_id": 0,
     "hidden_ability_id": 0
   },
