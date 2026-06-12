@@ -89,6 +89,7 @@ docs/
 3ds-homebrew/*.cia
 3ds-homebrew/*.bnr
 3ds-homebrew/icon.icn
+3ds-homebrew/tools/
 
 # 3DS homebrew non-essential local content
 3ds-homebrew/artifacts/

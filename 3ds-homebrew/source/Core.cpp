@@ -3,10 +3,15 @@
 #include <sys/stat.h>
 #include <cstdio>
 #include <cstring>
+#include <cctype>
+#include <dirent.h>
+#include <algorithm>
+#include <vector>
 #include <3ds.h>
 
 #include "starlight/Application.h"
 #include "starlight/InputManager.h"
+#include "starlight/ThemeManager.h"
 
 #include <puse/core/Party.hpp>
 #include <puse/core/Pc.hpp>
@@ -18,22 +23,134 @@
 #include "starlight/dialog/MessageBox.h"
 #include "ui/DiagnosticsScreen.h"
 #include "ui/PartyListScreen.h"
+#include "ui/UiSmokeScreen.h"
 
 using starlight::Application;
 using starlight::InputManager;
 using starlight::dialog::MessageBox;
 
+namespace {
+
+bool FileExists(const std::string& p) {
+    FILE* f = std::fopen(p.c_str(), "rb");
+    if (!f) return false;
+    std::fclose(f);
+    return true;
+}
+
+std::string ToLower(std::string s) {
+    for (auto& c : s) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    return s;
+}
+
+bool EndsWith(const std::string& s, const std::string& suf) {
+    return s.size() >= suf.size() && std::equal(suf.rbegin(), suf.rend(), s.rbegin());
+}
+
+bool IsDir(const std::string& p) {
+    struct stat st;
+    if (stat(p.c_str(), &st) != 0) return false;
+    return S_ISDIR(st.st_mode);
+}
+
+// depth-bounded walk: collect any .sav matching unbound (case-insensitive).
+// preferred=true match means filename basename is exactly "unbound.sav".
+void WalkSavs(const std::string& root, int depth,
+              std::vector<std::string>* exact,
+              std::vector<std::string>* substr_match) {
+    if (depth < 0) return;
+    DIR* d = opendir(root.c_str());
+    if (!d) return;
+    struct dirent* ent;
+    while ((ent = readdir(d)) != nullptr) {
+        const std::string name = ent->d_name;
+        if (name == "." || name == "..") continue;
+        const std::string full = root + "/" + name;
+        if (IsDir(full)) {
+            WalkSavs(full, depth - 1, exact, substr_match);
+        } else {
+            const std::string lname = ToLower(name);
+            if (!EndsWith(lname, ".sav")) continue;
+            if (lname == "unbound.sav") {
+                exact->push_back(full);
+            } else if (lname.find("unbound") != std::string::npos) {
+                substr_match->push_back(full);
+            }
+        }
+    }
+    closedir(d);
+}
+
+std::string FindUnboundSave() {
+    // 1) quick probe of likely paths
+    static const char* kProbe[] = {
+        "sdmc:/3ds/puse/Unbound.sav",
+        "sdmc:/3ds/open_agb_firm/saves/Unbound.sav",
+        "sdmc:/3ds/openagbfw/saves/Unbound.sav",
+        "sdmc:/3ds/Unbound.sav",
+        "sdmc:/saves/Unbound.sav",
+        "sdmc:/retroarch/saves/Unbound.sav",
+        "sdmc:/Unbound.sav",
+    };
+    for (const char* p : kProbe) {
+        if (FileExists(p)) return p;
+    }
+
+    // 2) bounded recursive walk of likely roots
+    std::vector<std::string> roots = {
+        "sdmc:/3ds",
+        "sdmc:/roms",
+        "sdmc:/saves",
+    };
+    std::vector<std::string> exact, substr_match;
+    for (const auto& root : roots) {
+        if (!IsDir(root)) continue;
+        WalkSavs(root, 3, &exact, &substr_match);
+    }
+    if (!exact.empty()) return exact.front();
+    if (!substr_match.empty()) return substr_match.front();
+    return "";
+}
+
+bool PreloadUiAssets() {
+    try {
+        starlight::ThemeManager::GetFont("normal.16").GetShared();
+        starlight::ThemeManager::GetFont("normal.12").GetShared();
+        starlight::ThemeManager::GetAsset("controls/button.idle").GetShared();
+        starlight::ThemeManager::GetAsset("controls/button.press").GetShared();
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+} // namespace
+
 void Core::Init() {
     clearColor = sl::Color(0.063f, 0.086f, 0.137f);
+
+    PreloadUiAssets();
 
     mkdir("sdmc:/3ds", 0777);
     mkdir("sdmc:/3ds/puse", 0777);
 
-    std::string err;
-    if (!session_.LoadFromFile(kSavePath, &err)) {
+    save_path_ = FindUnboundSave();
+    if (save_path_.empty()) {
         puse::ui::DiagnosticsScreen::Make(
-            "Save not found.\n\n"
-            "Place your Unbound.sav at:\nsdmc:/3ds/puse/Unbound.sav\n\n" + err
+            "Unbound.sav not found on SD.\n\n"
+            "Place it at one of:\n"
+            "  sdmc:/3ds/puse/Unbound.sav\n"
+            "  sdmc:/3ds/open_agb_firm/saves/\n"
+            "  sdmc:/roms/...\n\n"
+            "Or any folder under /3ds, /roms, /saves."
+        )->Open();
+        return;
+    }
+
+    std::string err;
+    if (!session_.LoadFromFile(save_path_, &err)) {
+        puse::ui::DiagnosticsScreen::Make(
+            "Save found but load failed.\n\n" + save_path_ + "\n\n" + err
         )->Open();
         return;
     }
@@ -45,7 +162,6 @@ void Core::Init() {
         return;
     }
 
-    // Load name databases for UI display
     {
         std::string sp = puse::io::ResolveAssetPath("data/pokemon.txt");
         std::string it = puse::io::ResolveAssetPath("data/items.txt");
@@ -57,11 +173,9 @@ void Core::Init() {
 
     LoadConfig();
 
-    // Pre-build PC stream so box screen loads instantly
     std::string pc_err;
     RebuildPcStream(&pc_err);
 
-    // Suspend hook: flush save on APTHOOK_ONSUSPEND (lid close / home button)
     aptHook(&apt_hook_cookie_, [](APT_HookType type, void* param) {
         Core* self = static_cast<Core*>(param);
         if (type == APTHOOK_ONSUSPEND && self->IsDirty()) {
@@ -71,6 +185,11 @@ void Core::Init() {
     apt_hooked_ = true;
 
     mkdir(kRtcDir, 0777);
+
+    if (FileExists("sdmc:/3ds/puse/ui_smoke")) {
+        puse::ui::UiSmokeScreen::Make()->Open();
+        return;
+    }
 
     puse::ui::PartyListScreen::Make()->Open();
 }
@@ -107,19 +226,20 @@ void Core::Update() {
 
 bool Core::SaveWithBackup(std::string* error) {
     if (!session_.IsLoaded()) return false;
+    if (save_path_.empty()) {
+        if (error) *error = "save path not set";
+        return false;
+    }
 
-    // Recompute checksums before write
     puse::core::RefreshPartyMonChecksums(session_.MutableBuffer());
     puse::core::CommitPartySectionChecksums(session_.MutableBuffer());
 
-    // Backup existing save
-    std::string bak = std::string(kSavePath) + ".bak";
-    rename(kSavePath, bak.c_str());
+    const std::string bak = save_path_ + ".bak";
+    rename(save_path_.c_str(), bak.c_str());
 
     std::string err;
-    if (!session_.ExportToFile(kSavePath, &err)) {
-        // Restore backup on failure
-        rename(bak.c_str(), kSavePath);
+    if (!session_.ExportToFile(save_path_, &err)) {
+        rename(bak.c_str(), save_path_.c_str());
         if (error) *error = err;
         return false;
     }

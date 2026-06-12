@@ -23,14 +23,18 @@ const Color kFooterBg = Color(0.047f, 0.067f, 0.114f);
 namespace puse::ui {
 
 BaseScreen::BaseScreen(bool is_root)
-    : sl::ui::Form(true), is_root_(is_root) {}
+    : sl::ui::Form(true), is_root_(is_root) {
+    SetFlag(sl::ui::FormFlags::canOcclude, true);
+    SetFlag(sl::ui::FormFlags::occludeTouch, true);
+    SetFlag(sl::ui::FormFlags::occludeTop, true);
+}
 
 void BaseScreen::InitChrome(const std::string& footer_hints) {
     // --- top screen chrome ---
     topScreen->AddNew<puse::ui::FillRect>(VRect(0, 0, 400, 28), kHeaderBg);
 
     header_label_ = topScreen->AddNew<sl::ui::Label>(VRect(0, 5, 400, 18));
-    header_label_->SetPreset("normal.12");
+    header_label_->SetPreset("normal.16");
     header_label_->textConfig->justification = Vector2::half;
     header_label_->textConfig->borderColor = Color::black;
     header_label_->SetText("PUSE 3DS");
@@ -41,7 +45,7 @@ void BaseScreen::InitChrome(const std::string& footer_hints) {
     touchScreen->AddNew<puse::ui::FillRect>(VRect(0, 218, 320, 22), kFooterBg);
 
     footer_label_ = touchScreen->AddNew<sl::ui::Label>(VRect(0, 220, 320, 18));
-    footer_label_->SetPreset("normal.12");
+    footer_label_->SetPreset("normal.16");
     footer_label_->textConfig->justification = Vector2::half;
     footer_label_->textConfig->borderColor = Color::black;
     footer_label_->SetText(footer_hints);

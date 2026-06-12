@@ -146,14 +146,19 @@ void RtcScreen::ApplyProfile(int profile_idx) {
 }
 
 bool RtcScreen::WriteBytes(const std::vector<uint8_t>& bytes, std::string* error) {
-    const char* save_path = Core::kSavePath;
-    std::string bak = std::string(save_path) + ".bak";
+    Core* core = Core::Get();
+    if (!core || core->SavePath().empty()) {
+        if (error) *error = "Save path not set";
+        return false;
+    }
+    const std::string& save_path = core->SavePath();
+    const std::string bak = save_path + ".bak";
 
-    rename(save_path, bak.c_str());
+    rename(save_path.c_str(), bak.c_str());
 
-    FILE* fp = fopen(save_path, "wb");
+    FILE* fp = fopen(save_path.c_str(), "wb");
     if (!fp) {
-        rename(bak.c_str(), save_path);
+        rename(bak.c_str(), save_path.c_str());
         if (error) *error = "Cannot open Unbound.sav for write";
         return false;
     }
@@ -161,7 +166,7 @@ bool RtcScreen::WriteBytes(const std::vector<uint8_t>& bytes, std::string* error
     fclose(fp);
 
     if (written != bytes.size()) {
-        rename(bak.c_str(), save_path);
+        rename(bak.c_str(), save_path.c_str());
         if (error) *error = "Partial write — save restored from backup";
         return false;
     }

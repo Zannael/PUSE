@@ -86,6 +86,48 @@ Save editor for Pokemon Unbound v2.1.1.1 on Nintendo 3DS. Mirrors `switch-homebr
 
 ---
 
+## Phase 11 — Hardware boot triage (2026-05-27)
+
+App built fine and ran in Azahar but on real Old 3DS hardware: CIA showed "SD card removed", .3dsx hard-locked the system. Black-screen freeze on both after intermediate fixes. Root issues identified and partly resolved; UI rendering still corrupted, deferred.
+
+### Confirmed fixes (committed)
+- **libstarlight `RenderCore::LoadTexture` redundant `gspWaitForPPF()` removed.** `C3D_SyncDisplayTransfer` already calls `gspWaitForPPF` internally and consumes the PPF event. The extra wait blocked forever on libctru 2.7.0 (event already consumed). This was the root cause of the hardware black-screen freeze after init.
+- **libstarlight `CRenderTarget` depth `-1` → `GPU_RB_DEPTH24_STENCIL8`.** With `-1` depth on citro3d 1.7.1, `C3D_FrameBegin` reported GPU permanently busy.
+- **libstarlight `C3D_Init(0x80000*8)` (4 MB) → `C3D_DEFAULT_CMDBUF_SIZE` (256 KB).** Old 3DS linear-heap pressure was likely root cause of pre-fix .3dsx system hang.
+- **libstarlight `C3D_FrameBegin(0)` → `C3D_FrameBegin(C3D_FRAME_SYNCDRAW)`.** Safer.
+- **`puse-3ds.rsf` full `AccessControlInfo`** based on Universal-Updater template (FileSystemAccess `DirectSdmc`/`DirectSdmcWrite`, IoAccessControl, SystemCallAccess, ServiceAccessControl, Dependency block). Without these the CIA could not access SD; OS returned the "SD card removed" notice.
+- **`Core::Init` SD-wide save discovery.** Probes likely paths (`/3ds/puse`, `/3ds/open_agb_firm/saves`, `/3ds/openagbfw/saves`, `/3ds`, `/saves`, `/retroarch/saves`, root) then bounded recursive walk under `/3ds`, `/roms`, `/saves`. Discovered path is stored; `SaveWithBackup` + `RtcScreen::WriteBytes` write back to the same location. Mirrors what `open_agb_firm` users expect.
+
+### Experimental tweaks kept (harmless, may or may not help on hardware)
+- **Warm-up frames in `RenderCore::Open`**: 2 empty `BeginFrame`/`EndFrame` pairs after pipeline setup.
+- **`GSPGPU_InvalidateDataCache` on uploaded texture data** right after `C3D_SyncDisplayTransfer`.
+
+### Still broken (Azahar; not yet retested on hardware)
+- **Text rendered with `normal.12` font is garbled** (BaseScreen header "PUSE 3DS", BaseScreen footer hints, Button labels). `normal.16` (PartyListScreen top_info_, mon list) renders cleanly. Both fonts load via the same `ThemeManager::Fulfill` → `LoadPNG` → `RenderCore::LoadTexture` path. Same image size (256×256 RGBA8). Same code. Working theory: the first lazy texture upload during the first frame races with the rendering pipeline and ends up with stale tiling. Subsequent uploads (normal.16) land cleanly.
+- **Form stacking**: opening a child screen (Pokemon detail) renders on top of the previous screen instead of replacing it. New form likely missing the right `FormFlags::canOcclude*` bits. See `Application::_mainLoop` form-stack rebuild logic and `Form::flags` defaults.
+
+### Approaches that did NOT fix the font/stacking issues
+- `gfxSet3D(false)` — no change.
+- Moving `touchScreen->PreDraw()` / `topScreen->PreDraw()` to BEFORE `RenderCore::BeginFrame()` — caused immediate crash (`unmapped Write32 @ 0x000003A4` looked like C3D writing commands to a NULL cmdlist; PreDraw needs an active frame even though it does not draw).
+- 2 empty warm-up frames before user code.
+- `GSPGPU_InvalidateDataCache` on uploaded texture data.
+
+### Approaches NOT yet tried
+- **Preload every theme asset (font + drawable)** before the first frame by walking the metrics.json / theme dir and calling `ThemeManager::GetAsset(name).Get()` / `GetFont(name).Get()` from `Core::Init` — guarantees no asset Fulfill happens lazily inside a frame.
+- **Replace `C3D_SyncDisplayTransfer`** with a manual `GX_DisplayTransfer` + explicit per-call event wait (using a fresh event handle), or with CPU-side tiling + plain `memcpy` to GPU memory. Bypasses the GSP PPF event race entirely.
+- **Diff RenderCore.cpp against an upstream/fork of libstarlight that works on libctru 2.x + citro3d 1.7.1.** The current copy in `tools/libstarlight/` is from an older snapshot; the testbed may have been built against citro3d 1.x.
+- **Cross-reference `tools/FBI/` and any other 3DS homebrew dropped into `tools/`** for their texture upload + UI rendering pattern. FBI uses libctru directly with manual screen + ImGui-like rendering; not libstarlight. Worth comparing to see what works on current hardware.
+- **Form stacking**: ensure each `Open()`ed `Form` defaults to `FormFlags::canOcclude | occludeTouch | occludeTop` so the underlying form is hidden from the canvas rebuild step.
+
+### Build + verify loop
+- Image rebuild required after any libstarlight source change (`docker build -t puse-3ds-dev -f tools/Dockerfile tools/`).
+- `./scripts/build_docker.sh` → `puse-3ds.3dsx`.
+- `./scripts/build_cia.sh` → `puse-3ds.cia`.
+- Azahar SD root: `/home/zappaganini/.var/app/org.azahar_emu.Azahar/data/azahar-emu/sdmc/`.
+- Boot log helper (if needed again): `freopen` stdout to `sdmc:/3ds/puse/boot.log` in `main()` + `fopen`-per-line trace macros in libstarlight. Newlib `_IONBF` on sdmc devoptab does NOT actually sync per write; use atomic `fopen`+`fwrite`+`fclose` per trace line for reliable hardware logs.
+
+---
+
 ## Cross-cutting rules (from `switch-homebrew/RULES.md`)
 - Behavior parity with backend Python is non-negotiable
 - No business logic in UI layer — all mutations through core

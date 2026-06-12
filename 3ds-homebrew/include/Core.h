@@ -11,8 +11,10 @@
 
 class Core : public starlight::Application {
 public:
-    static constexpr const char* kSavePath    = "sdmc:/3ds/puse/Unbound.sav";
-    static constexpr const char* kConfigPath  = "sdmc:/3ds/puse/legit_mode";
+    static constexpr const char* kDefaultSavePath = "sdmc:/3ds/puse/Unbound.sav";
+    static constexpr const char* kConfigPath      = "sdmc:/3ds/puse/legit_mode";
+
+    const std::string& SavePath() const { return save_path_; }
 
     static Core* Get() {
         return static_cast<Core*>(starlight::Application::Current());
@@ -78,6 +80,7 @@ private:
     int battery_poll_frames_ = 0;
     aptHookCookie apt_hook_cookie_{};
     bool apt_hooked_ = false;
+    std::string save_path_;
 
     void LoadConfig();
     void SaveConfig();
