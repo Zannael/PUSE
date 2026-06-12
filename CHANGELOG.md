@@ -2,13 +2,17 @@
 
 ## Unreleased
 
+### Changed
+
+- Added caught-ball preservation and editing for Party and PC Pokemon across backend and local frontend runtimes. The editor now shows the ball each Pokemon was caught in, exposes a dedicated caught-ball selector separate from held items, supports all CFRU/Unbound ball types, and writes the compact ball enum safely without confusing it with item IDs. New PC Pokemon insertions now default to Poke Ball unless another caught ball is selected.
+- Mirrored caught-ball parsing metadata in Switch and 3DS homebrew core structs so native runtimes preserve and expose the same save byte fields used by backend/local mode.
+
 ### Planned
 
 - Save state files editing
 - 3DS porting
 - Generate .pkm files from existing Unbound mons
 - Pokémon trainer editing
-- Pokémon ball editing
 - Generate valid mistery gifts
 - Add create/insert workflows to add Pokemon to party (with validation and checksum-safe writes).
 - Add ROM-truth sprites for Pokémons and items with ROM-based sprites extraction.
