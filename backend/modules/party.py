@@ -34,6 +34,37 @@ OFF_SPE = 0x5E
 OFF_SPA = 0x60
 OFF_SPD = 0x62
 
+BALL_CATALOG = [
+    {"ball_id": 0, "item_id": 1, "name": "Master Ball"},
+    {"ball_id": 1, "item_id": 2, "name": "Ultra Ball"},
+    {"ball_id": 2, "item_id": 3, "name": "Great Ball"},
+    {"ball_id": 3, "item_id": 4, "name": "Poke Ball"},
+    {"ball_id": 4, "item_id": 5, "name": "Safari Ball"},
+    {"ball_id": 5, "item_id": 6, "name": "Net Ball"},
+    {"ball_id": 6, "item_id": 7, "name": "Dive Ball"},
+    {"ball_id": 7, "item_id": 8, "name": "Nest Ball"},
+    {"ball_id": 8, "item_id": 9, "name": "Repeat Ball"},
+    {"ball_id": 9, "item_id": 10, "name": "Timer Ball"},
+    {"ball_id": 10, "item_id": 11, "name": "Luxury Ball"},
+    {"ball_id": 11, "item_id": 12, "name": "Premier Ball"},
+    {"ball_id": 12, "item_id": 60, "name": "Dusk Ball"},
+    {"ball_id": 13, "item_id": 61, "name": "Heal Ball"},
+    {"ball_id": 14, "item_id": 62, "name": "Quick Ball"},
+    {"ball_id": 15, "item_id": 53, "name": "Cherish Ball"},
+    {"ball_id": 16, "item_id": 52, "name": "Park Ball"},
+    {"ball_id": 17, "item_id": 622, "name": "Fast Ball"},
+    {"ball_id": 18, "item_id": 623, "name": "Level Ball"},
+    {"ball_id": 19, "item_id": 624, "name": "Lure Ball"},
+    {"ball_id": 20, "item_id": 625, "name": "Heavy Ball"},
+    {"ball_id": 21, "item_id": 626, "name": "Love Ball"},
+    {"ball_id": 22, "item_id": 627, "name": "Friend Ball"},
+    {"ball_id": 23, "item_id": 628, "name": "Moon Ball"},
+    {"ball_id": 24, "item_id": 629, "name": "Sport Ball"},
+    {"ball_id": 25, "item_id": 630, "name": "Beast Ball"},
+    {"ball_id": 26, "item_id": 631, "name": "Dream Ball"},
+]
+BALL_BY_ID = {entry["ball_id"]: entry for entry in BALL_CATALOG}
+
 # --- DATABASE GLOBALE ---
 DB_ITEMS = {}
 DB_MOVES = {}
@@ -566,6 +597,9 @@ class Pokemon:
     def get_item_id(self):
         return ru16(self.substructs['B'], 2)
 
+    def get_ball_id(self):
+        return int(self.substructs['B'][10])
+
     def get_moves_ids(self):
         return [ru16(self.substructs['A'], i * 2) for i in range(4)]
 
@@ -699,6 +733,14 @@ class Pokemon:
     def set_item(self, item_id):
         b = bytearray(self.substructs['B'])
         wu16(b, 2, item_id)
+        self.substructs['B'] = b
+
+    def set_ball_id(self, ball_id):
+        bid = int(ball_id)
+        if bid < 0 or bid > 26:
+            raise ValueError("Invalid ball_id")
+        b = bytearray(self.substructs['B'])
+        b[10] = bid & 0xFF
         self.substructs['B'] = b
 
     def set_nickname(self, nickname):

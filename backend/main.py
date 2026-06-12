@@ -591,6 +591,10 @@ class ItemUpdate(BaseModel):
     item_id: int
 
 
+class BallUpdate(BaseModel):
+    ball_id: int
+
+
 class SpeciesUpdate(BaseModel):
     species_id: int
 
@@ -630,6 +634,29 @@ def _resolve_current_ability(current_index: int, ability_1_id, ability_1_name, a
         label = effective_name or "Hidden Ability"
 
     return effective_id, effective_name, label
+
+
+def _ball_meta(ball_id):
+    bid = int(ball_id)
+    meta = party_mod.BALL_BY_ID.get(bid)
+    if meta:
+        return {
+            "ball_id": bid,
+            "ball_item_id": int(meta["item_id"]),
+            "ball_name": str(meta["name"]),
+        }
+    return {
+        "ball_id": bid,
+        "ball_item_id": None,
+        "ball_name": f"Unknown Ball #{bid}",
+    }
+
+
+def _assert_valid_ball_id(ball_id):
+    bid = int(ball_id)
+    if bid not in party_mod.BALL_BY_ID:
+        raise HTTPException(status_code=400, detail="Invalid ball_id")
+    return bid
 
 
 class PartyLevelUpdate(BaseModel):
@@ -786,6 +813,7 @@ async def get_party():
             "ability_name_current": ability_name_current,
             "ability_label_current": ability_label_current,
             "item_id": pk.get_item_id(),
+            **_ball_meta(pk.get_ball_id()),
         })
     return party
 
@@ -802,6 +830,23 @@ async def update_party_item(idx: int, data: ItemUpdate):
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
     return {"status": "Item updated"}
+
+
+@app.post("/party/{idx}/ball")
+async def update_party_ball(idx: int, data: BallUpdate):
+    off = get_active_trainer_offset()
+    mon_off = off + 0x38 + (idx * 100)
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    species_before = pk.get_species_id()
+
+    try:
+        pk.set_ball_id(_assert_valid_ball_id(data.ball_id))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    _assert_species_unchanged(pk, species_before, "party ball update")
+
+    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    return {"status": "Ball updated", **_ball_meta(pk.get_ball_id())}
 
 
 @app.post("/party/{idx}/nickname")
@@ -977,6 +1022,12 @@ async def get_all_items():
     """Return full item list (ID and name) for the frontend."""
     # Convert dictionary into frontend object list
     return [{"id": k, "name": v} for k, v in bag_mod.DB_ITEMS.items() if k != 0]
+
+
+@app.get("/balls")
+async def get_all_balls():
+    """Return caught-ball enum values with display item metadata."""
+    return [dict(entry) for entry in party_mod.BALL_CATALOG]
 
 
 @app.get("/species")
@@ -1202,6 +1253,7 @@ async def get_box(box_id: int):
             "effective_ability_name": ability_name_current,
             "ability_name_current": ability_name_current,
             "ability_label_current": ability_label_current,
+            **_ball_meta(m.get_ball_id()),
         })
     return out
 
@@ -1253,6 +1305,7 @@ class PCUpdate(BaseModel):
     move_pp: List[int] = None
     move_pp_ups: List[int] = None
     item_id: int = None
+    ball_id: int = None
 
 
 @app.post("/pc/edit")
@@ -1272,6 +1325,11 @@ async def edit_pc_mon(upd: PCUpdate):
     elif upd.move_pp_ups is not None:
         target.set_move_pp_ups(upd.move_pp_ups)
     if upd.item_id is not None: target.set_item_id(upd.item_id)
+    if upd.ball_id is not None:
+        try:
+            target.set_ball_id(_assert_valid_ball_id(upd.ball_id))
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
     if target.species_id != species_before:
         raise HTTPException(
@@ -1406,6 +1464,7 @@ class PCFullUpdate(BaseModel):
     move_pp: List[int] = None
     move_pp_ups: List[int] = None
     item_id: int = None
+    ball_id: int = None
     species_id: int = None
     ivs: dict = None
     evs: dict = None
@@ -1424,6 +1483,7 @@ class PCInsert(BaseModel):
     level: int = 5
     exp: int = None
     item_id: int = 0
+    ball_id: int = 3
     moves: List[int] = None
     ivs: dict = None
     evs: dict = None
@@ -1451,6 +1511,11 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
     elif upd.move_pp_ups is not None:
         target.set_move_pp_ups(upd.move_pp_ups)
     if upd.item_id is not None: target.set_item_id(upd.item_id)
+    if upd.ball_id is not None:
+        try:
+            target.set_ball_id(_assert_valid_ball_id(upd.ball_id))
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
     if upd.species_id is not None:
         if upd.species_id <= 0 or upd.species_id not in box_mod.DB_SPECIES:
             raise HTTPException(status_code=400, detail="Invalid species_id")
@@ -1554,6 +1619,7 @@ async def insert_pc_mon(upd: PCInsert):
             exp=upd.exp,
             nature_id=upd.nature_id,
             item_id=upd.item_id,
+            ball_id=_assert_valid_ball_id(upd.ball_id),
             moves=upd.moves,
             ivs=upd.ivs,
             evs=upd.evs,
@@ -1619,6 +1685,7 @@ async def insert_pc_mon(upd: PCInsert):
             "species_id": mon.species_id,
             "species_growth_rate": box_mod.get_species_growth_rate(mon.species_id),
             "item_id": mon.get_item_id(),
+            **_ball_meta(mon.get_ball_id()),
             "exp": mon.exp,
             "nature_id": mon.get_nature_id(),
             "pid": mon.get_pid(),

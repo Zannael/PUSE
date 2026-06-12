@@ -495,6 +495,10 @@ uint16_t GetItemId(const uint8_t *raw_mon) {
     return ReadU16Le(SubB(raw_mon), 2);
 }
 
+uint8_t GetBallId(const uint8_t *raw_mon) {
+    return SubB(raw_mon)[10];
+}
+
 uint32_t GetExp(const uint8_t *raw_mon) {
     return ReadU32Le(SubB(raw_mon), 4);
 }
@@ -1184,6 +1188,7 @@ std::vector<PartyEntry> ParseParty(
         e.nickname = DecodeText(raw_mon + kMonNickOff, 10);
         e.species_id = GetSpeciesId(raw_mon);
         e.item_id = GetItemId(raw_mon);
+        e.ball_id = GetBallId(raw_mon);
         e.exp = GetExp(raw_mon);
         e.level = raw_mon[kMonLevelVisualOff];
         e.nature_id = GetNatureId(raw_mon);

@@ -7,6 +7,7 @@ import speciesAbilitiesMeta from './speciesAbilitiesMeta.json' with { type: 'jso
 import abilitiesCatalog from './abilitiesCatalog.json' with { type: 'json' };
 import { getMoveBasePpById } from './catalog.js';
 import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
+import { getBallMeta, validateBallId } from './balls.js';
 
 const TRAINER_SECTION_ID = 1;
 const PARTY_COUNT_OFFSET = 0x34;
@@ -580,6 +581,11 @@ function getItemId(rawMon) {
     return ru16(sub.B, 2);
 }
 
+function getBallId(rawMon) {
+    const sub = substructViews(rawMon);
+    return sub.B[10];
+}
+
 function getExp(rawMon) {
     const sub = substructViews(rawMon);
     return ru32(sub.B, 4);
@@ -588,6 +594,12 @@ function getExp(rawMon) {
 function setItemId(rawMon, itemId) {
     const sub = substructViews(rawMon);
     wu16(sub.B, 2, Number(itemId));
+    writeSubstructs(rawMon, sub);
+}
+
+function setBallId(rawMon, ballId) {
+    const sub = substructViews(rawMon);
+    sub.B[10] = validateBallId(ballId);
     writeSubstructs(rawMon, sub);
 }
 
@@ -857,6 +869,7 @@ export function getParty(buffer, speciesById, speciesMetaById = null) {
             effective_ability_id: resolvedAbility.effective_ability_id,
             effective_ability_name: resolvedAbility.effective_ability_name,
             item_id: getItemId(rawMon),
+            ...getBallMeta(getBallId(rawMon)),
         });
     }
 
@@ -944,6 +957,12 @@ export function updatePartyNature(buffer, monIndex, payload) {
 export function updatePartyItem(buffer, monIndex, payload) {
     mutatePartyMon(buffer, monIndex, (rawMon) => {
         setItemId(rawMon, Number(payload.item_id || 0));
+    });
+}
+
+export function updatePartyBall(buffer, monIndex, payload) {
+    mutatePartyMon(buffer, monIndex, (rawMon) => {
+        setBallId(rawMon, payload.ball_id);
     });
 }
 

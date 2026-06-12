@@ -23,6 +23,7 @@ constexpr size_t kPcSpeciesOff = 0x1C;
 constexpr size_t kPcItemOff    = 0x1E;
 constexpr size_t kPcExpOff     = 0x20;
 constexpr size_t kPcPpUpsOff   = 0x24;  // 1 byte, 4×2-bit
+constexpr size_t kPcBallOff    = 0x26;
 constexpr size_t kPcMovesOff   = 0x27;  // 5 bytes, 4×10-bit move IDs
 constexpr size_t kPcEvsOff     = 0x2C;  // 6 bytes [HP,Atk,Def,Spe,SpA,SpD]
 constexpr size_t kPcIvsOff     = 0x36;  // u32: bits 0-4=HP,5-9=Atk,10-14=Def,15-19=Spe,20-24=SpA,25-29=SpD,bit31=HA
@@ -389,6 +390,7 @@ std::vector<PcMon> ParsePcBox(
         e.nickname = DecodeText(mon + kPcNickOff, 10);
         e.species_id = ReadU16Le(mon, kPcSpeciesOff);
         e.item_id = ReadU16Le(mon, kPcItemOff);
+        e.ball_id = mon[kPcBallOff];
         e.exp = ReadU32Le(mon, kPcExpOff);
         e.nature_id = static_cast<uint8_t>(e.pid % 25U);
         e.nature_name = kNatureNames[e.nature_id];
@@ -634,6 +636,7 @@ bool InsertPcMon(std::vector<uint8_t> &stream,
 
     // Species
     WriteU16Le(mon, kPcSpeciesOff, species_id);
+    mon[kPcBallOff] = 3;
 
     // EXP from level
     {

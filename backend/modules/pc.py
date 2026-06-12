@@ -62,6 +62,7 @@ OT_NAME_LEN = 7
 OFF_SPECIES = 0x1C
 OFF_ITEM = 0x1E  # Offset Strumento
 OFF_EXP = 0x20
+OFF_BALL = 0x26
 OFF_MOVES = 0x24
 OFF_EVS = 0x2C
 OFF_IVS = 0x36
@@ -504,6 +505,15 @@ class UnboundPCMon:
         wu16(self.raw, OFF_ITEM, item_id)
         self.item_id = item_id
 
+    def get_ball_id(self):
+        return ru8(self.raw, OFF_BALL)
+
+    def set_ball_id(self, ball_id):
+        bid = int(ball_id)
+        if bid < 0 or bid > 26:
+            raise ValueError("Invalid ball_id")
+        wu8(self.raw, OFF_BALL, bid)
+
     def set_nickname(self, nickname):
         self.nickname = (nickname or "").strip()[:10]
         self.raw[OFF_NICK: OFF_NICK + 10] = encode_text(self.nickname, 10)
@@ -886,6 +896,7 @@ def build_pc_mon_raw(
     ivs=None,
     evs=None,
     current_ability_index=0,
+    ball_id=3,
     shiny=None,
     gender=None,
     otid=None,
@@ -915,6 +926,7 @@ def build_pc_mon_raw(
     wu16(raw, OFF_SPECIES, sid)
     wu16(raw, OFF_ITEM, int(item_id) if item_id is not None else 0)
     wu32(raw, OFF_EXP, mon_exp)
+    wu8(raw, OFF_BALL, int(ball_id) if ball_id is not None else 3)
     wu32(raw, OFF_PID, (sid * 2654435761) & 0xFFFFFFFF)
     wu32(raw, 0x04, int(otid) & 0xFFFFFFFF if otid is not None else 0)
     owner_name = "" if ot_name is None else str(ot_name)

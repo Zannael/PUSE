@@ -9,11 +9,13 @@ export default function AddPcPokemonModal({ client, target, onClose, onConfirm, 
     const [allMoves, setAllMoves] = useState([]);
     const [allItems, setAllItems] = useState([]);
     const [allAbilities, setAllAbilities] = useState([]);
+    const [allBalls, setAllBalls] = useState([]);
 
     const [speciesSearch, setSpeciesSearch] = useState('');
     const [speciesId, setSpeciesId] = useState(null);
     const [nickname, setNickname] = useState('');
     const [level, setLevel] = useState('5');
+    const [ballId, setBallId] = useState(3);
 
     const [showImport, setShowImport] = useState(false);
     const [setImportText, setSetImportText] = useState('');
@@ -29,12 +31,14 @@ export default function AddPcPokemonModal({ client, target, onClose, onConfirm, 
             client.getMoves(),
             client.getItems(),
             client.getAbilities(),
-        ]).then(([species, moves, items, abilities]) => {
+            client.getBalls(),
+        ]).then(([species, moves, items, abilities, balls]) => {
             const speciesRows = species || [];
             setAllSpecies(speciesRows);
             setAllMoves(moves || []);
             setAllItems(items || []);
             setAllAbilities(abilities || []);
+            setAllBalls(balls || []);
             if (!speciesId && speciesRows.length > 0) {
                 setSpeciesId(Number(speciesRows[0].id));
                 const firstName = speciesRows[0].display_name || speciesRows[0].name || '';
@@ -140,6 +144,7 @@ export default function AddPcPokemonModal({ client, target, onClose, onConfirm, 
                 species_id: Number(selectedSpecies.id),
                 nickname,
                 level: clampLevel(level, 5),
+                ball_id: Number(ballId),
                 ...(importDraft || {}),
             };
             await Promise.resolve(onConfirm(payload));
@@ -299,6 +304,25 @@ export default function AddPcPokemonModal({ client, target, onClose, onConfirm, 
                                 className="mt-2 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm"
                             />
                             <p className="mt-2 text-[10px] text-slate-500">Level is capped to 1-100.</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Caught Ball</label>
+                        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-44 overflow-y-auto pr-1">
+                            {allBalls.map((ball) => {
+                                const active = Number(ball.ball_id) === Number(ballId);
+                                return (
+                                    <button
+                                        key={ball.ball_id}
+                                        type="button"
+                                        onClick={() => setBallId(Number(ball.ball_id))}
+                                        className={`rounded-xl border px-3 py-2 text-left text-xs transition-colors ${active ? 'bg-sky-600/25 border-sky-400/50 text-sky-100' : 'bg-slate-900/60 border-white/10 text-slate-300 hover:bg-white/5'}`}
+                                    >
+                                        {ball.name}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 

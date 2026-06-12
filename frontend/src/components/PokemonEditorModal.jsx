@@ -45,6 +45,7 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
     const [allAbilities, setAllAbilities] = useState([]);
     const [searchTerm, setSearchTerm] = useState(['', '', '', '']);
     const [allItems, setAllItems] = useState([]);
+    const [allBalls, setAllBalls] = useState([]);
     const [allSpecies, setAllSpecies] = useState([]);
     const [itemSearch, setItemSearch] = useState('');
     const [speciesSearch, setSpeciesSearch] = useState('');
@@ -72,6 +73,9 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
 
     const currentItem = allItems.find(i => i.id === localPk.item_id);
     const currentItemName = currentItem?.name || `ID ${localPk.item_id}`;
+    const currentBall = allBalls.find((b) => Number(b.ball_id) === Number(localPk.ball_id));
+    const currentBallName = currentBall?.name || localPk.ball_name || `Unknown Ball #${localPk.ball_id}`;
+    const currentBallItemId = currentBall?.item_id || localPk.ball_item_id || null;
     const currentSpecies = allSpecies.find(s => s.id === localPk.species_id);
     const currentSpeciesName = currentSpecies?.label || currentSpecies?.name || `Species ${localPk.species_id}`;
     const canShowItemIcon =
@@ -200,6 +204,11 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
     useEffect(() => {
         client.getItems()
             .then(data => setAllItems(data));
+    }, [client]);
+
+    useEffect(() => {
+        client.getBalls()
+            .then(data => setAllBalls(data || []));
     }, [client]);
 
     useEffect(() => {
@@ -954,6 +963,66 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                                         </div>
                                     </div>
                                 )}
+                            </div>
+
+                            <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
+                                    Caught Ball
+                                </label>
+
+                                <div className="flex justify-between items-center bg-slate-900/50 p-4 rounded-xl border border-sky-500/20">
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] text-slate-500 uppercase font-black">Current Ball</span>
+                                        <span className="text-sky-300 font-bold text-sm">{currentBallName}</span>
+                                    </div>
+                                    <div className="w-10 h-10 bg-sky-500/10 rounded-lg flex items-center justify-center text-sky-500">
+                                        {currentBallItemId ? (
+                                            <img
+                                                src={client.getItemIconUrl(currentBallItemId)}
+                                                alt={currentBallName}
+                                                className="w-7 h-7 object-contain"
+                                                onError={(e) => {
+                                                    if (e.currentTarget.src !== ITEM_ICON_FALLBACK_URL) {
+                                                        e.currentTarget.src = ITEM_ICON_FALLBACK_URL;
+                                                    }
+                                                }}
+                                            />
+                                        ) : (
+                                            <span className="text-[9px] font-mono text-slate-500">#{localPk.ball_id}</span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
+                                    {allBalls.map((ball) => {
+                                        const active = Number(localPk.ball_id) === Number(ball.ball_id);
+                                        return (
+                                            <button
+                                                key={ball.ball_id}
+                                                type="button"
+                                                onClick={() => setLocalPk({
+                                                    ...localPk,
+                                                    ball_id: Number(ball.ball_id),
+                                                    ball_item_id: Number(ball.item_id),
+                                                    ball_name: ball.name,
+                                                })}
+                                                className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-left text-xs transition-colors ${active ? 'bg-sky-600/25 border-sky-400/50 text-sky-100' : 'bg-slate-900/60 border-white/10 text-slate-300 hover:bg-white/5'}`}
+                                            >
+                                                <img
+                                                    src={client.getItemIconUrl(ball.item_id)}
+                                                    alt={ball.name}
+                                                    className="w-5 h-5 object-contain"
+                                                    onError={(e) => {
+                                                        if (e.currentTarget.src !== ITEM_ICON_FALLBACK_URL) {
+                                                            e.currentTarget.src = ITEM_ICON_FALLBACK_URL;
+                                                        }
+                                                    }}
+                                                />
+                                                <span className="font-semibold">{ball.name}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
                     )}

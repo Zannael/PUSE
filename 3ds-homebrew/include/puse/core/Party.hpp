@@ -18,6 +18,7 @@ struct PartyEntry {
     uint16_t species_id;
     std::string species_name;
     uint16_t item_id;
+    uint8_t ball_id;
     uint32_t exp;
     uint8_t level;
     uint8_t nature_id;

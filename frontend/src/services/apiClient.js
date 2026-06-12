@@ -79,7 +79,8 @@ async function getLocalCoreModules() {
             import('../core/commit.js'),
             import('../core/rtc.js'),
             import('../core/saveConvert.js'),
-        ]).then(([catalog, party, saveSession, pc, bag, money, commit, rtc, saveConvert]) => ({
+            import('../core/balls.js'),
+        ]).then(([catalog, party, saveSession, pc, bag, money, commit, rtc, saveConvert, balls]) => ({
             ...catalog,
             ...party,
             ...saveSession,
@@ -89,6 +90,7 @@ async function getLocalCoreModules() {
             ...commit,
             ...rtc,
             ...saveConvert,
+            ...balls,
         }));
     }
     return localCoreModulesPromise;
@@ -232,6 +234,13 @@ const backendClient = {
             body: JSON.stringify(payload),
         });
     },
+    async updatePartyBall(index, payload) {
+        await backendJson(`/party/${index}/ball`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+    },
     async updatePartyIdentity(index, payload) {
         await backendJson(`/party/${index}/identity`, {
             method: "POST",
@@ -284,6 +293,9 @@ const backendClient = {
     },
     getItems() {
         return backendJson("/items");
+    },
+    getBalls() {
+        return backendJson("/balls");
     },
     getSpecies() {
         return backendJson("/species");
@@ -463,6 +475,11 @@ const localClient = {
         updateBuffer((next) => patchPartyItem(next, Number(index), payload || {}));
         return { status: 'Item updated in memory' };
     },
+    async updatePartyBall(index, payload) {
+        const { updateBuffer, updatePartyBall: patchPartyBall } = await getLocalCoreModules();
+        updateBuffer((next) => patchPartyBall(next, Number(index), payload || {}));
+        return { status: 'Ball updated in memory' };
+    },
     async updatePartyIdentity(index, payload) {
         const { updateBuffer, updatePartyIdentity: patchPartyIdentity } = await getLocalCoreModules();
         updateBuffer((next) => patchPartyIdentity(next, Number(index), payload || {}));
@@ -568,6 +585,10 @@ const localClient = {
     async getItems() {
         const { getItemsList } = await getLocalCoreModules();
         return getItemsList();
+    },
+    async getBalls() {
+        const { getBallsList } = await getLocalCoreModules();
+        return getBallsList();
     },
     async getSpecies() {
         const { getSpeciesList } = await getLocalCoreModules();

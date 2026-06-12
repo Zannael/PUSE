@@ -8,6 +8,7 @@ import speciesGrowthRates from './speciesGrowthRates.json' with { type: 'json' }
 import speciesAbilitiesMeta from './speciesAbilitiesMeta.json' with { type: 'json' };
 import abilitiesCatalog from './abilitiesCatalog.json' with { type: 'json' };
 import { getMoveBasePpById } from './catalog.js';
+import { getBallMeta, validateBallId } from './balls.js';
 
 const POKEMON_STREAM_SECTORS = [5, 6, 7, 8, 9, 10, 11, 12];
 const PRESET_SECTOR_ID = 0;
@@ -46,6 +47,7 @@ const OFF_SPECIES = 0x1C;
 const OFF_ITEM = 0x1E;
 const OFF_EXP = 0x20;
 const OFF_MOVES = 0x24;
+const OFF_BALL = 0x26;
 const OFF_EVS = 0x2C;
 const OFF_IVS = 0x36;
 
@@ -621,6 +623,7 @@ function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
         ability_label_current: resolvedAbility.ability_label_current,
         effective_ability_id: resolvedAbility.effective_ability_id,
         effective_ability_name: resolvedAbility.effective_ability_name,
+        ...getBallMeta(ru8(raw, OFF_BALL)),
     };
 }
 
@@ -1028,6 +1031,7 @@ function buildPcMonRaw(payload, speciesMap, context) {
     wu16(raw, OFF_SPECIES, speciesId);
     wu16(raw, OFF_ITEM, Number(payload?.item_id ?? 0));
     wu32(raw, OFF_EXP, Number(exp));
+    wu8(raw, OFF_BALL, validateBallId(payload?.ball_id ?? 3));
     wu32(raw, OFF_PID, ((speciesId * 2654435761) >>> 0));
     const inferredOwner = inferDefaultOwnerTemplate(context);
     wu32(raw, 0x04, Number(payload?.otid ?? inferredOwner.otid) >>> 0);
@@ -1238,6 +1242,9 @@ export function editPcMonFull(context, payload) {
     }
     if (payload.item_id !== undefined && payload.item_id !== null) {
         wu16(raw, OFF_ITEM, Number(payload.item_id));
+    }
+    if (payload.ball_id !== undefined && payload.ball_id !== null) {
+        wu8(raw, OFF_BALL, validateBallId(payload.ball_id));
     }
     if (payload.species_id !== undefined && payload.species_id !== null) {
         wu16(raw, OFF_SPECIES, Number(payload.species_id));

@@ -231,6 +231,10 @@ const App = () => {
                 await client.updatePartyItem(updatedPk.index, { item_id: updatedPk.item_id });
             }
 
+            if (Number(updatedPk.ball_id) !== Number(original.ball_id)) {
+                await client.updatePartyBall(updatedPk.index, { ball_id: updatedPk.ball_id });
+            }
+
             if (String(updatedPk.nickname || '').trim() !== String(original.nickname || '').trim()) {
                 await client.updatePartyNickname(updatedPk.index, { nickname: updatedPk.nickname || '' });
             }
@@ -291,6 +295,10 @@ const App = () => {
 
             if (Number(updatedPk.item_id) !== Number(original.item_id)) {
                 payload.item_id = updatedPk.item_id;
+            }
+
+            if (Number(updatedPk.ball_id) !== Number(original.ball_id)) {
+                payload.ball_id = Number(updatedPk.ball_id);
             }
 
             if (!sameStats(updatedPk.ivs, original.ivs)) {
