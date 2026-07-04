@@ -1,0 +1,257 @@
+# Ability -> Species Index (Pokemon Unbound v2.1.1.1)
+
+Regular = ability slot 1/2. (H) = hidden ability only.
+
+- **Adaptability**: Basculegon, Basculin, Beedrill, Eevee, Lucario, Mothim, Porygon-Z, Barboach (H), Corphish (H), Crawdaunt (H), Dragalge (H), Feebas (H), Gumshoos (H), Litleo (H), Panpour (H), Pansage (H), Pansear (H), Pyroar (H), Simipour (H), Simisage (H), Simisear (H), Skrelp (H), Unown (H), Whiscash (H), Yungoos (H)
+- **Aerilate**: Pinsir, Salamence, Yveltal (H)
+- **Aftermath**: Drifblim, Drifloon, Skuntank, Stunky, Dhelmise (H), Electrode (H), Garbodor (H), Trubbish (H), Voltorb (H)
+- **Analytic**: Beheeyem, Elgyem, Diancie (H), Genesect (H), Magearna (H), Magnemite (H), Magneton (H), Magnezone (H), Patrat (H), Porygon (H), Porygon-Z (H), Porygon2 (H), Probopass (H), Starmie (H), Staryu (H), Watchog (H)
+- **Anger Point**: Mankey, Primeape, Tauros, Camerupt (H), Crabrawler (H), Krokorok (H), Krookodile (H), Sandile (H)
+- **Anticipation**: Barboach, Croagunk, Hatenna, Hatterene, Hattrem, Toxicroak, Whiscash, Eevee (H), Ferrothorn (H), Ponyta (H), Rapidash (H), Zeraora (H)
+- **Arena Trap**: Diglett, Dugtrio, Trapinch
+- **Aroma Veil**: Aromatisse, Flab?b?, Floette, Florges, Spritzee, Alcremie (H), Milcery (H)
+- **As One**: Calyrex
+- **As One**: Calyrex
+- **Aura Break**: Zygarde
+- **Bad Dreams**: Darkrai, Spiritomb (H)
+- **Ball Fetch**: Yamper
+- **Battery**: Charjabug
+- **Battle Armor**: Anorith, Armaldo, Cubone, Drapion, Falinks, Kabuto, Kabutops, Marowak, Perrserker, Skorupi, Type: Null, Solgaleo (H)
+- **Battle Bond**: Greninja
+- **Beast Boost**: Blacphalon, Buzzwole, Celesteela, Guzzlord, Kartana, Naganadel, Nihilego, Pheromosa, Poipole, Stakataka, Xurkitree
+- **Berserk**: Drampa, Moltres, Heatmor (H)
+- **Big Pecks**: Fletchling, Mandibuzz, Unfezant, Vullaby, Corvsquire (H), Rookidee (H)
+- **Blaze**: Blaziken, Braixen, Charizard, Charmander, Charmeleon, Chimchar, Cinderace, Combusken, Cyndaquil, Delphox, Emboar, Fennekin, Incineroar, Infernape, Litten, Monferno, Pignite, Quilava, Raboot, Scorbunny, Tepig, Torchic, Torracat, Typhlosion
+- **Bulletproof**: Hakamo-o, Jangmo-o, Kommo-o, Ursaluna, Applin (H), Chesnaught (H), Chespin (H), Dubwool (H), Quilladin (H), Wooloo (H)
+- **Cheek Pouch**: Bunnelby, Dedenne, Diggersby, Greedent, Skwovet
+- **Chlorophyll**: Bellossom, Bellsprout, Cherubi, Deerling, Exeggcute, Exeggutor, Fomantis, Gloom, Hoppip, Jumpluff, Leavanny, Lilligant, Lurantis, Maractus, Nuzleaf, Oddish, Petilil, Sawsbuck, Seedot, Sewaddle, Shiftry, Skiploom, Sunflora, Sunkern, Swadloon, Tangela, Tangrowth, Tropius, Victreebel, Vileplume, Weepinbell, Bulbasaur (H), Ivysaur (H), Leafeon (H), Venusaur (H)
+- **Clear Body**: Beldum, Carbink, Centskorch, Diancie, Dragapult, Drakloak, Dreepy, Klang, Klink, Klinklang, Metagross, Metang, Regice, Regirock, Registeel, Sizzlipede, Tentacool, Tentacruel, Torkoal, Melmetal (H), Meltan (H)
+- **Cloud Nine**: Altaria, Golduck, Psyduck, Rayquaza, Swablu, Drampa (H), Lickilicky (H), Lickitung (H)
+- **Color Change**: Kecleon
+- **Comatose**: Komala, Uxie (H)
+- **Competitive**: Articuno, Gothita, Gothitelle, Gothorita, Igglybuff, Jigglypuff, Meowstic, Milotic, Slurpuff, Swirlix, Wigglytuff, Boltund (H), Braviary (H), Ducklett (H), Meloetta (H), Swanna (H)
+- **Compound Eyes**: Blipbug, Butterfree, Dottler, Galvantula, Joltik, Masquerain, Mothim, Nincada, Scatterbug, Venonat, Vivillon, Yanma, Vikavolt (H)
+- **Contrary**: Inkay, Malamar, Enamorus (H), Fomantis (H), Lurantis (H), Serperior (H), Servine (H), Shuckle (H), Snivy (H), Spinda (H)
+- **Corrosion**: Salandit, Salazzle, Victreebel (H)
+- **Cotton Down**: Eldegoss, Gossifleur, Altaria (H), Ampharos (H), Cottonee (H), Flaaffy (H), Mareep (H), Swablu (H), Whimsicott (H)
+- **Cursed Body**: Frillish, Froslass, Jellicent, Marowak, Banette (H), Corsola (H), Dragapult (H), Drakloak (H), Dreepy (H), Gengar (H), Poltegeist (H), Shuppet (H), Sinistea (H)
+- **Cute Charm**: Cinccino, Clefable, Clefairy, Cleffa, Delcatty, Igglybuff, Jigglypuff, Lopunny, Minccino, Skitty, Sylveon, Wigglytuff, Stufful (H)
+- **Damp**: Politoed, Poliwag, Poliwhirl, Poliwrath, Quagsire, Wooper, Frillish (H), Horsea (H), Jellicent (H), Kingdra (H), Marshtomp (H), Mudkip (H), Psyduck (H), Seadra (H), Swampert (H)
+- **Dancer**: Oricorio, Lilligant (H), Petilil (H)
+- **Dark Aura**: Yveltal
+- **Dazzling**: Bruxish, Nidoqueen, Tsareena, Vespiquen
+- **Defeatist**: Archen, Archeops
+- **Defiant**: Bisharp, Pawniard, Zapdos, Braviary (H), Empoleon (H), Falinks (H), Farfetch'd (H), Mankey (H), Meloetta (H), Obstagoon (H), Passimian (H), Piplup (H), Primeape (H), Prinplup (H), Purugly (H), Thundurus (H), Tornadus (H)
+- **Delta Stream**: Rayquaza
+- **Desolate Land**: Groudon
+- **Disguise**: Mimikyu
+- **Download**: Genesect, MISSINGNO?, Porygon, Porygon-Z, Porygon2
+- **Dragon's Maw**: Regidrago
+- **Drizzle**: Kyogre, Pelipper, Luvdisc (H), Phione (H), Politoed (H)
+- **Drought**: Charizard, Groudon, Torkoal, Ninetales (H), Typhlosion (H), Vulpix (H)
+- **Dry Skin**: Croagunk, Heliolisk, Helioptile, Jynx, Paras, Parasect, Toxicroak
+- **Early Bird**: Dodrio, Doduo, Houndoom, Houndour, Kangaskhan, Ledian, Natu, Nuzleaf, Seedot, Shiftry, Xatu, Sunkern (H)
+- **Effect Spore**: Amoonguss, Breloom, Foongus, Morelull, Paras, Parasect, Shiinotic, Shroomish, Eldegoss (H), Gossifleur (H), Vileplume (H)
+- **Electric Surge**: Tapu Koko, Emolga (H), Minun (H), Pincurchin (H), Plusle (H)
+- **Emergency Exit**: Golisopod, Wimpod
+- **Fairy Aura**: Xerneas
+- **Filter**: Aggron, Camerupt, Carracosta, Mime Jr?, Mr? Mime, Rhyperior, Tirtouga, Cryogonal (H), Regice (H), Registeel (H), Stonjorner (H)
+- **Flame Body**: Carkol, Chandelure, Coalossal, Fletchindr, Lampent, Larvesta, Litwick, Magby, Magcargo, Magmar, Magmortar, Moltres, Ponyta, Rapidash, Slugma, Talonflame, Volcarona, Centskorch (H), Heatran (H), Sizzlipede (H)
+- **Flare Boost**: Drifblim (H), Drifloon (H), Electrike (H), Manectric (H)
+- **Flash Fire**: Arcanine, Centskorch, Chandelure, Flareon, Growlithe, Heatmor, Heatran, Houndoom, Houndour, Lampent, Litwick, Ninetales, Ponyta, Rapidash, Sizzlipede, Vulpix, Carkol (H), Coalossal (H), Cyndaquil (H), Entei (H), Quilava (H), Reshiram (H), Rolycoly (H), Typhlosion (H)
+- **Flower Gift**: Cherrim
+- **Flower Veil**: Comfey, Flab?b?, Floette, Florges, Shaymin (H)
+- **Fluffy**: Bewear, Dubwool, Stufful, Wooloo
+- **Forecast**: Castform
+- **Forewarn**: Munna, Chingling (H), Drowzee (H)
+- **Friend Guard**: Clefairy (H), Cleffa (H), Happiny (H), Igglybuff (H), Scatterbug (H), Spewpa (H), Vivillon (H)
+- **Frisk**: Banette, Exeggutor, Furret, Gothita, Gothitelle, Gothorita, Gourgeist, Grimmsnarl, Impidimp, Morgrem, Noibat, Noivern, Orbeetle, Phantump, Pumpkaboo, Sentret, Shuppet, Trevenant, Dusclops (H), Duskull (H), Jigglypuff (H), Yanma (H), Yanmega (H)
+- **Full Metal Body**: Solgaleo
+- **Fur Coat**: Furfrou, Persian
+- **Gale Wings**: Fletchindr (H), Fletchling (H), Pidgeot (H), Pidgeotto (H), Pidgey (H), Seviper (H), Sunflora (H), Talonflame (H)
+- **Galvanize**: Geodude (H), Golem (H), Graveler (H)
+- **Gluttony**: Appletun, Applin, Bellsprout, Flapple, Grimer, Heatmor, Linoone, Muk, Panpour, Pansage, Pansear, Raticate, Rattata, Shuckle, Simipour, Simisage, Simisear, Slowpoke, Victreebel, Weepinbell, Zigzagoon, Greedent (H), Gulpin (H), Munchlax (H), Skwovet (H), Snorlax (H), Swalot (H)
+- **Gooey**: Diglett, Dugtrio, Grimer, Gulpin, Muk, Swalot, Goodra (H), Goomy (H), Sliggoo (H)
+- **Gorilla Tactics**: Darmanitan, Crabminble (H)
+- **Grass Pelt**: Gogoat, Skiddo
+- **Grassy Surge**: Tapu Bulu, Carnivine (H), Gogoat (H), Grookey (H), Meganium (H), Rillaboom (H), Thwackey (H)
+- **Grim Neigh**: Pyroar, Spectrier
+- **Gulp Missile**: Cramorant
+- **Guts**: Conkeldurr, Gurdurr, Hariyama, Heracross, Larvitar, Machamp, Machoke, Machop, Makuhita, Obstagoon, Raticate, Rattata, Swellow, Taillow, Throh, Timburr, Tyrogue, Ursaluna, Ursaring, Flareon (H), Luxio (H), Luxray (H), Shinx (H)
+- **Harvest**: Exeggcute (H), Exeggutor (H), Phantump (H), Trevenant (H), Tropius (H)
+- **Healer**: Alomomola, Aromatisse, Audino, Enamorus, Hatenna, Hatterene, Hattrem, Spritzee, Blissey (H), Chansey (H)
+- **Heatproof**: Bronzong, Bronzor, Rolycoly, Gourgeist (H), Groudon (H), Pumpkaboo (H)
+- **Heavy Metal**: Duraludon, Aggron (H), Aron (H), Bronzong (H), Bronzor (H), Copperajah (H), Cufant (H), Lairon (H)
+- **Honey Gather**: Combee, Cutiefly, Ribombee, Teddiursa (H)
+- **Huge Power**: Azumarill, Azurill, Marill, Mawile, Medicham, Meditite, Spinda, Bunnelby (H), Diggersby (H), Ledian (H), Ledyba (H), Wigglytuff (H)
+- **Hunger Switch**: Morpeko
+- **Hustle**: Corsola, Darumaka, Deino, Delibird, Dracozolt, Durant, Lilligant, Raticate, Rattata, Remoraid, Togekiss, Togepi, Togetic, Zweilous, Combee (H), Flapple (H), Furret (H), Nidoran? (H), Nidorina (H), Nidorino (H), Rufflet (H), Sentret (H)
+- **Hydration**: Accelgor, Alomomola, Ducklett, Goodra, Goomy, Luvdisc, Manaphy, Palpitoad, Phione, Shelmet, Sliggoo, Smoochum, Swanna, Tympole, Wingull, Gorebyss (H), Kyogre (H), Lapras (H), Vaporeon (H)
+- **Hyper Cutter**: Corphish, Crabminble, Crabrawler, Crawdaunt, Gligar, Gliscor, Kingler, Krabby, Mawile, Pinsir, Trapinch
+- **Ice Body**: Arctovish, Avalugg, Bergmite, Dewgong, Glalie, Sealeo, Seel, Snorunt, Spheal, Vanillish, Vanillite, Vanilluxe, Walrein, Mr? Mime (H), Mr? Rime (H)
+- **Ice Face**: Eiscue
+- **Ice Scales**: Dewgong (H), Dustox (H), Frosmoth (H), Glaceon (H), Jynx (H), Seel (H), Smoochum (H), Snom (H)
+- **Illuminate**: Volbeat
+- **Illusion**: Zoroark, Zorua
+- **Immunity**: Snorlax, Zangoose, Gligar (H)
+- **Imposter**: Ditto (H)
+- **Infiltrator**: Cottonee, Dragapult, Drakloak, Dreepy, Espurr, Hoppip, Jumpluff, Meowstic, Noibat, Noivern, Seviper, Skiploom, Spiritomb, Whimsicott, Azelf (H), Crobat (H), Darkrai (H), Golbat (H), Inkay (H), Malamar (H), Ninjask (H), Zubat (H)
+- **Innards Out**: Pyukumuku
+- **Inner Focus**: Abra, Alakazam, Bisharp, Crobat, Dragonite, Drowzee, Entei, Farfetch'd, Gallade, Girafarig, Glalie, Golbat, Hitmonchan, Hypno, Indeedee, Kadabra, Kubfu, Lucario, Mienfoo, Mienshao, Oranguru, Pawniard, Raikou, Riolu, Sawk, Sneasel, Snorunt, Suicune, Throh, Zubat, Darumaka (H), Kangaskhan (H), Mudbray (H), Mudsdale (H), Umbreon (H)
+- **Insomnia**: Ariados, Banette, Delibird, Drowzee, Honchkrow, Hoothoot, Hypno, Lillipup, Lycanroc, Mankey, Mewtwo, Mr? Mime, Murkrow, Noctowl, Primeape, Rockruff, Shuppet, Spinarak, Vigoroth, Electabuzz (H), Electivire (H), Elekid (H), Magby (H), Magmar (H), Tyrogue (H)
+- **Intimidate**: Arbok, Arcanine, Ekans, Granbull, Growlithe, Gyarados, Herdier, Hitmontop, Krokorok, Krookodile, Landorus, Luxio, Luxray, Manectric, Masquerain, Mawile, Mightyena, Salamence, Sandile, Shinx, Snubbull, Stantler, Staraptor, Staravia, Stoutland, Tauros, Wyrdeer, Incineroar (H), Litten (H), Overqwil (H), Qwilfish (H), Scrafty (H), Scraggy (H), Torracat (H)
+- **Intrepid Sword**: Zacian, Keldeo (H)
+- **Iron Fist**: Crabminble, Crabrawler, Golett, Golurk, Hitmonchan, Melmetal, Pancham, Pangoro, Chimchar (H), Conkeldurr (H), Dusknoir (H), Gurdurr (H), Infernape (H), Machamp (H), Monferno (H), Timburr (H)
+- **Justified**: Cobalion, Keldeo, Terrakion, Virizion, Absol (H), Arcanine (H), Gallade (H), Growlithe (H), Lucario (H)
+- **Keen Eye**: Braviary, Chatot, Corvsquire, Ducklett, Espurr, Farfetch'd, Fearow, Furret, Hoothoot, Meowstic, Noctowl, Patrat, Pelipper, Pidgeot, Pidgeotto, Pidgey, Pikipek, Rockruff, Rookidee, Rufflet, Sableye, Sentret, Skarmory, Sneasel, Spearow, Starly, Swanna, Toucannon, Trumbeak, Watchog, Wingull, Glameow (H), Skorupi (H), Stunky (H)
+- **Klutz**: Bewear, Buneary, Lopunny, Stufful, Swoobat, Woobat, Archen (H), Archeops (H), Audino (H), Toxel (H)
+- **Leaf Guard**: Bounsweet, Fomantis, Lurantis, Steenee, Swadloon, Tangela, Tangrowth, Tsareena, Zarude, Bayleef (H), Budew (H), Chikorita (H), Lilligant (H), Roselia (H)
+- **Levitate**: Azelf, Baltoy, Bronzong, Bronzor, Carnivine, Chimecho, Chingling, Claydol, Cresselia, Cryogonal, Duskull, Eelektrik, Eelektross, Flygon, Gastly, Gengar, Giratina, Haunter, Hydreigon, Koffing, Latias, Latios, Lunatone, Mesprit, Misdreavus, Mismagius, Pikachu, Rotom, Solrock, Tynamo, Unown, Unown ?, Unown B, Unown C, Unown D, Unown E, Unown F, Unown G, Unown H, Unown I, Unown J, Unown K, Unown L, Unown M, Unown N, Unown O, Unown P, Unown Q, Unown R, Unown S, Unown T, Unown U, Unown V, Unown W, Unown X, Unown Y, Unown Z, Uxie, Vibrava, Vikavolt, Weezing, Lunala (H), Venomoth (H)
+- **Light Metal**: Duraludon, Beldum (H), Metagross (H), Metang (H), Scizor (H)
+- **Lightning Rod**: Cubone, Electrike, Manectric, Marowak, Pikachu, Pincurchin, Plusle, Rhydon, Rhyhorn, Rhyperior, Togedemaru, Chinchou (H), Goldeen (H), Lanturn (H), Pichu (H), Raichu (H), Seaking (H), Zekrom (H)
+- **Limber**: Clobbopus, Ditto, Glameow, Grapploct, Hawlucha, Hitmonlee, Liepard, Mareanie, Persian, Purrloin, Toxapex, Buneary (H), Deoxys (H), Lopunny (H)
+- **Liquid Ooze**: Tentacool, Tentacruel
+- **Liquid Voice**: Brionne (H), Popplio (H), Primarina (H)
+- **Long Reach**: Dartrix (H), Decidueye (H), Marshadow (H), Rowlet (H)
+- **Magic Bounce**: Absol, Diancie, Sableye, Espeon (H), Grumpig (H), Hatenna (H), Hatterene (H), Hattrem (H), Mesprit (H), Mismagius (H), Morelull (H), Natu (H), Shiinotic (H), Spoink (H), Xatu (H)
+- **Magic Guard**: Clefable, Clefairy, Cleffa, Duosion, Musharna, Reuniclus, Sigilyph, Solosis, Abra (H), Alakazam (H), Delphox (H), Kadabra (H), Mew (H)
+- **Magician**: Hoopa, Braixen (H), Cresselia (H), Fennekin (H), Klefki (H), Misdreavus (H)
+- **Magma Armor**: Camerupt, Slugma
+- **Magnet Pull**: Geodude, Golem, Graveler, Magnemite, Magneton, Magnezone, Meltan, Nosepass, Probopass
+- **Marvel Scale**: Milotic, Dragonair (H), Dratini (H)
+- **Mega Launcher**: Blastoise, Clauncher, Clawitzer
+- **Merciless**: Mareanie, Toxapex, Arbok (H), Ariados (H), Ekans (H), Fearow (H), Spearow (H), Spinarak (H)
+- **Mimicry**: Stunfisk
+- **Minus**: Minun, Toxtricity
+- **Mirror Armor**: Corvknight (H), Necrozma (H)
+- **Misty Surge**: Tapu Fini, Carbink (H), Dedenne (H), Weezing (H)
+- **Mold Breaker**: Ampharos, Axew, Cranidos, Fraxure, Gyarados, Haxorus, Kyurem, Pancham, Pangoro, Pinsir, Rampardos, Reshiram, Zekrom, Basculegon (H), Basculin (H), Drilbur (H), Druddigon (H), Excadrill (H), Hawlucha (H), Sawk (H), Throh (H)
+- **Moody**: Bibarel (H), Bidoof (H), Glalie (H), Octillery (H), Remoraid (H), Smeargle (H), Snorunt (H)
+- **Motor Drive**: Blitzle, Electivire, Emolga, Zebstrika, Klang (H), Klink (H), Klinklang (H), Rotom (H)
+- **Moxie**: Blitzle, Gallade, Glastrier, Krokorok, Krookodile, Sandile, Scrafty, Scraggy, Zebstrika, Gyarados (H), Heracross (H), Honchkrow (H), Mightyena (H), Pidove (H), Pinsir (H), Ponyta (H), Rapidash (H), Salamence (H), Tranquill (H), Unfezant (H)
+- **Multiscale**: Baltoy (H), Claydol (H), Dragonite (H), Lugia (H), Milotic (H)
+- **Multitype**: Arceus
+- **Mummy**: Cofagrigus, Yamask
+- **Natural Cure**: Altaria, Blissey, Budew, Celebi, Chansey, Corsola, Happiny, Phantump, Roselia, Roserade, Shaymin, Starmie, Staryu, Swablu, Trevenant, Comfey (H)
+- **Neuroforce**: Necrozma, Golduck (H)
+- **Neutralize Gas**: Koffing, Weezing
+- **No Guard**: Doublade, Honedge, Machamp, Machoke, Machop, Pidgeot, Cobalion (H), Golett (H), Golurk (H), Karrablast (H), Lycanroc (H), Virizion (H)
+- **Normalize**: Delcatty, Skitty
+- **Oblivious**: Barboach, Bounsweet, Feebas, Illumise, Jynx, Lickilicky, Lickitung, Mamoswine, Numel, Piloswine, Slowbro, Slowking, Slowpoke, Smoochum, Steenee, Swinub, Wailmer, Wailord, Whiscash, Salandit (H), Salazzle (H), Sealeo (H), Spheal (H)
+- **Odd Medicine**: Slowking
+- **Overcoat**: Cacnea, Duosion, Enamorus, Goodra, Mandibuzz, Reuniclus, Sliggoo, Solosis, Vullaby, Burmy (H), Cloyster (H), Escavalier (H), Forretress (H), Hakamo-o (H), Jangmo-o (H), Kommo-o (H), Leavanny (H), Pineco (H), Sewaddle (H), Shelgon (H), Shellder (H), Shelmet (H), Swadloon (H), Wormadam (H)
+- **Overgrow**: Bayleef, Bulbasaur, Chesnaught, Chespin, Chikorita, Dartrix, Decidueye, Grookey, Grotle, Grovyle, Ivysaur, Meganium, Quilladin, Rillaboom, Rowlet, Sceptile, Serperior, Servine, Snivy, Thwackey, Torterra, Treecko, Turtwig, Venusaur
+- **Own Tempo**: Avalugg, Bergmite, Glameow, Grumpig, Indeedee, Lilligant, Mudbray, Mudsdale, Petilil, Purugly, Slowbro, Slowking, Slowpoke, Smeargle, Spinda, Spoink, Espurr (H), Lombre (H), Lotad (H), Ludicolo (H), Numel (H)
+- **Parental Bond**: Kangaskhan, Girafarig (H)
+- **Pastel Veil**: Ponyta, Rapidash
+- **Perish Body**: Cursola (H), Froslass (H)
+- **Pickpocket**: Barbaracle (H), Binacle (H), Grimmsnarl (H), Impidimp (H), Morgrem (H), Nuzleaf (H), Seedot (H), Shiftry (H), Sneasel (H), Weavile (H)
+- **Pickup**: Aipom, Ambipom, Bunnelby, Dedenne, Diggersby, Gourgeist, Lillipup, Linoone, Meowth, Munchlax, Pachirisu, Phanpy, Pumpkaboo, Teddiursa, Zigzagoon, Pikipek (H), Trumbeak (H)
+- **Pixilate**: Altaria, Gardevoir, Sylveon (H), Xerneas (H)
+- **Plus**: Klang, Klink, Klinklang, Plusle, Toxtricity
+- **Poison Heal**: Breloom, Shroomish, Gliscor (H)
+- **Poison Point**: Budew, Dragalge, Nidoking, Nidoqueen, Nidoran?, Nidorina, Nidorino, Overqwil, Qwilfish, Roselia, Roserade, Scolipede, Seadra, Skrelp, Venipede, Whirlipede
+- **Poison Touch**: Dragalge, Grimer, Muk, Seismitoad, Skrelp, Croagunk (H), Skuntank (H), Sneasel (H), Sneasler (H), Toxicroak (H)
+- **Portal Power**: Hoopa (H)
+- **Power Construct**: Zygarde
+- **Power Spot**: Golett, Golurk, Stonjorner
+- **Prankster**: Banette, Cacturne, Cottonee, Grimmsnarl, Impidimp, Klefki, Morgrem, Thundurus, Tornadus, Whimsicott, Chimecho (H), Delibird (H), Hoopa (H), Illumise (H), Liepard (H), Meowstic (H), Murkrow (H), Purrloin (H), Riolu (H), Sableye (H), Volbeat (H)
+- **Pressure**: Absol, Aerodactyl, Articuno, Corvknight, Deoxys, Dialga, Dusclops, Dusknoir, Entei, Eternatus, Giratina, Ho-Oh, Kyurem, Lugia, Mewtwo, Moltres, Palkia, Raikou, Sneasler, Spiritomb, Suicune, Vespiquen, Weavile, Zapdos, Bisharp (H), Pawniard (H)
+- **Primordial Sea**: Kyogre
+- **Prism Armor**: Necrozma
+- **Protean**: Cinderace (H), Froakie (H), Frogadier (H), Greninja (H), Kecleon (H), Mothim (H), Raboot (H), Scorbunny (H)
+- **Psychic Surge**: Tapu Lele, Beheeyem (H), Hypno (H), Indeedee (H), Meowstic (H)
+- **Punk Rock**: Exploud, Loudred, Toxtricity, Whismur, Chatot (H), Flygon (H), Noibat (H), Noivern (H), Vibrava (H)
+- **Quick Draw**: Slowbro
+- **Quick Feet**: Granbull, Teddiursa, Ursaring, Jolteon (H), Linoone (H), Poochyena (H), Shroomish (H), Zigzagoon (H)
+- **RKS System**: Silvally
+- **Rain Dish**: Lombre, Lotad, Ludicolo, Morelull, Shiinotic, Blastoise (H), Pelipper (H), Squirtle (H), Surskit (H), Tentacool (H), Tentacruel (H), Wartortle (H), Wingull (H)
+- **Rattled**: Basculegon, Basculin, Ledyba, Toxel, Clamperl (H), Cubchoo (H), Dunsparce (H), Magikarp (H), Meowth (H), Persian (H), Whismur (H), Yamper (H)
+- **Receiver**: Passimian, Grimer (H), Muk (H)
+- **Reckless**: Basculin, Bouffalant, Cranidos, Hitmonlee, Obstagoon, Rampardos, Dodrio (H), Doduo (H), Emboar (H), Mienfoo (H), Mienshao (H), Rhydon (H), Rhyhorn (H), Rhyperior (H), Staraptor (H), Staravia (H), Starly (H)
+- **Refrigerate**: Amaura, Aurorus, Glalie, Kyurem (H)
+- **Regenerator**: Audino, Eldegoss, Gossifleur, Mienfoo, Mienshao, Tornadus, Alomomola (H), Amoonguss (H), Aromatisse (H), Celebi (H), Corsola (H), Duosion (H), Foongus (H), Ho-Oh (H), Mareanie (H), Reuniclus (H), Slowbro (H), Slowking (H), Slowpoke (H), Solosis (H), Spritzee (H), Tangela (H), Tangrowth (H), Toxapex (H), Wailmer (H), Wailord (H), Walrein (H)
+- **Ripen**: Appletun, Applin, Flapple, Tropius
+- **Rivalry**: Axew, Fraxure, Haxorus, Litleo, Luxio, Nidoking, Nidoran?, Nidorina, Nidorino, Pidove, Shinx, Tranquill, Unfezant
+- **Rock Head**: Aerodactyl, Aggron, Aron, Bagon, Basculin, Bonsly, Cubone, Geodude, Golem, Graveler, Lairon, Marowak, Onix, Relicanth, Rhydon, Rhyhorn, Shelgon, Steelix, Sudowoodo, Tyrantrum (H)
+- **Rough Skin**: Carvanha, Druddigon, Ferroseed, Ferrothorn, Sharpedo, Togedemaru, Gabite (H), Garchomp (H), Gible (H)
+- **Run Away**: Aipom, Buneary, Dunsparce, Eevee, Ponyta, Poochyena, Rapidash, Snubbull, Wooloo, Lillipup (H), Nincada (H), Oddish (H), Skiddo (H), Venonat (H)
+- **Sand Force**: Diglett, Drilbur, Dugtrio, Excadrill, Garchomp, Landorus, Steelix, Boldore (H), Gastrodon (H), Gigalith (H), Hippopotas (H), Hippowdon (H), Nosepass (H), Roggenrola (H), Shellos (H)
+- **Sand Rush**: Drilbur, Excadrill, Herdier, Lycanroc, Stoutland, Dracovish (H), Dracozolt (H), Sandshrew (H), Sandslash (H)
+- **Sand Spit**: Sandaconda, Silicobra, Geodude (H), Golem (H), Graveler (H)
+- **Sand Stream**: Gigalith, Hippopotas, Hippowdon, Tyranitar
+- **Sand Veil**: Cacnea, Cacturne, Diglett, Dugtrio, Gabite, Garchomp, Gible, Gligar, Gliscor, Heliolisk, Helioptile, Sandshrew, Sandslash, Donphan (H), Larvitar (H), Palossand (H), Phanpy (H), Sandaconda (H), Sandygast (H), Silicobra (H), Stunfisk (H)
+- **Sap Sipper**: Bouffalant, Deerling, Drampa, Girafarig, Gogoat, Goodra, Goomy, Leafeon, Sawsbuck, Skiddo, Sliggoo, Stantler, Wyrdeer, Azumarill (H), Azurill (H), Blitzle (H), Bonsly (H), Marill (H), Miltank (H), Sudowoodo (H), Zebstrika (H)
+- **Schooling**: Wishiwashi
+- **Scrappy**: Kangaskhan, Lopunny, Miltank, Exploud (H), Farfetch'd (H), Herdier (H), Komala (H), Loudred (H), Pancham (H), Pangoro (H), Sirfetch'd (H), Stantler (H), Stoutland (H), Swellow (H), Taillow (H), Wyrdeer (H)
+- **Screen Cleaner**: Mr? Mime, Mr? Rime
+- **Serene Grace**: Blissey, Chansey, Dunsparce, Happiny, Jirachi, Meloetta, Pachirisu, Shaymin, Togekiss, Togepi, Togetic, Beautifly (H), Deerling (H), Latias (H), Latios (H), Oricorio (H), Sawsbuck (H)
+- **Shadow Shield**: Lunala
+- **Shadow Tag**: Gengar, Wobbuffet, Wynaut, Chandelure (H), Gothita (H), Gothitelle (H), Gothorita (H), Lampent (H), Litwick (H)
+- **Shed Skin**: Arbok, Burmy, Cascoon, Dragonair, Dratini, Ekans, Kakuna, Karrablast, Kricketot, Metapod, Pupitar, Sandaconda, Scrafty, Scraggy, Seviper, Silcoon, Silicobra, Spewpa, Rayquaza (H)
+- **Sheer Force**: Braviary, Camerupt, Conkeldurr, Copperajah, Cufant, Darmanitan, Druddigon, Gurdurr, Kleavor, Rufflet, Timburr, Bagon (H), Cranidos (H), Croconaw (H), Feraligatr (H), Hariyama (H), Kingler (H), Krabby (H), Landorus (H), Magmortar (H), Makuhita (H), Mawile (H), Nidoking (H), Nidoqueen (H), Rampardos (H), Steelix (H), Tauros (H), Totodile (H), Toucannon (H), Trapinch (H)
+- **Shell Armor**: Chewtle, Clamperl, Cloyster, Corphish, Crawdaunt, Crustle, Drednaw, Dwebble, Escavalier, Kingler, Krabby, Lapras, Omanyte, Omastar, Shellder, Shelmet, Slowbro, Turtonator, Dewott (H), Golisopod (H), Grotle (H), Oshawott (H), Samurott (H), Torkoal (H), Torterra (H), Turtwig (H)
+- **Shield Dust**: Caterpie, Cutiefly, Dustox, Frosmoth, Ribombee, Scatterbug, Snom, Venomoth, Vivillon, Weedle, Wurmple
+- **Shields Down**: Minior
+- **Simple**: Bibarel, Bidoof, Cradily, Lileep, Numel, Hoppip (H), Jumpluff (H), Skiploom (H), Swoobat (H), Woobat (H)
+- **Skill Link**: Cloyster, Heracross, Octillery, Pikipek, Remoraid, Shellder, Toucannon, Trumbeak, Aipom (H), Ambipom (H), Cinccino (H), Cubone (H), Marowak (H), Minccino (H)
+- **Slow Start**: Regigigas
+- **Slush Rush**: Beartic, Cubchoo, Arctovish (H), Arctozolt (H), Sandshrew (H), Sandslash (H)
+- **Sniper**: Ariados, Barbaracle, Beedrill, Binacle, Drapion, Fearow, Horsea, Kingdra, Seadra, Skorupi, Spearow, Spinarak, Drizzile (H), Inteleon (H), Sobble (H)
+- **Snow Cloak**: Articuno, Beartic, Cubchoo, Froslass, Glaceon, Mamoswine, Ninetales, Piloswine, Sandshrew, Sandslash, Swinub, Vanillish, Vanillite, Vulpix
+- **Snow Warning**: Abomasnow, Snover, Vanilluxe, Amaura (H), Aurorus (H), Ninetales (H), Vulpix (H)
+- **Solar Power**: Houndoom, Sunflora, Sunkern, Charizard (H), Charmander (H), Charmeleon (H), Heliolisk (H), Helioptile (H)
+- **Soul-Heart**: Magearna, Manaphy (H)
+- **Soundproof**: Bastiodon, Electrode, Exploud, Hakamo-o, Jangmo-o, Kommo-o, Loudred, Mime Jr?, Mr? Mime, Shieldon, Voltorb, Whismur, Abomasnow (H), Snover (H)
+- **Speed Boost**: Blaziken, Ninjask, Yanma, Yanmega, Basculin (H), Carvanha (H), Combusken (H), Scolipede (H), Sharpedo (H), Torchic (H), Venipede (H), Whirlipede (H)
+- **Stakeout**: Gumshoos, Patrat, Watchog, Yungoos, Nickit (H), Thievul (H)
+- **Stall**: Sableye, Regigigas (H)
+- **Stalwart**: Arrokuda (H), Baraskewda (H), Duraludon (H)
+- **Stamina**: Mudbray, Mudsdale, Bouffalant (H)
+- **Stance Change**: Aegislash
+- **Static**: Ampharos, Arctozolt, Electabuzz, Electrike, Electrode, Elekid, Emolga, Flaaffy, Manectric, Mareep, Pichu, Pikachu, Raichu, Stunfisk, Toxel, Voltorb, Zapdos
+- **Steadfast**: Dubwool, Farfetch'd, Gallade, Lucario, Mewtwo, Riolu, Sirfetch'd, Tyrogue, Hitmontop (H), Kleavor (H), Lycanroc (H), Machop (H), Rockruff (H), Scyther (H), Terrakion (H)
+- **Steam Engine**: Carkol, Coalossal, Rolycoly, Volcanion (H)
+- **Steelworker**: Dhelmise
+- **Steely Spirit**: Diglett (H), Dugtrio (H), Perrserker (H)
+- **Stench**: Garbodor, Skuntank, Stunky, Trubbish, Gloom (H), Koffing (H), Weezing (H)
+- **Sticky Hold**: Accelgor, Gastrodon, Grimer, Gulpin, Muk, Shellos, Swalot, Trubbish
+- **Storm Drain**: Finneon, Gastrodon, Lumineon, Magcargo, Shellos, Cradily (H), Lileep (H), Maractus (H)
+- **Strong Jaw**: Avalugg, Boltund, Bruxish, Chewtle, Dracovish, Drednaw, Gumshoos, Luxray, Mightyena, Poochyena, Raticate, Rattata, Sharpedo, Tyrantrum, Tyrunt, Yungoos, Granbull (H), Snubbull (H)
+- **Sturdy**: Aggron, Aron, Bastiodon, Boldore, Bonsly, Carbink, Carracosta, Cosmoem, Crustle, Donphan, Dwebble, Forretress, Geodude, Gigalith, Golem, Graveler, Lairon, Magnemite, Magneton, Magnezone, Nosepass, Onix, Pineco, Probopass, Roggenrola, Sawk, Shieldon, Shuckle, Skarmory, Steelix, Sudowoodo, Tirtouga, Avalugg (H), Bergmite (H), Machamp (H), Machoke (H), Meowth (H), Persian (H), Regirock (H), Relicanth (H), Togedemaru (H), Tyrunt (H)
+- **Suction Cups**: Cradily, Inkay, Lileep, Malamar, Octillery
+- **Super Luck**: Absol, Honchkrow, Murkrow, Pidove, Tranquill, Unfezant, Drapion (H), Jirachi (H), Togekiss (H), Togepi (H), Togetic (H)
+- **Surge Surfer**: Pikachu, Raichu
+- **Swarm**: Beautifly, Beedrill, Blipbug, Dottler, Durant, Escavalier, Grubbin, Heracross, Karrablast, Kleavor, Kricketune, Leavanny, Ledian, Ledyba, Orbeetle, Scizor, Scolipede, Scyther, Sewaddle, Venipede, Volbeat, Whirlipede, Galvantula (H), Joltik (H), Larvesta (H), Volcarona (H)
+- **Sweet Veil**: Alcremie, Milcery, Slurpuff, Swirlix, Bounsweet (H), Cutiefly (H), Ribombee (H), Steenee (H), Tsareena (H)
+- **Swift Swim**: Arrokuda, Baraskewda, Buizel, Feebas, Finneon, Floatzel, Goldeen, Golduck, Gorebyss, Horsea, Huntail, Kabuto, Kabutops, Kingdra, Lombre, Lotad, Ludicolo, Lumineon, Luvdisc, Magikarp, Mantine, Mantyke, Omanyte, Omastar, Overqwil, Palpitoad, Psyduck, Qwilfish, Relicanth, Seaking, Seismitoad, Surskit, Swampert, Tympole, Anorith (H), Armaldo (H), Beartic (H), Carracosta (H), Chewtle (H), Drednaw (H), Poliwag (H), Poliwhirl (H), Poliwrath (H), Tirtouga (H)
+- **Symbiosis**: Flab?b? (H), Floette (H), Florges (H), Oranguru (H)
+- **Synchronize**: Abra, Alakazam, Espeon, Gardevoir, Indeedee, Kadabra, Kirlia, Mew, Munna, Musharna, Natu, Ralts, Umbreon, Xatu, Elgyem (H), Victini (H)
+- **Tangled Feet**: Chatot, Dodrio, Doduo, Mr? Rime, Pidgeot, Pidgeotto, Pidgey
+- **Technician**: Ambipom, Cinccino, Hitmontop, Marshadow, Meowth, Minccino, Nickit, Persian, Sceptile, Scizor, Scyther, Thievul, Wormadam, Beedrill (H), Breloom (H), Buizel (H), Caterpie (H), Clobbopus (H), Floatzel (H), Grapploct (H), Kricketot (H), Kricketune (H), Mime Jr? (H), Mr? Mime (H), Roserade (H), Toxtricity (H), Weedle (H), Wurmple (H)
+- **Telepathy**: Beheeyem, Elgyem, Oranguru, Blipbug (H), Dialga (H), Dottler (H), Gardevoir (H), Giratina (H), Kirlia (H), Medicham (H), Meditite (H), Munna (H), Musharna (H), Orbeetle (H), Palkia (H), Ralts (H), Tapu Bulu (H), Tapu Fini (H), Tapu Koko (H), Tapu Lele (H), Wobbuffet (H), Wynaut (H)
+- **Thick Fat**: Azumarill, Azurill, Dewgong, Grumpig, Hariyama, Lickilicky, Lickitung, Makuhita, Marill, Miltank, Munchlax, Purugly, Sealeo, Seel, Snorlax, Spheal, Spoink, Venusaur, Walrein, Appletun (H), Mamoswine (H), Pignite (H), Piloswine (H), Raticate (H), Rattata (H), Swinub (H), Tepig (H)
+- **Tinted Lens**: Illumise, Venomoth, Venonat, Yanmega, Butterfree (H), Hoothoot (H), Noctowl (H), Sigilyph (H)
+- **Torrent**: Blastoise, Brionne, Croconaw, Dewott, Drizzile, Empoleon, Feraligatr, Froakie, Frogadier, Greninja, Inteleon, Marshtomp, Mudkip, Oshawott, Piplup, Popplio, Primarina, Prinplup, Samurott, Sobble, Squirtle, Swampert, Totodile, Wartortle
+- **Tough Claws**: Aerodactyl, Anorith, Armaldo, Barbaracle, Binacle, Charizard, Lycanroc, Meowth, Metagross, Perrserker, Warrior, Ursaring (H), Zangoose (H)
+- **Toxic Boost**: Zangoose, Paras (H), Parasect (H)
+- **Trace**: Alakazam, Gardevoir, Kirlia, Porygon, Porygon2, Ralts, Smeargle
+- **Transistor**: Regieleki
+- **Triage**: Audino, Comfey, Bellossom (H)
+- **Truant**: Slaking, Slakoth, Durant (H)
+- **Unaware**: Bibarel, Bidoof, Cosmog, Swoobat, Woobat, Clefable (H), Pyukumuku (H), Quagsire (H), Wooper (H)
+- **Unburden**: Drifblim, Drifloon, Hawlucha, Liepard, Nickit, Purrloin, Thievul, Accelgor (H), Grovyle (H), Hitmonlee (H), Sceptile (H), Slurpuff (H), Swirlix (H), Treecko (H)
+- **Unnerve**: Calyrex, Corvknight, Corvsquire, Galvantula, Joltik, Litleo, Pyroar, Rookidee, Aerodactyl (H), Axew (H), Bellsprout (H), Bewear (H), Fraxure (H), Haxorus (H), Houndoom (H), Houndour (H), Masquerain (H), Meowth (H), Mewtwo (H), Tyranitar (H), Ursaluna (H), Weepinbell (H)
+- **Unseen Fist**: Urshifu, Hitmonchan (H)
+- **Valiant Shield**: Zamazenta, Bastiodon (H), Shieldon (H), Vespiquen (H)
+- **Victory Star**: Starmie, Staryu, Victini
+- **Volt Absorb**: Arctozolt, Chinchou, Dracozolt, Jolteon, Lanturn, Minun, Thundurus, Zeraora, Pachirisu (H), Raikou (H)
+- **Wandering Soul**: Runerigus, Yamask
+- **Water Absorb**: Arctovish, Chinchou, Dracovish, Frillish, Jellicent, Lanturn, Lapras, Mantine, Mantyke, Maractus, Politoed, Poliwag, Poliwhirl, Poliwrath, Quagsire, Stunfisk, Vaporeon, Volcanion, Wooper, Araquanid (H), Cacnea (H), Cacturne (H), Dewpider (H), Palpitoad (H), Seismitoad (H), Suicune (H), Tympole (H)
+- **Water Bubble**: Araquanid, Dewpider, Finneon (H), Frillish (H), Lumineon (H)
+- **Water Compact**: Palossand, Sandygast
+- **Water Veil**: Buizel, Floatzel, Goldeen, Seaking, Wailmer, Wailord, Huntail (H), Mantine (H), Mantyke (H)
+- **Weak Armor**: Boldore, Corsola, Cursola, Garbodor, Poltegeist, Roggenrola, Sinistea, Crustle (H), Dwebble (H), Kabuto (H), Kabutops (H), Magcargo (H), Mandibuzz (H), Omanyte (H), Omastar (H), Onix (H), Skarmory (H), Slugma (H), Turtonator (H), Vanillish (H), Vanillite (H), Vanilluxe (H), Vullaby (H)
+- **Wonder Guard**: Shedinja, Warrior (H)
+- **Wonder Skin**: Sigilyph, Bruxish (H), Delcatty (H), Skitty (H)
+- **Zen Mode**: Darmanitan

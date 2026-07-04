@@ -1,0 +1,58 @@
+Level Cap,Boss Name,Key Speed Threat,Base Speed,Boss Level,Benchmark Speed Stat,Cap Benchmark Speed,Required Roster Speed,Threat Mechanics
+15,Mirskle,Floette,92,19,45,37,38,None
+15,Mirskle,Gloom,40,21,28,21,22,None
+15,Mirskle,Weedle,50,17,37,34,35,None
+15,Mirskle,Comfey,100,18,46,39,40,None
+32,Vega,Liepard,106,26,92,112,113,Priority-FakeOut
+32,Vega,Absol,115,27,75,88,89,Priority-Feint
+32,Vega,Weavile,125,27,80,94,95,Priority-IceShard
+32,Vega,Honchkrow,71,26,66,80,81,None
+45,Alice,Minior,89,31,178,254,255,Tailwind-Core
+45,Alice,Gliscor,95,31,146,208,209,Tailwind-Core
+45,Alice,Dodrio,110,32,230,320,321,Tailwind-Core|Priority-QuickAttack
+45,Alice,Mega Pinsir,85,33,101,135,136,None
+45,Alice,Crobat,130,32,236,328,329,Tailwind-Core
+55,Mel,Bewear,60,36,59,88,89,None
+55,Mel,Porygon-Z,90,37,116,170,171,None
+55,Mel,Miltank,100,36,88,132,133,None
+55,Mel,Mega Lopunny,48,37,82,119,120,Priority-FakeOut
+55,Mel,Heliolisk,109,35,114,176,177,None
+64,Maxima,Wigglytuff,45,39,52,82,83,None
+64,Maxima,Serperior,113,40,133,209,210,None
+64,Maxima,Empoleon,60,40,65,102,103,None
+64,Maxima,Alolan Ninetales,109,40,104,164,165,None
+64,Maxima,Mega Altaria,100,41,99,152,153,None
+68,Galavan,Bronzong,33,44,47,70,71,None
+68,Galavan,Alolan Golem,45,45,59,87,88,None
+68,Galavan,Lanturn,67,45,79,117,118,None
+68,Galavan,Mega Ampharos,55,46,70,101,102,None
+68,Galavan,Escavalier,20,45,37,53,54,None
+72,Big Mo,Mudsdale,35,52,58,78,79,TrickRoom
+72,Big Mo,Pangoro,58,52,81,111,112,TrickRoom|Priority-WickedBlow
+72,Big Mo,Snorlax,30,53,53,70,71,TrickRoom
+72,Big Mo,Hariyama,50,52,73,100,101,TrickRoom|Priority-FakeOut
+72,Big Mo,Wailord,60,53,85,114,115,TrickRoom
+75,Tessy,Toxapex,35,56,61,80,81,None
+75,Tessy,Armaldo,45,57,146,190,191,Weather-Rain|Priority-Accelerock
+75,Tessy,Kingdra,85,58,316,406,407,Weather-Rain
+75,Tessy,Seismitoad,74,57,284,372,373,Weather-Rain
+75,Tessy,Mega Gyarados,81,58,168,216,217,None
+75,Tessy,Seaking,68,57,272,354,355,Weather-Rain
+75,Elite Four: Moleman,Excadrill,88,74,316,322,323,Weather-SandRush
+75,Elite Four: Moleman,Flygon,100,76,228,225,226,None
+75,Elite Four: Moleman,Sandslash,65,76,256,252,253,Weather-SandRush
+75,Elite Four: Moleman,Quagsire,35,74,79,80,81,None
+75,Elite Four: Moleman,Gliscor,95,75,170,170,171,None
+75,Elite Four: Moleman,Landorus Therian,101,76,182,179,180,None
+78,Elite Four: Elias,Mimikyu,96,74,237,250,251,Priority-ShadowSneak
+78,Elite Four: Elias,Aegislash,60,75,118,122,123,None
+78,Elite Four: Elias,Trevenant,56,75,112,116,117,None
+78,Elite Four: Elias,Cofagrigus,30,76,74,75,76,None
+78,Elite Four: Elias,Mega Banette,65,76,127,130,131,Priority-SuckerPunch
+78,Elite Four: Elias,Blacephalon,107,76,262,269,270,None
+80,Rival Jax,Mega Salamence,100,76,250,264,265,None
+80,Rival Jax,Hitmontop,70,74,131,141,142,Priority-FakeOut
+80,Rival Jax,Magnezone,60,75,118,125,126,None
+80,Rival Jax,Gastrodon,39,74,85,92,93,None
+80,Rival Jax,Naganadel,121,76,286,300,301,None
+80,Rival Jax,Pyroar,106,75,257,273,274,None

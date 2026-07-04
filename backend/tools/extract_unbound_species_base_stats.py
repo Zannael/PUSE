@@ -26,6 +26,13 @@ OFF_SPD = 5
 
 
 def load_species_ids() -> list[int]:
+    table_path = data_path("species_table_from_rom.json")
+    if table_path.exists():
+        payload = json.loads(table_path.read_text(encoding="utf-8"))
+        count = int(payload.get("species_count") or 0)
+        if count > 0:
+            return list(range(1, count + 1))
+
     ids: list[int] = []
     text = data_path("pokemon.txt").read_text(encoding="utf-8", errors="ignore")
     for raw in text.splitlines():
