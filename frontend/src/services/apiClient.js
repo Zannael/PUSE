@@ -650,6 +650,19 @@ const backendClient = {
         const response = await backendJson(`/game-progress?cap_profile=${encodeURIComponent(this._capProfile)}`);
         return response.game_progress || null;
     },
+    getPokedexSummary() {
+        return backendJson('/pokedex/summary');
+    },
+    getPokedexSpeciesFlags(speciesId) {
+        return backendJson(`/pokedex/species/${speciesId}`);
+    },
+    updatePokedexFlags(speciesId, payload) {
+        return backendJson(`/pokedex/species/${speciesId}/flags`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+    },
 };
 
 const localClient = {
@@ -1018,6 +1031,46 @@ const localClient = {
         }
         const { buildGameProgressSnapshot } = await import('../core/gameProgress.js');
         return buildGameProgressSnapshot(buffer, { capProfile: this._capProfile });
+    },
+    async getPokedexSummary() {
+        const { getBuffer, getSpeciesList } = await getLocalCoreModules();
+        const buffer = getBuffer();
+        if (!buffer?.length) {
+            return null;
+        }
+        const { buildPokedexSummary } = await import('../core/pokedexFlags.js');
+        const speciesRows = await getSpeciesList();
+        return buildPokedexSummary(buffer, speciesRows);
+    },
+    async getPokedexSpeciesFlags(speciesId) {
+        const { getBuffer } = await getLocalCoreModules();
+        const { getPokedexFlags } = await import('../core/pokedexFlags.js');
+        return {
+            species_id: Number(speciesId),
+            ...getPokedexFlags(getBuffer(), speciesId),
+        };
+    },
+    async updatePokedexFlags(speciesId, payload = {}) {
+        const { getBuffer } = await getLocalCoreModules();
+        const buffer = getBuffer();
+        const { setPokedexFlag, POKEDEX_FLAG, getPokedexFlags } = await import('../core/pokedexFlags.js');
+        const sid = Number(speciesId);
+        if (payload.seen !== undefined) {
+            const result = setPokedexFlag(buffer, sid, POKEDEX_FLAG.SEEN, Boolean(payload.seen));
+            if (!result.ok) {
+                throw new Error(result.reason || 'Failed to update seen flag');
+            }
+        }
+        if (payload.caught !== undefined) {
+            const result = setPokedexFlag(buffer, sid, POKEDEX_FLAG.CAUGHT, Boolean(payload.caught));
+            if (!result.ok) {
+                throw new Error(result.reason || 'Failed to update caught flag');
+            }
+        }
+        return {
+            species_id: sid,
+            ...getPokedexFlags(buffer, sid),
+        };
     },
 };
 

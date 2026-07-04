@@ -7,6 +7,7 @@ import { validatePokemonLegitSet, getSpeciesDexSummary } from '../core/unboundLe
 import { calculateBattleStats } from '../core/statCalc.js';
 import { calculateHiddenPowerType } from '../core/hiddenPower.js';
 import { getLevelCapViolation } from '../core/levelCap.js';
+import UnboundDexPanel from './UnboundDexPanel.jsx';
 
 const EV_STAT_MAX = 252;
 const EV_TOTAL_MAX = 510;
@@ -539,6 +540,7 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, capProf
                 <div className="flex bg-[#1e293b]/50 p-2 gap-2 border-b border-white/5">
                     <EditorTab active={activeTab === 'stats'} label="Stats" onClick={() => setActiveTab('stats')} />
                     <EditorTab active={activeTab === 'moves'} label="Moves" onClick={() => setActiveTab('moves')} />
+                    <EditorTab active={activeTab === 'dex'} label="Dex" onClick={() => setActiveTab('dex')} />
                     <EditorTab active={activeTab === 'info'} label="Info" onClick={() => setActiveTab('info')} />
                 </div>
 
@@ -899,6 +901,18 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, capProf
                             </div>
 
                         </div>
+                    )}
+
+                    {activeTab === 'dex' && (
+                        <UnboundDexPanel
+                            speciesRow={currentSpecies}
+                            speciesId={localPk.species_id}
+                            pokemon={localPk}
+                            moveNameById={moveNameById}
+                            legitMode={legitMode}
+                            gameProgress={gameProgress}
+                            client={client}
+                        />
                     )}
 
                     {activeTab === 'info' && (

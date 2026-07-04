@@ -4,6 +4,9 @@
 
 ### Added
 
+- **Living Dex tab** — read seen/caught completion from save bitfields (species IDs 1–999), Unbound Dex location links (`GET /pokedex/summary`; local core parity). Defaults to an in-game-style view that hides species you haven't seen or caught yet; sortable table with Dex #, Pokémon, Type, and Status columns, plus a type filter dropdown. Row links go directly to the species' Unbound Dex page (`?species=SPECIES_X`) via `species_constants.json`, instead of a name-search results page.
+- **Living Dex flags in editor** — Seen/Caught controls on the Pokémon editor Dex tab with user confirmation.
+- **Dex progress-aware learnsets** — TM/HM bag ownership hints and move deep links on the editor Dex tab (`gameProgress` snapshot + `dexProgress.js`).
 - **Roster export (full stack)** — COPY/EXPORT ROSTER and COPY PARTY as Markdown with game progress, level cap checks, expert speed tiers, evolution hints, and calculated battle stats (local + backend parity via `GET /game-progress`).
 - **Selective roster export** — session-only export queue (+ toggle on party/PC); COPY/EXPORT SELECTION with detailed PC blocks for agent comparison.
 - **Cap profile selector** — Normal / Expert level-cap context for legit warnings and roster export.
