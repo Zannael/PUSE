@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+- **Roster export (full stack)** — COPY/EXPORT ROSTER and COPY PARTY as Markdown with game progress, level cap checks, expert speed tiers, evolution hints, and calculated battle stats (local + backend parity via `GET /game-progress`).
+- **Selective roster export** — session-only export queue (+ toggle on party/PC); COPY/EXPORT SELECTION with detailed PC blocks for agent comparison.
+- **Cap profile selector** — Normal / Expert level-cap context for legit warnings and roster export.
+- **Stat calc + editor preview** — ROM-truth battle stat preview and Hidden Power type in the editor and roster export.
+
 ### Changed
 
 - Added caught-ball preservation and editing for Party and PC Pokemon across backend and local frontend runtimes. The editor now shows the ball each Pokemon was caught in, exposes a dedicated caught-ball selector separate from held items, supports all CFRU/Unbound ball types, and writes the compact ball enum safely without confusing it with item IDs. New PC Pokemon insertions now default to Poke Ball unless another caught ball is selected.

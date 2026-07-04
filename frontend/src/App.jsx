@@ -17,9 +17,16 @@ import {
     Shield,
     Cpu,
     Database,
+    Copy,
+    Check,
 } from 'lucide-react';
-import { createApiClient, getInitialRuntimeMode, persistRuntimeMode, RUNTIME_MODES } from './services/apiClient.js';
+import { createApiClient, getInitialRuntimeMode, getInitialCapProfile, persistRuntimeMode, persistCapProfile, RUNTIME_MODES } from './services/apiClient.js';
 import { getExpAtLevel, getSpeciesGrowthRate } from './core/growth.js';
+import {
+    addPcBoxToSelection,
+    summarizeSelection,
+    toggleSelectionKey,
+} from './core/exportSelection.js';
 
 const PartyGrid = lazy(() => import('./components/PartyGrid'));
 const PCGrid = lazy(() => import('./components/PCGrid'));
@@ -42,6 +49,7 @@ const getInitialLegitMode = () => {
 const App = () => {
     const [runtimeMode, setRuntimeMode] = useState(getInitialRuntimeMode);
     const [legitMode, setLegitMode] = useState(getInitialLegitMode);
+    const [capProfile, setCapProfile] = useState(getInitialCapProfile);
     const [activeTab, setActiveTab] = useState('party');
     const [isLoaded, setIsLoaded] = useState(false);
     const [saveExt, setSaveExt] = useState('.sav');
@@ -50,7 +58,15 @@ const App = () => {
     const [showResourcesModal, setShowResourcesModal] = useState(false);
     const [moneyInput, setMoneyInput] = useState('0');
     const [bpInput, setBpInput] = useState('0');
-    const client = useMemo(() => createApiClient(runtimeMode), [runtimeMode]);
+    const [rosterCopied, setRosterCopied] = useState(false);
+    const [partyCopied, setPartyCopied] = useState(false);
+    const [selectionCopied, setSelectionCopied] = useState(false);
+    const [exportSelection, setExportSelection] = useState([]);
+    const client = useMemo(() => createApiClient(runtimeMode, { capProfile }), [runtimeMode, capProfile]);
+    const exportSelectionSummary = useMemo(
+        () => summarizeSelection(exportSelection),
+        [exportSelection],
+    );
 
     useEffect(() => {
         persistRuntimeMode(runtimeMode);
@@ -64,6 +80,10 @@ const App = () => {
         }
     }, [legitMode]);
 
+    useEffect(() => {
+        persistCapProfile(capProfile);
+    }, [capProfile]);
+
     const uploadSaveFile = async (file) => {
         if (!file) return;
 
@@ -75,6 +95,7 @@ const App = () => {
             setMoneyInput(String(mData.money ?? 0));
             setBpInput(String(bpData.bp ?? 0));
             setSaveExt(file.name.toLowerCase().endsWith('.srm') ? '.srm' : '.sav');
+            setExportSelection([]);
             setIsLoaded(true);
         } catch {
             alert("Upload failed for current runtime mode.");
@@ -406,6 +427,80 @@ const App = () => {
         }
     };
 
+    const handleExportRoster = async () => {
+        try {
+            await client.exportFullRoster();
+        } catch (err) {
+            console.error(err);
+            const detail = err?.message ? `\n\n${err.message}` : '';
+            alert(`Roster export failed.${detail}`);
+        }
+    };
+
+    const handleCopyParty = async () => {
+        try {
+            await client.copyPartyRoster();
+            setPartyCopied(true);
+            window.setTimeout(() => setPartyCopied(false), 2000);
+        } catch (err) {
+            console.error(err);
+            const detail = err?.message ? `\n\n${err.message}` : '';
+            alert(`Party copy failed.${detail}`);
+        }
+    };
+
+    const handleCopyRoster = async () => {
+        try {
+            await client.copyFullRoster();
+            setRosterCopied(true);
+            window.setTimeout(() => setRosterCopied(false), 2000);
+        } catch (err) {
+            console.error(err);
+            const detail = err?.message ? `\n\n${err.message}` : '';
+            alert(`Roster copy failed.${detail}`);
+        }
+    };
+
+    const handleToggleExportSelection = (key) => {
+        setExportSelection((prev) => toggleSelectionKey(prev, key));
+    };
+
+    const handleAddBoxToExportSelection = (boxId, pokemon) => {
+        setExportSelection((prev) => addPcBoxToSelection(prev, boxId, pokemon));
+    };
+
+    const handleClearExportSelection = () => {
+        setExportSelection([]);
+    };
+
+    const handleCopySelection = async () => {
+        if (exportSelection.length === 0) {
+            return;
+        }
+        try {
+            await client.copySelectedRoster(exportSelection);
+            setSelectionCopied(true);
+            window.setTimeout(() => setSelectionCopied(false), 2000);
+        } catch (err) {
+            console.error(err);
+            const detail = err?.message ? `\n\n${err.message}` : '';
+            alert(`Selection copy failed.${detail}`);
+        }
+    };
+
+    const handleExportSelection = async () => {
+        if (exportSelection.length === 0) {
+            return;
+        }
+        try {
+            await client.exportSelectedRoster(exportSelection);
+        } catch (err) {
+            console.error(err);
+            const detail = err?.message ? `\n\n${err.message}` : '';
+            alert(`Selection export failed.${detail}`);
+        }
+    };
+
     const handleRestartApp = () => {
         window.location.reload();
     };
@@ -449,6 +544,15 @@ const App = () => {
                         >
                             Legit: {legitMode ? 'ON' : 'OFF'}
                         </button>
+                        <select
+                            value={capProfile}
+                            onChange={(e) => setCapProfile(e.target.value)}
+                            className="bg-slate-900 border border-white/10 rounded-xl px-2 py-1 text-[10px] uppercase tracking-widest text-slate-300 min-w-[108px]"
+                            title="Level cap profile for legit checks and roster export"
+                        >
+                            <option value="normal">Cap: Normal</option>
+                            <option value="expert">Cap: Expert</option>
+                        </select>
                         <button
                             type="button"
                             onClick={() => setShowLegitHelp((prev) => !prev)}
@@ -474,6 +578,67 @@ const App = () => {
                             >
                                 <RotateCcw size={14} /> RESTART / LOAD NEW FILE
                             </button>
+                            <button
+                                onClick={handleCopyParty}
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all ${
+                                    partyCopied
+                                        ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/30'
+                                        : 'bg-slate-800 hover:bg-slate-700 text-slate-100'
+                                }`}
+                                title="Copy current party as Markdown to clipboard"
+                            >
+                                {partyCopied ? <Check size={14} /> : <Users size={14} />}
+                                {partyCopied ? 'COPIED' : 'COPY PARTY'}
+                            </button>
+                            <button
+                                onClick={handleCopyRoster}
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all ${
+                                    rosterCopied
+                                        ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/30'
+                                        : 'bg-slate-800 hover:bg-slate-700 text-slate-100'
+                                }`}
+                                title="Copy all party and PC Pokémon as Markdown to clipboard"
+                            >
+                                {rosterCopied ? <Check size={14} /> : <Copy size={14} />}
+                                {rosterCopied ? 'COPIED' : 'COPY ROSTER'}
+                            </button>
+                            <button
+                                onClick={handleExportRoster}
+                                className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-100 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all"
+                                title="Export all party and PC Pokémon as a Markdown file"
+                            >
+                                <Save size={14} /> EXPORT ROSTER
+                            </button>
+                            {exportSelection.length > 0 && (
+                                <>
+                                    <button
+                                        onClick={handleCopySelection}
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all ${
+                                            selectionCopied
+                                                ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/30'
+                                                : 'bg-violet-600/20 hover:bg-violet-600/30 text-violet-200 border border-violet-500/30'
+                                        }`}
+                                        title={`Copy ${exportSelectionSummary.count} selected Pokémon as Markdown`}
+                                    >
+                                        {selectionCopied ? <Check size={14} /> : <Copy size={14} />}
+                                        {selectionCopied ? 'COPIED' : `COPY SELECTION (${exportSelectionSummary.count})`}
+                                    </button>
+                                    <button
+                                        onClick={handleExportSelection}
+                                        className="flex items-center gap-2 bg-violet-600/20 hover:bg-violet-600/30 text-violet-200 border border-violet-500/30 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all"
+                                        title="Export selected Pokémon as a Markdown file"
+                                    >
+                                        <Save size={14} /> EXPORT SELECTION
+                                    </button>
+                                    <button
+                                        onClick={handleClearExportSelection}
+                                        className="px-2 py-1.5 rounded-full bg-slate-900 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                                        title="Clear export selection"
+                                    >
+                                        CLEAR
+                                    </button>
+                                </>
+                            )}
                             <button
                                 onClick={handleDownload}
                                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-full text-xs font-bold transition-all"
@@ -821,6 +986,8 @@ const App = () => {
                                     key={`party-${refreshKey}`}
                                     client={client}
                                     onEditPokemon={(pk) => setSelectedPokemon(pk)}
+                                    exportSelection={exportSelection}
+                                    onToggleExportSelection={handleToggleExportSelection}
                                 />
                             )}
                             {activeTab === 'pc' && <PCGrid
@@ -832,6 +999,9 @@ const App = () => {
                                     setSelectedPokemon({ ...pk, isPC: true });
                                 }}
                                 onAddPokemon={(target) => setPcInsertTarget(target)}
+                                exportSelection={exportSelection}
+                                onToggleExportSelection={handleToggleExportSelection}
+                                onAddBoxToExportSelection={handleAddBoxToExportSelection}
                             />}
                             {activeTab === 'bag' && <BagView client={client} initialUnsaved={bagHasUnsavedChanges} onDirtyChange={setBagHasUnsavedChanges} />}
                         </Suspense>
@@ -913,6 +1083,7 @@ const App = () => {
                         client={client}
                         pokemon={selectedPokemon}
                         legitMode={legitMode}
+                        capProfile={capProfile}
                         onClose={() => setSelectedPokemon(null)}
                         onSave={selectedPokemon?.isPC ? handleSavePC : handleSavePokemon}
                     />

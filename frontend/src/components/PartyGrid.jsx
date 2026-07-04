@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import PokemonCard from './PokemonCard';
 import { Loader2 } from 'lucide-react';
+import { partySelectionKey, isSelectionKeyActive } from '../core/exportSelection.js';
 
-const PartyGrid = ({ client, onEditPokemon }) => {
+const PartyGrid = ({ client, onEditPokemon, exportSelection = [], onToggleExportSelection }) => {
     const [party, setParty] = useState([]);
     const [loading, setLoading] = useState(true);
     const fetchParty = useCallback(async () => {
@@ -35,6 +36,8 @@ const PartyGrid = ({ client, onEditPokemon }) => {
                     pokemon={pk}
                     getPokemonIconUrl={client.getPokemonIconUrl}
                     onEdit={() => onEditPokemon(pk)}
+                    exportSelected={isSelectionKeyActive(exportSelection, partySelectionKey(pk.index))}
+                    onToggleExport={() => onToggleExportSelection?.(partySelectionKey(pk.index))}
                 />
             ))}
         </div>

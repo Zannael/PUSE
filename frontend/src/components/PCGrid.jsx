@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Package } from 'lucide-react';
 import { POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
+import { NATURES } from '../core/showdownImport.js';
+import ExportToggleButton from './ExportToggleButton.jsx';
+import {
+    isSelectionKeyActive,
+    pcSelectionKey,
+} from '../core/exportSelection.js';
 
 const VISIBLE_BOX_SEQUENCE = [...Array.from({ length: 24 }, (_, idx) => idx + 1), 26];
 const BOX_SLOTS = 30;
@@ -9,7 +15,16 @@ function getBoxLabel(boxId) {
     return Number(boxId) === 26 ? 'Preset' : `Box ${boxId}`;
 }
 
-const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon }) => {
+const PCGrid = ({
+    client,
+    boxId,
+    onBoxChange,
+    onEditPokemon,
+    onAddPokemon,
+    exportSelection = [],
+    onToggleExportSelection,
+    onAddBoxToExportSelection,
+}) => {
     const [pokemon, setPokemon] = useState([]);
     const [writableSlots, setWritableSlots] = useState(new Set());
     const [loading, setLoading] = useState(false);
@@ -101,6 +116,15 @@ const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon }) => 
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
                         {pokemon.length} / {BOX_SLOTS} Pokemon
                     </p>
+                    {pokemon.length > 0 && onAddBoxToExportSelection && (
+                        <button
+                            type="button"
+                            onClick={() => onAddBoxToExportSelection(boxId, pokemon)}
+                            className="mt-2 px-3 py-1 rounded-full bg-violet-600/15 border border-violet-400/30 text-[10px] font-bold uppercase tracking-widest text-violet-200 hover:bg-violet-600/25 transition-colors"
+                        >
+                            Add box to export
+                        </button>
+                    )}
                 </div>
 
                 <button
@@ -119,6 +143,10 @@ const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon }) => 
                 ) : (
                     normalizedSlots.map(({ slot, pokemon: pk }) => {
                         const writable = writableSlots.has(slot);
+                        const selectionKey = pk ? pcSelectionKey(boxId, slot) : null;
+                        const exportSelected = selectionKey
+                            ? isSelectionKeyActive(exportSelection, selectionKey)
+                            : false;
                         return (
                         <div
                             key={slot}
@@ -132,14 +160,24 @@ const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon }) => 
                                 }
                                 onEditPokemon(pk);
                             }}
-                            className={`group p-2.5 sm:p-3 rounded-2xl border transition-all ${
+                            className={`group relative p-2.5 sm:p-3 rounded-2xl border transition-all ${
                                 pk
-                                    ? 'bg-[#1e293b] border-white/5 hover:border-blue-500/50 cursor-pointer'
+                                    ? `bg-[#1e293b] hover:border-blue-500/50 cursor-pointer ${
+                                        exportSelected ? 'border-violet-400/40 ring-1 ring-violet-400/20' : 'border-white/5'
+                                    }`
                                     : writable
                                         ? 'bg-slate-900/40 border-dashed border-white/10 hover:border-emerald-400/40 cursor-pointer'
                                         : 'bg-slate-900/30 border-dashed border-white/5 opacity-60 cursor-not-allowed'
                             }`}
                         >
+                            {pk && onToggleExportSelection && (
+                                <div className="absolute top-2 right-2 z-10">
+                                    <ExportToggleButton
+                                        active={exportSelected}
+                                        onToggle={() => onToggleExportSelection(selectionKey)}
+                                    />
+                                </div>
+                            )}
                             <div className="relative w-full aspect-square bg-slate-800/50 rounded-xl flex items-center justify-center mb-2 overflow-hidden">
                                 {pk ? (
                                     <img
@@ -158,11 +196,31 @@ const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon }) => 
                                     </span>
                                 )}
                             </div>
-                            <div className="text-center min-h-10">
+                            <div className="text-center min-h-[3.25rem]">
                                 <p className={`text-xs font-bold truncate ${pk ? 'text-slate-100' : 'text-slate-500'}`}>
                                     {pk ? pk.nickname : 'Empty Slot'}
                                 </p>
-                                <p className="text-[10px] text-slate-500 font-mono uppercase">
+                                {pk && (
+                                    <div className="flex flex-wrap justify-center gap-0.5 mt-0.5 px-0.5">
+                                        <span
+                                            className="text-[9px] leading-tight bg-slate-700/40 text-slate-400 px-1 py-px rounded font-semibold uppercase truncate max-w-full border border-white/5"
+                                            title={`Nature: ${pk.nature || NATURES[pk.nature_id] || 'Unknown'}`}
+                                        >
+                                            {pk.nature || NATURES[pk.nature_id] || '—'}
+                                        </span>
+                                        <span
+                                            className={`text-[9px] leading-tight px-1 py-px rounded font-medium truncate max-w-full border ${
+                                                pk.is_hidden_ability || pk.current_ability_index === 2
+                                                    ? 'bg-amber-500/15 text-amber-400/90 border-amber-500/20'
+                                                    : 'bg-slate-700/40 text-slate-400 border-white/5'
+                                            }`}
+                                            title={`Ability: ${pk.ability_label_current || pk.ability_name_current || 'Unknown'}`}
+                                        >
+                                            {pk.ability_name_current || pk.ability_label_current || '—'}
+                                        </span>
+                                    </div>
+                                )}
+                                <p className="text-[10px] text-slate-500 font-mono uppercase mt-0.5">
                                     Slot {slot}{!pk && !writable ? ' (N/A)' : ''}
                                 </p>
                             </div>

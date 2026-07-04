@@ -1041,6 +1041,36 @@ export function resolveQuickPockets(buffer) {
     return quick;
 }
 
+export function collectOwnedTmhmItemIds(buffer, itemNameById = new Map()) {
+    if (!buffer?.length) {
+        return {
+            tm_case_owned: false,
+            owned_tmhm_item_ids: [],
+        };
+    }
+
+    const pockets = resolveQuickPockets(buffer);
+    const tmPocket = pockets.tm || {};
+    const tmCaseOwned = !tmPocket.locked;
+    const owned = new Set();
+
+    if (tmCaseOwned && Number.isInteger(tmPocket.anchor_offset)) {
+        const slots = mapPocketFromAnchor(buffer, tmPocket.anchor_offset, itemNameById);
+        slots.forEach((slot) => {
+            const itemId = Number(slot.id);
+            const qty = Number(slot.qty);
+            if (itemId > 0 && qty > 0 && TMHM_ITEM_IDS.has(itemId)) {
+                owned.add(itemId);
+            }
+        });
+    }
+
+    return {
+        tm_case_owned: tmCaseOwned,
+        owned_tmhm_item_ids: [...owned].sort((a, b) => a - b),
+    };
+}
+
 export function writeSlot(buffer, offset, itemId, quantity, encoding = null) {
     let writeEncoding = encoding;
     if (writeEncoding !== 'id_qty' && writeEncoding !== 'qty_id') {

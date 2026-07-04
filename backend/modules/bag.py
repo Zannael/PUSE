@@ -576,6 +576,32 @@ def resolve_quick_pockets(data):
     return quick
 
 
+def collect_owned_tmhm_item_ids(data):
+    if not data:
+        return {
+            "tm_case_owned": False,
+            "owned_tmhm_item_ids": [],
+        }
+
+    pockets = resolve_quick_pockets(data)
+    tm_pocket = pockets.get("tm") or {}
+    tm_case_owned = not bool(tm_pocket.get("locked"))
+    owned = set()
+
+    anchor = tm_pocket.get("anchor_offset")
+    if tm_case_owned and anchor is not None:
+        for slot in map_pocket_from_anchor(data, int(anchor)):
+            item_id = int(slot.get("id") or 0)
+            qty = int(slot.get("qty") or 0)
+            if item_id > 0 and qty > 0 and item_id in TMHM_ITEM_IDS:
+                owned.add(item_id)
+
+    return {
+        "tm_case_owned": tm_case_owned,
+        "owned_tmhm_item_ids": sorted(owned),
+    }
+
+
 def _decode_slot(data, offset, swapped=False):
     a = ru16(data, offset)
     b = ru16(data, offset + 2)

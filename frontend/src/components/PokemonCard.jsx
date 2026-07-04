@@ -1,8 +1,9 @@
 import React from 'react';
 import { Zap, Shield, Heart, Target, Wind, Activity } from 'lucide-react';
 import { POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
+import ExportToggleButton from './ExportToggleButton.jsx';
 
-const PokemonCard = ({ pokemon, onEdit, getPokemonIconUrl }) => {
+const PokemonCard = ({ pokemon, onEdit, getPokemonIconUrl, exportSelected = false, onToggleExport }) => {
     const [showHiddenAbilityHint, setShowHiddenAbilityHint] = React.useState(false);
     // Funzione per il colore delle barre IV (0-31)
     const getIvColor = (val) => {
@@ -23,7 +24,9 @@ const PokemonCard = ({ pokemon, onEdit, getPokemonIconUrl }) => {
     return (
         <div
             onClick={() => onEdit(pokemon)}
-            className="cursor-pointer bg-[#1e293b] border border-white/5 rounded-[2rem] p-5 hover:border-blue-500/50 transition-all group shadow-xl active:scale-[0.98]"
+            className={`cursor-pointer bg-[#1e293b] border rounded-[2rem] p-5 hover:border-blue-500/50 transition-all group shadow-xl active:scale-[0.98] ${
+                exportSelected ? 'border-violet-400/40 ring-1 ring-violet-400/20' : 'border-white/5'
+            }`}
         >
             <div className="flex items-center gap-5 mb-6">
                 {/* Icona Pokemon */}
@@ -66,6 +69,10 @@ const PokemonCard = ({ pokemon, onEdit, getPokemonIconUrl }) => {
                         </p>
                     )}
                 </div>
+
+                {onToggleExport && (
+                    <ExportToggleButton active={exportSelected} onToggle={onToggleExport} />
+                )}
 
                 {pokemon.is_hidden_ability && (
                     <button
