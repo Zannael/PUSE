@@ -472,6 +472,11 @@ function getEvs(rawMon) {
     };
 }
 
+function getFriendship(rawMon) {
+    const sub = substructViews(rawMon);
+    return ru8(sub.D, 6);
+}
+
 function setEvs(rawMon, evs) {
     const sub = substructViews(rawMon);
     wu8(sub.D, 0, evs.HP);
@@ -850,6 +855,7 @@ export function getParty(buffer, speciesById, speciesMetaById = null) {
             is_hidden_ability: hidden,
             ivs: getIvs(rawMon),
             evs: getEvs(rawMon),
+            friendship: getFriendship(rawMon),
             species_id: speciesId,
             species_growth_rate: speciesGrowthRate,
             moves: getMoves(rawMon),
@@ -1028,4 +1034,131 @@ export function updatePartyLevel(buffer, monIndex, payload) {
         wu8(rawMon, OFF_LEVEL_VISUAL, targetLevel);
         recalculatePartyStats(rawMon, true);
     });
+}
+
+// Compact 58-byte PC mon field offsets, needed to rebuild a 100-byte party mon.
+const PC_OFF_SPECIES = 0x1C;
+const PC_OFF_ITEM = 0x1E;
+const PC_OFF_EXP = 0x20;
+const PC_OFF_PP_UPS = 0x24;
+const PC_OFF_MOVES_PACKED = 0x27;
+const PC_OFF_EVS = 0x2C;
+const PC_OFF_IVS = 0x36;
+const PC_MON_SIZE = 58;
+
+// Party substruct field offsets (data block at OFF_DATA_START = 0x20, order B/A/D/C).
+const PARTY_OFF_SPECIES = 0x20;
+const PARTY_OFF_ITEM = 0x22;
+const PARTY_OFF_EXP = 0x24;
+const PARTY_OFF_PP_UPS = 0x28;
+const PARTY_OFF_MOVE_0 = 0x2C;
+const PARTY_OFF_PP_0 = 0x34;
+const PARTY_OFF_EVS = 0x38;
+const PARTY_OFF_FRIENDSHIP = 0x3E;
+const PARTY_OFF_IVS = 0x48;
+const DEFAULT_FRIENDSHIP = 70;
+
+export function readPartyMonRaw(buffer, index) {
+    const active = findActiveTrainerSection(buffer);
+    if (!active) {
+        throw new Error('Trainer section not found');
+    }
+    const teamCount = Math.min(6, ru32(buffer, active.off + PARTY_COUNT_OFFSET));
+    if (!Number.isInteger(index) || index < 0 || index >= teamCount) {
+        throw new Error('Invalid party index');
+    }
+    const off = partyMonOffset(active.off, index);
+    return buffer.slice(off, off + PARTY_MON_SIZE);
+}
+
+export function removePartyMonAt(buffer, index) {
+    const active = findActiveTrainerSection(buffer);
+    if (!active) {
+        throw new Error('Trainer section not found');
+    }
+    const teamCount = Math.min(6, ru32(buffer, active.off + PARTY_COUNT_OFFSET));
+    if (!Number.isInteger(index) || index < 0 || index >= teamCount) {
+        throw new Error('Invalid party index');
+    }
+    if (teamCount <= 1) {
+        throw new Error('Cannot remove the last remaining party Pokemon');
+    }
+
+    for (let i = index; i < teamCount - 1; i += 1) {
+        const dst = partyMonOffset(active.off, i);
+        const src = partyMonOffset(active.off, i + 1);
+        buffer.set(buffer.slice(src, src + PARTY_MON_SIZE), dst);
+    }
+
+    const lastOff = partyMonOffset(active.off, teamCount - 1);
+    buffer.fill(0, lastOff, lastOff + PARTY_MON_SIZE);
+    wu32(buffer, active.off + PARTY_COUNT_OFFSET, teamCount - 1);
+    return teamCount - 1;
+}
+
+function unpackPcMoves(raw58) {
+    let packed = 0n;
+    for (let i = 0; i < 5; i += 1) {
+        packed |= BigInt(raw58[PC_OFF_MOVES_PACKED + i]) << BigInt(8 * i);
+    }
+    return [
+        Number((packed >> 0n) & 0x3FFn),
+        Number((packed >> 10n) & 0x3FFn),
+        Number((packed >> 20n) & 0x3FFn),
+        Number((packed >> 30n) & 0x3FFn),
+    ];
+}
+
+function buildPartyMonFromPcRaw(raw58) {
+    if (!raw58 || raw58.length < PC_MON_SIZE) {
+        throw new Error('Invalid PC Pokemon data');
+    }
+
+    const raw = new Uint8Array(PARTY_MON_SIZE);
+    // Header 0x00-0x1B (PID, OTID, nickname, misc, OT name) is identical between formats.
+    raw.set(raw58.slice(0x00, 0x1C), 0x00);
+
+    wu16(raw, PARTY_OFF_SPECIES, ru16(raw58, PC_OFF_SPECIES));
+    wu16(raw, PARTY_OFF_ITEM, ru16(raw58, PC_OFF_ITEM));
+    wu32(raw, PARTY_OFF_EXP, ru32(raw58, PC_OFF_EXP));
+    wu8(raw, PARTY_OFF_PP_UPS, ru8(raw58, PC_OFF_PP_UPS));
+
+    const moves = unpackPcMoves(raw58);
+    const ppUpsByte = ru8(raw58, PC_OFF_PP_UPS);
+    for (let i = 0; i < 4; i += 1) {
+        wu16(raw, PARTY_OFF_MOVE_0 + (i * 2), moves[i] & 0x3FF);
+        const ppUp = (ppUpsByte >>> (i * 2)) & 0x03;
+        wu8(raw, PARTY_OFF_PP_0 + i, Math.max(0, Math.min(255, calcMaxPp(moves[i], ppUp))));
+    }
+
+    raw.set(raw58.slice(PC_OFF_EVS, PC_OFF_EVS + 6), PARTY_OFF_EVS);
+    wu8(raw, PARTY_OFF_FRIENDSHIP, DEFAULT_FRIENDSHIP);
+    wu32(raw, PARTY_OFF_IVS, ru32(raw58, PC_OFF_IVS));
+
+    const exp = ru32(raw58, PC_OFF_EXP);
+    const speciesGrowth = getSpeciesGrowthRate(raw);
+    const growthRate = speciesGrowth === null ? guessGrowthRate(exp, 1) : speciesGrowth;
+    const level = calcCurrentLevel(growthRate, exp);
+    wu8(raw, OFF_LEVEL_VISUAL, Math.max(1, Math.min(100, level)));
+
+    recalculatePartyStats(raw, false);
+    addMonChecksum(raw);
+    return raw;
+}
+
+export function appendPcMonToParty(buffer, raw58) {
+    const active = findActiveTrainerSection(buffer);
+    if (!active) {
+        throw new Error('Trainer section not found');
+    }
+    const teamCount = Math.min(6, ru32(buffer, active.off + PARTY_COUNT_OFFSET));
+    if (teamCount >= 6) {
+        throw new Error('Party is full');
+    }
+
+    const rawMon = buildPartyMonFromPcRaw(raw58);
+    const off = partyMonOffset(active.off, teamCount);
+    buffer.set(rawMon, off);
+    wu32(buffer, active.off + PARTY_COUNT_OFFSET, teamCount + 1);
+    return teamCount;
 }

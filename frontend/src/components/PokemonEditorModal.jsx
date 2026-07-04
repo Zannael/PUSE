@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Zap, Save, Search, Download, CircleHelp } from 'lucide-react';
+import { X, Zap, Save, Search, Download, CircleHelp, Trash2, ArrowLeftRight } from 'lucide-react';
 import { calcCurrentLevel, GROWTH_OPTIONS } from '../core/growth.js';
 import { ITEM_ICON_FALLBACK_URL, POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 import { NATURES, normalizeName, parseShowdownSet, resolveShowdownSet } from '../core/showdownImport.js';
@@ -29,7 +29,7 @@ const getTotalEvs = (evs = {}) =>
     Number(evs.SpD ?? 0) +
     getSpeedStatValue(evs);
 
-export const PokemonEditorModal = ({ client, pokemon, legitMode = false, capProfile = 'normal', onClose, onSave }) => {
+export const PokemonEditorModal = ({ client, pokemon, legitMode = false, capProfile = 'normal', onClose, onSave, onRelease, onMove }) => {
     const isPcMon = Boolean(pokemon?.isPC);
     const SAFE_IMPORT_NOTE = 'Existing Pokemon import applies item, moves, IVs, EVs, nature, and ability (if valid). Species, level, and identity metadata are preserved.';
     const initialGrowthMode = 'auto';
@@ -465,6 +465,33 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, capProf
         try {
             setSaveStage('Saving file...');
             await Promise.resolve(onSave(payload));
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleReleaseClick = async () => {
+        if (!onRelease) return;
+        const label = localPk?.nickname || localPk?.species_name || 'this Pokemon';
+        const proceed = window.confirm(
+            `Release ${label} from the PC?\n\nThis permanently clears the slot and cannot be undone.`,
+        );
+        if (!proceed) return;
+        setIsSaving(true);
+        setSaveStage('Releasing Pokemon...');
+        try {
+            await Promise.resolve(onRelease(pokemon));
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleMoveClick = async () => {
+        if (!onMove) return;
+        setIsSaving(true);
+        setSaveStage(isPcMon ? 'Moving to party...' : 'Moving to box...');
+        try {
+            await Promise.resolve(onMove(pokemon));
         } finally {
             setIsSaving(false);
         }
@@ -1179,7 +1206,23 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, capProf
 
                 </div>
 
-                <div className="p-4 sm:p-6 bg-[#1e293b]/80 border-t border-white/5 flex justify-end">
+                <div className="p-4 sm:p-6 bg-[#1e293b]/80 border-t border-white/5 flex justify-between items-center gap-3">
+                    <div className="flex items-center gap-3">
+                        {onMove ? (
+                            <button onClick={handleMoveClick}
+                                    disabled={isSaving}
+                                    className="bg-indigo-600/15 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-bold px-5 py-3 rounded-2xl flex items-center gap-2 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                                <ArrowLeftRight size={18}/> {isPcMon ? 'MOVE TO PARTY' : 'MOVE TO BOX'}
+                            </button>
+                        ) : null}
+                        {isPcMon && onRelease ? (
+                            <button onClick={handleReleaseClick}
+                                    disabled={isSaving}
+                                    className="bg-rose-600/15 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 font-bold px-5 py-3 rounded-2xl flex items-center gap-2 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                                <Trash2 size={18}/> RELEASE
+                            </button>
+                        ) : null}
+                    </div>
                     <button onClick={handleSaveClick}
                             disabled={isSaving}
                             className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-3 rounded-2xl flex items-center gap-2 shadow-lg active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed">

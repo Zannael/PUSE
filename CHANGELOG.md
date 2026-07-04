@@ -4,6 +4,10 @@
 
 ### Added
 
+- **All Pokémon table (new tab):** a sortable, filterable view of every party and PC Pokémon in one table (dex #, level, nature, ability, all six IVs, IV total, BST, location). Click-to-sort columns, name/species/ID search, quick filters (Shiny, Hidden ability, 6 IV, 2+ perfect IVs), and minimum IV thresholds with Match all / Match any (AND/OR) modes plus a minimum IV total. Rows open the existing editor modal. Backed by a new `getAllOwnedPokemon()` aggregator with backend/local parity.
+- **Multiselect + bulk actions in the All table:** per-row selection shares the existing roster export queue; Select filtered, COPY SELECTION, and EXPORT act on the current selection.
+- **PC release (delete Pokémon):** release a single PC Pokémon from the editor modal, or mass-release selected PC Pokémon from the All table (party Pokémon are skipped). New `POST /pc/release` endpoint and `releasePcMon` local core logic with backend/local parity and checksum-safe writes.
+- **Move Pokémon between party and PC** — move a party Pokémon to the first free PC slot, or a PC Pokémon into your party, from the editor modal (local mode only).
 - **Roster export (full stack)** — COPY/EXPORT ROSTER and COPY PARTY as Markdown with game progress, level cap checks, expert speed tiers, evolution hints, and calculated battle stats (local + backend parity via `GET /game-progress`).
 - **Selective roster export** — session-only export queue (+ toggle on party/PC); COPY/EXPORT SELECTION with detailed PC blocks for agent comparison.
 - **Cap profile selector** — Normal / Expert level-cap context for legit warnings and roster export.

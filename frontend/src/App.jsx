@@ -19,11 +19,13 @@ import {
     Database,
     Copy,
     Check,
+    Table2,
 } from 'lucide-react';
 import { createApiClient, getInitialRuntimeMode, getInitialCapProfile, persistRuntimeMode, persistCapProfile, RUNTIME_MODES } from './services/apiClient.js';
 import { getExpAtLevel, getSpeciesGrowthRate } from './core/growth.js';
 import {
     addPcBoxToSelection,
+    parseSelectionKey,
     summarizeSelection,
     toggleSelectionKey,
 } from './core/exportSelection.js';
@@ -31,6 +33,7 @@ import {
 const PartyGrid = lazy(() => import('./components/PartyGrid'));
 const PCGrid = lazy(() => import('./components/PCGrid'));
 const BagView = lazy(() => import('./components/BagView.jsx'));
+const AllPokemonTable = lazy(() => import('./components/AllPokemonTable.jsx'));
 const PokemonEditorModal = lazy(() =>
     import('./components/PokemonEditorModal.jsx').then((mod) => ({ default: mod.PokemonEditorModal }))
 );
@@ -467,6 +470,92 @@ const App = () => {
 
     const handleAddBoxToExportSelection = (boxId, pokemon) => {
         setExportSelection((prev) => addPcBoxToSelection(prev, boxId, pokemon));
+    };
+
+    const handleBulkToggleExportSelection = (keys, shouldSelect) => {
+        setExportSelection((prev) => {
+            const set = new Set(prev);
+            (keys || []).forEach((key) => {
+                if (shouldSelect) {
+                    set.add(key);
+                } else {
+                    set.delete(key);
+                }
+            });
+            return Array.from(set);
+        });
+    };
+
+    const handleReleasePC = async (pk) => {
+        try {
+            await client.releasePc({ box: pk.box, slot: pk.slot });
+            await client.saveAll();
+            setSelectedPokemon(null);
+            setRefreshKey(prev => prev + 1);
+            alert("Pokemon released from PC.");
+        } catch {
+            alert("Failed to release Pokemon.");
+        }
+    };
+
+    const handleReleaseSelected = async () => {
+        const pcTargets = exportSelection
+            .map(parseSelectionKey)
+            .filter((parsed) => parsed && parsed.source === 'pc');
+        const skippedParty = exportSelection.length - pcTargets.length;
+
+        if (pcTargets.length === 0) {
+            alert("No PC Pokemon are selected. Party Pokemon can't be released here.");
+            return;
+        }
+
+        const partyNote = skippedParty > 0
+            ? `\n\n${skippedParty} selected party Pokemon will be skipped (party release isn't supported).`
+            : '';
+        const proceed = window.confirm(
+            `Release ${pcTargets.length} Pokemon from the PC?\n\nThis permanently clears those slots and cannot be undone.${partyNote}`,
+        );
+        if (!proceed) return;
+
+        try {
+            for (const target of pcTargets) {
+                await client.releasePc({ box: target.box, slot: target.slot });
+            }
+            await client.saveAll();
+            setExportSelection((prev) => prev.filter((key) => {
+                const parsed = parseSelectionKey(key);
+                return !(parsed && parsed.source === 'pc');
+            }));
+            setRefreshKey(prev => prev + 1);
+            alert(`Released ${pcTargets.length} Pokemon from the PC.`);
+        } catch {
+            alert("Failed to release the selected Pokemon.");
+        }
+    };
+
+    const handleMovePartyToBox = async (pk) => {
+        const index = Number.isInteger(pk?.index) ? pk.index : pk?._index;
+        try {
+            const placed = await client.movePartyToBox({ index });
+            await client.saveAll();
+            setSelectedPokemon(null);
+            setRefreshKey(prev => prev + 1);
+            alert(`Moved to PC Box ${placed.box}, slot ${placed.slot}.`);
+        } catch (err) {
+            alert(err?.message || 'Failed to move Pokemon to the PC box.');
+        }
+    };
+
+    const handleMoveBoxToParty = async (pk) => {
+        try {
+            await client.moveBoxToParty({ box: pk.box, slot: pk.slot });
+            await client.saveAll();
+            setSelectedPokemon(null);
+            setRefreshKey(prev => prev + 1);
+            alert('Moved to your party.');
+        } catch (err) {
+            alert(err?.message || 'Failed to move Pokemon to the party.');
+        }
     };
 
     const handleClearExportSelection = () => {
@@ -1004,6 +1093,20 @@ const App = () => {
                                 onAddBoxToExportSelection={handleAddBoxToExportSelection}
                             />}
                             {activeTab === 'bag' && <BagView client={client} initialUnsaved={bagHasUnsavedChanges} onDirtyChange={setBagHasUnsavedChanges} />}
+                            {activeTab === 'all' && (
+                                <AllPokemonTable
+                                    key={`all-${refreshKey}`}
+                                    client={client}
+                                    onEditPokemon={(pk) => setSelectedPokemon(pk._source === 'pc' ? { ...pk, isPC: true } : pk)}
+                                    exportSelection={exportSelection}
+                                    onToggleExportSelection={handleToggleExportSelection}
+                                    onBulkToggleSelection={handleBulkToggleExportSelection}
+                                    onCopySelection={handleCopySelection}
+                                    onExportSelection={handleExportSelection}
+                                    onDeleteSelection={handleReleaseSelected}
+                                    selectionCopied={selectionCopied}
+                                />
+                            )}
                         </Suspense>
                     </div>
                 )}
@@ -1086,6 +1189,8 @@ const App = () => {
                         capProfile={capProfile}
                         onClose={() => setSelectedPokemon(null)}
                         onSave={selectedPokemon?.isPC ? handleSavePC : handleSavePokemon}
+                        onRelease={selectedPokemon?.isPC ? handleReleasePC : undefined}
+                        onMove={selectedPokemon?.isPC ? handleMoveBoxToParty : handleMovePartyToBox}
                     />
                 </Suspense>
             )}
@@ -1107,6 +1212,7 @@ const App = () => {
                     <TabItem icon={<LayoutGrid size={20}/>} label="Party" active={activeTab === 'party'} onClick={() => handleTabChange('party')} />
                     <TabItem icon={<Users size={20}/>} label="PC Box" active={activeTab === 'pc'} onClick={() => handleTabChange('pc')} />
                     <TabItem icon={<Briefcase size={20}/>} label="Bag" active={activeTab === 'bag'} onClick={() => handleTabChange('bag')} />
+                    <TabItem icon={<Table2 size={20}/>} label="All" active={activeTab === 'all'} onClick={() => handleTabChange('all')} />
                 </nav>
             )}
 

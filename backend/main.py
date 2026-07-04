@@ -1737,6 +1737,50 @@ async def insert_pc_mon(upd: PCInsert):
     }
 
 
+class PCRelease(BaseModel):
+    box: int
+    slot: int
+
+
+@app.post("/pc/release")
+async def release_pc_mon(upd: PCRelease):
+    if not current_save["data"]:
+        raise HTTPException(status_code=400, detail="Upload a .sav file")
+
+    ctx = current_save["pc_context"]
+    if ctx.get("pc_buffer") is None:
+        await load_pc()
+        ctx = current_save["pc_context"]
+
+    target = next((m for m in ctx["mons"]
+                   if m.box == upd.box and m.slot == upd.slot), None)
+    if not target:
+        raise HTTPException(status_code=404, detail="Pokemon not found in PC")
+
+    empty = bytes(box_mod.MON_SIZE_PC)
+
+    # Mirror the buffer-sync ordering used by /pc/edit-full.
+    if target.box == 26:
+        off = target.buffer_offset
+        ctx["preset_buffer"][off: off + box_mod.MON_SIZE_PC] = empty
+    elif getattr(target, "buffer_kind", None) == "absolute":
+        off = target.buffer_offset
+        current_save["data"][off: off + box_mod.MON_SIZE_PC] = empty
+        sector_off = (off // box_mod.SECTION_SIZE) * box_mod.SECTION_SIZE
+        if _should_track_absolute_sector_for_checksum(current_save["data"], sector_off):
+            touched = set(ctx.get("absolute_touched_sectors", []))
+            touched.add(sector_off)
+            ctx["absolute_touched_sectors"] = sorted(touched)
+    else:
+        off = ((target.box - 1) * 30 + (target.slot - 1)) * box_mod.MON_SIZE_PC
+        ctx["pc_buffer"][off: off + box_mod.MON_SIZE_PC] = empty
+
+    ctx["mons"] = [m for m in ctx["mons"]
+                   if not (m.box == upd.box and m.slot == upd.slot)]
+
+    return {"status": "Pokemon released from PC", "box": upd.box, "slot": upd.slot}
+
+
 @app.post("/save-all")
 async def commit_to_file():
     if not current_save["data"]:

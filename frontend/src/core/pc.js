@@ -9,6 +9,7 @@ import speciesAbilitiesMeta from './speciesAbilitiesMeta.json' with { type: 'jso
 import abilitiesCatalog from './abilitiesCatalog.json' with { type: 'json' };
 import { getMoveBasePpById } from './catalog.js';
 import { getBallMeta, validateBallId } from './balls.js';
+import { NATURES } from './showdownImport.js';
 
 const POKEMON_STREAM_SECTORS = [5, 6, 7, 8, 9, 10, 11, 12];
 const PRESET_SECTOR_ID = 0;
@@ -586,6 +587,7 @@ function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
         abilityHiddenName,
     );
     const speciesMeta = getSpeciesFormMeta(speciesMetaById, speciesMap, speciesId);
+    const natureId = pid % 25;
     return {
         box,
         slot,
@@ -600,7 +602,9 @@ function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
         species_growth_rate: getSpeciesGrowthRate(speciesId),
         item_id: ru16(raw, OFF_ITEM),
         exp: ru32(raw, OFF_EXP),
-        nature_id: pid % 25,
+        nature_id: natureId,
+        nature: NATURES[natureId] || 'Unknown',
+        is_hidden_ability: currentAbilityIndex === 2,
         pid,
         is_shiny: isShinyPid(getOtid(raw), pid),
         gender: genderFromPid(pid, genderThreshold),
@@ -1220,6 +1224,160 @@ export function insertPcMon(context, payload, speciesMap = null) {
     throw new Error('Slot not writable in this save layout');
 }
 
+// Party (100-byte) substruct field offsets, needed to convert a party mon to PC form.
+const PARTY_OFF_SPECIES = 0x20;
+const PARTY_OFF_ITEM = 0x22;
+const PARTY_OFF_EXP = 0x24;
+const PARTY_OFF_PP_UPS = 0x28;
+const PARTY_OFF_MOVE_0 = 0x2C;
+const PARTY_OFF_EVS = 0x38;
+const PARTY_OFF_IVS = 0x48;
+
+export function buildPcRawFromPartyMon(raw100) {
+    if (!raw100 || raw100.length < PARTY_MON_SIZE) {
+        throw new Error('Invalid party Pokemon data');
+    }
+
+    const raw = new Uint8Array(MON_SIZE_PC);
+    // Header 0x00-0x1B (PID, OTID, nickname, misc, OT name) is identical between formats.
+    raw.set(raw100.slice(0x00, 0x1C), 0x00);
+
+    wu16(raw, OFF_SPECIES, ru16(raw100, PARTY_OFF_SPECIES));
+    wu16(raw, OFF_ITEM, ru16(raw100, PARTY_OFF_ITEM));
+    wu32(raw, OFF_EXP, ru32(raw100, PARTY_OFF_EXP));
+    wu8(raw, 0x24, ru8(raw100, PARTY_OFF_PP_UPS));
+
+    const moves = [
+        ru16(raw100, PARTY_OFF_MOVE_0),
+        ru16(raw100, PARTY_OFF_MOVE_0 + 2),
+        ru16(raw100, PARTY_OFF_MOVE_0 + 4),
+        ru16(raw100, PARTY_OFF_MOVE_0 + 6),
+    ];
+    let packed = 0n;
+    for (let i = 0; i < 4; i += 1) {
+        packed |= BigInt(moves[i] & 0x3FF) << BigInt(i * 10);
+    }
+    for (let i = 0; i < 5; i += 1) {
+        raw[0x27 + i] = Number((packed >> BigInt(8 * i)) & 0xFFn);
+    }
+
+    raw.set(raw100.slice(PARTY_OFF_EVS, PARTY_OFF_EVS + 6), OFF_EVS);
+    wu32(raw, OFF_IVS, ru32(raw100, PARTY_OFF_IVS));
+
+    if (!isValidMon(raw)) {
+        throw new Error('Failed to build valid PC Pokemon');
+    }
+    return raw;
+}
+
+export function readPcMonRaw(context, box, slot) {
+    const { buffer, offset, kind } = getMonBufferAndOffset(context, Number(box), Number(slot));
+    const raw = kind === 'absolute'
+        ? (context.absoluteEdits?.get(offset) || buffer.slice(offset, offset + MON_SIZE_PC))
+        : buffer.slice(offset, offset + MON_SIZE_PC);
+    if (!isValidMon(raw)) {
+        throw new Error('Pokemon not found in slot');
+    }
+    return raw.slice(0, MON_SIZE_PC);
+}
+
+export function findFirstFreePcSlot(context, preferredBox = 1) {
+    const scanBox = (boxId) => {
+        for (let slot = 1; slot <= BOX_SLOT_COUNT; slot += 1) {
+            if (isPcSlotWritable(context, boxId, slot) && !isPcSlotOccupied(context, boxId, slot)) {
+                return { box: boxId, slot };
+            }
+        }
+        return null;
+    };
+
+    const preferred = Number(preferredBox);
+    if (Number.isInteger(preferred) && preferred >= 1 && preferred <= 25) {
+        const hit = scanBox(preferred);
+        if (hit) {
+            return hit;
+        }
+    }
+    for (let boxId = 1; boxId <= 25; boxId += 1) {
+        if (boxId === preferred) {
+            continue;
+        }
+        const hit = scanBox(boxId);
+        if (hit) {
+            return hit;
+        }
+    }
+    throw new Error('No free PC box slot available');
+}
+
+export function insertPcMonRaw(context, target, raw58) {
+    const box = Number(target?.box);
+    if (!Number.isInteger(box) || box < 1 || box > 26) {
+        throw new Error('Invalid box');
+    }
+
+    let slot = target?.slot;
+    if (slot !== undefined && slot !== null) {
+        slot = Number(slot);
+        if (!Number.isInteger(slot) || slot < 1 || slot > 30) {
+            throw new Error('Invalid slot');
+        }
+        if (isPcSlotOccupied(context, box, slot)) {
+            throw new Error('Target slot is occupied');
+        }
+    } else {
+        slot = null;
+        for (let s = 1; s <= 30; s += 1) {
+            if (!isPcSlotOccupied(context, box, s)) {
+                slot = s;
+                break;
+            }
+        }
+        if (slot === null) {
+            throw new Error('Box is full');
+        }
+    }
+
+    const raw = raw58.slice(0, MON_SIZE_PC);
+    if (raw.length !== MON_SIZE_PC || !isValidMon(raw)) {
+        throw new Error('Invalid Pokemon data');
+    }
+
+    if (box === 26) {
+        if (!context.presetBuffer) {
+            throw new Error('Preset sector not loaded');
+        }
+        const off = OFFSET_PRESET_START + ((slot - 1) * MON_SIZE_PC);
+        if (off + MON_SIZE_PC > context.presetBuffer.length) {
+            throw new Error('Invalid preset slot');
+        }
+        context.presetBuffer.set(raw, off);
+        return { box, slot };
+    }
+
+    const streamOff = (((box - 1) * 30) + (slot - 1)) * MON_SIZE_PC;
+    if (streamOff + MON_SIZE_PC <= context.pcBuffer.length) {
+        context.pcBuffer.set(raw, streamOff);
+        return { box, slot };
+    }
+
+    const hasFallback = Boolean(context.fallbackBoxStarts?.[Number(box)]);
+    if (hasFallback && context.sourceBuffer) {
+        const absOff = context.fallbackSlotOffsets?.[Number(box)]?.[Number(slot)]
+            ?? fallbackSlotOffset(box, slot, context.sourceBuffer, context.fallbackSectionOffsets);
+        if (Number.isInteger(absOff) && absOff + MON_SIZE_PC <= context.sourceBuffer.length) {
+            context.absoluteEdits.set(absOff, raw);
+            const sectorOff = Math.floor(absOff / SECTION_SIZE) * SECTION_SIZE;
+            if (shouldTrackAbsoluteSectorForChecksum(context.sourceBuffer, sectorOff)) {
+                context.absoluteTouchedSectors.add(sectorOff);
+            }
+            return { box, slot };
+        }
+    }
+
+    throw new Error('Slot not writable in this save layout');
+}
+
 export function editPcMonFull(context, payload) {
     const box = Number(payload.box);
     const slot = Number(payload.slot);
@@ -1285,6 +1443,33 @@ export function editPcMonFull(context, payload) {
         return;
     }
     buffer.set(raw, offset);
+}
+
+export function releasePcMon(context, payload) {
+    const box = Number(payload.box);
+    const slot = Number(payload.slot);
+    const { buffer, offset, kind } = getMonBufferAndOffset(context, box, slot);
+
+    const existing = kind === 'absolute'
+        ? (context.absoluteEdits?.get(offset) || buffer.slice(offset, offset + MON_SIZE_PC))
+        : buffer.slice(offset, offset + MON_SIZE_PC);
+    if (!isValidMon(existing)) {
+        throw new Error('Pokemon not found in slot');
+    }
+
+    const empty = new Uint8Array(MON_SIZE_PC);
+
+    if (kind === 'absolute') {
+        context.absoluteEdits.set(offset, empty);
+        const sectorOff = Math.floor(offset / SECTION_SIZE) * SECTION_SIZE;
+        if (shouldTrackAbsoluteSectorForChecksum(context.sourceBuffer, sectorOff)) {
+            context.absoluteTouchedSectors.add(sectorOff);
+        }
+        return { box, slot };
+    }
+
+    buffer.set(empty, offset);
+    return { box, slot };
 }
 
 export function applyPcContextToSave(buffer, context) {

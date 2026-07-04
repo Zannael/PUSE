@@ -374,6 +374,30 @@ async function copyMarkdownToClipboard(payload) {
     await navigator.clipboard.writeText(rosterPayloadToMarkdown(payload));
 }
 
+async function collectAllOwnedPokemon(client) {
+    const { ROSTER_EXPORT_BOX_IDS } = await import('../core/rosterExport.js');
+    const rows = [];
+
+    const party = await client.getParty();
+    (party || []).forEach((mon, idx) => {
+        rows.push({
+            ...mon,
+            _source: 'party',
+            _index: Number.isFinite(mon.index) ? mon.index : idx,
+        });
+    });
+
+    await client.loadPc();
+    for (const boxId of ROSTER_EXPORT_BOX_IDS) {
+        const mons = await client.getPcBox(boxId);
+        (mons || []).forEach((mon) => {
+            rows.push({ ...mon, box: boxId, _source: 'pc' });
+        });
+    }
+
+    return rows;
+}
+
 const backendClient = {
     getPokemonIconUrl(speciesId) {
         return resolvePokemonIconUrl(speciesId, API_BASE);
@@ -504,8 +528,18 @@ const backendClient = {
     getPcWritableSlots(boxId) {
         return backendJson(`/pc/writable-slots/${boxId}`);
     },
+    getAllOwnedPokemon() {
+        return collectAllOwnedPokemon(this);
+    },
     editPcFull(payload) {
         return backendJson("/pc/edit-full", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+    },
+    releasePc(payload) {
+        return backendJson("/pc/release", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -517,6 +551,12 @@ const backendClient = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
         });
+    },
+    async movePartyToBox() {
+        throw new Error('Moving Pokemon is only available in local mode.');
+    },
+    async moveBoxToParty() {
+        throw new Error('Moving Pokemon is only available in local mode.');
     },
     getMoves() {
         return backendJson("/moves");
@@ -803,6 +843,9 @@ const localClient = {
         }
         return { box: Number(boxId), writable_slots: getWritablePcSlots(context, Number(boxId)) };
     },
+    getAllOwnedPokemon() {
+        return collectAllOwnedPokemon(this);
+    },
     async editPcFull(payload) {
         const {
             getPcContext,
@@ -823,6 +866,22 @@ const localClient = {
         editPcMonFull(context, nextPayload);
         return { status: 'PC edit buffered' };
     },
+    async releasePc(payload) {
+        const {
+            getPcContext,
+            loadPcContext,
+            setPcContext,
+            getBuffer,
+            releasePcMon,
+        } = await getLocalCoreModules();
+        let context = getPcContext();
+        if (!context) {
+            context = loadPcContext(getBuffer());
+            setPcContext(context);
+        }
+        releasePcMon(context, payload || {});
+        return { status: 'PC release buffered' };
+    },
     async insertPc(payload) {
         const {
             getPcContext,
@@ -841,6 +900,89 @@ const localClient = {
         const nextPayload = { ...(payload || {}) };
         nextPayload.species_id = await ensureValidSpeciesId(nextPayload.species_id);
         return insertPcMon(context, nextPayload, speciesMap);
+    },
+    async movePartyToBox(payload = {}) {
+        const {
+            getBuffer,
+            updateBuffer,
+            getPcContext,
+            loadPcContext,
+            setPcContext,
+            getSpeciesMap,
+            getSpeciesFormMetaMap,
+            getParty,
+            readPartyMonRaw,
+            removePartyMonAt,
+            buildPcRawFromPartyMon,
+            insertPcMonRaw,
+            findFirstFreePcSlot,
+        } = await getLocalCoreModules();
+
+        const index = Number(payload.index);
+        if (!Number.isInteger(index) || index < 0) {
+            throw new Error('Invalid party index');
+        }
+
+        const [speciesMap, speciesMeta] = await Promise.all([getSpeciesMap(), getSpeciesFormMetaMap()]);
+        const party = getParty(getBuffer(), speciesMap, speciesMeta);
+        if (party.length <= 1) {
+            throw new Error('Cannot move your last remaining party Pokemon.');
+        }
+
+        let context = getPcContext();
+        if (!context) {
+            context = loadPcContext(getBuffer());
+            setPcContext(context);
+        }
+
+        const raw58 = buildPcRawFromPartyMon(readPartyMonRaw(getBuffer(), index));
+        const target = payload.box !== undefined && payload.box !== null
+            ? { box: Number(payload.box), slot: payload.slot === undefined || payload.slot === null ? null : Number(payload.slot) }
+            : findFirstFreePcSlot(context);
+
+        const placed = insertPcMonRaw(context, target, raw58);
+        updateBuffer((next) => removePartyMonAt(next, index));
+        context.sourceBuffer = getBuffer();
+        return placed;
+    },
+    async moveBoxToParty(payload = {}) {
+        const {
+            getBuffer,
+            updateBuffer,
+            getPcContext,
+            loadPcContext,
+            setPcContext,
+            getSpeciesMap,
+            getSpeciesFormMetaMap,
+            getParty,
+            readPcMonRaw,
+            appendPcMonToParty,
+            releasePcMon,
+        } = await getLocalCoreModules();
+
+        const box = Number(payload.box);
+        const slot = Number(payload.slot);
+
+        let context = getPcContext();
+        if (!context) {
+            context = loadPcContext(getBuffer());
+            setPcContext(context);
+        }
+
+        const [speciesMap, speciesMeta] = await Promise.all([getSpeciesMap(), getSpeciesFormMetaMap()]);
+        const party = getParty(getBuffer(), speciesMap, speciesMeta);
+        if (party.length >= 6) {
+            throw new Error('Your party is full (6 Pokemon).');
+        }
+
+        const raw58 = readPcMonRaw(context, box, slot);
+        let newIndex = party.length;
+        updateBuffer((next) => {
+            newIndex = appendPcMonToParty(next, raw58);
+        });
+        releasePcMon(context, { box, slot });
+        context.sourceBuffer = getBuffer();
+        return { index: newIndex };
     },
     async getMoves() {
         const { getMovesList } = await getLocalCoreModules();
