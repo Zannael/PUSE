@@ -14,6 +14,7 @@ from modules import money as money_mod
 from pydantic import BaseModel
 from modules import pc as box_mod
 from modules import game_progress as game_progress_mod
+from modules import pokedex_flags as pokedex_flags_mod
 import os
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -1074,6 +1075,77 @@ async def get_all_species():
         )
     rows.sort(key=lambda x: x["id"])
     return rows
+
+
+class PokedexFlagsUpdate(BaseModel):
+    seen: bool | None = None
+    caught: bool | None = None
+
+
+@app.get("/pokedex/summary")
+async def get_pokedex_summary():
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
+
+    species_rows = []
+    for k, v in party_mod.DB_SPECIES.items():
+        if k == 0:
+            continue
+        smeta = _species_meta(k)
+        species_rows.append(
+            {
+                "id": k,
+                "name": v,
+                "label": smeta["species_label"],
+                "display_name": smeta["species_display_name"],
+            }
+        )
+    return pokedex_flags_mod.build_pokedex_summary(current_save["data"], species_rows)
+
+
+@app.get("/pokedex/species/{species_id}")
+async def get_pokedex_species_flags(species_id: int):
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
+    return {
+        "species_id": int(species_id),
+        **pokedex_flags_mod.get_pokedex_flags(current_save["data"], species_id),
+    }
+
+
+@app.post("/pokedex/species/{species_id}/flags")
+async def update_pokedex_species_flags(species_id: int, data: PokedexFlagsUpdate):
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
+
+    sid = int(species_id)
+    if not pokedex_flags_mod.is_dex_species_trackable(sid):
+        raise HTTPException(status_code=400, detail=f"Species {sid} is outside the tracked dex range (1-{pokedex_flags_mod.MAX_TRACKED_DEX_ID})")
+
+    if data.seen is not None:
+        seen_result = pokedex_flags_mod.set_pokedex_flag(
+            current_save["data"],
+            sid,
+            pokedex_flags_mod.POKEDEX_FLAG_SEEN,
+            bool(data.seen),
+        )
+        if not seen_result.get("ok"):
+            raise HTTPException(status_code=400, detail=seen_result.get("reason", "Failed to update seen flag"))
+
+    if data.caught is not None:
+        caught_result = pokedex_flags_mod.set_pokedex_flag(
+            current_save["data"],
+            sid,
+            pokedex_flags_mod.POKEDEX_FLAG_CAUGHT,
+            bool(data.caught),
+        )
+        if not caught_result.get("ok"):
+            raise HTTPException(status_code=400, detail=caught_result.get("reason", "Failed to update caught flag"))
+
+    return {
+        "species_id": sid,
+        **pokedex_flags_mod.get_pokedex_flags(current_save["data"], sid),
+    }
 
 
 @app.get("/bag/scan/{search_item_id}")
