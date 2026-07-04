@@ -1,0 +1,90 @@
+{
+  "mode": "expert",
+  "source": "Expert mode badge caps (Unbound wiki) mapped to trainers doc boss order",
+  "entries": [
+    {
+      "level_cap": 15,
+      "boss_name": "Mirskle",
+      "trainer": "1. Mirskle (Grass)",
+      "threats": ["Comfey"]
+    },
+    {
+      "level_cap": 32,
+      "boss_name": "Vega",
+      "trainer": "2. Vega (Dark)",
+      "threats": ["Honchkrow", "Liepard"]
+    },
+    {
+      "level_cap": 45,
+      "boss_name": "Alice",
+      "trainer": "3. Alice (Flying)",
+      "threats": ["Dodrio", "Gliscor"]
+    },
+    {
+      "level_cap": 55,
+      "boss_name": "Mel",
+      "trainer": "4. Mel (Normal)",
+      "threats": ["Miltank"]
+    },
+    {
+      "level_cap": 64,
+      "boss_name": "Maxima",
+      "trainer": "Successor Maxima (Fairy)",
+      "threats": ["Serperior"]
+    },
+    {
+      "level_cap": 68,
+      "boss_name": "Galavan",
+      "trainer": "5. Galavan (Electric)",
+      "threats": ["Lanturn"]
+    },
+    {
+      "level_cap": 72,
+      "boss_name": "Big Mo",
+      "trainer": "6. Big Mo (Fighting)",
+      "threats": ["Wailord"]
+    },
+    {
+      "level_cap": 75,
+      "boss_name": "Tessy",
+      "trainer": "7. Tessy (Water)",
+      "threats": ["Kingdra"]
+    },
+    {
+      "level_cap": 75,
+      "boss_name": "Benjamin",
+      "trainer": "8. Benjamin (Bug)",
+      "threats": ["Volcarona", "Flygon", "Scizor"]
+    },
+    {
+      "level_cap": 75,
+      "boss_name": "Elite Four: Moleman",
+      "trainer": "Elite Four Moleman",
+      "threats": ["Excadrill"]
+    },
+    {
+      "level_cap": 78,
+      "boss_name": "Elite Four: Elias",
+      "trainer": "Elite Four Elias",
+      "threats": ["Blacephalon"]
+    },
+    {
+      "level_cap": 78,
+      "boss_name": "Elite Four: Arabella",
+      "trainer": "Elite Four Arabella",
+      "threats": ["Ribombee", "Togekiss"]
+    },
+    {
+      "level_cap": 80,
+      "boss_name": "Elite Four: Penny",
+      "trainer": "Elite Four Penny",
+      "threats": ["Mega Sceptile", "Hydreigon"]
+    },
+    {
+      "level_cap": 80,
+      "boss_name": "Rival Jax",
+      "trainer": "Pokemon Trainer Jax",
+      "threats": ["Naganadel", "Mega Salamence"]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "mode": "expert",
+  "doc_version": "2.1.1.1",
+  "default_ivs": {
+    "HP": 31,
+    "Atk": 31,
+    "Def": 31,
+    "SpA": 31,
+    "SpD": 31,
+    "Spe": 31
+  },
+  "notes": "Used when trainers xlsx blocks omit explicit IV rows."
+}

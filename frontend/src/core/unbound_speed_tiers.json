@@ -1,0 +1,759 @@
+{
+  "mode": "expert",
+  "generated_at": "2026-06-25T02:25:47.195468+00:00",
+  "source": {
+    "csv": "unbound_speed_tiers.csv",
+    "trainers_workbook": "backend/local_artifacts/expert_bosses.xlsx",
+    "level_caps": "backend/data/unbound_level_caps.json",
+    "expert_rules": "backend/data/expert_mode_rules.json",
+    "base_stats": "frontend/src/core/speciesBaseStats.json",
+    "species_types": "frontend/src/core/species_types.json"
+  },
+  "entries": [
+    {
+      "level_cap": 15,
+      "boss_name": "Mirskle",
+      "threat": "Floette",
+      "base_speed": 92,
+      "boss_level": 19,
+      "benchmark_speed_stat": 45,
+      "cap_benchmark_speed": 37,
+      "required_roster_speed": 38,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 15,
+      "boss_name": "Mirskle",
+      "threat": "Gloom",
+      "base_speed": 40,
+      "boss_level": 21,
+      "benchmark_speed_stat": 28,
+      "cap_benchmark_speed": 21,
+      "required_roster_speed": 22,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 15,
+      "boss_name": "Mirskle",
+      "threat": "Weedle",
+      "base_speed": 50,
+      "boss_level": 17,
+      "benchmark_speed_stat": 37,
+      "cap_benchmark_speed": 34,
+      "required_roster_speed": 35,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 15,
+      "boss_name": "Mirskle",
+      "threat": "Comfey",
+      "base_speed": 100,
+      "boss_level": 18,
+      "benchmark_speed_stat": 46,
+      "cap_benchmark_speed": 39,
+      "required_roster_speed": 40,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 32,
+      "boss_name": "Vega",
+      "threat": "Liepard",
+      "base_speed": 106,
+      "boss_level": 26,
+      "benchmark_speed_stat": 92,
+      "cap_benchmark_speed": 112,
+      "required_roster_speed": 113,
+      "threat_mechanics": [
+        "Priority-FakeOut"
+      ]
+    },
+    {
+      "level_cap": 32,
+      "boss_name": "Vega",
+      "threat": "Absol",
+      "base_speed": 115,
+      "boss_level": 27,
+      "benchmark_speed_stat": 75,
+      "cap_benchmark_speed": 88,
+      "required_roster_speed": 89,
+      "threat_mechanics": [
+        "Priority-Feint"
+      ]
+    },
+    {
+      "level_cap": 32,
+      "boss_name": "Vega",
+      "threat": "Weavile",
+      "base_speed": 125,
+      "boss_level": 27,
+      "benchmark_speed_stat": 80,
+      "cap_benchmark_speed": 94,
+      "required_roster_speed": 95,
+      "threat_mechanics": [
+        "Priority-IceShard"
+      ]
+    },
+    {
+      "level_cap": 32,
+      "boss_name": "Vega",
+      "threat": "Honchkrow",
+      "base_speed": 71,
+      "boss_level": 26,
+      "benchmark_speed_stat": 66,
+      "cap_benchmark_speed": 80,
+      "required_roster_speed": 81,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 45,
+      "boss_name": "Alice",
+      "threat": "Minior",
+      "base_speed": 89,
+      "boss_level": 31,
+      "benchmark_speed_stat": 178,
+      "cap_benchmark_speed": 254,
+      "required_roster_speed": 255,
+      "threat_mechanics": [
+        "Tailwind-Core"
+      ]
+    },
+    {
+      "level_cap": 45,
+      "boss_name": "Alice",
+      "threat": "Gliscor",
+      "base_speed": 95,
+      "boss_level": 31,
+      "benchmark_speed_stat": 146,
+      "cap_benchmark_speed": 208,
+      "required_roster_speed": 209,
+      "threat_mechanics": [
+        "Tailwind-Core"
+      ]
+    },
+    {
+      "level_cap": 45,
+      "boss_name": "Alice",
+      "threat": "Dodrio",
+      "base_speed": 110,
+      "boss_level": 32,
+      "benchmark_speed_stat": 230,
+      "cap_benchmark_speed": 320,
+      "required_roster_speed": 321,
+      "threat_mechanics": [
+        "Tailwind-Core",
+        "Priority-QuickAttack"
+      ]
+    },
+    {
+      "level_cap": 45,
+      "boss_name": "Alice",
+      "threat": "Mega Pinsir",
+      "base_speed": 85,
+      "boss_level": 33,
+      "benchmark_speed_stat": 101,
+      "cap_benchmark_speed": 135,
+      "required_roster_speed": 136,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 45,
+      "boss_name": "Alice",
+      "threat": "Crobat",
+      "base_speed": 130,
+      "boss_level": 32,
+      "benchmark_speed_stat": 236,
+      "cap_benchmark_speed": 328,
+      "required_roster_speed": 329,
+      "threat_mechanics": [
+        "Tailwind-Core"
+      ]
+    },
+    {
+      "level_cap": 55,
+      "boss_name": "Mel",
+      "threat": "Bewear",
+      "base_speed": 60,
+      "boss_level": 36,
+      "benchmark_speed_stat": 59,
+      "cap_benchmark_speed": 88,
+      "required_roster_speed": 89,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 55,
+      "boss_name": "Mel",
+      "threat": "Porygon-Z",
+      "base_speed": 90,
+      "boss_level": 37,
+      "benchmark_speed_stat": 116,
+      "cap_benchmark_speed": 170,
+      "required_roster_speed": 171,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 55,
+      "boss_name": "Mel",
+      "threat": "Miltank",
+      "base_speed": 100,
+      "boss_level": 36,
+      "benchmark_speed_stat": 88,
+      "cap_benchmark_speed": 132,
+      "required_roster_speed": 133,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 55,
+      "boss_name": "Mel",
+      "threat": "Mega Lopunny",
+      "base_speed": 48,
+      "boss_level": 37,
+      "benchmark_speed_stat": 82,
+      "cap_benchmark_speed": 119,
+      "required_roster_speed": 120,
+      "threat_mechanics": [
+        "Priority-FakeOut"
+      ]
+    },
+    {
+      "level_cap": 55,
+      "boss_name": "Mel",
+      "threat": "Heliolisk",
+      "base_speed": 109,
+      "boss_level": 35,
+      "benchmark_speed_stat": 114,
+      "cap_benchmark_speed": 176,
+      "required_roster_speed": 177,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 64,
+      "boss_name": "Maxima",
+      "threat": "Wigglytuff",
+      "base_speed": 45,
+      "boss_level": 39,
+      "benchmark_speed_stat": 52,
+      "cap_benchmark_speed": 82,
+      "required_roster_speed": 83,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 64,
+      "boss_name": "Maxima",
+      "threat": "Serperior",
+      "base_speed": 113,
+      "boss_level": 40,
+      "benchmark_speed_stat": 133,
+      "cap_benchmark_speed": 209,
+      "required_roster_speed": 210,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 64,
+      "boss_name": "Maxima",
+      "threat": "Empoleon",
+      "base_speed": 60,
+      "boss_level": 40,
+      "benchmark_speed_stat": 65,
+      "cap_benchmark_speed": 102,
+      "required_roster_speed": 103,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 64,
+      "boss_name": "Maxima",
+      "threat": "Alolan Ninetales",
+      "base_speed": 109,
+      "boss_level": 40,
+      "benchmark_speed_stat": 104,
+      "cap_benchmark_speed": 164,
+      "required_roster_speed": 165,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 64,
+      "boss_name": "Maxima",
+      "threat": "Mega Altaria",
+      "base_speed": 100,
+      "boss_level": 41,
+      "benchmark_speed_stat": 99,
+      "cap_benchmark_speed": 152,
+      "required_roster_speed": 153,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 68,
+      "boss_name": "Galavan",
+      "threat": "Bronzong",
+      "base_speed": 33,
+      "boss_level": 44,
+      "benchmark_speed_stat": 47,
+      "cap_benchmark_speed": 70,
+      "required_roster_speed": 71,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 68,
+      "boss_name": "Galavan",
+      "threat": "Alolan Golem",
+      "base_speed": 45,
+      "boss_level": 45,
+      "benchmark_speed_stat": 59,
+      "cap_benchmark_speed": 87,
+      "required_roster_speed": 88,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 68,
+      "boss_name": "Galavan",
+      "threat": "Lanturn",
+      "base_speed": 67,
+      "boss_level": 45,
+      "benchmark_speed_stat": 79,
+      "cap_benchmark_speed": 117,
+      "required_roster_speed": 118,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 68,
+      "boss_name": "Galavan",
+      "threat": "Mega Ampharos",
+      "base_speed": 55,
+      "boss_level": 46,
+      "benchmark_speed_stat": 70,
+      "cap_benchmark_speed": 101,
+      "required_roster_speed": 102,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 68,
+      "boss_name": "Galavan",
+      "threat": "Escavalier",
+      "base_speed": 20,
+      "boss_level": 45,
+      "benchmark_speed_stat": 37,
+      "cap_benchmark_speed": 53,
+      "required_roster_speed": 54,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 72,
+      "boss_name": "Big Mo",
+      "threat": "Mudsdale",
+      "base_speed": 35,
+      "boss_level": 52,
+      "benchmark_speed_stat": 58,
+      "cap_benchmark_speed": 78,
+      "required_roster_speed": 79,
+      "threat_mechanics": [
+        "TrickRoom"
+      ]
+    },
+    {
+      "level_cap": 72,
+      "boss_name": "Big Mo",
+      "threat": "Pangoro",
+      "base_speed": 58,
+      "boss_level": 52,
+      "benchmark_speed_stat": 81,
+      "cap_benchmark_speed": 111,
+      "required_roster_speed": 112,
+      "threat_mechanics": [
+        "TrickRoom",
+        "Priority-WickedBlow"
+      ]
+    },
+    {
+      "level_cap": 72,
+      "boss_name": "Big Mo",
+      "threat": "Snorlax",
+      "base_speed": 30,
+      "boss_level": 53,
+      "benchmark_speed_stat": 53,
+      "cap_benchmark_speed": 70,
+      "required_roster_speed": 71,
+      "threat_mechanics": [
+        "TrickRoom"
+      ]
+    },
+    {
+      "level_cap": 72,
+      "boss_name": "Big Mo",
+      "threat": "Hariyama",
+      "base_speed": 50,
+      "boss_level": 52,
+      "benchmark_speed_stat": 73,
+      "cap_benchmark_speed": 100,
+      "required_roster_speed": 101,
+      "threat_mechanics": [
+        "TrickRoom",
+        "Priority-FakeOut"
+      ]
+    },
+    {
+      "level_cap": 72,
+      "boss_name": "Big Mo",
+      "threat": "Wailord",
+      "base_speed": 60,
+      "boss_level": 53,
+      "benchmark_speed_stat": 85,
+      "cap_benchmark_speed": 114,
+      "required_roster_speed": 115,
+      "threat_mechanics": [
+        "TrickRoom"
+      ]
+    },
+    {
+      "level_cap": 75,
+      "boss_name": "Tessy",
+      "threat": "Toxapex",
+      "base_speed": 35,
+      "boss_level": 56,
+      "benchmark_speed_stat": 61,
+      "cap_benchmark_speed": 80,
+      "required_roster_speed": 81,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 75,
+      "boss_name": "Tessy",
+      "threat": "Armaldo",
+      "base_speed": 45,
+      "boss_level": 57,
+      "benchmark_speed_stat": 146,
+      "cap_benchmark_speed": 190,
+      "required_roster_speed": 191,
+      "threat_mechanics": [
+        "Weather-Rain",
+        "Priority-Accelerock"
+      ]
+    },
+    {
+      "level_cap": 75,
+      "boss_name": "Tessy",
+      "threat": "Kingdra",
+      "base_speed": 85,
+      "boss_level": 58,
+      "benchmark_speed_stat": 316,
+      "cap_benchmark_speed": 406,
+      "required_roster_speed": 407,
+      "threat_mechanics": [
+        "Weather-Rain"
+      ]
+    },
+    {
+      "level_cap": 75,
+      "boss_name": "Tessy",
+      "threat": "Seismitoad",
+      "base_speed": 74,
+      "boss_level": 57,
+      "benchmark_speed_stat": 284,
+      "cap_benchmark_speed": 372,
+      "required_roster_speed": 373,
+      "threat_mechanics": [
+        "Weather-Rain"
+      ]
+    },
+    {
+      "level_cap": 75,
+      "boss_name": "Tessy",
+      "threat": "Mega Gyarados",
+      "base_speed": 81,
+      "boss_level": 58,
+      "benchmark_speed_stat": 168,
+      "cap_benchmark_speed": 216,
+      "required_roster_speed": 217,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 75,
+      "boss_name": "Tessy",
+      "threat": "Seaking",
+      "base_speed": 68,
+      "boss_level": 57,
+      "benchmark_speed_stat": 272,
+      "cap_benchmark_speed": 354,
+      "required_roster_speed": 355,
+      "threat_mechanics": [
+        "Weather-Rain"
+      ]
+    },
+    {
+      "level_cap": 75,
+      "boss_name": "Elite Four: Moleman",
+      "threat": "Excadrill",
+      "base_speed": 88,
+      "boss_level": 74,
+      "benchmark_speed_stat": 316,
+      "cap_benchmark_speed": 322,
+      "required_roster_speed": 323,
+      "threat_mechanics": [
+        "Weather-SandRush"
+      ]
+    },
+    {
+      "level_cap": 75,
+      "boss_name": "Elite Four: Moleman",
+      "threat": "Flygon",
+      "base_speed": 100,
+      "boss_level": 76,
+      "benchmark_speed_stat": 228,
+      "cap_benchmark_speed": 225,
+      "required_roster_speed": 226,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 75,
+      "boss_name": "Elite Four: Moleman",
+      "threat": "Sandslash",
+      "base_speed": 65,
+      "boss_level": 76,
+      "benchmark_speed_stat": 256,
+      "cap_benchmark_speed": 252,
+      "required_roster_speed": 253,
+      "threat_mechanics": [
+        "Weather-SandRush"
+      ]
+    },
+    {
+      "level_cap": 75,
+      "boss_name": "Elite Four: Moleman",
+      "threat": "Quagsire",
+      "base_speed": 35,
+      "boss_level": 74,
+      "benchmark_speed_stat": 79,
+      "cap_benchmark_speed": 80,
+      "required_roster_speed": 81,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 75,
+      "boss_name": "Elite Four: Moleman",
+      "threat": "Gliscor",
+      "base_speed": 95,
+      "boss_level": 75,
+      "benchmark_speed_stat": 170,
+      "cap_benchmark_speed": 170,
+      "required_roster_speed": 171,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 75,
+      "boss_name": "Elite Four: Moleman",
+      "threat": "Landorus Therian",
+      "base_speed": 101,
+      "boss_level": 76,
+      "benchmark_speed_stat": 182,
+      "cap_benchmark_speed": 179,
+      "required_roster_speed": 180,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 78,
+      "boss_name": "Elite Four: Elias",
+      "threat": "Mimikyu",
+      "base_speed": 96,
+      "boss_level": 74,
+      "benchmark_speed_stat": 237,
+      "cap_benchmark_speed": 250,
+      "required_roster_speed": 251,
+      "threat_mechanics": [
+        "Priority-ShadowSneak"
+      ]
+    },
+    {
+      "level_cap": 78,
+      "boss_name": "Elite Four: Elias",
+      "threat": "Aegislash",
+      "base_speed": 60,
+      "boss_level": 75,
+      "benchmark_speed_stat": 118,
+      "cap_benchmark_speed": 122,
+      "required_roster_speed": 123,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 78,
+      "boss_name": "Elite Four: Elias",
+      "threat": "Trevenant",
+      "base_speed": 56,
+      "boss_level": 75,
+      "benchmark_speed_stat": 112,
+      "cap_benchmark_speed": 116,
+      "required_roster_speed": 117,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 78,
+      "boss_name": "Elite Four: Elias",
+      "threat": "Cofagrigus",
+      "base_speed": 30,
+      "boss_level": 76,
+      "benchmark_speed_stat": 74,
+      "cap_benchmark_speed": 75,
+      "required_roster_speed": 76,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 78,
+      "boss_name": "Elite Four: Elias",
+      "threat": "Mega Banette",
+      "base_speed": 65,
+      "boss_level": 76,
+      "benchmark_speed_stat": 127,
+      "cap_benchmark_speed": 130,
+      "required_roster_speed": 131,
+      "threat_mechanics": [
+        "Priority-SuckerPunch"
+      ]
+    },
+    {
+      "level_cap": 78,
+      "boss_name": "Elite Four: Elias",
+      "threat": "Blacephalon",
+      "base_speed": 107,
+      "boss_level": 76,
+      "benchmark_speed_stat": 262,
+      "cap_benchmark_speed": 269,
+      "required_roster_speed": 270,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 80,
+      "boss_name": "Rival Jax",
+      "threat": "Mega Salamence",
+      "base_speed": 100,
+      "boss_level": 76,
+      "benchmark_speed_stat": 250,
+      "cap_benchmark_speed": 264,
+      "required_roster_speed": 265,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 80,
+      "boss_name": "Rival Jax",
+      "threat": "Hitmontop",
+      "base_speed": 70,
+      "boss_level": 74,
+      "benchmark_speed_stat": 131,
+      "cap_benchmark_speed": 141,
+      "required_roster_speed": 142,
+      "threat_mechanics": [
+        "Priority-FakeOut"
+      ]
+    },
+    {
+      "level_cap": 80,
+      "boss_name": "Rival Jax",
+      "threat": "Magnezone",
+      "base_speed": 60,
+      "boss_level": 75,
+      "benchmark_speed_stat": 118,
+      "cap_benchmark_speed": 125,
+      "required_roster_speed": 126,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 80,
+      "boss_name": "Rival Jax",
+      "threat": "Gastrodon",
+      "base_speed": 39,
+      "boss_level": 74,
+      "benchmark_speed_stat": 85,
+      "cap_benchmark_speed": 92,
+      "required_roster_speed": 93,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 80,
+      "boss_name": "Rival Jax",
+      "threat": "Naganadel",
+      "base_speed": 121,
+      "boss_level": 76,
+      "benchmark_speed_stat": 286,
+      "cap_benchmark_speed": 300,
+      "required_roster_speed": 301,
+      "threat_mechanics": [
+        "None"
+      ]
+    },
+    {
+      "level_cap": 80,
+      "boss_name": "Rival Jax",
+      "threat": "Pyroar",
+      "base_speed": 106,
+      "boss_level": 75,
+      "benchmark_speed_stat": 257,
+      "cap_benchmark_speed": 273,
+      "required_roster_speed": 274,
+      "threat_mechanics": [
+        "None"
+      ]
+    }
+  ]
+}
