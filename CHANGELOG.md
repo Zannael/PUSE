@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- **Linked Save Sync** (Phase 1+2) — link a `.sav` on disk via File System Access API for live two-way sync with mGBA. Auto-reload on external changes, conflict banner when PUSE has unsaved edits, silent write-back on save. Behind `VITE_FEATURE_LINKED_SAVE=1` flag; launch with `Open PUSE Linked.bat` or `npm run dev:linked`.
+
 ### Changed
 
 - Added caught-ball preservation and editing for Party and PC Pokemon across backend and local frontend runtimes. The editor now shows the ball each Pokemon was caught in, exposes a dedicated caught-ball selector separate from held items, supports all CFRU/Unbound ball types, and writes the compact ball enum safely without confusing it with item IDs. New PC Pokemon insertions now default to Poke Ball unless another caught ball is selected.

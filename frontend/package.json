@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:linked": "vite --mode linked-save --open",
     "build": "vite build",
+    "build:linked": "vite build --mode linked-save",
     "lint": "eslint .",
     "preview": "vite preview",
     "pc:fallback-regression": "node scripts/pc-fallback-regression.mjs",

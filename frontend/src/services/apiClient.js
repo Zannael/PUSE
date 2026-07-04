@@ -432,7 +432,13 @@ const localClient = {
         } = await getLocalCoreModules();
         const finalized = new Uint8Array(getBuffer());
         saveAll(finalized, getPcContext());
-        downloadBlob(new Blob([finalized], { type: 'application/octet-stream' }), getFilename());
+
+        const { isLinkedSaveActive, writeLinkedFile } = await import('../core/linkedSave.js');
+        if (isLinkedSaveActive()) {
+            await writeLinkedFile(finalized);
+        } else {
+            downloadBlob(new Blob([finalized], { type: 'application/octet-stream' }), getFilename());
+        }
     },
     async getParty() {
         const { getSpeciesMap, getSpeciesFormMetaMap, getParty: readParty, getBuffer } = await getLocalCoreModules();

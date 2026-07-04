@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useMemo, useState, useEffect } from 'react';
+import React, { lazy, Suspense, useMemo, useState, useEffect, useCallback } from 'react';
 import {
     Upload,
     LayoutGrid,
@@ -17,9 +17,20 @@ import {
     Shield,
     Cpu,
     Database,
+    Link,
+    RefreshCw,
 } from 'lucide-react';
 import { createApiClient, getInitialRuntimeMode, persistRuntimeMode, RUNTIME_MODES } from './services/apiClient.js';
 import { getExpAtLevel, getSpeciesGrowthRate } from './core/growth.js';
+import {
+    isLinkedSaveEnabled,
+    linkSaveFile,
+    readLinkedFile,
+    getLinkedSaveMeta,
+    clearLinkedSave,
+} from './core/linkedSave.js';
+import { useLinkedSaveWatch } from './hooks/useLinkedSaveWatch.js';
+import { isDirty as isSaveSessionDirty } from './core/saveSession.js';
 
 const PartyGrid = lazy(() => import('./components/PartyGrid'));
 const PCGrid = lazy(() => import('./components/PCGrid'));
@@ -51,6 +62,7 @@ const App = () => {
     const [moneyInput, setMoneyInput] = useState('0');
     const [bpInput, setBpInput] = useState('0');
     const client = useMemo(() => createApiClient(runtimeMode), [runtimeMode]);
+    const [linkedMeta, setLinkedMeta] = useState(getLinkedSaveMeta);
 
     useEffect(() => {
         persistRuntimeMode(runtimeMode);
@@ -90,6 +102,46 @@ const App = () => {
         e.preventDefault();
         const file = e.dataTransfer?.files?.[0];
         await uploadSaveFile(file);
+    };
+
+    const isDirtyFn = useCallback(() => isSaveSessionDirty(), []);
+    const uploadSaveFileRef = React.useRef(uploadSaveFile);
+    uploadSaveFileRef.current = uploadSaveFile;
+    const handleLinkedReload = useCallback(async (file) => {
+        await uploadSaveFileRef.current(file);
+        setRefreshKey((prev) => prev + 1);
+    }, []);
+
+    const { externalChangePending, onReloadExternal, onDismissExternal } = useLinkedSaveWatch({
+        isLoaded,
+        isDirtyFn,
+        onReload: handleLinkedReload,
+    });
+
+    const handleLinkSave = async () => {
+        try {
+            const meta = await linkSaveFile();
+            setLinkedMeta(meta);
+            const file = await readLinkedFile();
+            await uploadSaveFile(file);
+        } catch (err) {
+            if (err?.name !== 'AbortError') {
+                alert(`Failed to link save file: ${err?.message || 'Unknown error'}`);
+            }
+        }
+    };
+
+    const handleUnlink = () => {
+        clearLinkedSave();
+        setLinkedMeta(getLinkedSaveMeta());
+    };
+
+    const handleManualReload = async () => {
+        try {
+            await onReloadExternal();
+        } catch (err) {
+            alert(`Reload failed: ${err?.message || 'Unknown error'}`);
+        }
     };
 
     const [selectedPokemon, setSelectedPokemon] = useState(null);
@@ -474,11 +526,36 @@ const App = () => {
                             >
                                 <RotateCcw size={14} /> RESTART / LOAD NEW FILE
                             </button>
+                            {linkedMeta.linked && (
+                                <>
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[11px] font-bold text-emerald-300">
+                                        <Link size={12} /> {linkedMeta.name}
+                                    </span>
+                                    <button
+                                        onClick={handleManualReload}
+                                        className="flex items-center gap-2 bg-emerald-700/30 hover:bg-emerald-600/40 text-emerald-200 border border-emerald-500/30 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all"
+                                        title="Reload save from linked file on disk"
+                                    >
+                                        <RefreshCw size={14} /> RELOAD
+                                    </button>
+                                    <button
+                                        onClick={handleUnlink}
+                                        className="px-2 py-1.5 rounded-full bg-slate-900 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                                        title="Disconnect linked save file"
+                                    >
+                                        UNLINK
+                                    </button>
+                                </>
+                            )}
                             <button
                                 onClick={handleDownload}
-                                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-full text-xs font-bold transition-all"
+                                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                                    linkedMeta.linked
+                                        ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                                        : 'bg-blue-600 hover:bg-blue-500 text-white'
+                                }`}
                             >
-                                <Save size={14} /> DOWNLOAD {saveExt.toUpperCase()}
+                                <Save size={14} /> {linkedMeta.linked ? 'SAVE TO DISK' : `DOWNLOAD ${saveExt.toUpperCase()}`}
                             </button>
                         </div>
                     )}
@@ -548,10 +625,21 @@ const App = () => {
                                                 SELECT SAVE FILE <ArrowRight size={14} />
                                                 <input type="file" className="hidden" onChange={handleUpload} accept=".sav,.srm" />
                                             </label>
+                                            {isLinkedSaveEnabled() && (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleLinkSave}
+                                                    className="mt-4 ml-2 inline-flex items-center gap-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-200 px-5 py-2.5 rounded-xl font-bold transition-all active:scale-95 text-xs md:text-sm"
+                                                >
+                                                    <Link size={14} /> LINK SAVE FILE
+                                                </button>
+                                            )}
                                         </div>
 
                                         <p className="mt-4 text-[11px] text-slate-400 leading-relaxed">
-                                            Tip: Local mode runs entirely in your browser. Backend mode uses FastAPI endpoints.
+                                            {isLinkedSaveEnabled()
+                                                ? 'Tip: Link a save file for live sync with mGBA. Edits write back to the same file on disk.'
+                                                : 'Tip: Local mode runs entirely in your browser. Backend mode uses FastAPI endpoints.'}
                                         </p>
                                     </div>
 
@@ -838,6 +926,28 @@ const App = () => {
                     </div>
                 )}
             </main>
+
+            {externalChangePending && (
+                <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[110] w-full max-w-md px-4">
+                    <div className="bg-slate-900 border border-amber-500/40 rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3">
+                        <p className="flex-1 text-[11px] text-amber-200">
+                            The linked save file changed on disk. Reload it? Unsaved edits in PUSE will be lost.
+                        </p>
+                        <button
+                            onClick={onReloadExternal}
+                            className="px-3 py-1.5 rounded-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-[11px] font-bold text-amber-200 transition-colors"
+                        >
+                            RELOAD
+                        </button>
+                        <button
+                            onClick={onDismissExternal}
+                            className="px-2 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-200 transition-colors"
+                        >
+                            DISMISS
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {showResourcesModal && (
                 <div

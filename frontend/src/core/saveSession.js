@@ -65,6 +65,14 @@ export function exportBlob() {
     return new Blob([session.saveBuffer], { type: 'application/octet-stream' });
 }
 
+export function isDirty() {
+    return session.dirty;
+}
+
+export function clearDirty() {
+    session.dirty = false;
+}
+
 export function getSessionSnapshot() {
     return {
         filename: session.filename,
