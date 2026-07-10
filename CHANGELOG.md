@@ -11,6 +11,7 @@
 ### Planned
 
 - Save state files editing
+- Assign any ability to any Pokémon
 - 3DS porting
 - Generate .pkm files from existing Unbound mons
 - Pokémon trainer editing
