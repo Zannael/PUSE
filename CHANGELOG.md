@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Added Unbound v2.1.1.1 static lookup data for species constants, ROM-derived species types, level-up learnsets, evolution metadata, Expert mode level caps, Expert mode rules, and Expert speed tiers. Backend JSON remains canonical, with synchronized frontend local-mode mirrors plus Switch and 3DS ROMFS data mirrors; speed tiers are stored as canonical JSON with no CSV runtime data or `openpyxl` dependency.
 - Added caught-ball preservation and editing for Party and PC Pokemon across backend and local frontend runtimes. The editor now shows the ball each Pokemon was caught in, exposes a dedicated caught-ball selector separate from held items, supports all CFRU/Unbound ball types, and writes the compact ball enum safely without confusing it with item IDs. New PC Pokemon insertions now default to Poke Ball unless another caught ball is selected.
 - Mirrored caught-ball parsing metadata in Switch and 3DS homebrew core structs so native runtimes preserve and expose the same save byte fields used by backend/local mode.
 
