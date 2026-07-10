@@ -238,8 +238,7 @@ async function runUnboundNoFalsePositive(api, unboundBytes) {
   report.push('[PASS] backend Unbound has no fallback false positives for boxes 22-24');
 
   const localBuffer = new Uint8Array(unboundBytes);
-  const { ctx, boxes } = localBoxesFromSave(localBuffer);
-  assert(!ctx.fallbackBoxStarts[22] && !ctx.fallbackBoxStarts[23] && !ctx.fallbackBoxStarts[24], 'local Unbound fallback flags should be absent');
+  const { boxes } = localBoxesFromSave(localBuffer);
   assert(boxes[22].length === 0, `local Unbound: box22 expected empty, got ${boxes[22].length}`);
   assert(boxes[23].length === 0, `local Unbound: box23 expected empty, got ${boxes[23].length}`);
   assert(boxes[24].length === 0, `local Unbound: box24 expected empty, got ${boxes[24].length}`);

@@ -10,7 +10,7 @@ const cache = {
     loaded: false,
 };
 
-const DATA_BASE_URL = `${import.meta.env.BASE_URL}data`;
+const DATA_BASE_URL = `${import.meta.env?.BASE_URL ?? '/'}data`;
 
 function parseIdNameText(content) {
     const map = new Map();
