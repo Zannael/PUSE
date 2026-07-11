@@ -53,4 +53,6 @@ std::string PocketTypeForItemId(uint16_t item_id);
 const std::unordered_set<uint16_t> &GetTmHmItemIds();
 const std::unordered_set<uint16_t> &GetKeyItemIds();
 
+std::vector<uint16_t> CollectOwnedTmHmItemIds(const std::vector<uint8_t> &buf, bool *tm_case_owned = nullptr);
+
 } // namespace puse::core

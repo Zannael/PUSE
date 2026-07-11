@@ -2,13 +2,15 @@
 .SUFFIXES:
 #---------------------------------------------------------------------------------
 
-ifneq ($(filter test-phase1 test-phase2,$(MAKECMDGOALS)),)
+ifneq ($(filter test-phase1 test-phase2 test-phase3,$(MAKECMDGOALS)),)
 
-.PHONY: test-phase1 test-phase2
+.PHONY: test-phase1 test-phase2 test-phase3
 test-phase1:
 	@"$(CURDIR)/scripts/test_phase1_parity.sh"
 test-phase2:
 	@"$(CURDIR)/scripts/test_phase2_party_parity.sh"
+test-phase3:
+	@"$(CURDIR)/scripts/test_phase3_game_progress_parity.sh"
 
 else
 

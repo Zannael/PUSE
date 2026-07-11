@@ -10,6 +10,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import FileResponse, Response
 from modules import party as party_mod
 from modules import bag as bag_mod
+from modules import game_progress as game_progress_mod
 from modules import money as money_mod
 from pydantic import BaseModel
 from modules import pc as box_mod
@@ -500,6 +501,21 @@ async def get_battle_points():
 
     bp = party_mod.ru16(current_save["data"], sec_off + BP_OFFSET_IN_SECTION)
     return {"bp": int(bp)}
+
+
+@app.get("/game-progress")
+async def get_game_progress(cap_profile: str = "normal"):
+    """Return a read-only save progress snapshot for local/backend parity."""
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
+
+    return {
+        "source_file": current_save.get("filename"),
+        "game_progress": game_progress_mod.build_game_progress_snapshot(
+            current_save["data"],
+            cap_profile=cap_profile,
+        ),
+    }
 
 
 @app.post("/bp/update")

@@ -329,12 +329,13 @@ std::vector<ItemCandidate> ScanForItemCandidates(const std::vector<uint8_t> &buf
     all.insert(all.end(), medium_list.begin(), medium_list.end());
 
     // Dedup by (save_idx, sect_id, offset, encoding_swapped)
-    std::unordered_map<uint64_t, size_t> best_by_key;
+    std::unordered_map<std::string, size_t> best_by_key;
     for (size_t i = 0; i < all.size(); ++i) {
         const auto &c = all[i];
-        const uint64_t key = (static_cast<uint64_t>(c.save_idx) << 32U) |
-                             (static_cast<uint64_t>(c.sect_id) << 16U) |
-                             (static_cast<uint64_t>(c.encoding_swapped ? 1 : 0));
+        const std::string key = std::to_string(c.save_idx) + "|" +
+                                std::to_string(c.sect_id) + "|" +
+                                std::to_string(c.offset) + "|" +
+                                (c.encoding_swapped ? "1" : "0");
         auto it = best_by_key.find(key);
         if (it == best_by_key.end()) {
             best_by_key[key] = i;
@@ -387,6 +388,79 @@ std::vector<ItemCandidate> ScanForItemCandidates(const std::vector<uint8_t> &buf
         return a.offset < b.offset;
     });
     return deduped;
+}
+
+std::vector<ItemCandidate> ScanGlobalIdSetPockets(const std::vector<uint8_t> &buf,
+                                                   const std::unordered_set<uint16_t> &valid_ids,
+                                                   int score_bonus,
+                                                   int min_slots) {
+    std::vector<ItemCandidate> out;
+    if (valid_ids.empty()) { return out; }
+
+    const size_t total = buf.size() / kBagSectionSize;
+    const uint32_t active_idx = ComputeActiveSaveIdx(buf, kBagSectorIds);
+    for (size_t si = 0; si < total; ++si) {
+        const uint32_t sec_off = static_cast<uint32_t>(si * kBagSectionSize);
+        const uint16_t sect_id = ReadU16Le(buf.data(), sec_off + kBagOffId);
+        const uint32_t save_idx = ReadU32Le(buf.data(), sec_off + kBagOffSaveIdx);
+        if (!kBagSectorIds.count(sect_id)) { continue; }
+        if (save_idx == 0 || (active_idx > 0 && save_idx != active_idx)) { continue; }
+
+        for (uint32_t rel = 0; rel + 3 < kBagOffValidLen; rel += 2) {
+            const uint32_t abs_off = sec_off + rel;
+            if (rel >= (kBagOffValidLen - kMinTrailerHeadroom)) { continue; }
+
+            for (bool sw : {false, true}) {
+                uint16_t iid, qty;
+                DecodeSlot(buf, abs_off, sw, &iid, &qty);
+                if (!valid_ids.count(iid) || qty == 0) { continue; }
+                if (!IsPlausibleSlot(iid, qty)) { continue; }
+
+                PocketBounds b{};
+                if (!ExtractPocketBounds(buf, abs_off, sw, &b)) { continue; }
+                if (b.non_zero < min_slots) { continue; }
+
+                int family_hits = 0;
+                uint32_t curr = b.start_abs;
+                while (curr < b.end_abs && curr + 3 < static_cast<uint32_t>(buf.size())) {
+                    uint16_t sid, sqty;
+                    DecodeSlot(buf, curr, sw, &sid, &sqty);
+                    if (sid == 0) { break; }
+                    if (valid_ids.count(sid)) { ++family_hits; }
+                    curr += 4;
+                }
+                const double purity = b.non_zero > 0 ? static_cast<double>(family_hits) / b.non_zero : 0.0;
+                if (purity < 0.90) { continue; }
+
+                const std::string quality = ClassifyPocketQuality(b.non_zero, b.dup_count, b.slot_count);
+                if (quality == "reject") { continue; }
+
+                ItemCandidate c;
+                c.offset = b.start_abs;
+                c.pocket_end = b.end_abs;
+                c.sector_idx = static_cast<int>(si);
+                c.sect_id = sect_id;
+                c.save_idx = save_idx;
+                c.pocket_slots = b.slot_count;
+                c.pocket_dups = b.dup_count;
+                c.pocket_nonzero = b.non_zero;
+                c.encoding_swapped = sw;
+                c.score = ScorePocket(b.non_zero, b.dup_count, b.slot_count) + score_bonus;
+                c.quality = quality;
+                out.push_back(c);
+            }
+        }
+    }
+
+    std::sort(out.begin(), out.end(), [](const ItemCandidate &a, const ItemCandidate &b) {
+        if (a.save_idx != b.save_idx) { return a.save_idx > b.save_idx; }
+        const int qa = (a.quality == "strict") ? 0 : 1;
+        const int qb = (b.quality == "strict") ? 0 : 1;
+        if (qa != qb) { return qa < qb; }
+        if (a.score != b.score) { return a.score > b.score; }
+        return a.offset < b.offset;
+    });
+    return out;
 }
 
 struct QuickPocketResult {
@@ -541,6 +615,18 @@ QuickPocketResult ResolveFamilyPocket(const std::vector<uint8_t> &buf,
         r.score = top.score; r.slot_count = top.pocket_slots; r.dup_count = top.pocket_dups;
         r.source = std::string("scan_fallback");
         r.confidence = (top.quality == "strict") ? "high" : "medium";
+        return r;
+    }
+
+    const int sparse_floor = std::max(4, min_slots / 3);
+    const int score_bonus = pocket_type == "key" ? 520 : (pocket_type == "tm" ? 480 : 450);
+    const auto sparse = ScanGlobalIdSetPockets(buf, family_ids, score_bonus, sparse_floor);
+    if (!sparse.empty()) {
+        const auto &top = sparse[0];
+        r.found = true; r.anchor_offset = top.offset; r.quality = top.quality;
+        r.score = top.score; r.slot_count = top.pocket_slots; r.dup_count = top.pocket_dups;
+        r.source = "global_idset_scan";
+        r.confidence = (top.quality == "strict") ? "medium" : "low";
         return r;
     }
     return r;
@@ -812,5 +898,28 @@ std::string PocketTypeForItemId(uint16_t item_id) {
 
 const std::unordered_set<uint16_t> &GetTmHmItemIds() { return g_tmhm_ids; }
 const std::unordered_set<uint16_t> &GetKeyItemIds()  { return g_key_ids; }
+
+std::vector<uint16_t> CollectOwnedTmHmItemIds(const std::vector<uint8_t> &buf, bool *tm_case_owned) {
+    EnsureBagDataLoaded(nullptr);
+    const auto pockets = ResolveQuickPockets(buf);
+    const auto it = pockets.find("tm");
+    const bool owned_case = (it != pockets.end()) && !it->second.locked;
+    if (tm_case_owned != nullptr) {
+        *tm_case_owned = owned_case;
+    }
+
+    std::unordered_set<uint16_t> owned;
+    if (owned_case && it != pockets.end()) {
+        for (const auto &slot : MapPocketFromAnchor(buf, it->second.anchor_offset)) {
+            if ((slot.item_id > 0) && (slot.qty > 0) && (g_tmhm_ids.count(slot.item_id) != 0U)) {
+                owned.insert(slot.item_id);
+            }
+        }
+    }
+
+    std::vector<uint16_t> out(owned.begin(), owned.end());
+    std::sort(out.begin(), out.end());
+    return out;
+}
 
 } // namespace puse::core

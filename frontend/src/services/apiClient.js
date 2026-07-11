@@ -80,7 +80,8 @@ async function getLocalCoreModules() {
             import('../core/rtc.js'),
             import('../core/saveConvert.js'),
             import('../core/balls.js'),
-        ]).then(([catalog, party, saveSession, pc, bag, money, commit, rtc, saveConvert, balls]) => ({
+            import('../core/gameProgress.js'),
+        ]).then(([catalog, party, saveSession, pc, bag, money, commit, rtc, saveConvert, balls, gameProgress]) => ({
             ...catalog,
             ...party,
             ...saveSession,
@@ -91,6 +92,7 @@ async function getLocalCoreModules() {
             ...rtc,
             ...saveConvert,
             ...balls,
+            ...gameProgress,
         }));
     }
     return localCoreModulesPromise;
@@ -163,6 +165,9 @@ const backendClient = {
     },
     getBp() {
         return backendJson('/bp');
+    },
+    getGameProgress(capProfile = 'normal') {
+        return backendJson(`/game-progress?cap_profile=${encodeURIComponent(capProfile)}`);
     },
     async updateMoney(amount) {
         const res = await fetch(`${API_BASE}/money/update?amount=${amount}`, { method: "POST" });
@@ -406,6 +411,14 @@ const localClient = {
         const { readBp, getBuffer } = await getLocalCoreModules();
         const bp = readBp(getBuffer());
         return { bp };
+    },
+    async getGameProgress(capProfile = 'normal') {
+        const { buildGameProgressSnapshot, getBuffer, getFilename } = await getLocalCoreModules();
+        const itemNameById = await getItemNameMap();
+        return {
+            source_file: getFilename(),
+            game_progress: buildGameProgressSnapshot(getBuffer(), { itemNameById, capProfile }),
+        };
     },
     async updateMoney(amount) {
         const { updateBuffer, readMoney, updateMoney: patchMoney } = await getLocalCoreModules();
