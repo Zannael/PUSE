@@ -12,7 +12,8 @@
     "identity:regression": "node scripts/identity-regression.mjs",
     "rtc:parity-regression": "node scripts/rtc-parity-regression.mjs",
     "game-progress:regression": "node scripts/game-progress-regression.mjs",
-    "parity:all": "npm run rtc:parity-regression && npm run pc:fallback-regression && npm run identity:regression && npm run game-progress:regression",
+    "pokedex-flags:regression": "node scripts/pokedex-flags-regression.mjs",
+    "parity:all": "npm run rtc:parity-regression && npm run pc:fallback-regression && npm run identity:regression && npm run game-progress:regression && npm run pokedex-flags:regression",
     "icons:manifest": "node scripts/generate-icon-manifests.mjs",
     "icons:check": "node scripts/generate-icon-manifests.mjs --check"
   },

@@ -72,4 +72,15 @@ bool IsSectionChecksumValid(const std::vector<uint8_t> &buffer, const SaveSectio
     return ComputeSectionChecksumForSection(buffer, section) == section.stored_checksum;
 }
 
+bool RecalculateSectionChecksum(std::vector<uint8_t> &buffer, const size_t section_offset) {
+    if ((section_offset + kSectionSize) > buffer.size()) {
+        return false;
+    }
+
+    const uint32_t valid_len = ReadU32Le(&buffer[section_offset], kFooterValidLenOffset);
+    const uint16_t checksum = ComputeSectionChecksum(&buffer[section_offset], kFooterIdOffset, valid_len);
+    WriteU16Le(&buffer[section_offset], kFooterChecksumOffset, checksum);
+    return true;
+}
+
 } // namespace puse::core

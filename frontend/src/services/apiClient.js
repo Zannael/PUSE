@@ -81,7 +81,8 @@ async function getLocalCoreModules() {
             import('../core/saveConvert.js'),
             import('../core/balls.js'),
             import('../core/gameProgress.js'),
-        ]).then(([catalog, party, saveSession, pc, bag, money, commit, rtc, saveConvert, balls, gameProgress]) => ({
+            import('../core/pokedexFlags.js'),
+        ]).then(([catalog, party, saveSession, pc, bag, money, commit, rtc, saveConvert, balls, gameProgress, pokedexFlags]) => ({
             ...catalog,
             ...party,
             ...saveSession,
@@ -93,6 +94,7 @@ async function getLocalCoreModules() {
             ...saveConvert,
             ...balls,
             ...gameProgress,
+            ...pokedexFlags,
         }));
     }
     return localCoreModulesPromise;
@@ -168,6 +170,19 @@ const backendClient = {
     },
     getGameProgress(capProfile = 'normal') {
         return backendJson(`/game-progress?cap_profile=${encodeURIComponent(capProfile)}`);
+    },
+    getPokedexFlags(speciesId) {
+        return backendJson(`/pokedex/flags/${Number(speciesId)}`);
+    },
+    updatePokedexFlag(speciesId, payload) {
+        return backendJson(`/pokedex/flags/${Number(speciesId)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+    },
+    getPokedexSummary() {
+        return backendJson('/pokedex/summary');
     },
     async updateMoney(amount) {
         const res = await fetch(`${API_BASE}/money/update?amount=${amount}`, { method: "POST" });
@@ -419,6 +434,25 @@ const localClient = {
             source_file: getFilename(),
             game_progress: buildGameProgressSnapshot(getBuffer(), { itemNameById, capProfile }),
         };
+    },
+    async getPokedexFlags(speciesId) {
+        const { getBuffer, getPokedexFlags: readPokedexFlags } = await getLocalCoreModules();
+        return readPokedexFlags(getBuffer(), Number(speciesId));
+    },
+    async updatePokedexFlag(speciesId, payload) {
+        const { updateBuffer, setPokedexFlag: patchPokedexFlag } = await getLocalCoreModules();
+        let result = null;
+        updateBuffer((next) => {
+            result = patchPokedexFlag(next, Number(speciesId), payload?.flag, payload?.value);
+        });
+        if (!result?.ok) {
+            throw new Error(result?.reason || 'pokedex flag update failed');
+        }
+        return result;
+    },
+    async getPokedexSummary() {
+        const { buildPokedexSummary, getBuffer, getSpeciesList } = await getLocalCoreModules();
+        return buildPokedexSummary(getBuffer(), await getSpeciesList());
     },
     async updateMoney(amount) {
         const { updateBuffer, readMoney, updateMoney: patchMoney } = await getLocalCoreModules();

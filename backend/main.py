@@ -11,6 +11,7 @@ from fastapi.responses import FileResponse, Response
 from modules import party as party_mod
 from modules import bag as bag_mod
 from modules import game_progress as game_progress_mod
+from modules import pokedex_flags as pokedex_flags_mod
 from modules import money as money_mod
 from pydantic import BaseModel
 from modules import pc as box_mod
@@ -516,6 +517,39 @@ async def get_game_progress(cap_profile: str = "normal"):
             cap_profile=cap_profile,
         ),
     }
+
+
+class PokedexFlagUpdate(BaseModel):
+    flag: str
+    value: bool
+
+
+@app.get("/pokedex/flags/{species_id}")
+async def get_pokedex_flags(species_id: int):
+    """Return internal Pokédex seen/caught flags for one species."""
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
+    return pokedex_flags_mod.get_pokedex_flags(current_save["data"], species_id)
+
+
+@app.post("/pokedex/flags/{species_id}")
+async def update_pokedex_flag(species_id: int, data: PokedexFlagUpdate):
+    """Update one internal Pokédex flag and refresh the trainer checksum."""
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
+    result = pokedex_flags_mod.set_pokedex_flag(current_save["data"], species_id, data.flag, data.value)
+    if not result.get("ok"):
+        raise HTTPException(status_code=400, detail=result.get("reason", "pokedex flag update failed"))
+    return result
+
+
+@app.get("/pokedex/summary")
+async def get_pokedex_summary():
+    """Return seen/caught completion across trackable species rows."""
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
+    rows = [{"id": sid, "name": name} for sid, name in sorted(party_mod.DB_SPECIES.items())]
+    return pokedex_flags_mod.build_pokedex_summary(current_save["data"], rows)
 
 
 @app.post("/bp/update")

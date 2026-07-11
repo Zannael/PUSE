@@ -5,6 +5,7 @@
 ### Changed
 
 - Added a read-only Unbound game-progress snapshot with strict backend, frontend local-mode, Switch, and 3DS parity. The shared snapshot reports badge/champion state, normal and Expert level caps, money/BP, TM/HM ownership, key progression items, and tracked consumable counts, with new frontend and homebrew parity regression coverage.
+- Added internal Pokédex seen/caught flag read/write support with strict backend, frontend local-mode, Switch, and 3DS parity. Caught updates also mark the species as seen, trainer-section checksums are recalculated after writes, and new frontend plus native phase4 parity regressions cover the CFRU/Unbound bitfield layout.
 - Added Unbound v2.1.1.1 static lookup data for species constants, ROM-derived species types, level-up learnsets, evolution metadata, Expert mode level caps, Expert mode rules, and Expert speed tiers. Backend JSON remains canonical, with synchronized frontend local-mode mirrors plus Switch and 3DS ROMFS data mirrors; speed tiers are stored as canonical JSON with no CSV runtime data or `openpyxl` dependency.
 - Added caught-ball preservation and editing for Party and PC Pokemon across backend and local frontend runtimes. The editor now shows the ball each Pokemon was caught in, exposes a dedicated caught-ball selector separate from held items, supports all CFRU/Unbound ball types, and writes the compact ball enum safely without confusing it with item IDs. New PC Pokemon insertions now default to Poke Ball unless another caught ball is selected.
 - Mirrored caught-ball parsing metadata in Switch and 3DS homebrew core structs so native runtimes preserve and expose the same save byte fields used by backend/local mode.
@@ -22,7 +23,6 @@
 - Investigate save flags editing feasibility for difficulty mode and NG+ state.
 - Extend Trainer Profile editing to include identity metadata: name (with character encoding validation), gender/style flags, and appearance parameters (hair color/skin tone).
 - Implement "Costume Box" unlocker and wardrobe editing.
-- Find a way to manually flag "Seen" or "Caught" when editing a species that hasn't be seen/caught before. Leaving the decision to flag it to the user, thus the "manually".
 - Complete box 20 fallback mapping for slots `22..30` in the Unbound tail layout. Current support enables slots `1..21` only, because the remaining segment overlaps ambiguous trailer bytes where deterministic slot mapping is not yet proven checksum-safe across save variants.
 - Add keyboard-assisted stat editing shortcuts (Ctrl+click to set max, Alt+click to set zero) for IV/EV fields.
 - Happiness editing

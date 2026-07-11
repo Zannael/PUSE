@@ -25,5 +25,6 @@ uint16_t ComputeSectionChecksum(const uint8_t *payload, size_t payload_len, uint
 std::vector<SaveSection> ListSections(const std::vector<uint8_t> &buffer);
 uint16_t ComputeSectionChecksumForSection(const std::vector<uint8_t> &buffer, const SaveSection &section);
 bool IsSectionChecksumValid(const std::vector<uint8_t> &buffer, const SaveSection &section);
+bool RecalculateSectionChecksum(std::vector<uint8_t> &buffer, size_t section_offset);
 
 } // namespace puse::core
