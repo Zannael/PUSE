@@ -4,6 +4,9 @@
 
 ### Changed
 
+- Added PC release support across backend, frontend local mode, Switch, and 3DS, including checksum-safe writes, single-Pokemon confirmation UI, save refresh, and focused regression coverage.
+- Added canonical internal-species-to-National-Dex mapping with 809 real National Dex entries. Form children share their base species flag and Mega, Gigantamax, Regional, and other non-independent forms are displayed as read-only entries.
+- Added synchronized Pokédex species mapping assets and build tooling, keeping backend data canonical and mirroring the mapping to frontend, Switch, and 3DS runtimes.
 - Added a read-only Unbound game-progress snapshot with strict backend, frontend local-mode, Switch, and 3DS parity. The shared snapshot reports badge/champion state, normal and Expert level caps, money/BP, TM/HM ownership, key progression items, and tracked consumable counts, with new frontend and homebrew parity regression coverage.
 - Added internal Pokédex seen/caught flag read/write support with strict backend, frontend local-mode, Switch, and 3DS parity. Caught updates also mark the species as seen, trainer-section checksums are recalculated after writes, and new frontend plus native phase4 parity regressions cover the CFRU/Unbound bitfield layout.
 - Added a minimal frontend Pokédex flags UI with a Dex summary tab and Seen/Caught controls in the Pokémon editor, backed by the existing backend/local parity APIs.
@@ -13,9 +16,16 @@
 
 ### Planned
 
+- Add focused roster export for the party and selected PC Pokemon, with a stable Markdown or structured output format.
+- Add an optional ROM-truth battle-stat and Hidden Power preview without importing the full broad legality system.
+- Evaluate a scoped All Pokemon table only after its filtering, selection, and bulk-action UX is defined.
+- Design party/PC transfer as a complete backend, frontend local-mode, Switch, and 3DS save mutation feature before implementation.
+- Revisit linked save sync as an optional local-mode feature after resolving browser support, file permissions, emulator write races, dirty-state handling, and regression coverage.
+- Add focused PC release UI polish and bulk-release support only if the safety and selection behavior are clearly defined.
+- Keep the broad PR #19 roster, strategy-data, and transfer bundle deferred rather than importing it as a single feature.
+- Keep PR #20 linked-save sync deferred until its experimental lifecycle and conflict behavior are redesigned.
 - Save state files editing
 - Assign any ability to any Pokémon
-- 3DS porting
 - Generate .pkm files from existing Unbound mons
 - Pokémon trainer editing
 - Generate valid mistery gifts
