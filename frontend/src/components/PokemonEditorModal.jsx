@@ -3,6 +3,7 @@ import { X, Zap, Save, Search, Download, CircleHelp } from 'lucide-react';
 import { calcCurrentLevel, GROWTH_OPTIONS } from '../core/growth.js';
 import { ITEM_ICON_FALLBACK_URL, POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 import { NATURES, normalizeName, parseShowdownSet, resolveShowdownSet } from '../core/showdownImport.js';
+import PokedexFlagsControls from './PokedexFlagsControls.jsx';
 
 const EV_STAT_MAX = 252;
 const EV_TOTAL_MAX = 510;
@@ -840,6 +841,17 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                                     />
                                     Rename nickname to selected species when changing species
                                 </label>
+                            </div>
+
+                            <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
+                                    Pokédex Flags
+                                </label>
+                                <PokedexFlagsControls
+                                    client={client}
+                                    speciesId={localPk.species_id}
+                                    speciesLabel={currentSpeciesName}
+                                />
                             </div>
 
                             <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">

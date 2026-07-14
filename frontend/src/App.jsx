@@ -4,6 +4,7 @@ import {
     LayoutGrid,
     Users,
     Briefcase,
+    BookOpen,
     Save,
     Edit3,
     X,
@@ -24,6 +25,7 @@ import { getExpAtLevel, getSpeciesGrowthRate } from './core/growth.js';
 const PartyGrid = lazy(() => import('./components/PartyGrid'));
 const PCGrid = lazy(() => import('./components/PCGrid'));
 const BagView = lazy(() => import('./components/BagView.jsx'));
+const LivingDexPanel = lazy(() => import('./components/LivingDexPanel.jsx'));
 const PokemonEditorModal = lazy(() =>
     import('./components/PokemonEditorModal.jsx').then((mod) => ({ default: mod.PokemonEditorModal }))
 );
@@ -834,6 +836,7 @@ const App = () => {
                                 onAddPokemon={(target) => setPcInsertTarget(target)}
                             />}
                             {activeTab === 'bag' && <BagView client={client} initialUnsaved={bagHasUnsavedChanges} onDirtyChange={setBagHasUnsavedChanges} />}
+                            {activeTab === 'dex' && <LivingDexPanel key={`dex-${refreshKey}`} client={client} />}
                         </Suspense>
                     </div>
                 )}
@@ -932,10 +935,11 @@ const App = () => {
             )}
 
             {isLoaded && (
-                <nav className="fixed bottom-6 w-[90%] max-w-md bg-[#1e293b]/95 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-2 shadow-2xl flex justify-around z-50">
+                <nav className="fixed bottom-6 w-[92%] max-w-lg bg-[#1e293b]/95 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-2 shadow-2xl flex justify-around z-50">
                     <TabItem icon={<LayoutGrid size={20}/>} label="Party" active={activeTab === 'party'} onClick={() => handleTabChange('party')} />
                     <TabItem icon={<Users size={20}/>} label="PC Box" active={activeTab === 'pc'} onClick={() => handleTabChange('pc')} />
                     <TabItem icon={<Briefcase size={20}/>} label="Bag" active={activeTab === 'bag'} onClick={() => handleTabChange('bag')} />
+                    <TabItem icon={<BookOpen size={20}/>} label="Dex" active={activeTab === 'dex'} onClick={() => handleTabChange('dex')} />
                 </nav>
             )}
 
