@@ -25,6 +25,7 @@ CPP_COMMON=(
   "$SWITCH_ROOT/source/core/SaveSections.cpp"
   "$SWITCH_ROOT/source/core/SaveSession.cpp"
   "$SWITCH_ROOT/source/core/PokedexFlags.cpp"
+  "$SWITCH_ROOT/source/io/DataLoader.cpp"
 )
 
 g++ "${CPP_COMMON[@]}" "$SWITCH_ROOT/tests/pokedex_flags_dump.cpp" -o "$SWITCH_ROOT/build/host/pokedex_flags_dump"
@@ -55,7 +56,8 @@ lines.append(fmt('initial_25', pokedex_flags.get_pokedex_flags(buf, 25)))
 lines.append(fmt('set_seen_25', pokedex_flags.set_pokedex_flag(buf, 25, 'seen', True)))
 lines.append(fmt('set_caught_25', pokedex_flags.set_pokedex_flag(buf, 25, 'caught', True)))
 lines.append(fmt('clear_caught_25', pokedex_flags.set_pokedex_flag(buf, 25, 'caught', False)))
-lines.append(fmt('untracked_1000', pokedex_flags.get_pokedex_flags(buf, 1000)))
+lines.append(fmt('form_1020', pokedex_flags.get_pokedex_flags(buf, 1020)))
+lines.append(fmt('untracked_1300', pokedex_flags.get_pokedex_flags(buf, 1300)))
 out_path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
 PY
 

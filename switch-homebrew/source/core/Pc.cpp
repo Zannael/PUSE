@@ -594,6 +594,17 @@ bool UpdatePcMonAbilitySwitch(std::vector<uint8_t> &stream, const int box, const
     return true;
 }
 
+bool ReleasePcMon(std::vector<uint8_t> &stream, const int box, const int slot, std::string *error) {
+    if (!ValidatePcSlotArgs(stream, box, slot, error)) { return false; }
+    uint8_t *mon = MutableSlot(stream, box, slot);
+    if (!IsPcMonValid(mon)) {
+        if (error) { *error = "slot is empty or invalid"; }
+        return false;
+    }
+    std::fill(mon, mon + kPcMonSize, 0);
+    return true;
+}
+
 bool InsertPcMon(std::vector<uint8_t> &stream,
                  const int box, const int slot,
                  const uint16_t species_id,

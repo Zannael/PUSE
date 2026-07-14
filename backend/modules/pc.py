@@ -691,6 +691,13 @@ class UnboundPCMon:
 
 
 # --- GESTIONE BUFFER & FILE ---
+def release_pc_mon(raw):
+    """Return an empty PC slot while preserving the fixed slot width."""
+    if raw is None or len(raw) < MON_SIZE_PC:
+        raise ValueError("Invalid PC slot")
+    return bytearray(MON_SIZE_PC)
+
+
 def get_active_pc_sectors(data):
     sections = []
     for i in range(0, len(data), SECTION_SIZE):

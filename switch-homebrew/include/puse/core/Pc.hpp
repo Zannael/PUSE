@@ -71,6 +71,8 @@ bool UpdatePcMonShiny(std::vector<uint8_t> &stream, int box, int slot, bool shin
 bool UpdatePcMonHiddenAbility(std::vector<uint8_t> &stream, int box, int slot, bool hidden, std::string *error = nullptr);
 // ability_index: 0 or 1 = standard slot (modifies PID bit 0 while preserving nature), 2 = hidden (HA flag).
 bool UpdatePcMonAbilitySwitch(std::vector<uint8_t> &stream, int box, int slot, int ability_index, std::string *error = nullptr);
+// Clear an occupied standard PC stream slot.
+bool ReleasePcMon(std::vector<uint8_t> &stream, int box, int slot, std::string *error = nullptr);
 
 // Insert a new mon into an empty slot. Returns false if slot is occupied or out of bounds.
 // Sets all IVs to 31 and Hardy nature by default.

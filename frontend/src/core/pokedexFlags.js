@@ -1,12 +1,13 @@
 import { ru8, wu8 } from './binary.js';
 import { recalculateTrainerChecksum } from './checksum.js';
 import { findActiveSectionById } from './sections.js';
+import { buildPokedexSpeciesGroups, dexIdForSpeciesId, MAX_TRACKED_DEX_ID } from './pokedexCatalog.js';
 
 export const TRAINER_SECTION_ID = 1;
 export const DEX_SEEN_OFFSET = 0x0310;
 export const DEX_CAUGHT_OFFSET = 0x038D;
 export const DEX_FLAG_BYTE_COUNT = 125;
-export const MAX_TRACKED_DEX_ID = 999;
+export { MAX_TRACKED_DEX_ID };
 
 export const POKEDEX_FLAG = {
     SEEN: 'seen',
@@ -70,53 +71,62 @@ export function isDexSpeciesTrackable(speciesId) {
 }
 
 export function getPokedexFlags(buffer, speciesId) {
-    if (!isDexSpeciesTrackable(speciesId)) {
+    const dexId = dexIdForSpeciesId(speciesId);
+    if (!isDexSpeciesTrackable(dexId)) {
         return { trackable: false, seen: false, caught: false };
     }
     return {
         trackable: true,
-        seen: Boolean(readFlagAtOffset(buffer, DEX_SEEN_OFFSET, speciesId)),
-        caught: Boolean(readFlagAtOffset(buffer, DEX_CAUGHT_OFFSET, speciesId)),
+        dex_id: dexId,
+        seen: Boolean(readFlagAtOffset(buffer, DEX_SEEN_OFFSET, dexId)),
+        caught: Boolean(readFlagAtOffset(buffer, DEX_CAUGHT_OFFSET, dexId)),
     };
 }
 
 export function setPokedexFlag(buffer, speciesId, flag, value) {
+    const dexId = dexIdForSpeciesId(speciesId);
     const normalized = flag === POKEDEX_FLAG.CAUGHT ? POKEDEX_FLAG.CAUGHT : POKEDEX_FLAG.SEEN;
     const offset = normalized === POKEDEX_FLAG.CAUGHT ? DEX_CAUGHT_OFFSET : DEX_SEEN_OFFSET;
     const enabled = Boolean(value);
-    if (!writeFlagAtOffset(buffer, offset, speciesId, enabled)) {
+    if (!writeFlagAtOffset(buffer, offset, dexId, enabled)) {
         return { ok: false, reason: 'untrackable_or_missing_section' };
     }
     if (enabled && normalized === POKEDEX_FLAG.CAUGHT) {
-        writeFlagAtOffset(buffer, DEX_SEEN_OFFSET, speciesId, true);
+        writeFlagAtOffset(buffer, DEX_SEEN_OFFSET, dexId, true);
     }
     return { ok: true, ...getPokedexFlags(buffer, speciesId) };
 }
 
 export function buildPokedexSummary(buffer, speciesRows = []) {
-    const trackableSpecies = (speciesRows || [])
-        .map((row) => ({
-            id: Number(row.id),
-            name: row.label || row.display_name || row.name || `Species ${row.id}`,
-        }))
-        .filter((row) => isDexSpeciesTrackable(row.id))
-        .sort((a, b) => a.id - b.id);
+    const groups = buildPokedexSpeciesGroups(speciesRows);
 
     let seenCount = 0;
     let caughtCount = 0;
-    const entries = trackableSpecies.map((row) => {
-        const flags = getPokedexFlags(buffer, row.id);
+    const entries = [...groups.entries()].sort(([a], [b]) => a - b).map(([dexId, rows]) => {
+        const base = rows[0];
+        const baseName = base.display_name || base.name || `Species ${dexId}`;
+        const forms = rows.slice(1).map((row) => {
+            const label = row.label || row.display_name || row.name || 'Form';
+            const prefix = `${baseName} (`;
+            return {
+                name: label.startsWith(prefix) && label.endsWith(')') ? label.slice(prefix.length, -1) : label,
+                internal_species_id: row.internal_species_id,
+                status: 'n/a',
+            };
+        });
+        const flags = { seen: Boolean(readFlagAtOffset(buffer, DEX_SEEN_OFFSET, dexId)), caught: Boolean(readFlagAtOffset(buffer, DEX_CAUGHT_OFFSET, dexId)) };
         if (flags.seen) seenCount += 1;
         if (flags.caught) caughtCount += 1;
         return {
-            species_id: row.id,
-            species_name: row.name,
+            species_id: dexId,
+            species_name: baseName,
+            forms,
             seen: flags.seen,
             caught: flags.caught,
         };
     });
 
-    const total = trackableSpecies.length;
+    const total = entries.length;
     return {
         layout: 'cfru_saveblock1_v1',
         max_tracked_dex_id: MAX_TRACKED_DEX_ID,

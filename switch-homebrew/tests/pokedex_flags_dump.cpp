@@ -49,6 +49,7 @@ int main(int argc, char **argv) {
         return 5;
     }
     PrintFlags("clear_caught_25", out);
-    PrintFlags("untracked_1000", puse::core::GetPokedexFlags(buffer, 1000));
+    PrintFlags("form_1020", puse::core::GetPokedexFlags(buffer, 1020));
+    PrintFlags("untracked_1300", puse::core::GetPokedexFlags(buffer, 1300));
     return 0;
 }

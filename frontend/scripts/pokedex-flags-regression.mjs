@@ -17,6 +17,7 @@ import {
     POKEDEX_FLAG,
     setPokedexFlag,
 } from '../src/core/pokedexFlags.js';
+import { buildPokedexSpeciesGroups, dexIdForSpeciesId } from '../src/core/pokedexCatalog.js';
 
 let failures = 0;
 
@@ -90,12 +91,48 @@ if (checksum !== expectedChecksum) {
 const summary = buildPokedexSummary(buffer, [
     { id: 25, name: 'Pikachu' },
     { id: 1, name: 'Bulbasaur' },
-    { id: 1000, name: 'Beyond' },
+    { id: 1300, name: 'Beyond' },
 ]);
 if (summary.total !== 2 || summary.seen_count !== 1 || summary.caught_count !== 0) {
     fail('buildPokedexSummary counts', JSON.stringify(summary));
 } else {
     pass('buildPokedexSummary counts');
+}
+
+const dexGroups = buildPokedexSpeciesGroups([
+    { id: 251, name: 'Celebi' },
+    { id: 252, name: 'Egg' },
+    { id: 276, name: '?' },
+    { id: 277, name: 'Treecko' },
+    { id: 283, name: 'Mudkip' },
+]);
+if (dexIdForSpeciesId(283) !== 258 || dexGroups.get(258)?.[0]?.name !== 'Mudkip') {
+    fail('internal species to dex mapping', JSON.stringify({ dexGroups: [...dexGroups], mapped: dexIdForSpeciesId(283) }));
+} else {
+    pass('internal species to dex mapping');
+}
+
+const groupedSummary = buildPokedexSummary(buffer, [
+    { id: 19, name: 'Rattata', display_name: 'Rattata', label: 'Rattata (Form 1)' },
+    { id: 1020, name: 'Rattata', display_name: 'Rattata', label: 'Rattata (Alolan)' },
+]);
+const standard = groupedSummary.entries.find((entry) => entry.species_id === 19);
+if (
+    groupedSummary.total !== 1 || standard?.species_name !== 'Rattata' ||
+    standard?.forms?.[0]?.name !== 'Alolan' || standard.forms[0].status !== 'n/a'
+) {
+    fail('form grouping metadata', JSON.stringify(groupedSummary));
+} else {
+    pass('form grouping metadata');
+}
+
+const formBuffer = makeTrainerSectionBuffer();
+setPokedexFlag(formBuffer, 19, POKEDEX_FLAG.SEEN, true);
+const alolanRattata = getPokedexFlags(formBuffer, 1020);
+if (alolanRattata.dex_id !== 19 || !alolanRattata.seen || alolanRattata.caught) {
+    fail('form shares base dex flag', JSON.stringify(alolanRattata));
+} else {
+    pass('form shares base dex flag');
 }
 
 if (failures > 0) {

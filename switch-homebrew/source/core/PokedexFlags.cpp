@@ -2,6 +2,7 @@
 
 #include <puse/core/Binary.hpp>
 #include <puse/core/SaveSections.hpp>
+#include <puse/io/DataLoader.hpp>
 
 namespace puse::core {
 namespace {
@@ -17,11 +18,20 @@ const SaveSection *FindActiveTrainerSection(const std::vector<SaveSection> &sect
     return best;
 }
 
+uint16_t ResolveDexId(uint16_t species_id);
+
 int DexBitIndex(const uint16_t species_id) {
-    if (!IsDexSpeciesTrackable(species_id)) {
+    const auto dex_id = ResolveDexId(species_id);
+    if (dex_id < 1U || dex_id > kMaxTrackedDexId) {
         return -1;
     }
-    return static_cast<int>(species_id) - 1;
+    return static_cast<int>(dex_id) - 1;
+}
+
+uint16_t ResolveDexId(const uint16_t species_id) {
+    static const auto mapping = puse::io::LoadIdNameFile(puse::io::ResolveAssetPath("data/pokedex_species_map.txt"));
+    const auto it = mapping.find(static_cast<int>(species_id));
+    return it == mapping.end() ? 0 : static_cast<uint16_t>(std::stoi(it->second));
 }
 
 bool ReadFlagAtOffset(const std::vector<uint8_t> &buffer, const uint32_t base_offset, const uint16_t species_id) {
@@ -59,8 +69,13 @@ bool WriteFlagAtOffset(std::vector<uint8_t> &buffer, const uint32_t base_offset,
 
 } // namespace
 
+uint16_t DexIdForSpecies(const uint16_t species_id) {
+    return ResolveDexId(species_id);
+}
+
 bool IsDexSpeciesTrackable(const uint16_t species_id) {
-    return species_id >= 1U && species_id <= kMaxTrackedDexId;
+    const uint16_t dex_id = ResolveDexId(species_id);
+    return dex_id >= 1U && dex_id <= kMaxTrackedDexId;
 }
 
 PokedexFlags GetPokedexFlags(const std::vector<uint8_t> &buffer, const uint16_t species_id) {

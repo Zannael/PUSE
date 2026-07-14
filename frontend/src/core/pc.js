@@ -1220,6 +1220,31 @@ export function insertPcMon(context, payload, speciesMap = null) {
     throw new Error('Slot not writable in this save layout');
 }
 
+export function releasePcMon(context, payload) {
+    const box = Number(payload?.box);
+    const slot = Number(payload?.slot);
+    if (!Number.isInteger(box) || box < 1 || box > 26 || !Number.isInteger(slot) || slot < 1 || slot > 30) {
+        throw new Error('Invalid PC box or slot');
+    }
+
+    const { buffer, offset, kind } = getMonBufferAndOffset(context, box, slot);
+    const raw = buffer.slice(offset, offset + MON_SIZE_PC);
+    if (!isValidMon(raw)) {
+        throw new Error('Pokemon not found in PC');
+    }
+
+    const empty = new Uint8Array(MON_SIZE_PC);
+    if (kind === 'absolute') {
+        context.absoluteEdits.set(offset, empty);
+        const sectorOff = Math.floor(offset / SECTION_SIZE) * SECTION_SIZE;
+        if (shouldTrackAbsoluteSectorForChecksum(context.sourceBuffer, sectorOff)) {
+            context.absoluteTouchedSectors.add(sectorOff);
+        }
+    } else {
+        buffer.set(empty, offset);
+    }
+}
+
 export function editPcMonFull(context, payload) {
     const box = Number(payload.box);
     const slot = Number(payload.slot);

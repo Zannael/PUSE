@@ -377,6 +377,21 @@ const App = () => {
         }
     };
 
+    const handleReleasePC = async ({ box, slot, pokemon }) => {
+        const label = pokemon?.nickname || pokemon?.species_name || 'this Pokemon';
+        if (!window.confirm(`Release ${label} from ${Number(box) === 26 ? 'Preset' : `Box ${box}`} slot ${slot}?`)) {
+            return;
+        }
+        try {
+            await client.releasePc({ box, slot });
+            await client.saveAll();
+            setRefreshKey(prev => prev + 1);
+            alert('Pokemon released successfully.');
+        } catch {
+            alert('Failed to release Pokemon.');
+        }
+    };
+
     const openResourcesModal = () => {
         setMoneyInput(String(money ?? 0));
         setBpInput(String(bp ?? 0));
@@ -834,6 +849,7 @@ const App = () => {
                                     setSelectedPokemon({ ...pk, isPC: true });
                                 }}
                                 onAddPokemon={(target) => setPcInsertTarget(target)}
+                                onReleasePokemon={handleReleasePC}
                             />}
                             {activeTab === 'bag' && <BagView client={client} initialUnsaved={bagHasUnsavedChanges} onDirtyChange={setBagHasUnsavedChanges} />}
                             {activeTab === 'dex' && <LivingDexPanel key={`dex-${refreshKey}`} client={client} />}

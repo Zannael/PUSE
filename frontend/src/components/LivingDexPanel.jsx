@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { BookOpen, RefreshCw, Search } from 'lucide-react';
+import { BookOpen, ChevronRight, RefreshCw, Search } from 'lucide-react';
 
 const FILTERS = [
     { id: 'all', label: 'All' },
@@ -26,6 +26,7 @@ export default function LivingDexPanel({ client }) {
     const [error, setError] = useState(null);
     const [filter, setFilter] = useState('all');
     const [search, setSearch] = useState('');
+    const [expandedForms, setExpandedForms] = useState(() => new Set());
 
     const loadSummary = useCallback(async () => {
         setLoading(true);
@@ -58,11 +59,21 @@ export default function LivingDexPanel({ client }) {
         if (q) {
             rows = rows.filter((entry) =>
                 String(entry.species_id).includes(q) ||
-                String(entry.species_name || '').toLowerCase().includes(q)
+                String(entry.species_name || '').toLowerCase().includes(q) ||
+                (entry.forms || []).some((form) => String(form.name || '').toLowerCase().includes(q))
             );
         }
         return rows;
     }, [summary, filter, search]);
+
+    const toggleForms = (speciesId) => {
+        setExpandedForms((previous) => {
+            const next = new Set(previous);
+            if (next.has(speciesId)) next.delete(speciesId);
+            else next.add(speciesId);
+            return next;
+        });
+    };
 
     if (loading && !summary) {
         return <div className="py-16 text-center text-slate-400 animate-pulse">Loading Pokédex flags...</div>;
@@ -140,23 +151,63 @@ export default function LivingDexPanel({ client }) {
 
             <div className="rounded-3xl border border-white/10 bg-[#1e293b]/50 overflow-hidden">
                 <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                    <span>Showing {entries.length} / {summary?.total || 0}</span>
+                    <span>Showing {entries.length} entries / {summary?.total || 0}</span>
                     <span>Layout: {summary?.layout || 'unknown'}</span>
                 </div>
                 <div className="max-h-[58vh] overflow-y-auto divide-y divide-white/5">
                     {entries.length === 0 ? (
                         <p className="py-12 text-center text-sm text-slate-500">No entries match this filter.</p>
-                    ) : entries.map((entry) => (
-                        <div key={entry.species_id} className="grid grid-cols-[72px_1fr_auto] items-center gap-3 px-4 py-3 hover:bg-white/5">
-                            <span className="font-mono text-xs text-slate-500">#{entry.species_id}</span>
-                            <span className="min-w-0 truncate text-sm font-semibold text-slate-200">{entry.species_name}</span>
-                            <span className={`rounded-lg border px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${statusClass(entry)}`}>
-                                {statusLabel(entry)}
-                            </span>
-                        </div>
-                    ))}
+                    ) : entries.map((entry) => {
+                        const forms = entry.forms || [];
+                        const expanded = search.trim() !== '' || expandedForms.has(entry.species_id);
+                        if (forms.length === 0) return <DexEntry key={entry.species_id} entry={entry} />;
+                        return (
+                            <div key={entry.species_id}>
+                                <button
+                                    type="button"
+                                    onClick={() => toggleForms(entry.species_id)}
+                                    className="grid w-full grid-cols-[72px_1fr_auto] items-center gap-3 px-4 py-3 text-left hover:bg-white/5"
+                                >
+                                    <span className="font-mono text-xs text-slate-500">#{entry.species_id}</span>
+                                    <span className="flex min-w-0 items-center gap-1.5 truncate text-sm font-semibold text-slate-200">
+                                        <span className="truncate">{entry.species_name}</span>
+                                        <ChevronRight size={14} className={`shrink-0 text-slate-500 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+                                    </span>
+                                    <span className="flex items-center gap-2 justify-self-end">
+                                        <span className="rounded-lg border border-white/10 bg-slate-900/60 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">+{forms.length}</span>
+                                        <span className={`rounded-lg border px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${statusClass(entry)}`}>
+                                            {statusLabel(entry)}
+                                        </span>
+                                    </span>
+                                </button>
+                                {expanded && forms.map((form) => <DexForm key={form.internal_species_id} form={form} />)}
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
+        </div>
+    );
+}
+
+function DexEntry({ entry, nested = false }) {
+    return (
+        <div className={`grid grid-cols-[72px_1fr_auto] items-center gap-3 px-4 py-3 hover:bg-white/5 ${nested ? 'bg-slate-950/15 pl-10' : ''}`}>
+            <span className="font-mono text-xs text-slate-500">#{entry.species_id}</span>
+            <span className="min-w-0 truncate text-sm font-semibold text-slate-200">{entry.form_name || entry.species_name}</span>
+            <span className={`rounded-lg border px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${statusClass(entry)}`}>
+                {statusLabel(entry)}
+            </span>
+        </div>
+    );
+}
+
+function DexForm({ form }) {
+    return (
+        <div className="grid grid-cols-[72px_1fr_auto] items-center gap-3 bg-slate-950/15 px-4 py-3 pl-10">
+            <span className="font-mono text-xs text-slate-600">Form</span>
+            <span className="min-w-0 truncate text-sm font-semibold text-slate-400">{form.name}</span>
+            <span className="rounded-lg border border-white/10 bg-slate-900/60 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">N/A</span>
         </div>
     );
 }

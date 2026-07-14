@@ -548,7 +548,15 @@ async def get_pokedex_summary():
     """Return seen/caught completion across trackable species rows."""
     if current_save["data"] is None:
         raise HTTPException(status_code=400, detail="Upload a .sav file first")
-    rows = [{"id": sid, "name": name} for sid, name in sorted(party_mod.DB_SPECIES.items())]
+    rows = [
+        {
+            "id": sid,
+            "name": name,
+            "label": _species_meta(sid)["species_label"],
+            "display_name": _species_meta(sid)["species_display_name"],
+        }
+        for sid, name in sorted(party_mod.DB_SPECIES.items())
+    ]
     return pokedex_flags_mod.build_pokedex_summary(current_save["data"], rows)
 
 
@@ -1358,6 +1366,11 @@ class PCUpdate(BaseModel):
     ball_id: int = None
 
 
+class PCRelease(BaseModel):
+    box: int
+    slot: int
+
+
 @app.post("/pc/edit")
 async def edit_pc_mon(upd: PCUpdate):
     # Find target Pokemon in global state
@@ -1406,6 +1419,53 @@ async def edit_pc_mon(upd: PCUpdate):
 
     buf[off: off + box_mod.MON_SIZE_PC] = target.raw
     return {"status": "Update saved to temporary buffer"}
+
+
+@app.post("/pc/release")
+async def release_pc_mon(upd: PCRelease):
+    if not current_save["data"]:
+        raise HTTPException(status_code=400, detail="Upload a .sav file")
+    if current_save["pc_context"].get("pc_buffer") is None:
+        await load_pc()
+
+    box = int(upd.box)
+    slot = int(upd.slot)
+    if box < 1 or box > 26 or slot < 1 or slot > 30:
+        raise HTTPException(status_code=400, detail="Invalid PC box or slot")
+
+    target = next(
+        (m for m in current_save["pc_context"]["mons"] if m.box == box and m.slot == slot),
+        None,
+    )
+    if target is None:
+        raise HTTPException(status_code=404, detail="Pokemon not found in PC")
+
+    empty = box_mod.release_pc_mon(target.raw)
+    if box == 26:
+        buf = current_save["pc_context"].get("preset_buffer")
+        off = target.buffer_offset
+        if buf is None or off is None or off + box_mod.MON_SIZE_PC > len(buf):
+            raise HTTPException(status_code=400, detail="Invalid preset slot")
+        buf[off: off + box_mod.MON_SIZE_PC] = empty
+    elif getattr(target, "buffer_kind", None) == "absolute":
+        off = target.buffer_offset
+        if off is None or off + box_mod.MON_SIZE_PC > len(current_save["data"]):
+            raise HTTPException(status_code=400, detail="Invalid PC slot")
+        current_save["data"][off: off + box_mod.MON_SIZE_PC] = empty
+        sector_off = (off // box_mod.SECTION_SIZE) * box_mod.SECTION_SIZE
+        if _should_track_absolute_sector_for_checksum(current_save["data"], sector_off):
+            touched = set(current_save["pc_context"].get("absolute_touched_sectors", []))
+            touched.add(sector_off)
+            current_save["pc_context"]["absolute_touched_sectors"] = sorted(touched)
+    else:
+        buf = current_save["pc_context"].get("pc_buffer")
+        off = ((box - 1) * 30 + (slot - 1)) * box_mod.MON_SIZE_PC
+        if buf is None or off + box_mod.MON_SIZE_PC > len(buf):
+            raise HTTPException(status_code=400, detail="Invalid PC slot")
+        buf[off: off + box_mod.MON_SIZE_PC] = empty
+
+    current_save["pc_context"]["mons"].remove(target)
+    return {"status": "Pokemon released from PC", "box": box, "slot": slot}
 
 
 # --- Additional models for party updates ---

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Package } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Package, Trash2 } from 'lucide-react';
 import { POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 
 const VISIBLE_BOX_SEQUENCE = [...Array.from({ length: 24 }, (_, idx) => idx + 1), 26];
@@ -9,7 +9,7 @@ function getBoxLabel(boxId) {
     return Number(boxId) === 26 ? 'Preset' : `Box ${boxId}`;
 }
 
-const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon }) => {
+const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon, onReleasePokemon }) => {
     const [pokemon, setPokemon] = useState([]);
     const [writableSlots, setWritableSlots] = useState(new Set());
     const [loading, setLoading] = useState(false);
@@ -142,16 +142,30 @@ const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon }) => 
                         >
                             <div className="relative w-full aspect-square bg-slate-800/50 rounded-xl flex items-center justify-center mb-2 overflow-hidden">
                                 {pk ? (
-                                    <img
-                                        src={client.getPokemonIconUrl(pk.species_id)}
-                                        alt={pk.nickname}
-                                        className="w-14 h-14 object-contain pixelated group-hover:scale-110 transition-transform"
-                                        onError={(e) => {
-                                            if (e.currentTarget.src !== POKEMON_ICON_FALLBACK_URL) {
-                                                e.currentTarget.src = POKEMON_ICON_FALLBACK_URL;
-                                            }
-                                        }}
-                                    />
+                                    <>
+                                        <img
+                                            src={client.getPokemonIconUrl(pk.species_id)}
+                                            alt={pk.nickname}
+                                            className="w-14 h-14 object-contain pixelated group-hover:scale-110 transition-transform"
+                                            onError={(e) => {
+                                                if (e.currentTarget.src !== POKEMON_ICON_FALLBACK_URL) {
+                                                    e.currentTarget.src = POKEMON_ICON_FALLBACK_URL;
+                                                }
+                                            }}
+                                        />
+                                        <button
+                                            type="button"
+                                            title={`Release ${pk.nickname || 'Pokemon'}`}
+                                            aria-label={`Release ${pk.nickname || 'Pokemon'}`}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                onReleasePokemon?.({ box: boxId, slot, pokemon: pk });
+                                            }}
+                                            className="absolute right-1 top-1 rounded-lg bg-slate-950/80 p-1.5 text-slate-400 opacity-0 transition-all hover:bg-rose-500/90 hover:text-white group-hover:opacity-100"
+                                        >
+                                            <Trash2 size={13} />
+                                        </button>
+                                    </>
                                 ) : (
                                     <span className={`text-[10px] font-mono ${writable ? 'text-slate-500 group-hover:text-emerald-300' : 'text-slate-600'}`}>
                                         {writable ? '+ ADD' : 'LOCKED'}

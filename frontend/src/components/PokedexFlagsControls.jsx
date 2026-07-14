@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Check, Eye, EyeOff, X } from 'lucide-react';
-
-const MAX_TRACKED_DEX_ID = 999;
+import { MAX_TRACKED_DEX_ID } from '../core/pokedexCatalog.js';
 
 export default function PokedexFlagsControls({ client, speciesId, speciesLabel }) {
     const [flags, setFlags] = useState(null);
@@ -63,7 +62,7 @@ export default function PokedexFlagsControls({ client, speciesId, speciesLabel }
     if (!flags?.trackable) {
         return (
             <p className="text-xs text-slate-500">
-                Pokédex flags are available for IDs 1-{MAX_TRACKED_DEX_ID}. This species is outside that save bitfield.
+                This species is not mapped to one of the {MAX_TRACKED_DEX_ID} Pokédex entries in this save layout.
             </p>
         );
     }

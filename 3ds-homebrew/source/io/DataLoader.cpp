@@ -21,6 +21,9 @@ namespace puse::io {
 std::string ResolveAssetPath(const std::string &relative_path) {
     static const char *kRoots[] = {
         "romfs:/",
+#ifndef __3DS__
+        "./romfs/",
+#endif
 #ifdef PUSE_ALLOW_SD_FALLBACK
         "sdmc:/3ds/puse/",
         "sdmc:/3ds/puse/romfs/",

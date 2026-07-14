@@ -298,6 +298,13 @@ const backendClient = {
             body: JSON.stringify(payload),
         });
     },
+    releasePc(payload) {
+        return backendJson("/pc/release", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+    },
     insertPc(payload) {
         return backendJson('/pc/insert', {
             method: 'POST',
@@ -601,6 +608,22 @@ const localClient = {
         }
         editPcMonFull(context, nextPayload);
         return { status: 'PC edit buffered' };
+    },
+    async releasePc(payload) {
+        const {
+            getPcContext,
+            loadPcContext,
+            setPcContext,
+            getBuffer,
+            releasePcMon,
+        } = await getLocalCoreModules();
+        let context = getPcContext();
+        if (!context) {
+            context = loadPcContext(getBuffer());
+            setPcContext(context);
+        }
+        releasePcMon(context, payload || {});
+        return { status: 'PC release buffered' };
     },
     async insertPc(payload) {
         const {
