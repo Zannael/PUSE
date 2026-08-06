@@ -46,8 +46,8 @@ const std::array<const char *, 25> kNatureNames = {
 // --- Text codec (same simplified charmap as Party.cpp for consistency) ---
 const std::unordered_map<uint8_t, char> kDecodeCharmap = {
     {0x00, ' '}, {0xAB, '!'}, {0xAC, '?'}, {0xAD, '.'}, {0xAE, '-'},
-    {0xB0, '0'}, {0xB1, '1'}, {0xB2, '2'}, {0xB3, '3'}, {0xB4, '4'},
-    {0xB5, '5'}, {0xB6, '6'}, {0xB7, '7'}, {0xB8, '8'}, {0xB9, '9'},
+    {0xA1, '0'}, {0xA2, '1'}, {0xA3, '2'}, {0xA4, '3'}, {0xA5, '4'},
+    {0xA6, '5'}, {0xA7, '6'}, {0xA8, '7'}, {0xA9, '8'}, {0xAA, '9'},
 };
 
 std::unordered_map<char, uint8_t> BuildEncodeCharmap() {
@@ -55,7 +55,7 @@ std::unordered_map<char, uint8_t> BuildEncodeCharmap() {
         {' ', 0x00}, {'!', 0xAB}, {'?', 0xAC}, {'.', 0xAD}, {'-', 0xAE}, {'\'', 0xB4},
     };
     for (int i = 0; i < 10; ++i) {
-        out[static_cast<char>('0' + i)] = static_cast<uint8_t>(0xB0 + i);
+        out[static_cast<char>('0' + i)] = static_cast<uint8_t>(0xA1 + i);
     }
     for (int i = 0; i < 26; ++i) {
         out[static_cast<char>('A' + i)] = static_cast<uint8_t>(0xBB + i);
