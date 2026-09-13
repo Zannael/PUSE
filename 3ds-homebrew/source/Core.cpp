@@ -114,8 +114,13 @@ std::string FindUnboundSave() {
 
 bool PreloadUiAssets() {
     try {
-        starlight::ThemeManager::GetFont("normal.16").GetShared();
-        starlight::ThemeManager::GetFont("normal.12").GetShared();
+        // These are font asset names, not text-preset names. Loading the
+        // presets here silently fell back to mono.12, leaving the real atlases
+        // to be uploaded lazily during the first draw. On current citro3d that
+        // can corrupt the second atlas transfer (normally default.12, used by
+        // buttons). Force both UI atlases onto the GPU before the frame loop.
+        starlight::ThemeManager::GetFont("default.16").GetShared();
+        starlight::ThemeManager::GetFont("default.12").GetShared();
         starlight::ThemeManager::GetAsset("controls/button.idle").GetShared();
         starlight::ThemeManager::GetAsset("controls/button.press").GetShared();
         return true;

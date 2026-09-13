@@ -85,7 +85,7 @@ std::unique_ptr<CRenderTarget> RenderCore::targetBottom = nullptr;
 void RenderCore::Open() {
     gfxInitDefault();
     gfxSet3D(true);
-    C3D_Init(0x80000*8);
+    C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
     
     // allocate and initialize VBO
     vboSize = 0x80000;
@@ -145,7 +145,7 @@ void RenderCore::SyncFrame() {
 }
 
 void RenderCore::BeginFrame() {
-    C3D_FrameBegin(0/*C3D_FRAME_SYNCDRAW*/);
+    C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
     
     vboIndex = 0;
 }
@@ -244,7 +244,7 @@ CTexture* RenderCore::LoadTexture(void* src, int width, int height) {
         GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGBA8) |  GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO));
     //C3D_SafeDisplayTransfer(static_cast<u32*>(src), GX_BUFFER_DIM(width, height), static_cast<u32*>(tex->texture->data), GX_BUFFER_DIM(owidth, oheight), flags);
     C3D_SyncDisplayTransfer(static_cast<u32*>(src), GX_BUFFER_DIM(width, height), static_cast<u32*>(tex->texture->data), GX_BUFFER_DIM(owidth, oheight), flags);
-    gspWaitForPPF();
+    GSPGPU_InvalidateDataCache(tex->texture->data, owidth * oheight * 4);
     //C3D_TexSetFilter(tex->texture, GPU_LINEAR, GPU_NEAREST);
     C3D_TexSetFilter(tex->texture, GPU_LINEAR, GPU_LINEAR); // nearest causes artifacts on ninepatches
     C3D_TexSetWrap(tex->texture, GPU_CLAMP_TO_BORDER, GPU_CLAMP_TO_BORDER);
@@ -266,7 +266,7 @@ CRenderTarget::CRenderTarget(int width, int height, bool forceExact) {
          h = forceExact ? height : NextPow2(height);
     txSize = Vector2(w, h);
     
-    tgt = C3D_RenderTargetCreate(w, h, GPU_RB_RGBA8, -1/*GPU_RB_DEPTH24_STENCIL8*/); // I don't think we need a depth buffer >.>
+    tgt = C3D_RenderTargetCreate(w, h, GPU_RB_RGBA8, GPU_RB_DEPTH24_STENCIL8);
     //tgt = C3D_RenderTargetCreateFromTex(&tex, GPU_TEXFACE_2D, -1, -1); // create target from texture, actually
     
     C3D_TexInit(&tex, w, h, GPU_RGBA8);
