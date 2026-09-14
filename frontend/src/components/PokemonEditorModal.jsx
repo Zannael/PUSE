@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { X, Zap, Save, Search, Download, CircleHelp } from 'lucide-react';
 import { calcCurrentLevel, GROWTH_OPTIONS } from '../core/growth.js';
 import { ITEM_ICON_FALLBACK_URL, POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 import { NATURES, normalizeName, parseShowdownSet, resolveShowdownSet } from '../core/showdownImport.js';
 import PokedexFlagsControls from './PokedexFlagsControls.jsx';
+import { calculateBattleStats, calculateHiddenPowerType } from '../core/battlePreview.js';
 
 const EV_STAT_MAX = 252;
 const EV_TOTAL_MAX = 510;
@@ -386,6 +387,18 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
     const levelClampFallback = Number(localPk.level || initialLevel || MIN_LEVEL);
     const totalEvs = getTotalEvs(localPk.evs || {});
     const remainingEvs = Math.max(0, EV_TOTAL_MAX - totalEvs);
+    const previewLevel = clampNumber(levelInput, MIN_LEVEL, MAX_LEVEL) || levelClampFallback;
+    const battleStats = useMemo(() => calculateBattleStats({
+        speciesId: localPk.species_id,
+        level: previewLevel,
+        natureId: localPk.nature_id,
+        ivs: localPk.ivs,
+        evs: localPk.evs,
+    }), [localPk.species_id, localPk.nature_id, localPk.ivs, localPk.evs, previewLevel]);
+    const hiddenPowerType = useMemo(
+        () => calculateHiddenPowerType(localPk.ivs || {}),
+        [localPk.ivs],
+    );
 
     return (
         <div
@@ -514,6 +527,35 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
 
                     {activeTab === 'stats' && (
                         <div className="space-y-8">
+                            <section className="bg-slate-800/40 p-4 sm:p-5 rounded-2xl border border-blue-400/15 space-y-3" aria-label="Battle preview">
+                                <div className="flex items-baseline justify-between gap-3">
+                                    <h4 className="text-xs font-bold text-slate-200">Battle preview</h4>
+                                    <span className="text-[10px] text-slate-500">Level {previewLevel} · ROM base stats</span>
+                                </div>
+                                {battleStats ? (
+                                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10">
+                                        {[
+                                            ['HP', battleStats.HP], ['ATK', battleStats.Atk], ['DEF', battleStats.Def],
+                                            ['SPA', battleStats.SpA], ['SPD', battleStats.SpD], ['SPE', battleStats.Spe],
+                                        ].map(([label, value]) => (
+                                            <div key={label} className="bg-slate-900/90 px-2 py-2.5 text-center">
+                                                <div className="text-[9px] font-bold text-slate-500">{label}</div>
+                                                <div className="text-base font-black tabular-nums text-blue-300">{value}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-[11px] text-slate-500">ROM base stats are unavailable for this species.</p>
+                                )}
+                                <div className="flex items-center justify-between gap-3 rounded-lg bg-violet-500/10 px-3 py-2 text-xs">
+                                    <span className="text-slate-400">Hidden Power type</span>
+                                    <strong className="text-violet-300">{hiddenPowerType || 'Unknown'}</strong>
+                                </div>
+                                <p className="text-[10px] leading-relaxed text-slate-500">
+                                    Preview only. Values update with level, nature, IVs, and EVs; battle effects are not included.
+                                </p>
+                            </section>
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <StatGroup title="IVs (0-31)" type="ivs" data={localPk.ivs} update={updateStat} max={31} />
                                 <div className="space-y-4">

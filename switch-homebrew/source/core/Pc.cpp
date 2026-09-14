@@ -413,6 +413,7 @@ std::vector<PcMon> ParsePcBox(
                               static_cast<int>(e.move_pp_ups[static_cast<size_t>(i)])),
                 0, 255));
         }
+        e.battle_preview = CalculateBattlePreview(e.species_id, e.level, e.nature_id, e.ivs, e.evs);
 
         const auto sp_it = species_db.find(static_cast<int>(e.species_id));
         e.species_name = (sp_it == species_db.end()) ? "Unknown" : sp_it->second;

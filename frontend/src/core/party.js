@@ -8,6 +8,7 @@ import abilitiesCatalog from './abilitiesCatalog.json' with { type: 'json' };
 import { getMoveBasePpById } from './catalog.js';
 import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
 import { getBallMeta, validateBallId } from './balls.js';
+import { calculateBattlePreview } from './battlePreview.js';
 
 const TRAINER_SECTION_ID = 1;
 const PARTY_COUNT_OFFSET = 0x34;
@@ -829,6 +830,11 @@ export function getParty(buffer, speciesById, speciesMetaById = null) {
         );
         const speciesMeta = getSpeciesFormMeta(metaMap, speciesById, speciesId);
 
+        const level = ru8(rawMon, OFF_LEVEL_VISUAL);
+        const ivs = getIvs(rawMon);
+        const evs = getEvs(rawMon);
+        const battlePreview = calculateBattlePreview({ speciesId, level, natureId, ivs, evs });
+
         party.push({
             index: i,
             nickname: decodeText(rawMon.slice(OFF_NICK, OFF_NICK + 10)),
@@ -838,7 +844,7 @@ export function getParty(buffer, speciesById, speciesMetaById = null) {
             species_variant_index: speciesMeta.species_variant_index,
             species_variant_count: speciesMeta.species_variant_count,
             is_form_variant: speciesMeta.is_form_variant,
-            level: ru8(rawMon, OFF_LEVEL_VISUAL),
+            level,
             exp: getExp(rawMon),
             nature: NATURES[natureId] || 'Unknown',
             nature_id: natureId,
@@ -848,8 +854,9 @@ export function getParty(buffer, speciesById, speciesMetaById = null) {
             gender_mode: genderMode,
             gender_editable: genderMode === 'dynamic',
             is_hidden_ability: hidden,
-            ivs: getIvs(rawMon),
-            evs: getEvs(rawMon),
+            ivs,
+            evs,
+            ...battlePreview,
             species_id: speciesId,
             species_growth_rate: speciesGrowthRate,
             moves: getMoves(rawMon),

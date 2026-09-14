@@ -42,7 +42,7 @@ export LIBPATHS := $(foreach dir,$(LIBDIRS),-L$(dir)/lib) -L$(DEVKITPRO)/libnx/l
 
 export APP_TITLE APP_AUTHOR APP_VERSION
 
-.PHONY: all clean clean-lite lite sync-romfs test-phase1 test-phase2 test-phase3 test-phase4 sd-bundle $(BUILD)
+.PHONY: all clean clean-lite lite sync-romfs test-phase1 test-phase2 test-phase3 test-phase4 test-battle-preview sd-bundle $(BUILD)
 
 all: $(BUILD)
 
@@ -79,6 +79,9 @@ test-phase3:
 
 test-phase4:
 	@"$(CURDIR)/scripts/test_phase4_pokedex_flags_parity.sh"
+
+test-battle-preview:
+	@"$(CURDIR)/scripts/test_battle_preview.sh"
 
 sd-bundle:
 	@"$(CURDIR)/scripts/prepare_sd_bundle.sh"

@@ -550,6 +550,58 @@ def calc_other_stat(base, iv, ev, level, nature_mult):
     return int(math.floor(neutral * nature_mult))
 
 
+HIDDEN_POWER_TYPES = (
+    "Fighting", "Flying", "Poison", "Ground", "Rock", "Bug", "Ghost", "Steel",
+    "Fire", "Water", "Grass", "Electric", "Psychic", "Ice", "Dragon", "Dark",
+)
+
+
+def _normalize_preview_stats(stats):
+    stats = stats or {}
+    return {
+        "HP": int(stats.get("HP", 0)),
+        "Atk": int(stats.get("Atk", 0)),
+        "Def": int(stats.get("Def", 0)),
+        "Spe": int(stats.get("Spe", stats.get("Spd", 0))),
+        "SpA": int(stats.get("SpA", 0)),
+        "SpD": int(stats.get("SpD", 0)),
+    }
+
+
+def calculate_hidden_power_type(ivs):
+    """Return the Gen III Hidden Power type derived from IV parity bits."""
+    values = _normalize_preview_stats(ivs)
+    parity = (
+        (values["HP"] & 1)
+        + 2 * (values["Atk"] & 1)
+        + 4 * (values["Def"] & 1)
+        + 8 * (values["Spe"] & 1)
+        + 16 * (values["SpA"] & 1)
+        + 32 * (values["SpD"] & 1)
+    )
+    return HIDDEN_POWER_TYPES[(parity * 15) // 63]
+
+
+def calculate_battle_stats(species_id, level, nature_id, ivs, evs):
+    """Calculate ROM-truth battle stats without mutating Pokemon data."""
+    base = DB_SPECIES_BASE_STATS.get(int(species_id))
+    resolved_level = int(level or 0)
+    if not base or resolved_level < 1:
+        return None
+
+    resolved_ivs = _normalize_preview_stats(ivs)
+    resolved_evs = _normalize_preview_stats(evs)
+    resolved_nature = int(nature_id or 0) % 25
+    return {
+        "HP": calc_hp_stat(base["hp"], resolved_ivs["HP"], resolved_evs["HP"], resolved_level),
+        "Atk": calc_other_stat(base["atk"], resolved_ivs["Atk"], resolved_evs["Atk"], resolved_level, nature_modifier(resolved_nature, "atk")),
+        "Def": calc_other_stat(base["def"], resolved_ivs["Def"], resolved_evs["Def"], resolved_level, nature_modifier(resolved_nature, "def")),
+        "SpA": calc_other_stat(base["spa"], resolved_ivs["SpA"], resolved_evs["SpA"], resolved_level, nature_modifier(resolved_nature, "spa")),
+        "SpD": calc_other_stat(base["spd"], resolved_ivs["SpD"], resolved_evs["SpD"], resolved_level, nature_modifier(resolved_nature, "spd")),
+        "Spe": calc_other_stat(base["spe"], resolved_ivs["Spe"], resolved_evs["Spe"], resolved_level, nature_modifier(resolved_nature, "spe")),
+    }
+
+
 # Compat legacy name.
 def find_and_load_ct():
     load_static_data()

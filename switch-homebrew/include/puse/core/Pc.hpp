@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <puse/core/Party.hpp>
+
 namespace puse::core {
 
 constexpr size_t kPcMonSize = 58;
@@ -35,6 +37,7 @@ struct PcMon {
     std::array<uint16_t, 4> move_ids;
     std::array<uint8_t, 4> move_pp_ups;
     std::array<uint8_t, 4> move_pp_max;  // derived (no current PP in compact format)
+    BattlePreview battle_preview;
 };
 
 // Build the 32640-byte PC stream from save buffer (sectors 5-12, 0xFF0 bytes each).

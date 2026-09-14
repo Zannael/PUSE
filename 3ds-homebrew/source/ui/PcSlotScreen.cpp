@@ -103,20 +103,30 @@ std::shared_ptr<sl::ui::Button> PcSlotScreen::AddField(int y) {
 
 void PcSlotScreen::RefreshPreview() {
     if (!preview_label_) return;
-    char buf[256];
+    char buf[384];
     if (!occupied_) {
         snprintf(buf, sizeof(buf), "Box %d  Slot %d\n(empty — tap species to insert)",
             box_, slot_);
     } else {
+        const std::string preview = mon_.battle_preview.available
+            ? ("\nHP/ATK/DEF  " + std::to_string(mon_.battle_preview.stats[0]) + "/"
+                + std::to_string(mon_.battle_preview.stats[1]) + "/"
+                + std::to_string(mon_.battle_preview.stats[2]) + "   SPA/SPD/SPE  "
+                + std::to_string(mon_.battle_preview.stats[4]) + "/"
+                + std::to_string(mon_.battle_preview.stats[5]) + "/"
+                + std::to_string(mon_.battle_preview.stats[3]) + "\nHidden Power: "
+                + mon_.battle_preview.hidden_power_type)
+            : "\nBattle stats unavailable";
         snprintf(buf, sizeof(buf),
-            "Box %d  Slot %d\n%s / %s\nLv.%d   %s   %s%s",
+            "Box %d  Slot %d\n%s / %s\nLv.%d   %s   %s%s%s",
             box_, slot_,
             mon_.nickname.empty() ? "???" : mon_.nickname.c_str(),
             mon_.species_name.empty() ? "???" : mon_.species_name.c_str(),
             (int)mon_.level,
             mon_.nature_name.c_str(),
             mon_.gender.c_str(),
-            mon_.is_shiny ? "   [Shiny]" : "");
+            mon_.is_shiny ? "   [Shiny]" : "",
+            preview.c_str());
     }
     preview_label_->SetText(buf);
 }

@@ -1150,6 +1150,39 @@ bool EnsurePartyStaticDataLoaded(std::string *error) {
     return true;
 }
 
+BattlePreview CalculateBattlePreview(
+    const uint16_t species_id,
+    const int level,
+    const uint8_t nature_id,
+    const std::array<uint8_t, 6> &ivs,
+    const std::array<uint8_t, 6> &evs
+) {
+    EnsurePartyStaticDataLoaded(nullptr);
+    BattlePreview out{};
+    const auto it = g_species_base_stats.find(static_cast<int>(species_id));
+    if ((it == g_species_base_stats.end()) || (level < 1)) {
+        out.available = false;
+    } else {
+        const BaseStats &base = it->second;
+        out.available = true;
+        out.stats[0] = static_cast<uint16_t>(CalcHpStat(base.hp, ivs[0], evs[0], level));
+        out.stats[1] = static_cast<uint16_t>(CalcOtherStat(base.atk, ivs[1], evs[1], level, NatureModifier(nature_id, "atk")));
+        out.stats[2] = static_cast<uint16_t>(CalcOtherStat(base.def, ivs[2], evs[2], level, NatureModifier(nature_id, "def")));
+        out.stats[3] = static_cast<uint16_t>(CalcOtherStat(base.spe, ivs[3], evs[3], level, NatureModifier(nature_id, "spe")));
+        out.stats[4] = static_cast<uint16_t>(CalcOtherStat(base.spa, ivs[4], evs[4], level, NatureModifier(nature_id, "spa")));
+        out.stats[5] = static_cast<uint16_t>(CalcOtherStat(base.spd, ivs[5], evs[5], level, NatureModifier(nature_id, "spd")));
+    }
+
+    static const std::array<const char *, 16> kHiddenPowerTypes = {{
+        "Fighting", "Flying", "Poison", "Ground", "Rock", "Bug", "Ghost", "Steel",
+        "Fire", "Water", "Grass", "Electric", "Psychic", "Ice", "Dragon", "Dark",
+    }};
+    const int parity = (ivs[0] & 1U) + 2 * (ivs[1] & 1U) + 4 * (ivs[2] & 1U)
+        + 8 * (ivs[3] & 1U) + 16 * (ivs[4] & 1U) + 32 * (ivs[5] & 1U);
+    out.hidden_power_type = kHiddenPowerTypes[static_cast<size_t>((parity * 15) / 63)];
+    return out;
+}
+
 std::vector<PartyEntry> ParseParty(
     const std::vector<uint8_t> &buffer,
     const std::unordered_map<int, std::string> &species_db
@@ -1227,6 +1260,7 @@ std::vector<PartyEntry> ParseParty(
         for (size_t slot = 0; slot < 4; ++slot) {
             e.move_pp_max[slot] = static_cast<uint8_t>(std::clamp(CalculateMaxPp(e.move_ids[slot], e.move_pp_ups[slot]), 0, 255));
         }
+        e.battle_preview = CalculateBattlePreview(e.species_id, e.level, e.nature_id, e.ivs, e.evs);
 
         const auto it = species_db.find(static_cast<int>(e.species_id));
         e.species_name = (it == species_db.end()) ? "Unknown" : it->second;

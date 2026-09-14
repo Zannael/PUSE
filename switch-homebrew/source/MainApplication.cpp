@@ -1460,6 +1460,15 @@ void MainApplication::RebuildPcFieldsMenu(const int section_index) {
         const std::string slot_str = (m.current_ability_index == 2) ? "3 (Hidden)" : std::to_string(m.current_ability_index + 1);
         rows.push_back({"Item", GetDbName(this->items_db_, m.item_id)});
         rows.push_back({"Ability", std::string(m.hidden_ability ? "Hidden" : "Standard") + "   Slot " + slot_str});
+        if (m.battle_preview.available) {
+            rows.push_back({"Stats", "HP " + std::to_string(m.battle_preview.stats[0])
+                + "  ATK " + std::to_string(m.battle_preview.stats[1])
+                + "  DEF " + std::to_string(m.battle_preview.stats[2])});
+            rows.push_back({"Stats", "SPA " + std::to_string(m.battle_preview.stats[4])
+                + "  SPD " + std::to_string(m.battle_preview.stats[5])
+                + "  SPE " + std::to_string(m.battle_preview.stats[3])});
+        }
+        rows.push_back({"Hidden Power", m.battle_preview.hidden_power_type});
         rows.push_back({"PID", std::to_string(m.pid)});
         rows.push_back({"OTID", std::to_string(m.otid)});
     } else if (section_index == 2) {
@@ -1919,6 +1928,15 @@ void MainApplication::RebuildPokemonFieldsMenu(const int section_index) {
             : entry.ability_label_current;
         rows.push_back({"Item", GetDbName(this->items_db_, entry.item_id)});
         rows.push_back({"Ability", ability_str + "   Slot " + slot_str});
+        if (entry.battle_preview.available) {
+            rows.push_back({"Stats", "HP " + std::to_string(entry.battle_preview.stats[0])
+                + "  ATK " + std::to_string(entry.battle_preview.stats[1])
+                + "  DEF " + std::to_string(entry.battle_preview.stats[2])});
+            rows.push_back({"Stats", "SPA " + std::to_string(entry.battle_preview.stats[4])
+                + "  SPD " + std::to_string(entry.battle_preview.stats[5])
+                + "  SPE " + std::to_string(entry.battle_preview.stats[3])});
+        }
+        rows.push_back({"Hidden Power", entry.battle_preview.hidden_power_type});
         rows.push_back({"PID", std::to_string(entry.pid)});
         rows.push_back({"OTID", std::to_string(entry.otid)});
     } else if (section_index == 2) {

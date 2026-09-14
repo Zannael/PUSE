@@ -2,9 +2,9 @@
 .SUFFIXES:
 #---------------------------------------------------------------------------------
 
-ifneq ($(filter test-phase1 test-phase2 test-phase3 test-phase4,$(MAKECMDGOALS)),)
+ifneq ($(filter test-phase1 test-phase2 test-phase3 test-phase4 test-battle-preview,$(MAKECMDGOALS)),)
 
-.PHONY: test-phase1 test-phase2 test-phase3 test-phase4
+.PHONY: test-phase1 test-phase2 test-phase3 test-phase4 test-battle-preview
 test-phase1:
 	@"$(CURDIR)/scripts/test_phase1_parity.sh"
 test-phase2:
@@ -13,6 +13,8 @@ test-phase3:
 	@"$(CURDIR)/scripts/test_phase3_game_progress_parity.sh"
 test-phase4:
 	@"$(CURDIR)/scripts/test_phase4_pokedex_flags_parity.sh"
+test-battle-preview:
+	@"$(CURDIR)/scripts/test_battle_preview.sh"
 
 else
 

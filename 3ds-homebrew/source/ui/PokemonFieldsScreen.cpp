@@ -115,7 +115,7 @@ void PokemonFieldsScreen::RefreshPreview() {
     snprintf(buf, sizeof(buf),
         "[%s]  %s / %s\n"
         "Lv.%d   %s   %s\n"
-        "%s%s",
+        "%s%s%s%s",
         kSectionNames[(int)section_],
         entry_.nickname.empty() ? "???" : entry_.nickname.c_str(),
         entry_.species_name.empty() ? "???" : entry_.species_name.c_str(),
@@ -123,7 +123,17 @@ void PokemonFieldsScreen::RefreshPreview() {
         entry_.nature_name.c_str(),
         entry_.gender.c_str(),
         entry_.is_shiny ? "[Shiny]   " : "",
-        entry_.effective_ability_name.c_str());
+        entry_.effective_ability_name.c_str(),
+        section_ == Section::Battle && entry_.battle_preview.available ? "\nHP/ATK/DEF  " : "",
+        section_ == Section::Battle && entry_.battle_preview.available
+            ? (std::to_string(entry_.battle_preview.stats[0]) + "/"
+                + std::to_string(entry_.battle_preview.stats[1]) + "/"
+                + std::to_string(entry_.battle_preview.stats[2]) + "   SPA/SPD/SPE  "
+                + std::to_string(entry_.battle_preview.stats[4]) + "/"
+                + std::to_string(entry_.battle_preview.stats[5]) + "/"
+                + std::to_string(entry_.battle_preview.stats[3]) + "\nHidden Power: "
+                + entry_.battle_preview.hidden_power_type).c_str()
+            : "");
     preview_label_->SetText(buf);
 }
 

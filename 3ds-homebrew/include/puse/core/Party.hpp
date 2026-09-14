@@ -9,6 +9,12 @@
 
 namespace puse::core {
 
+struct BattlePreview {
+    bool available;
+    std::array<uint16_t, 6> stats; // [HP, Atk, Def, Spe, SpA, SpD]
+    std::string hidden_power_type;
+};
+
 struct PartyEntry {
     int index;
     uint32_t pid;
@@ -46,6 +52,7 @@ struct PartyEntry {
     std::array<uint8_t, 4> move_pp;
     std::array<uint8_t, 4> move_pp_ups;
     std::array<uint8_t, 4> move_pp_max;
+    BattlePreview battle_preview;
 };
 
 struct PartyLevelResult {
@@ -64,6 +71,13 @@ std::vector<PartyEntry> ParseParty(
 );
 
 bool EnsurePartyStaticDataLoaded(std::string *error = nullptr);
+BattlePreview CalculateBattlePreview(
+    uint16_t species_id,
+    int level,
+    uint8_t nature_id,
+    const std::array<uint8_t, 6> &ivs,
+    const std::array<uint8_t, 6> &evs
+);
 
 bool UpdatePartyNickname(std::vector<uint8_t> &buffer, int index, const std::string &nickname, std::string *error = nullptr);
 bool UpdatePartyItem(std::vector<uint8_t> &buffer, int index, uint16_t item_id, std::string *error = nullptr);

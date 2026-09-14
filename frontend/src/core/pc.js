@@ -2,13 +2,14 @@ import { ru8, ru16, ru32, wu8, wu16, wu32 } from './binary.js';
 import { gbaChecksum } from './checksum.js';
 import { OFF_ID, OFF_SAVE_IDX, SECTION_SIZE } from './sections.js';
 import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
-import { getExpAtLevel } from './growth.js';
+import { calcCurrentLevel, getExpAtLevel } from './growth.js';
 import speciesIdentityMeta from './speciesIdentityMeta.json' with { type: 'json' };
 import speciesGrowthRates from './speciesGrowthRates.json' with { type: 'json' };
 import speciesAbilitiesMeta from './speciesAbilitiesMeta.json' with { type: 'json' };
 import abilitiesCatalog from './abilitiesCatalog.json' with { type: 'json' };
 import { getMoveBasePpById } from './catalog.js';
 import { getBallMeta, validateBallId } from './balls.js';
+import { calculateBattlePreview } from './battlePreview.js';
 
 const POKEMON_STREAM_SECTORS = [5, 6, 7, 8, 9, 10, 11, 12];
 const PRESET_SECTOR_ID = 0;
@@ -586,6 +587,13 @@ function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
         abilityHiddenName,
     );
     const speciesMeta = getSpeciesFormMeta(speciesMetaById, speciesMap, speciesId);
+    const exp = ru32(raw, OFF_EXP);
+    const speciesGrowthRate = getSpeciesGrowthRate(speciesId);
+    const level = calcCurrentLevel(speciesGrowthRate === null ? 0 : speciesGrowthRate, exp);
+    const ivs = getIvs(raw);
+    const evs = getEvs(raw);
+    const natureId = pid % 25;
+    const battlePreview = calculateBattlePreview({ speciesId, level, natureId, ivs, evs });
     return {
         box,
         slot,
@@ -597,17 +605,19 @@ function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
         species_variant_count: speciesMeta.species_variant_count,
         is_form_variant: speciesMeta.is_form_variant,
         species_id: speciesId,
-        species_growth_rate: getSpeciesGrowthRate(speciesId),
+        species_growth_rate: speciesGrowthRate,
         item_id: ru16(raw, OFF_ITEM),
-        exp: ru32(raw, OFF_EXP),
-        nature_id: pid % 25,
+        exp,
+        level,
+        nature_id: natureId,
         pid,
         is_shiny: isShinyPid(getOtid(raw), pid),
         gender: genderFromPid(pid, genderThreshold),
         gender_mode: genderMode,
         gender_editable: genderMode === 'dynamic',
-        ivs: getIvs(raw),
-        evs: getEvs(raw),
+        ivs,
+        evs,
+        ...battlePreview,
         moves: getMoves(raw),
         move_pp: getMovePp(raw),
         move_pp_ups: getMovePpUps(raw),

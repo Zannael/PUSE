@@ -830,6 +830,9 @@ async def get_party():
             ability_hidden_id,
             ability_hidden_name,
         )
+        level = int(sec_data[mon_off + 0x54])
+        ivs = pk.get_ivs()
+        evs = pk.get_evs()
 
         party.append({
             "index": i,
@@ -840,7 +843,7 @@ async def get_party():
             "species_variant_index": smeta["species_variant_index"],
             "species_variant_count": smeta["species_variant_count"],
             "is_form_variant": smeta["is_form_variant"],
-            "level": sec_data[mon_off + 0x54],
+            "level": level,
             "exp": pk.get_exp(),
             "nature": pk.get_nature_name(),
             "nature_id": pk.get_nature_id(),
@@ -850,8 +853,12 @@ async def get_party():
             "gender_mode": pk.get_gender_mode(),
             "gender_editable": pk.get_gender_mode() == "dynamic",
             "is_hidden_ability": bool(pk.get_hidden_ability_flag()),
-            "ivs": pk.get_ivs(),
-            "evs": pk.get_evs(),
+            "ivs": ivs,
+            "evs": evs,
+            "battle_stats": party_mod.calculate_battle_stats(
+                pk.get_species_id(), level, pk.get_nature_id(), ivs, evs
+            ),
+            "hidden_power_type": party_mod.calculate_hidden_power_type(ivs),
             "species_id": pk.get_species_id(),
             "species_growth_rate": party_mod.get_species_growth_rate(pk.get_species_id()),
             "moves": pk.get_moves_ids(),
@@ -1273,6 +1280,11 @@ async def get_box(box_id: int):
             ability_hidden_id,
             ability_hidden_name,
         )
+        growth_rate = box_mod.get_species_growth_rate(m.species_id)
+        effective_growth_rate = growth_rate if growth_rate is not None else 0
+        level = box_mod.calc_current_level(effective_growth_rate, m.exp)
+        ivs = m.get_ivs()
+        evs = m.get_evs()
 
         out.append({
             "species_name": smeta["species_label"],
@@ -1288,14 +1300,19 @@ async def get_box(box_id: int):
             "species_growth_rate": box_mod.get_species_growth_rate(m.species_id),
             "item_id": m.get_item_id(),
             "exp": m.exp,
+            "level": level,
             "nature_id": m.get_nature_id(),
             "pid": m.get_pid(),
             "is_shiny": m.is_shiny(),
             "gender": m.get_gender(),
             "gender_mode": m.get_gender_mode(),
             "gender_editable": m.get_gender_mode() == "dynamic",
-            "ivs": m.get_ivs(),
-            "evs": m.get_evs(),
+            "ivs": ivs,
+            "evs": evs,
+            "battle_stats": party_mod.calculate_battle_stats(
+                m.species_id, level, m.get_nature_id(), ivs, evs
+            ),
+            "hidden_power_type": party_mod.calculate_hidden_power_type(ivs),
             "moves": m.get_moves(),
             "move_pp": m.get_move_pp(),
             "move_pp_ups": m.get_move_pp_ups(),
