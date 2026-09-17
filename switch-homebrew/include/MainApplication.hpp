@@ -283,6 +283,7 @@ class MainApplication : public pu::ui::Application {
     void RebuildBagMenu();
     void RebuildBagPocketMenu();
     void RebuildRtcMenu();
+    void HandleRtcTimeFixerReset();
     void HandleRtcQuickFix();
     void HandleRtcPairRepair();
     void HandleFieldEdit(int section_index, const std::string &field_key);

@@ -25,7 +25,24 @@ Test in this order and stop at first that is valid and fixes tampering:
 2. `Unbound_2_candidate_layout2_id0_id4_id13_full.sav`
 3. `Unbound_2_candidate_layout2_id0_id4_id13_full_plus_aux12.sav`
 
-## Pair vs Quick
+## Recommended: re-enable the in-game Time Fixer
+
+For a single affected save, prefer the native-assisted recovery flow. It validates both save generations, clears only bit `0x20` at logical section 4 offset `0xE89` in the newest coherent generation, and preserves the opaque section footer, older fallback generation, and optional 16-byte RTC trailer.
+
+Correct the emulator or device RTC first. The output only re-enables the one-use Frozen Heights NPC; load the output, use the NPC, save in-game, and fully restart so Unbound can rebuild its own RTC metadata.
+
+Backend endpoint:
+
+```bash
+curl -X POST \
+  -F "file=@tampered.sav" \
+  http://127.0.0.1:8000/rtc/time-fixer-reset \
+  -o tampered_time_fixer_reset.sav
+```
+
+The operation rejects unsupported sizes, invalid Unbound signatures, incoherent or ambiguous generations, and saves where the NPC-used bit is already clear.
+
+## Pair vs legacy Quick Fix
 
 Use these modes based on what files you have and how confident you are about the root cause.
 
@@ -46,7 +63,7 @@ curl -X POST \
   -o rtc_pair_repair_pack.zip
 ```
 
-### Quick Fix (single file)
+### Legacy Quick Fix (single file)
 
 - Input: one tampered save.
 - Goal: apply known manifest deltas from `backend/data/rtc_manifest_unbound_v1.json`.
@@ -63,7 +80,7 @@ curl -X POST \
   -o rtc_quick_fix_pack.zip
 ```
 
-Warning: quick fix is profile-based. If symptoms are not RTC-related, or if the save was already partially repaired, prefer pair repair.
+Warning: legacy Quick Fix is profile-based and writes sample-derived manifest values. Prefer the one-byte Time Fixer reset. If the native-assisted workflow is unavailable or fails, prefer pair repair over legacy Quick Fix.
 
 ## Notes
 

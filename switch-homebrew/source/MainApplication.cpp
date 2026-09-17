@@ -467,15 +467,15 @@ pu::ui::elm::Menu::Ref BagPocketLayout::GetMenu() {
 RtcLayout::RtcLayout(const UiTheme &theme, pu::sdl2::TextureHandle::Ref header_icon)
     : BasePageLayout(theme, "RTC Recovery", header_icon) {
     const auto ui = GetUiMetrics();
-    this->SetSubtitle("Fix RTC tampering — no Frozen Heights NPC needed");
+    this->SetSubtitle("Prefer Unbound's Time Fixer; advanced fallbacks remain available");
     this->SetHints("[A] Run   [B] Back   [+] Exit");
 
     const s32 menu_x = ui.pad;
     const s32 menu_y = ui.content_y + ui.pad;
     const s32 menu_w = ui.screen_w - (2 * ui.pad);
     const s32 menu_h = ui.content_h - (2 * ui.pad);
-    const s32 item_h = std::max(90, menu_h / 2);
-    this->menu_ = pu::ui::elm::Menu::New(menu_x, menu_y, menu_w, theme_.menu_item, theme_.menu_focus, item_h, 2);
+    const s32 item_h = std::max(72, menu_h / 3);
+    this->menu_ = pu::ui::elm::Menu::New(menu_x, menu_y, menu_w, theme_.menu_item, theme_.menu_focus, item_h, 3);
     this->Add(this->menu_);
 }
 
@@ -1201,7 +1201,7 @@ void MainApplication::RebuildHomeMenu() {
         {"PC",           "Browse and edit PC boxes (boxes 1-18)"},
         {"Bag",          "Browse and edit bag pockets"},
         {"Money & BP",   "Edit trainer money and Battle Points"},
-        {"RTC Recovery", "Fix RTC tampering (no Frozen Heights NPC needed)"},
+        {"RTC Recovery", "Re-enable the in-game Time Fixer or use advanced recovery"},
         {"Load Save",    "Browse SD card for a .sav file"},
     };
 
@@ -2444,8 +2444,14 @@ void MainApplication::RebuildRtcMenu() {
     const bool manifest_ok = this->rtc_manifest_.loaded;
     const std::string manifest_tag = manifest_ok ? "" : "   [manifest missing]";
 
+    auto native_item = pu::ui::elm::MenuItem::New(
+        "Re-enable Time Fixer   Recommended; validates save and changes one byte");
+    native_item->SetColor({255, 255, 255, 255});
+    native_item->AddOnKey([this]() { this->HandleRtcTimeFixerReset(); }, HidNpadButton_A);
+    menu->AddItem(native_item);
+
     auto quick_item = pu::ui::elm::MenuItem::New(
-        "Quick Fix" + manifest_tag +
+        "Legacy Quick Fix" + manifest_tag +
         "   Generate 3 candidates from current save + built-in manifest");
     quick_item->SetColor({255, 255, 255, 255});
     quick_item->AddOnKey([this]() { this->HandleRtcQuickFix(); }, HidNpadButton_A);
@@ -2459,6 +2465,43 @@ void MainApplication::RebuildRtcMenu() {
 
     menu->ForceReloadItems();
     menu->SetSelectedIndex(0);
+}
+
+void MainApplication::HandleRtcTimeFixerReset() {
+    const int choice = this->CreateShowDialog(
+        "Re-enable Time Fixer",
+        "This changes only the Time Fixer-used bit in the active save generation.\n"
+        "The older generation, section footer, and RTC trailer stay unchanged.\n\n"
+        "Correct the console/emulator RTC before loading the output.\n"
+        "Output: sdmc:/switch/puse/rtc/candidate_time_fixer_reset.sav",
+        {"Create", "Cancel"}, true);
+    if (choice != 0) return;
+
+    puse::core::RtcTimeFixerResult result;
+    std::string err;
+    if (!puse::core::ReenableTimeFixer(this->save_session_.Buffer(), &result, &err)) {
+        this->CreateShowDialog("Time Fixer reset failed",
+            err.empty() ? "Unknown error" : err, {"OK"}, true);
+        return;
+    }
+
+    std::unordered_map<std::string, std::vector<uint8_t>> output = {
+        {"time_fixer_reset", result.bytes},
+    };
+    const char *order[1] = {"time_fixer_reset"};
+    if (puse::core::WriteRtcCandidates(output, order, 1, &err) != 1) {
+        this->CreateShowDialog("Write failed",
+            err.empty() ? "Could not write RTC recovery output" : err, {"OK"}, true);
+        return;
+    }
+
+    this->CreateShowDialog(
+        "Time Fixer re-enabled",
+        "Created candidate_time_fixer_reset.sav from save index " +
+        std::to_string(result.save_idx) + ".\n\n"
+        "Load it with a correct RTC, use the Frozen Heights Time Fixer, "
+        "save in-game, and fully restart.",
+        {"OK"}, true);
 }
 
 void MainApplication::HandleRtcQuickFix() {

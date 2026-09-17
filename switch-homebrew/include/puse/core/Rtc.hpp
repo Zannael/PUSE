@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
@@ -29,6 +30,22 @@ struct RtcManifest {
     std::unordered_map<std::string, std::vector<int>> profiles;
     bool loaded = false;
 };
+
+struct RtcTimeFixerResult {
+    std::vector<uint8_t> bytes;
+    uint32_t save_idx = 0;
+    size_t section_offset = 0;
+    size_t absolute_offset = 0;
+    uint8_t before = 0;
+    uint8_t after = 0;
+};
+
+// Re-enable Unbound's in-game Time Fixer by clearing only its used flag in the
+// newest coherent save generation. Section footer, fallback generation, and
+// optional RTC trailer are preserved byte-for-byte.
+bool ReenableTimeFixer(const std::vector<uint8_t> &save,
+                       RtcTimeFixerResult *out,
+                       std::string *error = nullptr);
 
 // Load manifest JSON from path (romfs or sdmc).
 bool LoadRtcManifest(const std::string &path, RtcManifest *out, std::string *error = nullptr);

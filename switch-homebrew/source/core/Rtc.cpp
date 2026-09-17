@@ -105,6 +105,11 @@ static bool ParseIntArray(const std::string &s, size_t pos, std::vector<int> *ou
 constexpr size_t kRtcSectSz   = 0x1000;
 constexpr size_t kRtcPayloadSz = 0xFF0;
 constexpr size_t kRtcBodyLen   = 0x20000;
+constexpr size_t kRtcTrailerSaveLen = 0x20010;
+constexpr uint32_t kUnboundSectionSignature = 0x01121999;
+constexpr uint16_t kTimeFixerSectionId = 4;
+constexpr size_t kTimeFixerRelOff = 0xE89;
+constexpr uint8_t kTimeFixerUsedMask = 0x20;
 
 static const std::unordered_set<uint16_t> kOpaqueIds = {0, 4, 13};
 
@@ -147,6 +152,44 @@ static size_t ComputeLayoutOffset(uint16_t sid, uint32_t save_idx) {
     return (base_block + rel) * kRtcSectSz;
 }
 
+struct CoherentGeneration {
+    uint32_t save_idx;
+    std::unordered_map<uint16_t, size_t> offsets;
+};
+
+static std::vector<CoherentGeneration> FindCoherentGenerations(const std::vector<uint8_t> &buf) {
+    std::vector<CoherentGeneration> out;
+    for (const size_t first_block : {size_t{0}, size_t{14}}) {
+        std::unordered_set<uint16_t> ids;
+        std::unordered_map<uint16_t, size_t> offsets;
+        uint32_t generation_idx = 0;
+        bool valid = true;
+
+        for (size_t block = first_block; block < first_block + 14; ++block) {
+            const size_t off = block * kRtcSectSz;
+            const uint16_t sid = puse::core::ReadU16Le(buf.data(), off + 0xFF4);
+            const uint32_t signature = puse::core::ReadU32Le(buf.data(), off + 0xFF8);
+            const uint32_t save_idx = puse::core::ReadU32Le(buf.data(), off + 0xFFC);
+
+            if (block == first_block) generation_idx = save_idx;
+            if (sid >= 14 || !ids.insert(sid).second || signature != kUnboundSectionSignature ||
+                save_idx != generation_idx || off != ComputeLayoutOffset(sid, save_idx)) {
+                valid = false;
+                break;
+            }
+            offsets[sid] = off;
+        }
+
+        if (valid && ids.size() == 14 && generation_idx != 0 && generation_idx != 0xFFFFFFFFU) {
+            out.push_back({generation_idx, std::move(offsets)});
+        }
+    }
+    std::sort(out.begin(), out.end(), [](const auto &a, const auto &b) {
+        return a.save_idx > b.save_idx;
+    });
+    return out;
+}
+
 } // anonymous namespace
 
 namespace puse::core {
@@ -168,6 +211,67 @@ const char *kPairProfileOrder[7] = {
     "id0_full_plus_aux12",
     "id0_id4_id13_full_plus_aux12",
 };
+
+bool ReenableTimeFixer(const std::vector<uint8_t> &save,
+                       RtcTimeFixerResult *out,
+                       std::string *error)
+{
+    if (out == nullptr) { if (error) *error = "Output result is required"; return false; }
+    if (save.size() != kRtcBodyLen && save.size() != kRtcTrailerSaveLen) {
+        if (error) *error = "Unsupported save size; expected 131072 or 131088 bytes";
+        return false;
+    }
+
+    const auto generations = FindCoherentGenerations(save);
+    if (generations.empty()) {
+        if (error) *error = "No coherent Pokemon Unbound save generation was found";
+        return false;
+    }
+    if (generations.size() > 1 && generations[0].save_idx == generations[1].save_idx) {
+        if (error) *error = "Active save generation is ambiguous";
+        return false;
+    }
+
+    const auto &active = generations[0];
+    const auto section_it = active.offsets.find(kTimeFixerSectionId);
+    if (section_it == active.offsets.end()) {
+        if (error) *error = "Active save generation is missing section 4";
+        return false;
+    }
+    const size_t section_off = section_it->second;
+    const size_t absolute_off = section_off + kTimeFixerRelOff;
+    const uint8_t before = save[absolute_off];
+    if ((before & kTimeFixerUsedMask) == 0) {
+        if (error) *error = "The in-game Time Fixer is already available";
+        return false;
+    }
+
+    out->bytes = save;
+    out->save_idx = active.save_idx;
+    out->section_offset = section_off;
+    out->absolute_offset = absolute_off;
+    out->before = before;
+    out->after = static_cast<uint8_t>(before & static_cast<uint8_t>(~kTimeFixerUsedMask));
+    out->bytes[absolute_off] = out->after;
+
+    size_t changed = 0;
+    size_t changed_off = 0;
+    for (size_t i = 0; i < save.size(); ++i) {
+        if (save[i] != out->bytes[i]) { ++changed; changed_off = i; }
+    }
+    if (changed != 1 || changed_off != absolute_off) {
+        if (error) *error = "Time Fixer reset did not produce a one-byte mutation";
+        return false;
+    }
+    if (!std::equal(save.begin() + section_off + 0xFF0,
+                    save.begin() + section_off + 0x1000,
+                    out->bytes.begin() + section_off + 0xFF0) ||
+        !std::equal(save.begin() + kRtcBodyLen, save.end(), out->bytes.begin() + kRtcBodyLen)) {
+        if (error) *error = "Time Fixer reset changed protected footer or trailer bytes";
+        return false;
+    }
+    return true;
+}
 
 // ---- LoadRtcManifest --------------------------------------------------------
 

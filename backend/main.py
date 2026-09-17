@@ -180,6 +180,32 @@ async def rtc_quick_fix(file: UploadFile = File(...)):
     )
 
 
+@app.post("/rtc/time-fixer-reset")
+async def rtc_time_fixer_reset(file: UploadFile = File(...)):
+    """Re-enable Unbound's one-use Time Fixer while preserving all opaque metadata."""
+    raw = await file.read()
+    if not raw:
+        raise HTTPException(status_code=400, detail="Save file is required")
+
+    try:
+        result = rtc_repair.reenable_time_fixer(raw)
+    except (ValueError, AssertionError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    source_name = Path(file.filename or "save.sav")
+    suffix = source_name.suffix.lower() if source_name.suffix.lower() in {".sav", ".srm"} else ".sav"
+    output_name = f"{source_name.stem}_time_fixer_reset{suffix}"
+    return Response(
+        content=result["bytes"],
+        media_type="application/octet-stream",
+        headers={
+            "Content-Disposition": f"attachment; filename={output_name}",
+            "X-PUSE-RTC-Save-Index": str(result["save_idx"]),
+            "X-PUSE-RTC-Changed-Offset": f"0x{result['absolute_offset']:X}",
+        },
+    )
+
+
 @app.post("/save/convert")
 async def convert_save(file: UploadFile = File(...), target_ext: str = ".sav"):
     raw = await file.read()

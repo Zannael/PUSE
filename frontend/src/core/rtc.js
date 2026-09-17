@@ -3,7 +3,12 @@ import { ru16, ru32, wu16, wu32 } from './binary.js';
 const SECTION_SIZE = 0x1000;
 const PAYLOAD_SIZE = 0xFF0;
 const SAVE_BODY_LEN = 0x20000;
+const SAVE_WITH_TRAILER_LEN = 0x20010;
 const OPAQUE_IDS = new Set([0, 4, 13]);
+const UNBOUND_SECTION_SIGNATURE = 0x01121999;
+const TIME_FIXER_SECTION_ID = 4;
+const TIME_FIXER_REL_OFF = 0xE89;
+const TIME_FIXER_USED_MASK = 0x20;
 
 export const DEFAULT_PROFILES = [
     'control',
@@ -154,6 +159,91 @@ function computeLayoutOffsetForSaveIdx(sectionId, saveIdx) {
     const baseBlock = (saveIdx % 2 === 0) ? 0 : 14;
     const rel = (sectionId + (saveIdx % 14)) % 14;
     return (baseBlock + rel) * SECTION_SIZE;
+}
+
+function coherentSaveGenerations(buffer) {
+    const generations = [];
+    for (const firstBlock of [0, 14]) {
+        const sections = [];
+        for (let block = firstBlock; block < firstBlock + 14; block += 1) {
+            const off = block * SECTION_SIZE;
+            sections.push({
+                sid: ru16(buffer, off + 0xFF4),
+                signature: ru32(buffer, off + 0xFF8),
+                saveIdx: ru32(buffer, off + 0xFFC),
+                off,
+            });
+        }
+
+        const saveIndices = new Set(sections.map((section) => section.saveIdx));
+        const sectionIds = new Set(sections.map((section) => section.sid));
+        if (saveIndices.size !== 1 || sectionIds.size !== 14) continue;
+        if (![...Array(14).keys()].every((sid) => sectionIds.has(sid))) continue;
+
+        const saveIdx = sections[0].saveIdx;
+        if (saveIdx === 0 || saveIdx === 0xFFFFFFFF) continue;
+        if (sections.some((section) => section.signature !== UNBOUND_SECTION_SIGNATURE)) continue;
+        if (sections.some((section) => section.off !== computeLayoutOffsetForSaveIdx(section.sid, saveIdx))) continue;
+
+        generations.push({
+            saveIdx,
+            sections: Object.fromEntries(sections.map((section) => [section.sid, section.off])),
+        });
+    }
+    return generations;
+}
+
+export function reenableTimeFixer(saveBytes) {
+    const source = saveBytes instanceof Uint8Array ? saveBytes : new Uint8Array(saveBytes);
+    if (source.length !== SAVE_BODY_LEN && source.length !== SAVE_WITH_TRAILER_LEN) {
+        throw new Error(
+            `Unsupported save size: ${source.length} bytes. Expected ${SAVE_BODY_LEN} or ${SAVE_WITH_TRAILER_LEN}.`,
+        );
+    }
+
+    const generations = coherentSaveGenerations(source).sort((a, b) => b.saveIdx - a.saveIdx);
+    if (!generations.length) {
+        throw new Error('No coherent Pokemon Unbound save generation was found');
+    }
+    if (generations.length > 1 && generations[0].saveIdx === generations[1].saveIdx) {
+        throw new Error('Active save generation is ambiguous');
+    }
+
+    const active = generations[0];
+    const sectionOffset = active.sections[TIME_FIXER_SECTION_ID];
+    const absoluteOffset = sectionOffset + TIME_FIXER_REL_OFF;
+    const before = source[absoluteOffset];
+    if ((before & TIME_FIXER_USED_MASK) === 0) {
+        throw new Error('The in-game Time Fixer is already available in the active save generation');
+    }
+
+    const output = new Uint8Array(source);
+    const after = before & (~TIME_FIXER_USED_MASK & 0xFF);
+    output[absoluteOffset] = after;
+
+    const changed = [];
+    for (let idx = 0; idx < source.length; idx += 1) {
+        if (source[idx] !== output[idx]) changed.push(idx);
+    }
+    if (changed.length !== 1 || changed[0] !== absoluteOffset) {
+        throw new Error('Time Fixer reset must change exactly one byte');
+    }
+    for (let idx = sectionOffset + 0xFF0; idx < sectionOffset + 0x1000; idx += 1) {
+        if (source[idx] !== output[idx]) throw new Error('Time Fixer reset must preserve the section footer');
+    }
+    for (let idx = SAVE_BODY_LEN; idx < source.length; idx += 1) {
+        if (source[idx] !== output[idx]) throw new Error('Time Fixer reset must preserve the RTC trailer');
+    }
+
+    return {
+        bytes: output,
+        save_idx: active.saveIdx,
+        section_offset: sectionOffset,
+        absolute_offset: absoluteOffset,
+        before,
+        after,
+        changed_bytes: 1,
+    };
 }
 
 export function buildManifest(brokenBytes, fixedBytes) {

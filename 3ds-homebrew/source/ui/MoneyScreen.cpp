@@ -72,7 +72,7 @@ MoneyScreen::MoneyScreen()
     };
 
     rtc_btn_ = touchScreen->AddNew<sl::ui::Button>(VRect(20, 170, 280, 48));
-    rtc_btn_->SetText("RTC Quick Fix...");
+    rtc_btn_->SetText("RTC Recovery...");
     rtc_btn_->eOnTap = [](sl::ui::Button&) {
         puse::ui::RtcScreen::Make()->Open();
     };

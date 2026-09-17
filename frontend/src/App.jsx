@@ -101,8 +101,8 @@ const App = () => {
     const [bagHasUnsavedChanges, setBagHasUnsavedChanges] = useState(false);
     const [rtcBrokenFile, setRtcBrokenFile] = useState(null);
     const [rtcFixedFile, setRtcFixedFile] = useState(null);
-    const [rtcQuickFile, setRtcQuickFile] = useState(null);
-    const [rtcTab, setRtcTab] = useState('pair');
+    const [rtcTimeFixerFile, setRtcTimeFixerFile] = useState(null);
+    const [rtcTab, setRtcTab] = useState('quick');
     const [rtcBusy, setRtcBusy] = useState(false);
     const [convertFile, setConvertFile] = useState(null);
     const [convertTarget, setConvertTarget] = useState('.sav');
@@ -126,18 +126,21 @@ const App = () => {
         }
     };
 
-    const handleRtcQuickFixPack = async () => {
-        if (!rtcQuickFile) {
-            alert('Please select one tampered save file.');
+    const handleRtcTimeFixerReset = async () => {
+        if (!rtcTimeFixerFile) {
+            alert('Please select one Pokemon Unbound save file.');
             return;
         }
 
         try {
             setRtcBusy(true);
-            await client.generateRtcQuickFixPack(rtcQuickFile);
-            alert('RTC quick-fix pack downloaded. Test candidates in order and stop at first valid save.');
-        } catch {
-            alert('Failed to generate RTC quick-fix pack.');
+            const result = await client.reenableRtcTimeFixer(rtcTimeFixerFile);
+            alert(
+                `Time Fixer reset downloaded (save index ${result.save_idx}, byte ${result.absolute_offset}).\n\n` +
+                'Correct the emulator/device RTC before loading it. Then use the Frozen Heights Time Fixer, save in-game, and restart.'
+            );
+        } catch (error) {
+            alert(error?.message || 'Failed to re-enable the in-game Time Fixer.');
         } finally {
             setRtcBusy(false);
         }
@@ -575,9 +578,9 @@ const App = () => {
                                     <details className="group rounded-[1.75rem] border border-amber-500/30 bg-amber-500/5 p-5 md:p-6">
                                         <summary className="list-none cursor-pointer flex items-start justify-between gap-3">
                                             <div>
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-amber-300">Advanced tools</p>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-amber-300">Recovery tools</p>
                                                 <h3 className="mt-1 text-lg font-bold text-slate-100">RTC Metadata Recovery</h3>
-                                                <p className="mt-1 text-xs text-slate-300">Fix RTC tampering issue without Frozen Heights NPC.</p>
+                                                <p className="mt-1 text-xs text-slate-300">Prefer Unbound's own Time Fixer; use pair repair as an advanced fallback.</p>
                                             </div>
                                             <div className="text-[10px] text-amber-200 uppercase tracking-widest group-open:hidden">Open</div>
                                             <div className="text-[10px] text-amber-200 uppercase tracking-widest hidden group-open:block">Close</div>
@@ -592,7 +595,7 @@ const App = () => {
                                                         rtcTab === 'pair' ? 'bg-amber-600 text-white' : 'text-slate-300 hover:bg-white/5'
                                                     }`}
                                                 >
-                                                    Pair Repair
+                                                    Pair Repair (Advanced)
                                                 </button>
                                                 <button
                                                     type="button"
@@ -601,7 +604,7 @@ const App = () => {
                                                         rtcTab === 'quick' ? 'bg-amber-600 text-white' : 'text-slate-300 hover:bg-white/5'
                                                     }`}
                                                 >
-                                                    Quick Fix
+                                                    Re-enable Time Fixer
                                                 </button>
                                             </div>
 
@@ -644,31 +647,31 @@ const App = () => {
                                             ) : (
                                                 <>
                                                     <p className="mt-3 text-sm text-slate-200">
-                                                        Quick single-file RTC repair for known tampering signatures.
+                                                        Safely re-enable the one-use Frozen Heights Time Fixer by clearing only its used flag.
                                                     </p>
                                                     <p className="mt-2 text-[11px] text-amber-300">
-                                                        Use only when you are confident the issue is RTC tampering.
+                                                        First correct the emulator or device RTC. This download does not repair RTC metadata by itself.
                                                     </p>
                                                     <div className="mt-3 text-xs text-slate-300">
                                                         <label className="block">
-                                                            <span className="block mb-1 text-slate-400">Tampered save (.sav)</span>
+                                                            <span className="block mb-1 text-slate-400">Pokemon Unbound save (.sav or .srm)</span>
                                                             <input
                                                                 type="file"
-                                                                accept=".sav"
-                                                                onChange={(e) => setRtcQuickFile(e.target.files?.[0] || null)}
+                                                                accept=".sav,.srm"
+                                                                onChange={(e) => setRtcTimeFixerFile(e.target.files?.[0] || null)}
                                                                 className="w-full text-xs"
                                                             />
                                                         </label>
                                                     </div>
                                                     <button
-                                                        onClick={handleRtcQuickFixPack}
+                                                        onClick={handleRtcTimeFixerReset}
                                                         disabled={rtcBusy}
                                                         className="mt-4 inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-500 disabled:bg-amber-900/60 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all"
                                                     >
-                                                        <ShieldAlert size={14} /> {rtcBusy ? 'GENERATING...' : 'GENERATE QUICK FIX PACK'}
+                                                        <ShieldAlert size={14} /> {rtcBusy ? 'VALIDATING...' : 'RE-ENABLE TIME FIXER'}
                                                     </button>
                                                     <p className="mt-2 text-[11px] text-slate-400">
-                                                        Downloads quick-fix candidates with ordered fallback hints.
+                                                        Validates the save, changes exactly one byte in the active generation, and preserves the older fallback copy and RTC trailer.
                                                     </p>
                                                 </>
                                             )}
@@ -770,7 +773,7 @@ const App = () => {
                                 <FeatureCard
                                     icon={<Shield size={18} className="text-blue-300" />}
                                     title="Recovery Tools"
-                                    description="Use RTC pair repair and quick-fix candidate generation for known tampering recovery scenarios."
+                                    description="Re-enable Unbound's in-game Time Fixer with a validated one-byte edit, or use pair repair as an advanced fallback."
                                 />
                             </div>
                         </section>

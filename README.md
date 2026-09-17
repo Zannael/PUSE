@@ -141,9 +141,11 @@ Install via FBI from SD card. The CIA uses test/false keys and is compatible wit
 | X | Save (backup created automatically) |
 | Start | Exit |
 
-### RTC Quick Fix
+### RTC Recovery
 
-For saves broken by the RTC bug: go to **Select → Money screen → RTC Quick Fix**. Generates three candidate saves and applies your chosen profile directly to `Unbound.sav`. Restart PUSE after applying.
+For saves broken by the RTC bug: go to **Select → Money screen → RTC Recovery**. The recommended action validates the save and re-enables Unbound's one-use Frozen Heights Time Fixer with a one-byte edit while retaining a `.bak` copy. Correct the console RTC first, use the NPC, save in-game, and restart. Legacy manifest profiles remain available as an advanced fallback.
+
+This native-assisted recovery method was discovered, reproduced, and documented by [@caesarium25](https://github.com/caesarium25) in [Pokémon Unbound NPC Time Fixer Reset](https://github.com/caesarium25/pokemon-unbound-npc-time-fixer-reset), then contributed to PUSE through [issue #22](https://github.com/Zannael/PUSE/issues/22). His finding identified the section-4 Time Fixer-used flag that made this safer recovery path possible.
 
 ### Optional: Pokémon Icons
 

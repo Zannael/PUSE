@@ -387,6 +387,40 @@ const backendClient = {
         downloadBlob(blob, fileName);
         return { status: 'ok' };
     },
+    async reenableRtcTimeFixer(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const res = await fetch(`${API_BASE}/rtc/time-fixer-reset`, {
+            method: 'POST',
+            body: formData,
+        });
+        if (!res.ok) {
+            let message = 'Time Fixer reset failed';
+            try {
+                const payload = await res.json();
+                if (payload?.detail) message = payload.detail;
+            } catch {
+                // Keep the stable fallback message for non-JSON errors.
+            }
+            throw new Error(message);
+        }
+
+        const blob = await res.blob();
+        const sourceName = file?.name || 'save.sav';
+        const matchExt = sourceName.match(/\.(sav|srm)$/i);
+        const ext = matchExt ? matchExt[0].toLowerCase() : '.sav';
+        const fallbackName = `${toBaseName(sourceName)}_time_fixer_reset${ext}`;
+        const contentDisposition = res.headers.get('Content-Disposition') || '';
+        const match = contentDisposition.match(/filename=([^;]+)/i);
+        const fileName = match ? match[1].replace(/"/g, '').trim() : fallbackName;
+        downloadBlob(blob, fileName);
+        return {
+            status: 'ok',
+            save_idx: Number(res.headers.get('X-PUSE-RTC-Save-Index')),
+            absolute_offset: res.headers.get('X-PUSE-RTC-Changed-Offset'),
+        };
+    },
     async convertSaveFile(file, targetExt) {
         const ext = String(targetExt || '').trim().toLowerCase();
         const normalizedExt = ext.startsWith('.') ? ext : `.${ext}`;
@@ -769,6 +803,24 @@ const localClient = {
         const zipBlob = asZipBlob(entries);
         downloadBlob(zipBlob, `${baseName}_rtc_quick_fix_pack.zip`);
         return { status: 'ok' };
+    },
+    async reenableRtcTimeFixer(file) {
+        if (!file) {
+            throw new Error('Missing save file input');
+        }
+
+        const { reenableTimeFixer } = await getLocalCoreModules();
+        const raw = new Uint8Array(await file.arrayBuffer());
+        const result = reenableTimeFixer(raw);
+        const matchExt = String(file.name || '').match(/\.(sav|srm)$/i);
+        const ext = matchExt ? matchExt[0].toLowerCase() : '.sav';
+        const fileName = `${toBaseName(file.name)}_time_fixer_reset${ext}`;
+        downloadBlob(new Blob([result.bytes], { type: 'application/octet-stream' }), fileName);
+        return {
+            status: 'ok',
+            save_idx: result.save_idx,
+            absolute_offset: `0x${result.absolute_offset.toString(16).toUpperCase()}`,
+        };
     },
     async convertSaveFile(file, targetExt) {
         if (!file) {

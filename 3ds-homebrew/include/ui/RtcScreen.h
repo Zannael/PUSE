@@ -20,9 +20,11 @@ private:
     std::string manifest_err_;
 
     std::shared_ptr<sl::ui::Label> status_label_;
+    std::shared_ptr<sl::ui::Button> time_fixer_btn_;
     std::shared_ptr<sl::ui::Button> profile_btns_[3];
 
     void TryLoadManifest();
+    void ApplyTimeFixerReset();
     void ApplyProfile(int profile_idx);
     bool WriteBytes(const std::vector<uint8_t>& bytes, std::string* error);
     void RefreshStatus();

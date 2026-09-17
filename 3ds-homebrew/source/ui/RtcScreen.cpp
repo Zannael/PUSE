@@ -25,15 +25,15 @@ static const char* kProfileLabels[3] = {
 };
 
 static const char* kProfileShort[3] = {
-    "P1: Trainer+Items",
-    "P2: Trainer+Items+PC",
-    "P3: Full patch",
+    "Legacy P1: Trainer+Items",
+    "Legacy P2: +PC",
+    "Legacy P3: Full patch",
 };
 
 RtcScreen::RtcScreen()
     : BaseScreen(false)
 {
-    InitChrome("B: Back   A: Apply profile");
+    InitChrome("B: Back   A: Run recovery");
 
     // Top screen — explanation
     auto expl = topScreen->AddNew<sl::ui::Label>(VRect(10, 35, 380, 190));
@@ -41,23 +41,36 @@ RtcScreen::RtcScreen()
     expl->textConfig->justification = Vector2(0.0f, 0.0f);
     expl->textConfig->borderColor = Color::black;
     expl->SetText(
-        "RTC Quick Fix\n\n"
-        "Repairs saves broken by the real-time\n"
-        "clock bug in Pokemon Unbound.\n\n"
-        "Select a profile to apply it directly\n"
-        "to Unbound.sav and restart PUSE.\n\n"
-        "Candidates also written to:\n"
-        "sdmc:/3ds/puse/rtc/"
+        "RTC Recovery\n\n"
+        "Recommended: re-enable Unbound's own\n"
+        "Frozen Heights Time Fixer. This validates\n"
+        "the save and changes exactly one byte.\n\n"
+        "Correct the console RTC first, apply the\n"
+        "reset, use the NPC, save, then restart.\n\n"
+        "Legacy manifest profiles remain below."
     );
 
-    // Bottom screen — status + 3 profile buttons
+    // Bottom screen — status + recommended action + legacy profiles
     status_label_ = touchScreen->AddNew<sl::ui::Label>(VRect(10, 8, 300, 20));
     status_label_->SetPreset("normal.16");
     status_label_->textConfig->justification = Vector2(0.0f, 0.5f);
     status_label_->textConfig->borderColor = Color::black;
 
+    time_fixer_btn_ = touchScreen->AddNew<sl::ui::Button>(VRect(10, 32, 300, 46));
+    time_fixer_btn_->SetText("Re-enable Time Fixer (recommended)");
+    time_fixer_btn_->eOnTap = [this](sl::ui::Button&) {
+        auto box = MessageBox::New(MessageBox::YesNo,
+            "Is the console/emulator RTC correct?\n\n"
+            "This backs up Unbound.sav and clears only\n"
+            "the Time Fixer-used bit.",
+            [this](int choice) {
+                if (choice == 0) ApplyTimeFixerReset();
+            });
+        box->Open();
+    };
+
     for (int i = 0; i < 3; i++) {
-        profile_btns_[i] = touchScreen->AddNew<sl::ui::Button>(VRect(10, 34 + i * 62, 300, 56));
+        profile_btns_[i] = touchScreen->AddNew<sl::ui::Button>(VRect(10, 82 + i * 48, 300, 44));
         profile_btns_[i]->SetText(kProfileShort[i]);
         int idx = i;
         profile_btns_[i]->eOnTap = [this, idx](sl::ui::Button&) {
@@ -67,6 +80,28 @@ RtcScreen::RtcScreen()
 
     TryLoadManifest();
     RefreshStatus();
+}
+
+void RtcScreen::ApplyTimeFixerReset() {
+    Core* core = Core::Get();
+    if (!core) return;
+
+    puse::core::RtcTimeFixerResult result;
+    std::string err;
+    if (!puse::core::ReenableTimeFixer(core->Session().Buffer(), &result, &err)) {
+        MessageBox::New(MessageBox::Ok, "Time Fixer reset failed:\n" + err)->Open();
+        return;
+    }
+    if (!WriteBytes(result.bytes, &err)) {
+        MessageBox::New(MessageBox::Ok, "Write failed:\n" + err)->Open();
+        return;
+    }
+
+    MessageBox::New(MessageBox::Ok,
+        "Time Fixer re-enabled.\n"
+        "Original saved as Unbound.sav.bak\n\n"
+        "Use the Frozen Heights NPC with a correct RTC,\n"
+        "save in-game, then fully restart.")->Open();
 }
 
 std::shared_ptr<RtcScreen> RtcScreen::Make() {

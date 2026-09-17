@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Added validated native-assisted RTC recovery across backend, frontend local mode, Switch, and 3DS. The recommended single-file action now re-enables Unbound's own Frozen Heights Time Fixer by clearing only its used bit in the newest coherent generation while preserving the opaque footer, older fallback generation, and optional RTC trailer. The broad manifest Quick Fix remains available only as a legacy fallback, with focused backend/JavaScript/C++ parity regressions.
 - Added PC release support across backend, frontend local mode, Switch, and 3DS, including checksum-safe writes, single-Pokemon confirmation UI, save refresh, and focused regression coverage.
 - Added canonical internal-species-to-National-Dex mapping with 809 real National Dex entries. Form children share their base species flag and Mega, Gigantamax, Regional, and other non-independent forms are displayed as read-only entries.
 - Added synchronized Pokédex species mapping assets and build tooling, keeping backend data canonical and mirroring the mapping to frontend, Switch, and 3DS runtimes.

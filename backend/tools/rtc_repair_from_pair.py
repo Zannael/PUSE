@@ -7,7 +7,12 @@ from pathlib import Path
 SECTION_SIZE = 0x1000
 PAYLOAD_SIZE = 0xFF0
 SAVE_BODY_LEN = 0x20000
+SAVE_WITH_TRAILER_LEN = 0x20010
 OPAQUE_IDS = {0, 4, 13}
+UNBOUND_SECTION_SIGNATURE = 0x01121999
+TIME_FIXER_SECTION_ID = 4
+TIME_FIXER_REL_OFF = 0xE89
+TIME_FIXER_USED_MASK = 0x20
 DEFAULT_PROFILES = [
     "control",
     "id0_full",
@@ -59,6 +64,85 @@ def latest_by_id(buf):
         if sid not in out or sec["save_idx"] > out[sid]["save_idx"]:
             out[sid] = sec
     return out
+
+
+def _coherent_save_generations(buf):
+    """Return complete, structurally valid 14-section save generations."""
+    generations = []
+    for first_block in (0, 14):
+        sections = []
+        for block in range(first_block, first_block + 14):
+            off = block * SECTION_SIZE
+            sid = ru16(buf, off + 0xFF4)
+            signature = ru32(buf, off + 0xFF8)
+            save_idx = ru32(buf, off + 0xFFC)
+            sections.append((sid, signature, save_idx, off))
+
+        save_indices = {entry[2] for entry in sections}
+        section_ids = {entry[0] for entry in sections}
+        if len(save_indices) != 1 or section_ids != set(range(14)):
+            continue
+
+        save_idx = next(iter(save_indices))
+        if save_idx in {0, 0xFFFFFFFF}:
+            continue
+        if any(entry[1] != UNBOUND_SECTION_SIGNATURE for entry in sections):
+            continue
+        if any(
+            entry[3] != compute_layout_offset_for_saveidx(entry[0], save_idx)
+            for entry in sections
+        ):
+            continue
+
+        by_id = {entry[0]: entry[3] for entry in sections}
+        generations.append({"save_idx": save_idx, "sections": by_id})
+    return generations
+
+
+def reenable_time_fixer(save_bytes):
+    """Clear only the Time Fixer-used bit in the active coherent save generation."""
+    if len(save_bytes) not in {SAVE_BODY_LEN, SAVE_WITH_TRAILER_LEN}:
+        raise ValueError(
+            f"Unsupported save size: {len(save_bytes)} bytes. "
+            f"Expected {SAVE_BODY_LEN} or {SAVE_WITH_TRAILER_LEN}."
+        )
+
+    generations = _coherent_save_generations(save_bytes)
+    if not generations:
+        raise ValueError("No coherent Pokemon Unbound save generation was found")
+
+    generations.sort(key=lambda generation: generation["save_idx"], reverse=True)
+    if len(generations) > 1 and generations[0]["save_idx"] == generations[1]["save_idx"]:
+        raise ValueError("Active save generation is ambiguous")
+
+    active = generations[0]
+    section_off = active["sections"][TIME_FIXER_SECTION_ID]
+    absolute_off = section_off + TIME_FIXER_REL_OFF
+    before = save_bytes[absolute_off]
+    if (before & TIME_FIXER_USED_MASK) == 0:
+        raise ValueError("The in-game Time Fixer is already available in the active save generation")
+
+    out = bytearray(save_bytes)
+    after = before & (~TIME_FIXER_USED_MASK & 0xFF)
+    out[absolute_off] = after
+
+    changed = [idx for idx, (old, new) in enumerate(zip(save_bytes, out)) if old != new]
+    if changed != [absolute_off]:
+        raise AssertionError("Time Fixer reset must change exactly one byte")
+    if out[section_off + 0xFF0:section_off + 0x1000] != save_bytes[section_off + 0xFF0:section_off + 0x1000]:
+        raise AssertionError("Time Fixer reset must preserve the section footer")
+    if out[SAVE_BODY_LEN:] != save_bytes[SAVE_BODY_LEN:]:
+        raise AssertionError("Time Fixer reset must preserve the RTC trailer")
+
+    return {
+        "bytes": bytes(out),
+        "save_idx": active["save_idx"],
+        "section_offset": section_off,
+        "absolute_offset": absolute_off,
+        "before": before,
+        "after": after,
+        "changed_bytes": 1,
+    }
 
 
 def gba_checksum(buf, off, length):
