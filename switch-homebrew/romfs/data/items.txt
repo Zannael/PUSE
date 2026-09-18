@@ -722,3 +722,7 @@
 722:Star Sweet
 723:Galarica Cuff
 724:Galarica Wreath
+725:Reins of Uni
+726:Black Augurite
+727:Peat Block
+728:Hisui Rock

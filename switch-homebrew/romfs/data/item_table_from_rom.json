@@ -6,11 +6,11 @@
   },
   "struct_size": 44,
   "coverage": {
-    "items_txt_total": 724,
-    "found_in_rom": 724,
+    "items_txt_total": 728,
+    "found_in_rom": 728,
     "unresolved": 0,
-    "rom_name_matches_canonical": 630,
-    "id_field_matches_item_id": 608
+    "rom_name_matches_canonical": 633,
+    "id_field_matches_item_id": 612
   },
   "inferred_pocket_codes": {
     "main": 1,
@@ -21,9 +21,9 @@
   },
   "counts": {
     "ball": 27,
-    "main": 430,
+    "main": 433,
     "berry": 67,
-    "key": 72,
+    "key": 73,
     "tmhm": 128
   },
   "groups": {
@@ -486,7 +486,10 @@
       721,
       722,
       723,
-      724
+      724,
+      726,
+      727,
+      728
     ],
     "berry": [
       133,
@@ -629,7 +632,8 @@
       659,
       660,
       661,
-      662
+      662,
+      725
     ],
     "tmhm": [
       289,
@@ -12345,6 +12349,70 @@
       "id_field_matches_item_id": true,
       "pocket_code": 1,
       "raw_name_hex": "9192eb08e6ddd7d500d1e6d9ff00",
+      "pocket_type": "main"
+    },
+    {
+      "item_id": 725,
+      "name": "Reins of Uni",
+      "canonical_name": "Reins of Uni",
+      "table": "extended",
+      "found_in_rom": true,
+      "offset": 8904348,
+      "rom_name": "Reins of Uni",
+      "rom_name_unknown_chars": 0,
+      "name_match": true,
+      "item_id_field": 725,
+      "id_field_matches_item_id": true,
+      "pocket_code": 2,
+      "raw_name_hex": "ccd9dde2e700e3da00cfe2ddff00",
+      "pocket_type": "key"
+    },
+    {
+      "item_id": 726,
+      "name": "Black Augurite",
+      "canonical_name": "Black Augurite",
+      "table": "extended",
+      "found_in_rom": true,
+      "offset": 8904392,
+      "rom_name": "0?wHk Auguri",
+      "rom_name_unknown_chars": 1,
+      "name_match": false,
+      "item_id_field": 726,
+      "id_field_matches_item_id": true,
+      "pocket_code": 1,
+      "raw_name_hex": "a192eb08df00bbe9dbe9e6ddff00",
+      "pocket_type": "main"
+    },
+    {
+      "item_id": 727,
+      "name": "Peat Block",
+      "canonical_name": "Peat Block",
+      "table": "extended",
+      "found_in_rom": true,
+      "offset": 8904436,
+      "rom_name": "Peat Block",
+      "rom_name_unknown_chars": 0,
+      "name_match": true,
+      "item_id_field": 727,
+      "id_field_matches_item_id": true,
+      "pocket_code": 1,
+      "raw_name_hex": "cad9d5e800bce0e3d7dfffddff00",
+      "pocket_type": "main"
+    },
+    {
+      "item_id": 728,
+      "name": "Hisui Rock",
+      "canonical_name": "Hisui Rock",
+      "table": "extended",
+      "found_in_rom": true,
+      "offset": 8904480,
+      "rom_name": "Hisui Rock",
+      "rom_name_unknown_chars": 0,
+      "name_match": true,
+      "item_id_field": 728,
+      "id_field_matches_item_id": true,
+      "pocket_code": 1,
+      "raw_name_hex": "c2dde7e9dd00cce3d7dfffffff00",
       "pocket_type": "main"
     }
   ]
