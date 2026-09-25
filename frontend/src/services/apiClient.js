@@ -574,8 +574,9 @@ const localClient = {
         return { status: 'Identity updated in memory' };
     },
     async updatePartyNickname(index, payload) {
-        const { updateBuffer, updatePartyNickname: patchPartyNickname } = await getLocalCoreModules();
-        updateBuffer((next) => patchPartyNickname(next, Number(index), payload || {}));
+        const { updateBuffer, updatePartyNickname: patchPartyNickname, getSpeciesMap } = await getLocalCoreModules();
+        const speciesMap = await getSpeciesMap();
+        updateBuffer((next) => patchPartyNickname(next, Number(index), payload || {}, speciesMap));
         return { status: 'Nickname updated in memory' };
     },
     async updatePartySpecies(index, payload) {
@@ -630,6 +631,7 @@ const localClient = {
             setPcContext,
             getBuffer,
             editPcMonFull,
+            getSpeciesMap,
         } = await getLocalCoreModules();
         let context = getPcContext();
         if (!context) {
@@ -640,7 +642,7 @@ const localClient = {
         if (nextPayload.species_id !== undefined && nextPayload.species_id !== null) {
             nextPayload.species_id = await ensureValidSpeciesId(nextPayload.species_id);
         }
-        editPcMonFull(context, nextPayload);
+        editPcMonFull(context, nextPayload, await getSpeciesMap());
         return { status: 'PC edit buffered' };
     },
     async releasePc(payload) {

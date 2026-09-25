@@ -810,7 +810,7 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                                     className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 px-4 text-sm outline-none focus:border-blue-500/50"
                                     placeholder="Nickname (max 10 chars)"
                                 />
-                                <p className="text-[10px] text-slate-500 text-center">Stored directly in save text bytes (max 10 chars).</p>
+                                <p className="text-[10px] text-slate-500 text-center">Clear this field to restore the species name (max 10 chars).</p>
                             </div>
 
                             <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">

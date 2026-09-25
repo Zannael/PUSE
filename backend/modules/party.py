@@ -796,7 +796,12 @@ class Pokemon:
         self.substructs['B'] = b
 
     def set_nickname(self, nickname):
-        self.nickname = (nickname or "").strip()[:10]
+        requested = (nickname or "").strip()
+        if not requested:
+            requested = DB_SPECIES.get(self.get_species_id())
+            if not requested:
+                raise ValueError("Unknown species for default nickname")
+        self.nickname = requested[:10]
         self.raw[OFF_NICK:OFF_NICK + 10] = encode_text(self.nickname, 10)
 
     def set_species_id(self, species_id):

@@ -303,7 +303,7 @@ class MainApplication : public pu::ui::Application {
     pu::sdl2::TextureHandle::Ref LoadTextureHandle(const std::string &path) const;
     pu::sdl2::TextureHandle::Ref GetPokemonIcon(uint16_t species_id);
     pu::sdl2::TextureHandle::Ref GetItemIcon(uint16_t item_id);
-    std::string ShowKeyboardInput(const std::string &guide_text, const std::string &initial_text, uint32_t max_len, size_t out_len) const;
+    std::string ShowKeyboardInput(const std::string &guide_text, const std::string &initial_text, uint32_t max_len, size_t out_len, bool *submitted = nullptr) const;
     bool PromptNumber(const std::string &title, const std::string &initial, int min_value, int max_value, int *out_value) const;
     bool PromptCatalogChoice(
         const std::string &title,

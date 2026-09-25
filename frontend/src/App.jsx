@@ -240,12 +240,12 @@ const App = () => {
                 await client.updatePartyBall(updatedPk.index, { ball_id: updatedPk.ball_id });
             }
 
-            if (String(updatedPk.nickname || '').trim() !== String(original.nickname || '').trim()) {
-                await client.updatePartyNickname(updatedPk.index, { nickname: updatedPk.nickname || '' });
-            }
-
             if (updatedPk.species_id !== selectedPokemon?.species_id) {
                 await client.updatePartySpecies(updatedPk.index, { species_id: updatedPk.species_id });
+            }
+
+            if (String(updatedPk.nickname || '').trim() !== String(original.nickname || '').trim()) {
+                await client.updatePartyNickname(updatedPk.index, { nickname: updatedPk.nickname || '' });
             }
 
             if (Number(updatedPk.current_ability_index) !== Number(original.current_ability_index)) {

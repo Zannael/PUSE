@@ -10,6 +10,7 @@
 #include <puse/core/Binary.hpp>
 #include <puse/core/Party.hpp>
 #include <puse/core/SaveSections.hpp>
+#include <puse/io/DataLoader.hpp>
 
 namespace puse::core {
 
@@ -440,7 +441,20 @@ bool UpdatePcMonNickname(std::vector<uint8_t> &stream, const int box, const int 
         if (error) { *error = "slot is empty or invalid"; }
         return false;
     }
-    EncodeText(nickname, mon + kPcNickOff, 10);
+    std::string requested = nickname;
+    if (requested.find_first_not_of(" \t\r\n") == std::string::npos) {
+        const auto species_path = io::ResolveAssetPath("data/pokemon.txt");
+        const auto species_db = io::LoadIdNameFile(species_path);
+        const auto it = species_db.find(static_cast<int>(ReadU16Le(mon, kPcSpeciesOff)));
+        if (it == species_db.end()) {
+            if (error) { *error = "Unknown species for default nickname"; }
+            return false;
+        }
+        requested = it->second;
+    }
+    const auto first = requested.find_first_not_of(" \t\r\n");
+    const auto last = requested.find_last_not_of(" \t\r\n");
+    EncodeText(requested.substr(first, last - first + 1), mon + kPcNickOff, 10);
     return true;
 }
 
@@ -639,12 +653,14 @@ bool InsertPcMon(std::vector<uint8_t> &stream,
     EncodeText(ot_name.substr(0, 7), mon + 0x14, 7);
 
     // Nickname (10 bytes): use provided nickname or default to species name
-    const std::string raw_nick = nickname.empty() ?
+    const std::string raw_nick = nickname.find_first_not_of(" \t\r\n") == std::string::npos ?
         [&]() -> std::string {
             auto it = species_db.find(static_cast<int>(species_id));
             return (it != species_db.end()) ? it->second : "Pokemon";
         }() : nickname;
-    EncodeText(raw_nick.substr(0, 10), mon + kPcNickOff, 10);
+    const auto nick_first = raw_nick.find_first_not_of(" \t\r\n");
+    const auto nick_last = raw_nick.find_last_not_of(" \t\r\n");
+    EncodeText(raw_nick.substr(nick_first, nick_last - nick_first + 1).substr(0, 10), mon + kPcNickOff, 10);
 
     // Species
     WriteU16Le(mon, kPcSpeciesOff, species_id);

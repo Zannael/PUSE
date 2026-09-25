@@ -947,7 +947,10 @@ async def update_party_nickname(idx: int, data: NicknameUpdate):
     pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
     species_before = pk.get_species_id()
 
-    pk.set_nickname(data.nickname)
+    try:
+        pk.set_nickname(data.nickname)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     _assert_species_unchanged(pk, species_before, "party nickname update")
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
@@ -1658,7 +1661,15 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
     species_before = target.species_id
 
     # Apply updates using UnboundPCMon methods (v16)
-    if upd.nickname is not None: target.set_nickname(upd.nickname)
+    if upd.species_id is not None:
+        if upd.species_id <= 0 or upd.species_id not in box_mod.DB_SPECIES:
+            raise HTTPException(status_code=400, detail="Invalid species_id")
+        target.set_species_id(upd.species_id)
+    if upd.nickname is not None:
+        try:
+            target.set_nickname(upd.nickname)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
     if upd.moves is not None:
         target.set_moves(upd.moves, move_pp=upd.move_pp, move_pp_ups=upd.move_pp_ups)
     elif upd.move_pp_ups is not None:
@@ -1669,10 +1680,6 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
             target.set_ball_id(_assert_valid_ball_id(upd.ball_id))
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
-    if upd.species_id is not None:
-        if upd.species_id <= 0 or upd.species_id not in box_mod.DB_SPECIES:
-            raise HTTPException(status_code=400, detail="Invalid species_id")
-        target.set_species_id(upd.species_id)
     if upd.ivs: target.set_ivs(upd.ivs)
     if upd.evs: target.set_evs(upd.evs)
     if upd.current_ability_index is not None:

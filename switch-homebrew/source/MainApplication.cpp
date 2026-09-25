@@ -1053,7 +1053,8 @@ void MainApplication::UpdateDirtyUi() {
     }
 }
 
-std::string MainApplication::ShowKeyboardInput(const std::string &guide_text, const std::string &initial_text, const uint32_t max_len, const size_t out_len) const {
+std::string MainApplication::ShowKeyboardInput(const std::string &guide_text, const std::string &initial_text, const uint32_t max_len, const size_t out_len, bool *submitted) const {
+    if (submitted) { *submitted = false; }
     SwkbdConfig kbd;
     Result rc = swkbdCreate(&kbd, 0);
     if (R_FAILED(rc)) {
@@ -1077,6 +1078,7 @@ std::string MainApplication::ShowKeyboardInput(const std::string &guide_text, co
         return "";
     }
 
+    if (submitted) { *submitted = true; }
     return std::string(out.data());
 }
 
@@ -1536,8 +1538,9 @@ void MainApplication::HandlePcFieldEdit(const int section_index, const std::stri
                 changed = puse::core::UpdatePcMonSpecies(this->pc_stream_, box, slot, static_cast<uint16_t>(species_id), &error);
             }
         } else if (field_key == "Nickname") {
-            const std::string typed = ShowKeyboardInput("Set nickname", m.nickname, 10, 24);
-            if (!typed.empty()) {
+            bool submitted = false;
+            const std::string typed = ShowKeyboardInput("Set nickname (blank: species name)", m.nickname, 10, 24, &submitted);
+            if (submitted) {
                 changed = puse::core::UpdatePcMonNickname(this->pc_stream_, box, slot, typed, &error);
             }
         } else if (field_key == "Level") {
@@ -1638,8 +1641,9 @@ void MainApplication::HandleFieldEdit(const int section_index, const std::string
                 changed = puse::core::UpdatePartySpecies(this->save_session_.MutableBuffer(), this->selected_party_index_, static_cast<uint16_t>(species_id), &error);
             }
         } else if (field_key == "Nickname") {
-            const std::string typed = ShowKeyboardInput("Set nickname", entry.nickname, 10, 24);
-            if (!typed.empty()) {
+            bool submitted = false;
+            const std::string typed = ShowKeyboardInput("Set nickname (blank: species name)", entry.nickname, 10, 24, &submitted);
+            if (submitted) {
                 changed = puse::core::UpdatePartyNickname(this->save_session_.MutableBuffer(), this->selected_party_index_, typed, &error);
             }
         } else if (field_key == "Level") {

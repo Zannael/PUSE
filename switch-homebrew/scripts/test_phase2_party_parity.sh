@@ -16,6 +16,7 @@ if [[ ! -f "$SAVE_FILE" ]]; then
   echo "Save file not found: $SAVE_FILE" >&2
   exit 1
 fi
+SAVE_FILE="$(realpath "$SAVE_FILE")"
 
 if [[ ! -f "$SPECIES_FILE" ]]; then
   echo "Species file not found: $SPECIES_FILE" >&2
@@ -122,6 +123,13 @@ out_path.write_text('\n'.join(lines) + ('\n' if lines else ''), encoding='utf-8'
 PY
 
 "$SWITCH_ROOT/scripts/parity_tmp.sh" compare "$SOURCE_OUT" "$PORT_OUT"
+
+g++ "${CPP_COMMON[@]}" "$SWITCH_ROOT/source/core/Pc.cpp" "$SWITCH_ROOT/tests/nickname_parity.cpp" -o "$SWITCH_ROOT/build/host/nickname_parity"
+NICKNAME_PORT_OUT="$SWITCH_ROOT/artifacts/tmp/port/nickname_bytes.txt"
+NICKNAME_SOURCE_OUT="$SWITCH_ROOT/artifacts/tmp/source/nickname_bytes.txt"
+(cd "$SWITCH_ROOT" && "$SWITCH_ROOT/build/host/nickname_parity" "$SAVE_FILE") > "$NICKNAME_PORT_OUT"
+PYTHONPATH="$SWITCH_ROOT/../backend" python3 "$SWITCH_ROOT/../backend/tools/nickname_parity_reference.py" "$SAVE_FILE" > "$NICKNAME_SOURCE_OUT"
+"$SWITCH_ROOT/scripts/parity_tmp.sh" compare "$NICKNAME_SOURCE_OUT" "$NICKNAME_PORT_OUT"
 
 if [[ "$KEEP_TMP" == false ]]; then
   "$SWITCH_ROOT/scripts/parity_tmp.sh" cleanup

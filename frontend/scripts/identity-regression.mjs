@@ -7,6 +7,7 @@ import {
   updatePartyAbilitySwitch,
   updatePartyIdentity,
   updatePartyLevel,
+  updatePartyNickname,
   updatePartyNature,
 } from '../src/core/party.js';
 import {
@@ -222,6 +223,48 @@ async function main() {
       report.push('[FAIL] baseline backend/local party core fields mismatch');
     } else {
       report.push('[PASS] baseline backend/local party core fields match');
+    }
+  }
+
+  // A cleared nickname restores the current species name in both save engines.
+  {
+    const state = await initState();
+    const original = state.backendParty[0];
+    const response = await backendRequest(args.api, `/party/${original.index}/nickname`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nickname: '   ' }),
+    });
+    updatePartyNickname(state.localBuffer, original.index, { nickname: '   ' }, speciesMap);
+    const expected = speciesMap.get(Number(original.species_id))?.slice(0, 10);
+    const backendName = (await backendMon(original.index))?.nickname;
+    const localName = localMon(state.localBuffer, original.index)?.nickname;
+    if (!response.ok || !expected || backendName !== expected || localName !== expected) {
+      failures += 1;
+      report.push('[FAIL] cleared party nickname did not restore species name');
+    } else {
+      report.push('[PASS] cleared party nickname restores species name in backend/local');
+    }
+  }
+
+  {
+    const state = await initPcState();
+    const original = state.backendBoxes.find((mon) => Number(mon.box) === 1);
+    const payload = { box: original.box, slot: original.slot, species_id: 25, nickname: '' };
+    const response = await backendRequest(args.api, '/pc/edit-full', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    editPcMonFull(state.localContext, payload, speciesMap);
+    const expected = speciesMap.get(25);
+    const backendAfter = await backendPcMon(original.box, original.slot);
+    const localAfter = localPcMon(state.localContext, original.box, original.slot);
+    if (!response.ok || backendAfter?.nickname !== expected || localAfter?.nickname !== expected || Number(backendAfter?.species_id) !== 25 || Number(localAfter?.species_id) !== 25) {
+      failures += 1;
+      report.push('[FAIL] cleared PC nickname with species change did not use new species name');
+    } else {
+      report.push('[PASS] cleared PC nickname uses new species name in backend/local');
     }
   }
 

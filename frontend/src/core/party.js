@@ -604,8 +604,13 @@ function setBallId(rawMon, ballId) {
     writeSubstructs(rawMon, sub);
 }
 
-function setNickname(rawMon, nickname) {
-    const encoded = encodeText(nickname, 10);
+function setNickname(rawMon, nickname, speciesMap) {
+    const requested = String(nickname || '').trim();
+    const speciesName = requested ? requested : speciesMap?.get(getSpeciesId(rawMon));
+    if (!speciesName) {
+        throw new Error('Unknown species for default nickname');
+    }
+    const encoded = encodeText(speciesName, 10);
     rawMon.set(encoded, OFF_NICK);
 }
 
@@ -973,9 +978,9 @@ export function updatePartyBall(buffer, monIndex, payload) {
     });
 }
 
-export function updatePartyNickname(buffer, monIndex, payload) {
+export function updatePartyNickname(buffer, monIndex, payload, speciesMap = null) {
     mutatePartyMon(buffer, monIndex, (rawMon) => {
-        setNickname(rawMon, payload.nickname || '');
+        setNickname(rawMon, payload.nickname || '', speciesMap);
     });
 }
 

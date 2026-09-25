@@ -515,7 +515,12 @@ class UnboundPCMon:
         wu8(self.raw, OFF_BALL, bid)
 
     def set_nickname(self, nickname):
-        self.nickname = (nickname or "").strip()[:10]
+        requested = (nickname or "").strip()
+        if not requested:
+            requested = DB_SPECIES.get(self.species_id)
+            if not requested:
+                raise ValueError("Unknown species for default nickname")
+        self.nickname = requested[:10]
         self.raw[OFF_NICK: OFF_NICK + 10] = encode_text(self.nickname, 10)
 
     def set_species_id(self, species_id):
@@ -942,7 +947,7 @@ def build_pc_mon_raw(
     wu8(raw, OFF_OT_MISC_2, int(ot_misc_2) & 0xFF if ot_misc_2 is not None else 0)
 
     default_name = DB_SPECIES.get(sid, "Pokemon")
-    nick = default_name if nickname is None else str(nickname)
+    nick = default_name if nickname is None or not str(nickname).strip() else str(nickname)
     raw[OFF_NICK: OFF_NICK + 10] = encode_text(nick, 10)
 
     mon = UnboundPCMon(raw, 0, 0)

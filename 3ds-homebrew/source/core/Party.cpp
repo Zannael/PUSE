@@ -586,7 +586,9 @@ void SetSpeciesId(uint8_t *raw_mon, const uint16_t species_id) {
 }
 
 void SetNickname(uint8_t *raw_mon, const std::string &nickname) {
-    const std::string trimmed = nickname.substr(0, 10);
+    const auto first = nickname.find_first_not_of(" \t\r\n");
+    const auto last = nickname.find_last_not_of(" \t\r\n");
+    const std::string trimmed = first == std::string::npos ? "" : nickname.substr(first, last - first + 1).substr(0, 10);
     EncodeText(trimmed, raw_mon + kMonNickOff, 10);
 }
 
@@ -1271,8 +1273,19 @@ std::vector<PartyEntry> ParseParty(
 }
 
 bool UpdatePartyNickname(std::vector<uint8_t> &buffer, const int index, const std::string &nickname, std::string *error) {
-    return MutatePartyMon(buffer, index, false, [&](uint8_t *mon, std::string *) {
-        SetNickname(mon, nickname);
+    return MutatePartyMon(buffer, index, false, [&](uint8_t *mon, std::string *mutation_error) {
+        std::string requested = nickname;
+        if (requested.find_first_not_of(" \t\r\n") == std::string::npos) {
+            const auto species_path = io::ResolveAssetPath("data/pokemon.txt");
+            const auto species_db = io::LoadIdNameFile(species_path);
+            const auto it = species_db.find(static_cast<int>(GetSpeciesId(mon)));
+            if (it == species_db.end()) {
+                if (mutation_error) { *mutation_error = "Unknown species for default nickname"; }
+                return false;
+            }
+            requested = it->second;
+        }
+        SetNickname(mon, requested);
         return true;
     }, error);
 }

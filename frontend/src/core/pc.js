@@ -1050,7 +1050,7 @@ function buildPcMonRaw(payload, speciesMap, context) {
     wu8(raw, OFF_OT_MISC_2, Number(payload?.ot_misc_2 ?? inferredOwner.otMisc2 ?? 0) & 0xFF);
 
     const speciesName = speciesMap?.get?.(speciesId) || `Species ${speciesId}`;
-    const nickname = payload?.nickname === undefined || payload?.nickname === null ? speciesName : payload.nickname;
+    const nickname = payload?.nickname === undefined || payload?.nickname === null || !String(payload.nickname).trim() ? speciesName : payload.nickname;
     raw.set(encodeText(nickname, 10), OFF_NICK);
 
     if (payload?.moves) {
@@ -1255,7 +1255,7 @@ export function releasePcMon(context, payload) {
     }
 }
 
-export function editPcMonFull(context, payload) {
+export function editPcMonFull(context, payload, speciesMap = null) {
     const box = Number(payload.box);
     const slot = Number(payload.slot);
     const { buffer, offset, kind } = getMonBufferAndOffset(context, box, slot);
@@ -1267,7 +1267,13 @@ export function editPcMonFull(context, payload) {
     const speciesBefore = ru16(raw, OFF_SPECIES);
 
     if (payload.nickname !== undefined && payload.nickname !== null) {
-        raw.set(encodeText(payload.nickname, 10), OFF_NICK);
+        const requested = String(payload.nickname).trim();
+        const speciesId = payload.species_id ?? speciesBefore;
+        const speciesName = requested ? requested : speciesMap?.get(Number(speciesId));
+        if (!speciesName) {
+            throw new Error('Unknown species for default nickname');
+        }
+        raw.set(encodeText(speciesName, 10), OFF_NICK);
     }
 
     if (payload.moves) {
