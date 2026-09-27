@@ -60,4 +60,14 @@ int main(int argc, char **argv) {
         return 5;
     }
     PrintNicknameBytes(&stream[0x08]);
+    for (const uint8_t symbol_byte : {uint8_t{0xB5}, uint8_t{0xB6}}) {
+        stream[0x08] = symbol_byte;
+        stream[0x09] = 0xFF;
+        const auto mons = puse::core::ParsePcBox(stream, 1, {});
+        if (mons.empty() || mons.front().slot != 1) {
+            std::cerr << "PC box 1 slot 1 missing for glyph parity\n";
+            return 6;
+        }
+        std::cout << mons.front().nickname << '\n';
+    }
 }

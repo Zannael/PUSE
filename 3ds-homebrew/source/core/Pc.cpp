@@ -72,7 +72,11 @@ std::string DecodeText(const uint8_t *buf, const size_t len) {
     for (size_t i = 0; i < len; ++i) {
         const uint8_t b = buf[i];
         if (b == 0xFF) { break; }
-        if ((b >= 0xBB) && (b <= 0xD4)) {
+        if (b == 0xB5) {
+            out += "♂";
+        } else if (b == 0xB6) {
+            out += "♀";
+        } else if ((b >= 0xBB) && (b <= 0xD4)) {
             out.push_back(static_cast<char>('A' + (b - 0xBB)));
         } else if ((b >= 0xD5) && (b <= 0xEE)) {
             out.push_back(static_cast<char>('a' + (b - 0xD5)));

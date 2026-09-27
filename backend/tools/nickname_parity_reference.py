@@ -1,4 +1,4 @@
-"""Print canonical nickname bytes after clearing party 0 and PC box 1 slot 1."""
+"""Print canonical nickname bytes and PC gender glyphs for native parity."""
 
 import contextlib
 import io
@@ -34,6 +34,8 @@ def main(save_path):
         raise ValueError("PC box 1 slot 1 must be occupied for nickname parity")
     pc_mon.set_nickname("")
     print(pc_mon.raw[0x08:0x12].hex())
+    for symbol_byte in (0xB5, 0xB6):
+        print(pc.decode_text(bytes((symbol_byte, 0xFF))))
 
 
 if __name__ == "__main__":

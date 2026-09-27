@@ -50,6 +50,7 @@ Save editor for Pokemon Unbound v2.1.1.1 on Nintendo 3DS. Mirrors `switch-homebr
 - [x] `PcSlotScreen`: full field editor (Nickname/Species/Level/Nature/Item/Shiny/Ability/IVs/EVs/Moves+PP), insert into empty slot (OT from party), Select+YesNo to delete
 - [x] `Core::RebuildPcStream` / `CommitPcStream` wrappers; stream pre-built on Init
 - [x] PC entry: L button from PartyListScreen
+- [ ] Read-only All Pokémon aggregate view. The browser table includes Party and supported PC boxes; the 3DS reader currently covers stream boxes 1–18, so remaining verified box readers are needed for equal coverage.
 
 ## Phase 6 — Bag
 - [x] Copy `Bag.{cpp,hpp}` (no ARM32 fixes needed)

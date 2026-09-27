@@ -48,6 +48,8 @@ The port must cover all major user-facing features exposed by backend/frontend f
 - Full edit of a PC mon.
 - Insert new mon into PC slot.
 
+Current gap: the browser's read-only All Pokémon table spans Party and supported PC boxes, but Switch still provides separate Party and PC screens. Its native PC reader currently covers stream boxes 1–18; a native aggregate view needs the remaining verified box readers before it can claim the same coverage.
+
 ### Bag editing
 
 - Load items catalog.

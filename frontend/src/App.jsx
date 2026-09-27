@@ -18,12 +18,14 @@ import {
     Shield,
     Cpu,
     Database,
+    ListFilter,
 } from 'lucide-react';
 import { createApiClient, getInitialRuntimeMode, persistRuntimeMode, RUNTIME_MODES } from './services/apiClient.js';
 import { getExpAtLevel, getSpeciesGrowthRate } from './core/growth.js';
 
 const PartyGrid = lazy(() => import('./components/PartyGrid'));
 const PCGrid = lazy(() => import('./components/PCGrid'));
+const AllPokemonTable = lazy(() => import('./components/AllPokemonTable.jsx'));
 const BagView = lazy(() => import('./components/BagView.jsx'));
 const LivingDexPanel = lazy(() => import('./components/LivingDexPanel.jsx'));
 const PokemonEditorModal = lazy(() =>
@@ -854,6 +856,7 @@ const App = () => {
                                 onAddPokemon={(target) => setPcInsertTarget(target)}
                                 onReleasePokemon={handleReleasePC}
                             />}
+                            {activeTab === 'all' && <AllPokemonTable key={`all-${refreshKey}`} client={client} />}
                             {activeTab === 'bag' && <BagView client={client} initialUnsaved={bagHasUnsavedChanges} onDirtyChange={setBagHasUnsavedChanges} />}
                             {activeTab === 'dex' && <LivingDexPanel key={`dex-${refreshKey}`} client={client} />}
                         </Suspense>
@@ -954,9 +957,10 @@ const App = () => {
             )}
 
             {isLoaded && (
-                <nav className="fixed bottom-6 w-[92%] max-w-lg bg-[#1e293b]/95 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-2 shadow-2xl flex justify-around z-50">
+                <nav aria-label="Editor sections" className="fixed bottom-6 w-[92%] max-w-xl bg-[#1e293b]/95 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-2 shadow-2xl flex justify-around z-50">
                     <TabItem icon={<LayoutGrid size={20}/>} label="Party" active={activeTab === 'party'} onClick={() => handleTabChange('party')} />
                     <TabItem icon={<Users size={20}/>} label="PC Box" active={activeTab === 'pc'} onClick={() => handleTabChange('pc')} />
+                    <TabItem icon={<ListFilter size={20}/>} label="All Pokémon" active={activeTab === 'all'} onClick={() => handleTabChange('all')} />
                     <TabItem icon={<Briefcase size={20}/>} label="Bag" active={activeTab === 'bag'} onClick={() => handleTabChange('bag')} />
                     <TabItem icon={<BookOpen size={20}/>} label="Dex" active={activeTab === 'dex'} onClick={() => handleTabChange('dex')} />
                 </nav>
@@ -1079,6 +1083,8 @@ const BagPreviewPanel = () => (
 const TabItem = ({ icon, label, active, onClick }) => (
     <button
         onClick={onClick}
+        aria-label={label}
+        aria-current={active ? 'page' : undefined}
         className={`flex flex-col items-center justify-center flex-1 py-3 rounded-[2rem] transition-all duration-300 ${
             active ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/40' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
         }`}

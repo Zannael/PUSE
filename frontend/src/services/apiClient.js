@@ -3,6 +3,7 @@ import {
     resolveItemIconUrl,
     resolvePokemonIconUrl,
 } from '../core/iconResolver.js';
+import { collectAllPokemon } from './allPokemon.js';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const MODE_STORAGE_KEY = "runtime_mode";
@@ -204,6 +205,9 @@ const backendClient = {
     },
     getParty() {
         return backendJson("/party");
+    },
+    getAllPokemon() {
+        return collectAllPokemon(backendClient);
     },
     async updatePartyIvs(index, payload) {
         await backendJson(`/party/${index}/ivs`, {
@@ -527,6 +531,9 @@ const localClient = {
         return Promise.all([getSpeciesMap(), getSpeciesFormMetaMap()]).then(([speciesMap, speciesMeta]) =>
             readParty(getBuffer(), speciesMap, speciesMeta)
         );
+    },
+    getAllPokemon() {
+        return collectAllPokemon(localClient);
     },
     async updatePartyIvs(index, payload) {
         const { updateBuffer, updatePartyIvs: patchPartyIvs } = await getLocalCoreModules();
