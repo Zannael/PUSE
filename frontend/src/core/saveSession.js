@@ -1,5 +1,6 @@
 const session = {
     saveBuffer: null,
+    originalBuffer: null,
     filename: null,
     dirty: false,
     pcContext: null,
@@ -22,6 +23,7 @@ export async function loadFile(file) {
 
     const bytes = new Uint8Array(await file.arrayBuffer());
     session.saveBuffer = bytes;
+    session.originalBuffer = cloneBuffer(bytes);
     session.filename = file.name || 'edited_save.sav';
     session.dirty = false;
     session.pcContext = null;
@@ -35,6 +37,11 @@ export function hasLoadedSave() {
 export function getBuffer() {
     assertLoaded();
     return session.saveBuffer;
+}
+
+export function getOriginalBuffer() {
+    assertLoaded();
+    return session.originalBuffer;
 }
 
 export function setBuffer(nextBuffer, { dirty = true } = {}) {

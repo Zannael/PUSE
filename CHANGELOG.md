@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Added a read-only save health and change review before browser save download. It checks the active layout and section checksums using Unbound's special windows, distinguishes uploaded-file warnings from proposed-download warnings, and reports changed sectors and recognizable field regions since upload. Backend and local previews match the exact downloaded bytes. Switch and 3DS core scanners have Python parity fixtures; their UI review screens remain a documented gap.
 - Added focused roster export in the browser's All Pokémon view: every occupied Party slot plus explicitly selected PC slots can be downloaded as versioned PUSE roster JSON or Markdown derived from the same read-only model. Filters can select matching PC rows, including beyond the visible page. Python and JavaScript projections are fixture-tested for parity; real-save backend/local exports match. Switch and 3DS have no aggregate roster selection or report download yet, and their PC readers cover only stream boxes 1–18; this native coverage gap is documented in each port.
 - Added a read-only All Pokémon browser table across backend and local modes. It combines occupied Party and supported PC slots, supports name/location/shiny filters, and opens one inspection panel at a time. Empty and locked slots are omitted; mobile uses stacked rows. No save bytes are changed.
 - Aligned PC nickname decoding for the male and female glyphs in local mode, Switch, and 3DS with the canonical backend reader.
@@ -26,7 +27,6 @@ The roadmap is ordered by the combination of user value and implementation feasi
 
 | Priority | Proposal | User value | Feasibility | Scope and decision gate |
 |---:|---|---|---|---|
-| 2 | Save health and change report | Very high | High | Validate save layout and checksums, report changed fields/sectors, and surface warnings before export without mutating the save. |
 | 3 | Happiness editing | Medium-high | Medium-high | Add Party and PC read/write support only after the compact PC field location is proven against fixtures; preserve checksum and runtime parity. |
 | 4 | Party/PC transfer primitive | Very high | Medium | Design an atomic operation covering source clearing, destination validation, party compaction, full-party/full-box errors, checksums, and all four runtimes. |
 | 5 | Party create/insert workflow | High | Medium | Build on the transfer primitive rather than introducing a second party-packing path; validate ownership, identity, slot count, stats, and checksums. |

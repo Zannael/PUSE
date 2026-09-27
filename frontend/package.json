@@ -18,7 +18,8 @@
     "battle-preview:regression": "node scripts/battle-preview-regression.mjs",
     "all-pokemon:regression": "node scripts/all-pokemon-regression.mjs",
     "roster-export:regression": "node scripts/roster-export-regression.mjs",
-    "parity:all": "npm run rtc:time-fixer-regression && npm run rtc:parity-regression && npm run pc:fallback-regression && npm run pc:release-regression && npm run identity:regression && npm run game-progress:regression && npm run pokedex-flags:regression && npm run battle-preview:regression && npm run all-pokemon:regression && npm run roster-export:regression",
+    "save-health:regression": "node scripts/save-health-regression.mjs",
+    "parity:all": "npm run rtc:time-fixer-regression && npm run rtc:parity-regression && npm run pc:fallback-regression && npm run pc:release-regression && npm run identity:regression && npm run game-progress:regression && npm run pokedex-flags:regression && npm run battle-preview:regression && npm run all-pokemon:regression && npm run roster-export:regression && npm run save-health:regression",
     "icons:manifest": "node scripts/generate-icon-manifests.mjs",
     "icons:check": "node scripts/generate-icon-manifests.mjs --check"
   },

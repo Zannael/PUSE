@@ -33,6 +33,7 @@ bool SaveSession::LoadFromFile(const std::string &path, std::string *error) {
     }
 
     buffer_ = std::move(next);
+    original_buffer_ = buffer_;
     source_path_ = path;
     return true;
 }
@@ -65,6 +66,7 @@ bool SaveSession::ExportToFile(const std::string &path, std::string *error) cons
 
 void SaveSession::Clear() {
     buffer_.clear();
+    original_buffer_.clear();
     source_path_.clear();
 }
 
@@ -89,6 +91,10 @@ std::string SaveSession::FileName() const {
 
 const std::vector<uint8_t> &SaveSession::Buffer() const {
     return buffer_;
+}
+
+const std::vector<uint8_t> &SaveSession::OriginalBuffer() const {
+    return original_buffer_;
 }
 
 std::vector<uint8_t> &SaveSession::MutableBuffer() {

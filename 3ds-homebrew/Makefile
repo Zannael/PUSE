@@ -2,9 +2,9 @@
 .SUFFIXES:
 #---------------------------------------------------------------------------------
 
-ifneq ($(filter test-phase1 test-phase2 test-phase3 test-phase4 test-rtc test-battle-preview,$(MAKECMDGOALS)),)
+ifneq ($(filter test-phase1 test-phase2 test-phase3 test-phase4 test-rtc test-battle-preview test-save-health,$(MAKECMDGOALS)),)
 
-.PHONY: test-phase1 test-phase2 test-phase3 test-phase4 test-rtc test-battle-preview
+.PHONY: test-phase1 test-phase2 test-phase3 test-phase4 test-rtc test-battle-preview test-save-health
 test-phase1:
 	@"$(CURDIR)/scripts/test_phase1_parity.sh"
 test-phase2:
@@ -17,6 +17,8 @@ test-rtc:
 	@"$(CURDIR)/scripts/test_rtc_time_fixer_parity.sh"
 test-battle-preview:
 	@"$(CURDIR)/scripts/test_battle_preview.sh"
+test-save-health:
+	@"$(CURDIR)/scripts/test_save_health_parity.sh"
 
 else
 

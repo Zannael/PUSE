@@ -19,11 +19,13 @@ class SaveSession {
     std::string FileName() const;
 
     const std::vector<uint8_t> &Buffer() const;
+    const std::vector<uint8_t> &OriginalBuffer() const;
     std::vector<uint8_t> &MutableBuffer();
     std::vector<SaveSection> Sections() const;
 
   private:
     std::vector<uint8_t> buffer_;
+    std::vector<uint8_t> original_buffer_;
     std::string source_path_;
 };
 

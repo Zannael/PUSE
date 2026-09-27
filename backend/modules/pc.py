@@ -1036,9 +1036,10 @@ def write_save_HYBRID(save_data, sectors, buffer, headers, originals, filename, 
 
         cursor += p_size
 
-    with open(filename, "wb") as f:
-        f.write(save_data)
-    print(f"Salvato in: {filename}")
+    if filename is not None:
+        with open(filename, "wb") as f:
+            f.write(save_data)
+        print(f"Salvato in: {filename}")
 
 
 # --- MENU UTILS ---

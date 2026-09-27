@@ -5,6 +5,8 @@ Mirrors the Switch homebrew port. Built with libstarlight + citro3d.
 
 Current coverage gap: the browser's [focused roster export](../ROSTER_EXPORT.md) (all Party plus selected PC slots as JSON/Markdown) is not available on 3DS. The native PC reader covers stream boxes 1–18 and has no aggregate roster selector or report download flow.
 
+The native core retains the loaded save bytes and provides the [save health and change report](../SAVE_REPORT.md), with `make test-save-health` parity against Python. The 3DS UI does not yet display a report before saving.
+
 ---
 
 ## Requirements

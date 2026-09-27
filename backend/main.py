@@ -13,6 +13,7 @@ from modules import bag as bag_mod
 from modules import game_progress as game_progress_mod
 from modules import pokedex_flags as pokedex_flags_mod
 from modules import money as money_mod
+from modules import save_health as save_health_mod
 from pydantic import BaseModel
 from modules import pc as box_mod
 import os
@@ -62,6 +63,7 @@ app.add_middleware(
 # --- 1. Keep all shared state definitions at the top ---
 current_save = {
     "data": None,
+    "original_data": None,
     "filename": None,
     "pc_context": {
         "sectors": [],
@@ -490,7 +492,13 @@ async def upload_save(file: UploadFile = File(...)):
     """Load the .sav or .srm file into memory."""
     content = await file.read()
     current_save["data"] = bytearray(content)
+    current_save["original_data"] = bytes(content)
     current_save["filename"] = file.filename
+    current_save["pc_context"] = {
+        "sectors": [], "headers": {}, "originals": {}, "pc_buffer": None,
+        "preset_buffer": None, "mons": [], "fallback_box_starts": {},
+        "fallback_slot_offsets": {}, "absolute_touched_sectors": []
+    }
     return {"message": f"File {file.filename} loaded successfully!"}
 
 
@@ -1874,34 +1882,32 @@ async def insert_pc_mon(upd: PCInsert):
     }
 
 
-@app.post("/save-all")
-async def commit_to_file():
-    if not current_save["data"]:
-        raise HTTPException(status_code=400, detail="No data")
-
-    sections = money_mod.list_sections(current_save["data"])
+def _finalize_save_bytes(data, ctx):
+    """Apply the existing save-all reconciliation to a supplied buffer."""
+    sections = money_mod.list_sections(data)
 
     # 0. Recompute per-mon checksums for all party mons in the active trainer section.
     # This fixes stale checksums (e.g. item given without checksum update) that would
     # cause the game to corrupt the Pokemon when entering battle.
-    active_trainer_off = get_active_trainer_offset()
+    trainer_sections = [s for s in sections if s['id'] == party_mod.TRAINER_SECTION_ID]
+    active_trainer_off = max(trainer_sections, key=lambda s: s['saveidx'])['off'] if trainer_sections else None
     if active_trainer_off is not None:
-        team_count = min(6, party_mod.ru32(current_save["data"], active_trainer_off + 0x34))
+        team_count = min(6, party_mod.ru32(data, active_trainer_off + 0x34))
         for idx in range(team_count):
             mon_off = active_trainer_off + 0x38 + idx * 100
-            pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
-            current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+            pk = party_mod.Pokemon(data[mon_off: mon_off + 100])
+            data[mon_off: mon_off + 100] = pk.pack_data()
 
     # 1. Recalculate trainer section checksums (ID 1)
     for sec in sections:
         if sec['id'] == party_mod.TRAINER_SECTION_ID:
             off = sec['off']
-            valid_len = party_mod.ru32(current_save["data"], off + 0xFF0)
+            valid_len = party_mod.ru32(data, off + 0xFF0)
             if valid_len == 0 or valid_len > 0xFF4: valid_len = 0xFF4
 
-            payload = current_save["data"][off: off + valid_len]
+            payload = data[off: off + valid_len]
             new_chk = bag_mod.gba_checksum(payload)
-            party_mod.wu16(current_save["data"], off + 0xFF6, new_chk)
+            party_mod.wu16(data, off + 0xFF6, new_chk)
 
     # 2. Recalculate bag checksums (all bag-related sectors)
     # Pokemon Unbound uses sectors 13, 14, 15, etc. for pockets.
@@ -1910,32 +1916,48 @@ async def commit_to_file():
         # Sector 13 is the main items sector (fixed 0x450).
         # Other sectors (Berries, TMs) use standard footer length.
         if sec['id'] >= 13 and sec['id'] <= 16:
-            bag_mod.recalculate_checksum(current_save["data"], sec['off'])
+            bag_mod.recalculate_checksum(data, sec['off'])
 
-    # 3. Persist PC buffers and write output save file
-    ctx = current_save["pc_context"]
+    # 3. Reconcile pending PC buffers into the supplied data.
     if ctx.get("pc_buffer") is not None:
         box_mod.write_save_HYBRID(
-            current_save["data"], ctx["sectors"], ctx["pc_buffer"],
-            ctx["headers"], ctx["originals"], SAVE_FILE_NAME,
+            data, ctx["sectors"], ctx["pc_buffer"],
+            ctx["headers"], ctx["originals"], None,
             preset_buffer=ctx["preset_buffer"]
         )
 
     # 4. Recalculate checksums for any absolute-sector PC edits.
     for sec_off in ctx.get("absolute_touched_sectors", []):
-        if sec_off < 0 or sec_off + 0x1000 > len(current_save["data"]):
+        if sec_off < 0 or sec_off + 0x1000 > len(data):
             continue
-        sec_id = party_mod.ru16(current_save["data"], sec_off + 0xFF4)
+        sec_id = party_mod.ru16(data, sec_off + 0xFF4)
         if sec_id in OPAQUE_SECTION_IDS:
             continue
         if sec_id == 0:
-            chk_data = current_save["data"][sec_off: sec_off + 0xADC]
+            chk_data = data[sec_off: sec_off + 0xADC]
             new_chk = bag_mod.gba_checksum(chk_data)
-            party_mod.wu16(current_save["data"], sec_off + 0xFF6, new_chk)
+            party_mod.wu16(data, sec_off + 0xFF6, new_chk)
         else:
-            chk_data = current_save["data"][sec_off: sec_off + 0xFF4]
+            chk_data = data[sec_off: sec_off + 0xFF4]
             new_chk = bag_mod.gba_checksum(chk_data)
-            party_mod.wu16(current_save["data"], sec_off + 0xFF6, new_chk)
+            party_mod.wu16(data, sec_off + 0xFF6, new_chk)
+
+    return data
+
+
+@app.get("/save-report")
+async def get_save_report():
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="No data")
+    proposed = _finalize_save_bytes(bytearray(current_save["data"]), current_save["pc_context"])
+    return save_health_mod.build_save_report(current_save["original_data"], proposed)
+
+
+@app.post("/save-all")
+async def commit_to_file():
+    if not current_save["data"]:
+        raise HTTPException(status_code=400, detail="No data")
+    _finalize_save_bytes(current_save["data"], current_save["pc_context"])
 
     with open(SAVE_FILE_NAME, "wb") as f:
         f.write(current_save["data"])

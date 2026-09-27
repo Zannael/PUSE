@@ -83,7 +83,8 @@ async function getLocalCoreModules() {
             import('../core/balls.js'),
             import('../core/gameProgress.js'),
             import('../core/pokedexFlags.js'),
-        ]).then(([catalog, party, saveSession, pc, bag, money, commit, rtc, saveConvert, balls, gameProgress, pokedexFlags]) => ({
+            import('../core/saveHealth.js'),
+        ]).then(([catalog, party, saveSession, pc, bag, money, commit, rtc, saveConvert, balls, gameProgress, pokedexFlags, saveHealth]) => ({
             ...catalog,
             ...party,
             ...saveSession,
@@ -96,6 +97,7 @@ async function getLocalCoreModules() {
             ...balls,
             ...gameProgress,
             ...pokedexFlags,
+            ...saveHealth,
         }));
     }
     return localCoreModulesPromise;
@@ -202,6 +204,9 @@ const backendClient = {
     async downloadSave() {
         await backendJson('/save-all', { method: 'POST' });
         window.location.href = `${API_BASE}/download`;
+    },
+    getSaveReport() {
+        return backendJson('/save-report');
     },
     getParty() {
         return backendJson("/party");
@@ -525,6 +530,12 @@ const localClient = {
         const finalized = new Uint8Array(getBuffer());
         saveAll(finalized, getPcContext());
         downloadBlob(new Blob([finalized], { type: 'application/octet-stream' }), getFilename());
+    },
+    async getSaveReport() {
+        const { getBuffer, getOriginalBuffer, getPcContext, saveAll, buildSaveReport } = await getLocalCoreModules();
+        const proposed = new Uint8Array(getBuffer());
+        saveAll(proposed, getPcContext());
+        return buildSaveReport(getOriginalBuffer(), proposed);
     },
     async getParty() {
         const { getSpeciesMap, getSpeciesFormMetaMap, getParty: readParty, getBuffer } = await getLocalCoreModules();

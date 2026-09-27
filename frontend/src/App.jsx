@@ -52,6 +52,10 @@ const App = () => {
     const [money, setMoney] = useState(0);
     const [bp, setBp] = useState(0);
     const [showResourcesModal, setShowResourcesModal] = useState(false);
+    const [saveReport, setSaveReport] = useState(null);
+    const [saveReportLoading, setSaveReportLoading] = useState(false);
+    const [saveReportError, setSaveReportError] = useState('');
+    const [showSaveReport, setShowSaveReport] = useState(false);
     const [moneyInput, setMoneyInput] = useState('0');
     const [bpInput, setBpInput] = useState('0');
     const client = useMemo(() => createApiClient(runtimeMode), [runtimeMode]);
@@ -420,17 +424,43 @@ const App = () => {
     };
 
     const handleDownload = async () => {
+        setShowSaveReport(true);
+        setSaveReport(null);
+        setSaveReportError('');
+        setSaveReportLoading(true);
         try {
-            await client.downloadSave();
+            setSaveReport(await client.getSaveReport());
         } catch (err) {
             console.error(err);
-            alert('Download is not available in this runtime mode yet.');
+            setSaveReportError('Could not inspect this save. Try again before downloading.');
+        } finally {
+            setSaveReportLoading(false);
+        }
+    };
+
+    const confirmDownload = async () => {
+        if (!saveReport) return;
+        try {
+            await client.downloadSave();
+            setShowSaveReport(false);
+        } catch (err) {
+            console.error(err);
+            setSaveReportError('Download failed. Your in-memory save is still loaded.');
         }
     };
 
     const handleRestartApp = () => {
         window.location.reload();
     };
+
+    useEffect(() => {
+        if (!showSaveReport) return;
+        const onKeyDown = (event) => {
+            if (event.key === 'Escape') setShowSaveReport(false);
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [showSaveReport]);
 
     useEffect(() => {
         if (!showResourcesModal) return;
@@ -500,7 +530,7 @@ const App = () => {
                                 onClick={handleDownload}
                                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-full text-xs font-bold transition-all"
                             >
-                                <Save size={14} /> DOWNLOAD {saveExt.toUpperCase()}
+                                <Save size={14} /> REVIEW / DOWNLOAD {saveExt.toUpperCase()}
                             </button>
                         </div>
                     )}
@@ -863,6 +893,56 @@ const App = () => {
                     </div>
                 )}
             </main>
+
+            {showSaveReport && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 p-4" role="presentation">
+                    <section role="dialog" aria-modal="true" aria-labelledby="save-report-title"
+                        className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-600 bg-slate-900 p-5 shadow-2xl">
+                        <div className="flex items-start justify-between gap-3">
+                            <div>
+                                <h2 id="save-report-title" className="text-xl font-bold text-white">Review save before download</h2>
+                                <p className="mt-1 text-sm text-slate-400">This report inspects the proposed download without changing your loaded save.</p>
+                            </div>
+                            <button type="button" autoFocus onClick={() => setShowSaveReport(false)} aria-label="Close save report" className="rounded-lg p-2 text-slate-300 hover:bg-slate-700"><X size={18} /></button>
+                        </div>
+                        {saveReportLoading && <p role="status" className="mt-5 text-slate-300">Checking save layout and checksums…</p>}
+                        {saveReportError && <p role="alert" className="mt-5 rounded-lg border border-rose-500/50 bg-rose-500/10 p-3 text-rose-200">{saveReportError}</p>}
+                        {saveReport && <div className="mt-5 space-y-5 text-sm">
+                            <div className="grid gap-2 sm:grid-cols-3">
+                                <p className="rounded-lg bg-slate-800 p-3"><span className="block text-slate-400">Active save index</span><strong>{saveReport.layout.active_save_index ?? 'Unknown'}</strong></p>
+                                <p className="rounded-lg bg-slate-800 p-3"><span className="block text-slate-400">Checked sections</span><strong>{saveReport.checksums.filter((row) => row.status !== 'opaque').length}</strong></p>
+                                <p className="rounded-lg bg-slate-800 p-3"><span className="block text-slate-400">Changed bytes</span><strong>{saveReport.changes.changed_bytes}</strong></p>
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-slate-100">Loaded save warnings</h3>
+                                {saveReport.source_warnings.length ? <ul className="mt-2 space-y-1 text-amber-200">
+                                    {saveReport.source_warnings.map((warning, index) => <li key={`${warning.code}-${index}`}>• {warning.message}</li>)}
+                                </ul> : <p className="mt-1 text-emerald-300">No layout or active-section checksum warnings in the loaded file.</p>}
+                                <h3 className="mt-3 font-semibold text-slate-100">Proposed download warnings</h3>
+                                {saveReport.warnings.length ? <ul className="mt-2 space-y-1 text-amber-200">
+                                    {saveReport.warnings.map((warning, index) => <li key={`${warning.code}-${index}`}>• {warning.message}</li>)}
+                                </ul> : <p className="mt-1 text-emerald-300">No layout or active-section checksum warnings in the proposed download.</p>}
+                                <p className="mt-1 text-xs text-slate-400">Opaque section 4 is excluded from generic checksum validation.</p>
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-slate-100">Changes since upload</h3>
+                                {saveReport.changes.sectors.length ? <ul className="mt-2 max-h-60 space-y-2 overflow-y-auto">
+                                    {saveReport.changes.sectors.map((sector) => <li key={sector.index} className="rounded-lg bg-slate-800 p-3">
+                                        <strong>Sector {sector.index} · ID {sector.id ?? 'unknown'}</strong>
+                                        <span className="ml-2 text-slate-400">{sector.payload_bytes} data / {sector.footer_bytes} footer bytes</span>
+                                        {sector.fields.length > 0 && <p className="mt-1 text-xs text-slate-300">{sector.fields.map((field) => `${field.name} (${field.changed_bytes})`).join(' · ')}</p>}
+                                    </li>)}
+                                </ul> : <p className="mt-1 text-slate-400">No sector changes since upload.</p>}
+                            </div>
+                        </div>}
+                        <div className="mt-6 flex justify-end gap-2">
+                            <button type="button" onClick={() => setShowSaveReport(false)} className="rounded-lg border border-slate-600 px-4 py-2 text-slate-100 hover:bg-slate-800">Cancel</button>
+                            <button type="button" onClick={confirmDownload} disabled={!saveReport || saveReportLoading}
+                                className="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500 disabled:opacity-50">Download {saveExt.toUpperCase()}</button>
+                        </div>
+                    </section>
+                </div>
+            )}
 
             {showResourcesModal && (
                 <div
