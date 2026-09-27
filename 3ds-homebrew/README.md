@@ -3,6 +3,8 @@
 Save editor for **Pokemon Unbound v2.1.1.1** on Nintendo 3DS.  
 Mirrors the Switch homebrew port. Built with libstarlight + citro3d.
 
+Current coverage gap: the browser's [focused roster export](../ROSTER_EXPORT.md) (all Party plus selected PC slots as JSON/Markdown) is not available on 3DS. The native PC reader covers stream boxes 1–18 and has no aggregate roster selector or report download flow.
+
 ---
 
 ## Requirements

@@ -3,6 +3,7 @@ import { Search, RefreshCw } from 'lucide-react';
 import { NATURES } from '../core/showdownImport.js';
 import { POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 import { ALL_POKEMON_BOXES } from '../services/allPokemon.js';
+import { buildRoster, rosterMarkdown } from '../services/rosterExport.js';
 
 const PAGE_SIZE = 100;
 const STATS = [
@@ -62,10 +63,13 @@ function Inspection({ pokemon, itemNames, moveNames }) {
     );
 }
 
-function PokemonRow({ pokemon, expanded, onToggle, getPokemonIconUrl, itemNames, moveNames }) {
+function PokemonRow({ pokemon, expanded, onToggle, getPokemonIconUrl, itemNames, moveNames, selected, onSelect }) {
     const name = pokemon.nickname || displayName(pokemon);
     return (
         <div className="border-t border-slate-700/70 first:border-t-0" role="listitem">
+            {pokemon.source === 'pc' && <label className="flex items-center gap-2 px-4 pt-2 text-xs text-slate-300 sm:px-6">
+                <input type="checkbox" checked={selected} onChange={onSelect} aria-label={`Include ${name} in ${pokemon.location} in roster export`} className="accent-blue-500" /> Include in export
+            </label>}
             <button
                 type="button"
                 onClick={onToggle}
@@ -110,12 +114,14 @@ export default function AllPokemonTable({ client }) {
     const [inspectedKey, setInspectedKey] = useState(null);
     const [itemNames, setItemNames] = useState(new Map());
     const [moveNames, setMoveNames] = useState(new Map());
+    const [selectedPcKeys, setSelectedPcKeys] = useState(new Set());
 
     useEffect(() => {
         let cancelled = false;
         client.getAllPokemon().then((rows) => {
             if (!cancelled) {
                 setPokemon(rows);
+                setSelectedPcKeys(new Set());
                 setError('');
                 setLoading(false);
             }
@@ -151,6 +157,21 @@ export default function AllPokemonTable({ client }) {
 
     const partyCount = pokemon.filter((row) => row.source === 'party').length;
     const resetPage = () => { setShown(PAGE_SIZE); setInspectedKey(null); };
+    const visiblePcKeys = filtered.filter((row) => row.source === 'pc').map((row) => row.rosterKey);
+    const selectedCount = pokemon.filter((row) => row.source === 'pc' && selectedPcKeys.has(row.rosterKey)).length;
+    const downloadRoster = (kind) => {
+        const roster = buildRoster(pokemon, selectedPcKeys, itemNames, moveNames);
+        if (!roster.pokemon.length) return;
+        const content = kind === 'json' ? `${JSON.stringify(roster, null, 2)}\n` : rosterMarkdown(roster);
+        const url = URL.createObjectURL(new Blob([content], { type: kind === 'json' ? 'application/json' : 'text/markdown' }));
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `puse-roster-v1.${kind === 'json' ? 'json' : 'md'}`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 0);
+    };
 
     return (
         <section className="space-y-5" aria-labelledby="all-pokemon-heading">
@@ -187,6 +208,18 @@ export default function AllPokemonTable({ client }) {
                 </label>
             </div>
 
+            {!loading && !error && <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/70 p-3 text-sm">
+                <span className="mr-auto text-slate-300">Export all {partyCount} Party Pokémon and {selectedCount} selected PC Pokémon.</span>
+                <button type="button" onClick={() => setSelectedPcKeys((current) => new Set([...current, ...visiblePcKeys]))}
+                    disabled={!visiblePcKeys.length} className="rounded-lg border border-slate-600 px-3 py-2 text-slate-100 hover:bg-slate-700 disabled:opacity-50">Select filtered PC</button>
+                <button type="button" onClick={() => setSelectedPcKeys(new Set())} disabled={!selectedCount}
+                    className="rounded-lg border border-slate-600 px-3 py-2 text-slate-100 hover:bg-slate-700 disabled:opacity-50">Clear PC</button>
+                <button type="button" onClick={() => downloadRoster('json')} disabled={!partyCount && !selectedCount}
+                    className="rounded-lg bg-blue-600 px-3 py-2 font-semibold text-white hover:bg-blue-500 disabled:opacity-50">Export JSON</button>
+                <button type="button" onClick={() => downloadRoster('md')} disabled={!partyCount && !selectedCount}
+                    className="rounded-lg border border-blue-500 px-3 py-2 font-semibold text-blue-100 hover:bg-blue-500/20 disabled:opacity-50">Export Markdown</button>
+            </div>}
+
             {loading ? <p className="py-12 text-center text-slate-400" role="status">Reading Party and PC boxes…</p> : null}
             {error ? <div role="alert" className="rounded-xl border border-rose-500/40 bg-rose-500/10 p-4 text-sm text-rose-200">
                 {error} <button type="button" onClick={() => { setError(''); setLoading(true); setReload((value) => value + 1); }} className="ml-2 inline-flex items-center gap-1 underline"><RefreshCw size={13} />Retry</button>
@@ -197,7 +230,12 @@ export default function AllPokemonTable({ client }) {
                 </div>
                 {filtered.slice(0, shown).map((row) => <PokemonRow key={row.rosterKey} pokemon={row} expanded={inspectedKey === row.rosterKey}
                     onToggle={() => setInspectedKey((current) => current === row.rosterKey ? null : row.rosterKey)} getPokemonIconUrl={client.getPokemonIconUrl}
-                    itemNames={itemNames} moveNames={moveNames} />)}
+                    itemNames={itemNames} moveNames={moveNames} selected={selectedPcKeys.has(row.rosterKey)}
+                    onSelect={() => setSelectedPcKeys((current) => {
+                        const next = new Set(current);
+                        if (next.has(row.rosterKey)) next.delete(row.rosterKey); else next.add(row.rosterKey);
+                        return next;
+                    })} />)}
                 {filtered.length === 0 && <p className="p-8 text-center text-sm text-slate-400">No Pokémon match these filters. Empty and locked slots are omitted.</p>}
             </div>}
             {!loading && !error && filtered.length > 0 && <div className="flex items-center justify-between gap-3 text-sm text-slate-400">

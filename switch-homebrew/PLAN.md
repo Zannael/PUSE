@@ -50,6 +50,8 @@ The port must cover all major user-facing features exposed by backend/frontend f
 
 Current gap: the browser's read-only All Pokémon table spans Party and supported PC boxes, but Switch still provides separate Party and PC screens. Its native PC reader currently covers stream boxes 1–18; a native aggregate view needs the remaining verified box readers before it can claim the same coverage.
 
+Focused roster export gap: Switch does not provide the browser's Party-plus-selected-PC JSON/Markdown report. Its current PC reader covers stream boxes 1–18, so a native export would be incomplete until the remaining supported box readers and a selection/download flow are added. The browser v1 schema is documented in `../ROSTER_EXPORT.md`.
+
 ### Bag editing
 
 - Load items catalog.

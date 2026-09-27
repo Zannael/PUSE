@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Added focused roster export in the browser's All Pokémon view: every occupied Party slot plus explicitly selected PC slots can be downloaded as versioned PUSE roster JSON or Markdown derived from the same read-only model. Filters can select matching PC rows, including beyond the visible page. Python and JavaScript projections are fixture-tested for parity; real-save backend/local exports match. Switch and 3DS have no aggregate roster selection or report download yet, and their PC readers cover only stream boxes 1–18; this native coverage gap is documented in each port.
 - Added a read-only All Pokémon browser table across backend and local modes. It combines occupied Party and supported PC slots, supports name/location/shiny filters, and opens one inspection panel at a time. Empty and locked slots are omitted; mobile uses stacked rows. No save bytes are changed.
 - Aligned PC nickname decoding for the male and female glyphs in local mode, Switch, and 3DS with the canonical backend reader.
 - Added Ctrl+click (max) and Alt+click (zero) shortcuts to IV/EV sliders in the browser editor, with visible touch and keyboard buttons. Both actions use the existing stat update path, including Legit Mode EV limits; native editors already accept direct numeric values.
@@ -25,7 +26,6 @@ The roadmap is ordered by the combination of user value and implementation feasi
 
 | Priority | Proposal | User value | Feasibility | Scope and decision gate |
 |---:|---|---|---|---|
-| 1 | Focused roster export | High | High | Export Party and selected PC Pokemon through a versioned structured format, with Markdown generated from the same model. Keep this independent from the broad PR #19 bundle. |
 | 2 | Save health and change report | Very high | High | Validate save layout and checksums, report changed fields/sectors, and surface warnings before export without mutating the save. |
 | 3 | Happiness editing | Medium-high | Medium-high | Add Party and PC read/write support only after the compact PC field location is proven against fixtures; preserve checksum and runtime parity. |
 | 4 | Party/PC transfer primitive | Very high | Medium | Design an atomic operation covering source clearing, destination validation, party compaction, full-party/full-box errors, checksums, and all four runtimes. |
