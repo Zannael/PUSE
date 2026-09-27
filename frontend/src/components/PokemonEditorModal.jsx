@@ -557,7 +557,10 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                             </section>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <StatGroup title="IVs (0-31)" type="ivs" data={localPk.ivs} update={updateStat} max={31} />
+                                <div>
+                                    <p className="mb-3 text-[10px] text-slate-400">Ctrl+click a stat slider for max; Alt+click for zero. The 0 and MAX buttons work with touch and keyboard.</p>
+                                    <StatGroup title="IVs (0-31)" type="ivs" data={localPk.ivs} update={updateStat} max={31} />
+                                </div>
                                 <div className="space-y-4">
                                     <StatGroup title="EVs (0-252)" type="evs" data={localPk.evs} update={updateStat} max={252} />
                                     <div className="rounded-xl border border-white/10 bg-slate-900/50 px-3 py-2 text-[10px] text-slate-300 space-y-1">
@@ -1127,18 +1130,33 @@ const StatGroup = ({title, type, data, update, max}) => {
         <div className="space-y-4">
             <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest">{title}</h4>
             {(orderedStatsEntries.length > 0 ? orderedStatsEntries : statsEntries).map(([stat, val]) => (
-                <div key={stat} className="flex items-center gap-4">
+                <div key={stat} className="flex items-center gap-2 sm:gap-4">
                     <span className="w-8 text-[10px] font-bold text-slate-400 uppercase">{statLabels[stat] || stat}</span>
                     <input
                         type="range" min="0" max={max} value={val}
+                        aria-label={`${type === 'ivs' ? 'IV' : 'EV'} ${statLabels[stat] || stat}`}
                         onChange={(e) => update(type, stat, e.target.value)}
-                        className="flex-1 accent-blue-500"
+                        onClick={(e) => {
+                            if (e.ctrlKey || e.altKey) {
+                                update(type, stat, e.altKey ? 0 : max);
+                            }
+                        }}
+                        className="min-w-0 flex-1 accent-blue-500"
                     />
                     <input
                         type="number" min="0" max={max} value={val}
+                        aria-label={`${type === 'ivs' ? 'IV' : 'EV'} ${statLabels[stat] || stat} value`}
                         onChange={(e) => update(type, stat, e.target.value)}
                         className="w-14 bg-slate-900 border border-white/10 rounded-lg text-center text-xs py-1"
                     />
+                    <div className="flex gap-1">
+                        <button type="button" onClick={() => update(type, stat, 0)}
+                            aria-label={`Set ${type === 'ivs' ? 'IV' : 'EV'} ${statLabels[stat] || stat} to zero`}
+                            className="rounded-md border border-white/10 px-1.5 py-1 text-[10px] text-slate-300 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-blue-400">0</button>
+                        <button type="button" onClick={() => update(type, stat, max)}
+                            aria-label={`Set ${type === 'ivs' ? 'IV' : 'EV'} ${statLabels[stat] || stat} to maximum`}
+                            className="rounded-md border border-white/10 px-1.5 py-1 text-[10px] text-slate-300 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-blue-400">MAX</button>
+                    </div>
                 </div>
             ))}
         </div>

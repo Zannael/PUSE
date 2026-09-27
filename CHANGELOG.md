@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Added Ctrl+click (max) and Alt+click (zero) shortcuts to IV/EV sliders in the browser editor, with visible touch and keyboard buttons. Both actions use the existing stat update path, including Legit Mode EV limits; native editors already accept direct numeric values.
 - Added validated native-assisted RTC recovery across backend, frontend local mode, Switch, and 3DS. The recommended single-file action now re-enables Unbound's own Frozen Heights Time Fixer by clearing only its used bit in the newest coherent generation while preserving the opaque footer, older fallback generation, and optional RTC trailer. The broad manifest Quick Fix remains available only as a legacy fallback, with focused backend/JavaScript/C++ parity regressions.
 - Added PC release support across backend, frontend local mode, Switch, and 3DS, including checksum-safe writes, single-Pokemon confirmation UI, save refresh, and focused regression coverage.
 - Added canonical internal-species-to-National-Dex mapping with 809 real National Dex entries. Form children share their base species flag and Mega, Gigantamax, Regional, and other non-independent forms are displayed as read-only entries.
@@ -25,20 +26,19 @@ The roadmap is ordered by the combination of user value and implementation feasi
 | 1 | Focused roster export | High | High | Export Party and selected PC Pokemon through a versioned structured format, with Markdown generated from the same model. Keep this independent from the broad PR #19 bundle. |
 | 2 | Save health and change report | Very high | High | Validate save layout and checksums, report changed fields/sectors, and surface warnings before export without mutating the save. |
 | 3 | Happiness editing | Medium-high | Medium-high | Add Party and PC read/write support only after the compact PC field location is proven against fixtures; preserve checksum and runtime parity. |
-| 4 | IV/EV editing shortcuts | Medium | Very high | Add Ctrl+click for maximum and Alt+click for zero, with discoverable help and keyboard-accessible equivalents. |
-| 5 | Read-only All Pokemon table | High | High | Start with filtering and inspection. Define selection ownership, mobile behavior, and empty/locked-slot handling before adding bulk actions. |
-| 6 | Party/PC transfer primitive | Very high | Medium | Design an atomic operation covering source clearing, destination validation, party compaction, full-party/full-box errors, checksums, and all four runtimes. |
-| 7 | Party create/insert workflow | High | Medium | Build on the transfer primitive rather than introducing a second party-packing path; validate ownership, identity, slot count, stats, and checksums. |
-| 8 | Bulk PC release and release UX polish | Medium-high | Medium | Reuse the existing single-release primitive, but require a review step, explicit selection behavior, and all-or-nothing failure handling. Party release remains out of scope until compaction is implemented. |
-| 9 | Trainer Profile identity editing | Medium | Medium-low | Treat player name, gender/style flags, and appearance parameters as separate milestones. Require encoding validation and multi-save offset evidence. Clarify that NPC trainer-team editing would be ROM editing and is outside this scope. |
-| 10 | ROM-truth Pokemon and item sprites | Medium | Medium | Resolve extraction, form mapping, asset size, redistribution, fallback, and ROMFS packaging before runtime integration. |
-| 11 | Difficulty, NG+, Costume Box, and wardrobe flags | Medium | Low until researched | Begin with read-only detection and controlled before/after comparisons. Expose only individually understood flags; do not add a generic flag editor. |
-| 12 | Portable Pokemon files | Medium | Medium-low | Define and ship a versioned, lossless PUSE Pokemon JSON format before considering `.pkm`; document how Unbound-only species, forms, moves, and abilities map to external tools. |
-| 13 | Box 20 fallback slots `22..30` | Low-medium | Low until proven | Keep locked while the candidate range overlaps ambiguous trailer bytes. Require deterministic mapping and checksum-safe evidence across save variants. |
-| 14 | Linked-save sync | Medium | Low operational reliability | Revisit PR #20 only after browser support, permission loss, emulator write races, dirty/conflict states, atomic writes, and recovery tests are designed. |
-| 15 | Mystery Gift generation | Niche | Low | Continue ROM reconnaissance first. A generator requires proven code validation, payload structure, redemption state, and event-specific behavior. |
-| 16 | Emulator save-state editing | Low | Very low | Defer as generally out of scope: state files are emulator-, platform-, and version-specific memory snapshots rather than stable game saves. |
-| 17 | Assign any ability to any Pokemon | Misleading as save-only work | Very low | Current Pokemon data selects a standard ability slot through PID or enables the hidden-ability flag; it does not store an arbitrary ability ID. Reconsider only if a separate, verified CFRU override field is discovered. |
+| 4 | Read-only All Pokemon table | High | High | Start with filtering and inspection. Define selection ownership, mobile behavior, and empty/locked-slot handling before adding bulk actions. |
+| 5 | Party/PC transfer primitive | Very high | Medium | Design an atomic operation covering source clearing, destination validation, party compaction, full-party/full-box errors, checksums, and all four runtimes. |
+| 6 | Party create/insert workflow | High | Medium | Build on the transfer primitive rather than introducing a second party-packing path; validate ownership, identity, slot count, stats, and checksums. |
+| 7 | Bulk PC release and release UX polish | Medium-high | Medium | Reuse the existing single-release primitive, but require a review step, explicit selection behavior, and all-or-nothing failure handling. Party release remains out of scope until compaction is implemented. |
+| 8 | Trainer Profile identity editing | Medium | Medium-low | Treat player name, gender/style flags, and appearance parameters as separate milestones. Require encoding validation and multi-save offset evidence. Clarify that NPC trainer-team editing would be ROM editing and is outside this scope. |
+| 9 | ROM-truth Pokemon and item sprites | Medium | Medium | Resolve extraction, form mapping, asset size, redistribution, fallback, and ROMFS packaging before runtime integration. |
+| 10 | Difficulty, NG+, Costume Box, and wardrobe flags | Medium | Low until researched | Begin with read-only detection and controlled before/after comparisons. Expose only individually understood flags; do not add a generic flag editor. |
+| 11 | Portable Pokemon files | Medium | Medium-low | Define and ship a versioned, lossless PUSE Pokemon JSON format before considering `.pkm`; document how Unbound-only species, forms, moves, and abilities map to external tools. |
+| 12 | Box 20 fallback slots `22..30` | Low-medium | Low until proven | Keep locked while the candidate range overlaps ambiguous trailer bytes. Require deterministic mapping and checksum-safe evidence across save variants. |
+| 13 | Linked-save sync | Medium | Low operational reliability | Revisit PR #20 only after browser support, permission loss, emulator write races, dirty/conflict states, atomic writes, and recovery tests are designed. |
+| 14 | Mystery Gift generation | Niche | Low | Continue ROM reconnaissance first. A generator requires proven code validation, payload structure, redemption state, and event-specific behavior. |
+| 15 | Emulator save-state editing | Low | Very low | Defer as generally out of scope: state files are emulator-, platform-, and version-specific memory snapshots rather than stable game saves. |
+| 16 | Assign any ability to any Pokemon | Misleading as save-only work | Very low | Current Pokemon data selects a standard ability slot through PID or enables the hidden-ability flag; it does not store an arbitrary ability ID. Reconsider only if a separate, verified CFRU override field is discovered. |
 
 ### Supporting engineering proposals
 
