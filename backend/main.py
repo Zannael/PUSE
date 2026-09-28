@@ -687,6 +687,10 @@ class BallUpdate(BaseModel):
     ball_id: int
 
 
+class HappinessUpdate(BaseModel):
+    happiness: int
+
+
 class SpeciesUpdate(BaseModel):
     species_id: int
 
@@ -912,6 +916,7 @@ async def get_party():
             "ability_name_current": ability_name_current,
             "ability_label_current": ability_label_current,
             "item_id": pk.get_item_id(),
+            "happiness": pk.get_happiness(),
             **_ball_meta(pk.get_ball_id()),
         })
     return party
@@ -946,6 +951,28 @@ async def update_party_ball(idx: int, data: BallUpdate):
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
     return {"status": "Ball updated", **_ball_meta(pk.get_ball_id())}
+
+
+@app.post("/party/{idx}/happiness")
+async def update_party_happiness(idx: int, data: HappinessUpdate):
+    off = get_active_trainer_offset()
+    if off is None:
+        raise HTTPException(status_code=404, detail="Trainer section not found")
+    team_count = min(6, party_mod.ru32(current_save["data"], off + 0x34))
+    if idx < 0 or idx >= team_count:
+        raise HTTPException(status_code=404, detail="Pokemon not found")
+    mon_off = off + 0x38 + (idx * 100)
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    species_before = pk.get_species_id()
+    if not species_before:
+        raise HTTPException(status_code=404, detail="Pokemon not found")
+    try:
+        pk.set_happiness(data.happiness)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    _assert_species_unchanged(pk, species_before, "party happiness update")
+    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    return {"status": "Happiness updated", "happiness": pk.get_happiness()}
 
 
 @app.post("/party/{idx}/nickname")
@@ -1354,6 +1381,7 @@ async def get_box(box_id: int):
             "move_pp": m.get_move_pp(),
             "move_pp_ups": m.get_move_pp_ups(),
             "move_pp_max": m.get_move_pp_max(),
+            "happiness": m.get_happiness(),
             "current_ability_index": current_ability_index,
             "ability_1_id": ability_1_id,
             "ability_1_name": ability_1_name,
@@ -1418,6 +1446,7 @@ class PCUpdate(BaseModel):
     move_pp_ups: List[int] = None
     item_id: int = None
     ball_id: int = None
+    happiness: int = None
 
 
 class PCRelease(BaseModel):
@@ -1445,6 +1474,11 @@ async def edit_pc_mon(upd: PCUpdate):
     if upd.ball_id is not None:
         try:
             target.set_ball_id(_assert_valid_ball_id(upd.ball_id))
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+    if upd.happiness is not None:
+        try:
+            target.set_happiness(upd.happiness)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
 
@@ -1629,6 +1663,7 @@ class PCFullUpdate(BaseModel):
     move_pp_ups: List[int] = None
     item_id: int = None
     ball_id: int = None
+    happiness: int = None
     species_id: int = None
     ivs: dict = None
     evs: dict = None
@@ -1648,6 +1683,7 @@ class PCInsert(BaseModel):
     exp: int = None
     item_id: int = 0
     ball_id: int = 3
+    happiness: int = 70
     moves: List[int] = None
     ivs: dict = None
     evs: dict = None
@@ -1686,6 +1722,11 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
     if upd.ball_id is not None:
         try:
             target.set_ball_id(_assert_valid_ball_id(upd.ball_id))
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+    if upd.happiness is not None:
+        try:
+            target.set_happiness(upd.happiness)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
     if upd.ivs: target.set_ivs(upd.ivs)
@@ -1788,6 +1829,7 @@ async def insert_pc_mon(upd: PCInsert):
             nature_id=upd.nature_id,
             item_id=upd.item_id,
             ball_id=_assert_valid_ball_id(upd.ball_id),
+            happiness=upd.happiness,
             moves=upd.moves,
             ivs=upd.ivs,
             evs=upd.evs,
@@ -1853,6 +1895,7 @@ async def insert_pc_mon(upd: PCInsert):
             "species_id": mon.species_id,
             "species_growth_rate": box_mod.get_species_growth_rate(mon.species_id),
             "item_id": mon.get_item_id(),
+            "happiness": mon.get_happiness(),
             **_ball_meta(mon.get_ball_id()),
             "exp": mon.exp,
             "nature_id": mon.get_nature_id(),

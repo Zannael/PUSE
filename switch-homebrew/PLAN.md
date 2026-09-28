@@ -52,6 +52,8 @@ Current gap: the browser's read-only All Pokémon table spans Party and supporte
 
 Focused roster export gap: Switch does not provide the browser's Party-plus-selected-PC JSON/Markdown report. Its current PC reader covers stream boxes 1–18, so a native export would be incomplete until the remaining supported box readers and a selection/download flow are added. The browser v1 schema is documented in `../ROSTER_EXPORT.md`.
 
+Happiness editing covers Party and the existing native PC stream boxes 1–18. Browser/backend preset and fragmented fallback PC boxes are outside the Switch reader and editor; extending happiness to those boxes requires verified native box layout support.
+
 Save report coverage: Switch core retains the loaded bytes and implements the same read-only layout, active checksum, and changed-sector/field-region scanner as backend (`make test-save-health`). The Switch UI does not yet show this report before the X-button save; add a full-screen review flow before claiming UI parity. Report semantics are in `../SAVE_REPORT.md`.
 
 ### Bag editing

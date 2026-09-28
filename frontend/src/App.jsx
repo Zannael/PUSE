@@ -246,6 +246,10 @@ const App = () => {
                 await client.updatePartyBall(updatedPk.index, { ball_id: updatedPk.ball_id });
             }
 
+            if (Number(updatedPk.happiness) !== Number(original.happiness)) {
+                await client.updatePartyHappiness(updatedPk.index, { happiness: Number(updatedPk.happiness) });
+            }
+
             if (updatedPk.species_id !== selectedPokemon?.species_id) {
                 await client.updatePartySpecies(updatedPk.index, { species_id: updatedPk.species_id });
             }
@@ -310,6 +314,10 @@ const App = () => {
 
             if (Number(updatedPk.ball_id) !== Number(original.ball_id)) {
                 payload.ball_id = Number(updatedPk.ball_id);
+            }
+
+            if (Number(updatedPk.happiness) !== Number(original.happiness)) {
+                payload.happiness = Number(updatedPk.happiness);
             }
 
             if (!sameStats(updatedPk.ivs, original.ivs)) {

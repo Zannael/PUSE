@@ -271,7 +271,25 @@ void PokemonFieldsScreen::BuildBattleFields() {
                 }));
         };
     }
-    // 1: Ability (cycle: 0→1→2→0)
+    // Happiness (0..255)
+    {
+        auto btn = AddField(y); y += kRowH;
+        btn->eOnTap = [this](sl::ui::Button&) {
+            Core* core = Core::Get();
+            if (!core) return;
+            InputManager::OpenKeyboard(new InputHandlerBuffered(
+                std::to_string(entry_.happiness), false,
+                [this, core](const std::string& s) {
+                    if (s.empty() || s.find_first_not_of("0123456789") != std::string::npos) return;
+                    int value = std::atoi(s.c_str());
+                    if (value < 0 || value > 255) return;
+                    std::string err;
+                    if (puse::core::UpdatePartyHappiness(core->Session().MutableBuffer(), slot_, value, &err))
+                        CommitAndRefresh();
+                }));
+        };
+    }
+    // Ability (cycle: 0→1→2→0)
     {
         auto btn = AddField(y); y += kRowH;
         btn->eOnTap = [this](sl::ui::Button&) {
@@ -448,6 +466,9 @@ void PokemonFieldsScreen::RefreshFields() {
             }
             field_btns_[idx++]->SetText("Item: " + item_str);
         }
+
+        if (idx < field_btns_.size())
+            field_btns_[idx++]->SetText("Happiness: " + std::to_string(entry_.happiness));
 
         if (idx < field_btns_.size()) {
             std::string abl = entry_.effective_ability_name;

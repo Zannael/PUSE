@@ -587,6 +587,10 @@ function getBallId(rawMon) {
     return sub.B[10];
 }
 
+function getHappiness(rawMon) {
+    return substructViews(rawMon).B[9];
+}
+
 function getExp(rawMon) {
     const sub = substructViews(rawMon);
     return ru32(sub.B, 4);
@@ -601,6 +605,16 @@ function setItemId(rawMon, itemId) {
 function setBallId(rawMon, ballId) {
     const sub = substructViews(rawMon);
     sub.B[10] = validateBallId(ballId);
+    writeSubstructs(rawMon, sub);
+}
+
+function setHappiness(rawMon, happiness) {
+    const value = Number(happiness);
+    if (!Number.isInteger(value) || value < 0 || value > 255) {
+        throw new Error('Invalid happiness (expected 0..255)');
+    }
+    const sub = substructViews(rawMon);
+    sub.B[9] = value;
     writeSubstructs(rawMon, sub);
 }
 
@@ -882,6 +896,7 @@ export function getParty(buffer, speciesById, speciesMetaById = null) {
             effective_ability_name: resolvedAbility.effective_ability_name,
             item_id: getItemId(rawMon),
             ...getBallMeta(getBallId(rawMon)),
+            happiness: getHappiness(rawMon),
         });
     }
 
@@ -975,6 +990,19 @@ export function updatePartyItem(buffer, monIndex, payload) {
 export function updatePartyBall(buffer, monIndex, payload) {
     mutatePartyMon(buffer, monIndex, (rawMon) => {
         setBallId(rawMon, payload.ball_id);
+    });
+}
+
+export function updatePartyHappiness(buffer, monIndex, payload) {
+    const active = findActiveTrainerSection(buffer);
+    if (!active || monIndex < 0 || monIndex >= Math.min(6, ru32(buffer, active.off + PARTY_COUNT_OFFSET))) {
+        throw new Error('Pokemon not found');
+    }
+    mutatePartyMon(buffer, monIndex, (rawMon) => {
+        if (getSpeciesId(rawMon) === 0) {
+            throw new Error('Pokemon not found');
+        }
+        setHappiness(rawMon, payload.happiness);
     });
 }
 

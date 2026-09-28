@@ -652,6 +652,17 @@ class Pokemon:
     def get_ball_id(self):
         return int(self.substructs['B'][10])
 
+    def get_happiness(self):
+        return int(self.substructs['B'][9])
+
+    def set_happiness(self, happiness):
+        value = int(happiness)
+        if not 0 <= value <= 255:
+            raise ValueError("Invalid happiness (expected 0..255)")
+        b = bytearray(self.substructs['B'])
+        b[9] = value
+        self.substructs['B'] = b
+
     def get_moves_ids(self):
         return [ru16(self.substructs['A'], i * 2) for i in range(4)]
 

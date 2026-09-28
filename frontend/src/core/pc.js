@@ -49,6 +49,7 @@ const OFF_ITEM = 0x1E;
 const OFF_EXP = 0x20;
 const OFF_MOVES = 0x24;
 const OFF_BALL = 0x26;
+const OFF_HAPPINESS = 0x25;
 const OFF_EVS = 0x2C;
 const OFF_IVS = 0x36;
 
@@ -57,6 +58,14 @@ const GENDER_THRESHOLD_FEMALE_ONLY = 254;
 const GENDER_THRESHOLD_GENDERLESS = 255;
 const INV_11_MOD_25 = 16;
 const SHINY_THRESHOLD = 16;
+
+function validateHappiness(happiness) {
+    const value = Number(happiness);
+    if (!Number.isInteger(value) || value < 0 || value > 255) {
+        throw new Error('Invalid happiness (expected 0..255)');
+    }
+    return value;
+}
 
 const UNBOUND_PRESET_MAGIC_LEN = 0xADC;
 
@@ -634,6 +643,7 @@ function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
         effective_ability_id: resolvedAbility.effective_ability_id,
         effective_ability_name: resolvedAbility.effective_ability_name,
         ...getBallMeta(ru8(raw, OFF_BALL)),
+        happiness: ru8(raw, OFF_HAPPINESS),
     };
 }
 
@@ -1042,6 +1052,7 @@ function buildPcMonRaw(payload, speciesMap, context) {
     wu16(raw, OFF_ITEM, Number(payload?.item_id ?? 0));
     wu32(raw, OFF_EXP, Number(exp));
     wu8(raw, OFF_BALL, validateBallId(payload?.ball_id ?? 3));
+    wu8(raw, OFF_HAPPINESS, validateHappiness(payload?.happiness ?? 70));
     wu32(raw, OFF_PID, ((speciesId * 2654435761) >>> 0));
     const inferredOwner = inferDefaultOwnerTemplate(context);
     wu32(raw, 0x04, Number(payload?.otid ?? inferredOwner.otid) >>> 0);
@@ -1286,6 +1297,9 @@ export function editPcMonFull(context, payload, speciesMap = null) {
     }
     if (payload.ball_id !== undefined && payload.ball_id !== null) {
         wu8(raw, OFF_BALL, validateBallId(payload.ball_id));
+    }
+    if (payload.happiness !== undefined && payload.happiness !== null) {
+        wu8(raw, OFF_HAPPINESS, validateHappiness(payload.happiness));
     }
     if (payload.species_id !== undefined && payload.species_id !== null) {
         wu16(raw, OFF_SPECIES, Number(payload.species_id));

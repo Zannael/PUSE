@@ -24,6 +24,7 @@ struct PcMon {
     std::string species_name;
     uint16_t item_id;
     uint8_t ball_id;
+    uint8_t happiness;
     uint32_t exp;
     uint8_t level;
     uint8_t nature_id;
@@ -60,6 +61,7 @@ int CountPcBoxMons(const std::vector<uint8_t> &stream, int box);
 bool UpdatePcMonNickname(std::vector<uint8_t> &stream, int box, int slot, const std::string &nickname, std::string *error = nullptr);
 bool UpdatePcMonSpecies(std::vector<uint8_t> &stream, int box, int slot, uint16_t species_id, std::string *error = nullptr);
 bool UpdatePcMonItem(std::vector<uint8_t> &stream, int box, int slot, uint16_t item_id, std::string *error = nullptr);
+bool UpdatePcMonHappiness(std::vector<uint8_t> &stream, int box, int slot, int happiness, std::string *error = nullptr);
 bool UpdatePcMonLevel(std::vector<uint8_t> &stream, int box, int slot, int level, std::string *error = nullptr);
 bool UpdatePcMonIvs(std::vector<uint8_t> &stream, int box, int slot, const std::array<uint8_t, 6> &ivs, std::string *error = nullptr);
 bool UpdatePcMonEvs(std::vector<uint8_t> &stream, int box, int slot, const std::array<uint8_t, 6> &evs, std::string *error = nullptr);

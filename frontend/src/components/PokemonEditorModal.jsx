@@ -955,6 +955,26 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                                     </div>
                                 </div>
 
+                            <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-3">
+                                <label htmlFor="pokemon-happiness" className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">
+                                    Happiness (0–255)
+                                </label>
+                                <input
+                                    id="pokemon-happiness"
+                                    type="number"
+                                    min="0"
+                                    max="255"
+                                    step="1"
+                                    value={localPk.happiness ?? 70}
+                                    onChange={(event) => setLocalPk((prev) => ({
+                                        ...prev,
+                                        happiness: clampNumber(event.target.value, 0, 255),
+                                    }))}
+                                    className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-500/50"
+                                />
+                                <p className="text-[10px] text-slate-400">Friendship evolutions use this value.</p>
+                            </div>
+
                             <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
                                     Held Item

@@ -1461,6 +1461,7 @@ void MainApplication::RebuildPcFieldsMenu(const int section_index) {
         section_title = "Battle";
         const std::string slot_str = (m.current_ability_index == 2) ? "3 (Hidden)" : std::to_string(m.current_ability_index + 1);
         rows.push_back({"Item", GetDbName(this->items_db_, m.item_id)});
+        rows.push_back({"Happiness", std::to_string(static_cast<int>(m.happiness))});
         rows.push_back({"Ability", std::string(m.hidden_ability ? "Hidden" : "Standard") + "   Slot " + slot_str});
         if (m.battle_preview.available) {
             rows.push_back({"Stats", "HP " + std::to_string(m.battle_preview.stats[0])
@@ -1567,6 +1568,11 @@ void MainApplication::HandlePcFieldEdit(const int section_index, const std::stri
             int item_id = 0;
             if (PromptCatalogChoice("Item", this->items_db_, static_cast<int>(m.item_id), &item_id)) {
                 changed = puse::core::UpdatePcMonItem(this->pc_stream_, box, slot, static_cast<uint16_t>(item_id), &error);
+            }
+        } else if (field_key == "Happiness") {
+            int happiness = 0;
+            if (PromptNumber("Set happiness (0-255)", std::to_string(static_cast<int>(m.happiness)), 0, 255, &happiness)) {
+                changed = puse::core::UpdatePcMonHappiness(this->pc_stream_, box, slot, happiness, &error);
             }
         } else if (field_key == "Ability") {
             const std::string cur_slot = (m.current_ability_index == 2) ? "3 (Hidden)" : std::to_string(m.current_ability_index + 1);
@@ -1686,6 +1692,11 @@ void MainApplication::HandleFieldEdit(const int section_index, const std::string
             int item_id = 0;
             if (PromptCatalogChoice("Item", this->items_db_, static_cast<int>(entry.item_id), &item_id)) {
                 changed = puse::core::UpdatePartyItem(this->save_session_.MutableBuffer(), this->selected_party_index_, static_cast<uint16_t>(item_id), &error);
+            }
+        } else if (field_key == "Happiness") {
+            int happiness = 0;
+            if (PromptNumber("Set happiness (0-255)", std::to_string(static_cast<int>(entry.happiness)), 0, 255, &happiness)) {
+                changed = puse::core::UpdatePartyHappiness(this->save_session_.MutableBuffer(), this->selected_party_index_, happiness, &error);
             }
         } else if (field_key == "Ability") {
             const int opt = this->CreateShowDialog(
@@ -1931,6 +1942,7 @@ void MainApplication::RebuildPokemonFieldsMenu(const int section_index) {
             ? (entry.hidden_ability ? "Hidden" : "Standard")
             : entry.ability_label_current;
         rows.push_back({"Item", GetDbName(this->items_db_, entry.item_id)});
+        rows.push_back({"Happiness", std::to_string(static_cast<int>(entry.happiness))});
         rows.push_back({"Ability", ability_str + "   Slot " + slot_str});
         if (entry.battle_preview.available) {
             rows.push_back({"Stats", "HP " + std::to_string(entry.battle_preview.stats[0])

@@ -499,6 +499,10 @@ uint8_t GetBallId(const uint8_t *raw_mon) {
     return SubB(raw_mon)[10];
 }
 
+uint8_t GetHappiness(const uint8_t *raw_mon) {
+    return SubB(raw_mon)[9];
+}
+
 uint32_t GetExp(const uint8_t *raw_mon) {
     return ReadU32Le(SubB(raw_mon), 4);
 }
@@ -1224,6 +1228,7 @@ std::vector<PartyEntry> ParseParty(
         e.species_id = GetSpeciesId(raw_mon);
         e.item_id = GetItemId(raw_mon);
         e.ball_id = GetBallId(raw_mon);
+        e.happiness = GetHappiness(raw_mon);
         e.exp = GetExp(raw_mon);
         e.level = raw_mon[kMonLevelVisualOff];
         e.nature_id = GetNatureId(raw_mon);
@@ -1293,6 +1298,21 @@ bool UpdatePartyNickname(std::vector<uint8_t> &buffer, const int index, const st
 bool UpdatePartyItem(std::vector<uint8_t> &buffer, const int index, const uint16_t item_id, std::string *error) {
     return MutatePartyMon(buffer, index, false, [&](uint8_t *mon, std::string *) {
         SetItemId(mon, item_id);
+        return true;
+    }, error);
+}
+
+bool UpdatePartyHappiness(std::vector<uint8_t> &buffer, const int index, const int happiness, std::string *error) {
+    if (happiness < 0 || happiness > 255) {
+        if (error) { *error = "Invalid happiness (expected 0..255)"; }
+        return false;
+    }
+    return MutatePartyMon(buffer, index, false, [&](uint8_t *mon, std::string *mutation_error) {
+        if (GetSpeciesId(mon) == 0) {
+            if (mutation_error) { *mutation_error = "Pokemon not found"; }
+            return false;
+        }
+        SubB(mon)[9] = static_cast<uint8_t>(happiness);
         return true;
     }, error);
 }
@@ -1463,6 +1483,22 @@ bool CommitPartySectionChecksums(std::vector<uint8_t> &buffer, std::string *erro
             *error = "save has no sections";
         }
         return false;
+    }
+
+    // Backend save-all repacks every active Party mon, clearing the CFRU runtime
+    // checksum field even when only one mon was edited.
+    const SaveSection *active = nullptr;
+    for (const auto &sec : sections) {
+        if (sec.section_id == kTrainerSectionId &&
+            (active == nullptr || sec.save_index > active->save_index)) {
+            active = &sec;
+        }
+    }
+    if (active != nullptr && active->offset + kPartyBaseOff + 6 * kMonSize <= buffer.size()) {
+        const int count = std::min(6, static_cast<int>(ReadU32Le(&buffer[active->offset], kTeamCountOff)));
+        for (int i = 0; i < count; ++i) {
+            WriteU16Le(&buffer[active->offset + kPartyBaseOff + static_cast<size_t>(i) * kMonSize], kMonChecksumOff, 0);
+        }
     }
 
     bool found = false;

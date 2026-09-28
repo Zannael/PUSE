@@ -63,6 +63,7 @@ OFF_SPECIES = 0x1C
 OFF_ITEM = 0x1E  # Offset Strumento
 OFF_EXP = 0x20
 OFF_BALL = 0x26
+OFF_HAPPINESS = 0x25
 OFF_MOVES = 0x24
 OFF_EVS = 0x2C
 OFF_IVS = 0x36
@@ -508,6 +509,15 @@ class UnboundPCMon:
     def get_ball_id(self):
         return ru8(self.raw, OFF_BALL)
 
+    def get_happiness(self):
+        return ru8(self.raw, OFF_HAPPINESS)
+
+    def set_happiness(self, happiness):
+        value = int(happiness)
+        if not 0 <= value <= 255:
+            raise ValueError("Invalid happiness (expected 0..255)")
+        wu8(self.raw, OFF_HAPPINESS, value)
+
     def set_ball_id(self, ball_id):
         bid = int(ball_id)
         if bid < 0 or bid > 26:
@@ -909,6 +919,7 @@ def build_pc_mon_raw(
     evs=None,
     current_ability_index=0,
     ball_id=3,
+    happiness=70,
     shiny=None,
     gender=None,
     otid=None,
@@ -939,6 +950,10 @@ def build_pc_mon_raw(
     wu16(raw, OFF_ITEM, int(item_id) if item_id is not None else 0)
     wu32(raw, OFF_EXP, mon_exp)
     wu8(raw, OFF_BALL, int(ball_id) if ball_id is not None else 3)
+    happiness_value = int(happiness) if happiness is not None else 70
+    if not 0 <= happiness_value <= 255:
+        raise ValueError("Invalid happiness (expected 0..255)")
+    wu8(raw, OFF_HAPPINESS, happiness_value)
     wu32(raw, OFF_PID, (sid * 2654435761) & 0xFFFFFFFF)
     wu32(raw, 0x04, int(otid) & 0xFFFFFFFF if otid is not None else 0)
     owner_name = "" if ot_name is None else str(ot_name)

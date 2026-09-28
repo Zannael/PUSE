@@ -51,6 +51,7 @@ Save editor for Pokemon Unbound v2.1.1.1 on Nintendo 3DS. Mirrors `switch-homebr
 - [x] `Core::RebuildPcStream` / `CommitPcStream` wrappers; stream pre-built on Init
 - [x] PC entry: L button from PartyListScreen
 - [ ] Read-only All Pokémon aggregate view. The browser table includes Party and supported PC boxes; the 3DS reader currently covers stream boxes 1–18, so remaining verified box readers are needed for equal coverage.
+- [ ] Extend native PC happiness editing beyond stream boxes 1–18. Party and those stream boxes support 0–255 now; preset and fragmented fallback boxes require verified native readers and writers first.
 
 ## Phase 6 — Bag
 - [x] Copy `Bag.{cpp,hpp}` (no ARM32 fixes needed)

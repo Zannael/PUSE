@@ -272,7 +272,25 @@ void PcSlotScreen::BuildEditFields() {
                 }));
         };
     }
-    // 5: Shiny (toggle)
+    // Happiness (0..255)
+    {
+        auto btn = AddField(y); y += kRowH;
+        btn->eOnTap = [this](sl::ui::Button&) {
+            Core* core = Core::Get();
+            if (!core) return;
+            InputManager::OpenKeyboard(new InputHandlerBuffered(
+                std::to_string(mon_.happiness), false,
+                [this, core](const std::string& s) {
+                    if (s.empty() || s.find_first_not_of("0123456789") != std::string::npos) return;
+                    int value = std::atoi(s.c_str());
+                    if (value < 0 || value > 255) return;
+                    std::string err;
+                    if (puse::core::UpdatePcMonHappiness(core->MutablePcStream(), box_, slot_, value, &err))
+                        CommitAndRefresh();
+                }));
+        };
+    }
+    // Shiny (toggle)
     {
         auto btn = AddField(y); y += kRowH;
         btn->eOnTap = [this](sl::ui::Button&) {
@@ -423,6 +441,8 @@ void PcSlotScreen::RefreshFields() {
         }
         set("Item: " + it);
     }
+
+    set("Happiness: " + std::to_string(mon_.happiness));
 
     set(std::string("Shiny: ") + (mon_.is_shiny ? "YES  [tap: toggle]" : "no   [tap: toggle]"));
 

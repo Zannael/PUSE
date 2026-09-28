@@ -270,6 +270,13 @@ const backendClient = {
             body: JSON.stringify(payload),
         });
     },
+    async updatePartyHappiness(index, payload) {
+        await backendJson(`/party/${index}/happiness`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+    },
     async updatePartyIdentity(index, payload) {
         await backendJson(`/party/${index}/identity`, {
             method: "POST",
@@ -585,6 +592,11 @@ const localClient = {
         const { updateBuffer, updatePartyBall: patchPartyBall } = await getLocalCoreModules();
         updateBuffer((next) => patchPartyBall(next, Number(index), payload || {}));
         return { status: 'Ball updated in memory' };
+    },
+    async updatePartyHappiness(index, payload) {
+        const { updateBuffer, updatePartyHappiness: patchPartyHappiness } = await getLocalCoreModules();
+        updateBuffer((next) => patchPartyHappiness(next, Number(index), payload || {}));
+        return { status: 'Happiness updated in memory' };
     },
     async updatePartyIdentity(index, payload) {
         const { updateBuffer, updatePartyIdentity: patchPartyIdentity } = await getLocalCoreModules();

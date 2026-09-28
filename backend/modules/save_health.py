@@ -37,7 +37,7 @@ def _pc_field(prefix, inside):
     for start, end, label in ((0x00, 0x04, "PID"), (0x04, 0x08, "owner ID"),
                               (0x08, 0x12, "nickname"), (0x1C, 0x1E, "species"),
                               (0x1E, 0x20, "held item"), (0x20, 0x24, "EXP"),
-                              (0x24, 0x25, "PP Ups"), (0x26, 0x27, "caught ball"),
+                              (0x24, 0x25, "PP Ups"), (0x25, 0x26, "happiness"), (0x26, 0x27, "caught ball"),
                               (0x27, 0x2C, "moves"), (0x2C, 0x32, "EVs"),
                               (0x36, 0x3A, "IVs/ability flag")):
         if start <= inside < end:
@@ -54,6 +54,8 @@ def _field_label(section_id, offset):
             inside = (offset - PARTY_START) % PARTY_SIZE
             if 0x08 <= inside < 0x12:
                 return f"Party {slot} nickname"
+            if inside == 0x29:
+                return f"Party {slot} happiness"
             if inside == 0x54:
                 return f"Party {slot} level"
             return f"Party {slot} data"

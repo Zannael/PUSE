@@ -25,6 +25,7 @@ struct PartyEntry {
     std::string species_name;
     uint16_t item_id;
     uint8_t ball_id;
+    uint8_t happiness;
     uint32_t exp;
     uint8_t level;
     uint8_t nature_id;
@@ -81,6 +82,7 @@ BattlePreview CalculateBattlePreview(
 
 bool UpdatePartyNickname(std::vector<uint8_t> &buffer, int index, const std::string &nickname, std::string *error = nullptr);
 bool UpdatePartyItem(std::vector<uint8_t> &buffer, int index, uint16_t item_id, std::string *error = nullptr);
+bool UpdatePartyHappiness(std::vector<uint8_t> &buffer, int index, int happiness, std::string *error = nullptr);
 bool UpdatePartySpecies(std::vector<uint8_t> &buffer, int index, uint16_t species_id, std::string *error = nullptr);
 bool UpdatePartyNature(std::vector<uint8_t> &buffer, int index, uint8_t nature_id, std::string *error = nullptr);
 bool UpdatePartyIdentity(
