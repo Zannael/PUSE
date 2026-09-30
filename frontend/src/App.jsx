@@ -552,7 +552,7 @@ const App = () => {
                 )}
             </header>
 
-            <main className="w-full max-w-6xl p-4 md:p-8 pb-36">
+            <main className="w-full max-w-6xl px-4 pt-4 pb-48 md:px-8 md:pt-8 md:pb-48">
                 {!isLoaded ? (
                     <div className="space-y-10 md:space-y-14 pb-8">
                         <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#1e293b]/95 via-[#16243c]/95 to-[#0f172a] p-5 md:p-8">

@@ -918,7 +918,7 @@ def _extract_pocket_bounds(data, anchor_offset, swapped=False):
         if prev < sector_start:
             break
         pid, pqty = _decode_slot(data, prev, swapped=swapped)
-        if pid == 0 or not _is_plausible_slot(pid, pqty):
+        if pid == 0 or (pqty != 0 and not _is_plausible_slot(pid, pqty)) or pid > MAX_PLAUSIBLE_ITEM_ID:
             break
         curr = prev
 
@@ -938,11 +938,14 @@ def _extract_pocket_bounds(data, anchor_offset, swapped=False):
             terminated = True
             break
 
-        # Soft terminator: slot con qty==0 (item non vuoto) non deve invertire il decode
-        # dell'intera tasca. Lo trattiamo come fine stream.
+        # Older edits can leave an item ID with zero quantity between live slots.
+        # Keep scanning until the actual empty item ID so later items remain visible.
         if iqty == 0:
-            terminated = True
-            break
+            if iid > MAX_PLAUSIBLE_ITEM_ID:
+                break
+            slot_count += 1
+            curr += 4
+            continue
 
         if not _is_plausible_slot(iid, iqty):
             break
@@ -1291,6 +1294,10 @@ def map_pocket_from_anchor(data, anchor_offset):
         iid, iqty = _decode_slot(data, curr, swapped=swapped_flag)
         if iid == 0:
             break
+        if iqty == 0:
+            items.append({'id': 0, 'qty': 0, 'offset': curr, 'name': '--- VUOTO ---', 'encoding': 'qty_id' if swapped_flag else 'id_qty'})
+            curr += 4
+            continue
         if not _is_plausible_slot(iid, iqty):
             break
         name = DB_ITEMS.get(iid, f"Item {iid}")
@@ -1326,6 +1333,18 @@ def write_slot(data, offset, item_id, quantity, encoding=None):
     # TM/HM e Key Items: qty effettiva deve restare >= 1.
     if (item_id in TMHM_ITEM_IDS or item_id in KEY_ITEM_IDS) and quantity <= 0:
         quantity = 1
+
+    if item_id == 0 or quantity <= 0:
+        # Remove a slot by closing the gap. A zero quantity with a nonzero ID
+        # would otherwise hide all later items from the game and older readers.
+        _, bounds = _best_pocket_for_anchor(data, offset)
+        if bounds and bounds[0] <= offset < bounds[1]:
+            end_abs = bounds[1]
+            data[offset:end_abs - 4] = data[offset + 4:end_abs]
+            offset = end_abs - 4
+        wu16(data, offset, 0)
+        wu16(data, offset + 2, 0)
+        return
 
     if encoding == "qty_id":
         wu16(data, offset, quantity)

@@ -182,7 +182,8 @@ bool ExtractPocketBounds(const std::vector<uint8_t> &buf, uint32_t anchor_off, b
         const uint32_t prev = curr - 4;
         uint16_t pid, pqty;
         DecodeSlot(buf, prev, swapped, &pid, &pqty);
-        if (pid == 0 || !IsPlausibleSlot(pid, pqty)) { break; }
+        if (pid == 0 || pid > kMaxPlausibleItemId ||
+            (pqty != 0 && !IsPlausibleSlot(pid, pqty))) { break; }
         curr = prev;
     }
     const uint32_t start_abs = curr;
@@ -194,7 +195,16 @@ bool ExtractPocketBounds(const std::vector<uint8_t> &buf, uint32_t anchor_off, b
     while ((curr + 3 < sector_end) && (slots < kMaxSectorPocketSlots)) {
         uint16_t iid, iqty;
         DecodeSlot(buf, curr, swapped, &iid, &iqty);
-        if (iid == 0 || iqty == 0) { terminated = true; break; }
+        if (iid == 0) {
+            terminated = true;
+            break;
+        }
+        if (iqty == 0) {
+            if (iid > kMaxPlausibleItemId) { break; }
+            ++slots;
+            curr += 4;
+            continue;
+        }
         if (!IsPlausibleSlot(iid, iqty)) { break; }
         ++slots; ++non_zero;
         if (seen.count(iid)) { ++dups; } else { seen.insert(iid); }
@@ -827,6 +837,11 @@ std::vector<BagSlot> MapPocketFromAnchor(const std::vector<uint8_t> &buf, uint32
         uint16_t iid, iqty;
         DecodeSlot(buf, curr, sw, &iid, &iqty);
         if (iid == 0) { break; }
+        if (iqty == 0) {
+            out.push_back({0, 0, curr, sw});
+            curr += 4;
+            continue;
+        }
         if (!IsPlausibleSlot(iid, iqty)) { break; }
         out.push_back({iid, iqty, curr, sw});
         curr += 4;
@@ -852,6 +867,21 @@ void WriteSlot(std::vector<uint8_t> &buf, uint32_t offset, uint16_t item_id, uin
     if (offset + 3 >= static_cast<uint32_t>(buf.size())) { return; }
     // TM/HM/Key: force qty >= 1
     if ((g_tmhm_ids.count(item_id) || g_key_ids.count(item_id)) && qty == 0) { qty = 1; }
+    if (item_id == 0 || qty == 0) {
+        bool sw; PocketBounds bounds{};
+        if (BestPocketForAnchor(buf, offset, &sw, &bounds) &&
+            bounds.start_abs <= offset && offset < bounds.end_abs) {
+            const uint32_t end_abs = bounds.end_abs;
+            for (uint32_t curr = offset; curr + 4 < end_abs; curr += 4) {
+                WriteU16Le(buf.data(), curr, ReadU16Le(buf.data(), curr + 4));
+                WriteU16Le(buf.data(), curr + 2, ReadU16Le(buf.data(), curr + 6));
+            }
+            offset = end_abs - 4;
+        }
+        WriteU16Le(buf.data(), offset, 0);
+        WriteU16Le(buf.data(), offset + 2, 0);
+        return;
+    }
     if (encoding_swapped) {
         WriteU16Le(buf.data(), offset,     qty);
         WriteU16Le(buf.data(), offset + 2, item_id);

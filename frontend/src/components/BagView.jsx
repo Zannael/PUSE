@@ -137,6 +137,7 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
 
     const loadPocket = async (cand) => {
         setSelectedCand(cand);
+        setItemFilter('');
         setLoading(true);
         try {
             const data = await client.getBagPocket(cand.anchor_offset);
@@ -150,6 +151,7 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
         const ready = typeof pocket.ready === 'boolean' ? pocket.ready : !!pocket.anchor_offset;
         if (!ready || !pocket.anchor_offset) return;
         setConfidenceOpenKey(null);
+        setItemFilter('');
 
         const quickCandidate = {
             anchor_offset: pocket.anchor_offset,
@@ -607,6 +609,9 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
                                         />
                                         {(selectedCand?.pocket_type === 'tm' || isTmHmItemId(editItemId) || selectedCand?.pocket_type === 'key' || isKeyItemId(editItemId)) && (
                                             <p className="text-[10px] text-slate-500 mt-1">TM/HM and Key Items use quantity 1.</p>
+                                        )}
+                                        {editQty === 0 && editItemId !== 0 && selectedCand?.pocket_type !== 'tm' && selectedCand?.pocket_type !== 'key' && (
+                                            <p className="text-[10px] text-amber-300 mt-1">Quantity 0 removes this item and closes the gap.</p>
                                         )}
                                     </div>
 

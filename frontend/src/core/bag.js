@@ -126,7 +126,7 @@ function extractPocketBounds(buffer, anchorOffset, swapped = false) {
             break;
         }
         const [pid, pqty] = decodeSlot(buffer, prev, swapped);
-        if (pid === 0 || !isPlausibleSlot(pid, pqty)) {
+        if (pid === 0 || pid > MAX_PLAUSIBLE_ITEM_ID || (pqty !== 0 && !isPlausibleSlot(pid, pqty))) {
             break;
         }
         curr = prev;
@@ -141,9 +141,15 @@ function extractPocketBounds(buffer, anchorOffset, swapped = false) {
 
     while (curr + 3 < sectorEnd && slotCount < MAX_SECTOR_POCKET_SLOTS) {
         const [iid, iqty] = decodeSlot(buffer, curr, swapped);
-        if (iid === 0 || iqty === 0) {
+        if (iid === 0) {
             terminated = true;
             break;
+        }
+        if (iqty === 0) {
+            if (iid > MAX_PLAUSIBLE_ITEM_ID) break;
+            slotCount += 1;
+            curr += 4;
+            continue;
         }
         if (!isPlausibleSlot(iid, iqty)) {
             break;
@@ -660,9 +666,15 @@ export function mapPocketFromAnchor(buffer, anchorOffset, itemNameById) {
     let curr = startAbs;
     while (curr < endAbs) {
         const [iid, iqty] = decodeSlot(buffer, curr, swappedFlag);
-        if (iid === 0 || !isPlausibleSlot(iid, iqty)) {
+        if (iid === 0) {
             break;
         }
+        if (iqty === 0) {
+            items.push({ id: 0, qty: 0, offset: curr, name: '--- EMPTY ---', encoding: swappedFlag ? 'qty_id' : 'id_qty' });
+            curr += 4;
+            continue;
+        }
+        if (!isPlausibleSlot(iid, iqty)) break;
         items.push({
             id: iid,
             qty: iqty,
@@ -1080,6 +1092,18 @@ export function writeSlot(buffer, offset, itemId, quantity, encoding = null) {
     let qty = quantity;
     if ((TMHM_ITEM_IDS.has(itemId) || KEY_ITEM_IDS.has(itemId)) && qty <= 0) {
         qty = 1;
+    }
+
+    if (itemId === 0 || qty <= 0) {
+        const [, bounds] = bestPocketForAnchor(buffer, offset);
+        if (bounds && bounds[0] <= offset && offset < bounds[1]) {
+            const endAbs = bounds[1];
+            buffer.copyWithin(offset, offset + 4, endAbs);
+            offset = endAbs - 4;
+        }
+        wu16(buffer, offset, 0);
+        wu16(buffer, offset + 2, 0);
+        return;
     }
 
     if (writeEncoding === 'qty_id') {
