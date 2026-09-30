@@ -2433,8 +2433,13 @@ void MainApplication::HandleBagSlotEdit(const int slot_index) {
         }
     }
 
-    puse::core::WriteSlot(this->save_session_.MutableBuffer(),
-                          slot.offset, new_id, new_qty, slot.encoding_swapped);
+    if (!puse::core::WriteSlot(this->save_session_.MutableBuffer(),
+                               slot.offset, new_id, new_qty, slot.encoding_swapped)) {
+        this->CreateShowDialog("Invalid bag item",
+            "That item belongs in a different pocket. Choose an item for this pocket.",
+            {"OK"}, true);
+        return;
+    }
 
     // Re-resolve pockets so slot counts update
     this->bag_pockets_ = puse::core::ResolveQuickPockets(this->save_session_.Buffer());

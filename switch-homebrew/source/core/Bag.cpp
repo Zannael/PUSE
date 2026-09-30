@@ -526,7 +526,8 @@ QuickPocketResult TryStaticAnchor(const std::vector<uint8_t> &buf, uint32_t anch
         return r;
     }
 
-    const int sparse_floor = (pocket_type == "ball") ? 2 : std::max(4, min_slots / 3);
+    const int sparse_floor = (pocket_type == "ball") ? 2 :
+                             (pocket_type == "berry") ? 3 : std::max(4, min_slots / 3);
     if (b.slot_count >= sparse_floor && purity >= 0.90) {
         r.found = true; r.anchor_offset = anchor; r.quality = quality;
         r.score = score; r.slot_count = b.slot_count; r.dup_count = b.dup_count;
@@ -762,6 +763,7 @@ bool EnsureBagDataLoaded(std::string *error) {
 }
 
 std::unordered_map<std::string, BagPocket> ResolveQuickPockets(const std::vector<uint8_t> &buf) {
+    EnsureBagDataLoaded(nullptr);
     std::unordered_map<std::string, BagPocket> out;
 
     // Main
@@ -862,11 +864,46 @@ std::vector<BagSlot> MapPocketFromAnchor(const std::vector<uint8_t> &buf, uint32
     return out;
 }
 
-void WriteSlot(std::vector<uint8_t> &buf, uint32_t offset, uint16_t item_id, uint16_t qty,
+bool WriteSlot(std::vector<uint8_t> &buf, uint32_t offset, uint16_t item_id, uint16_t qty,
                bool encoding_swapped) {
-    if (offset + 3 >= static_cast<uint32_t>(buf.size())) { return; }
-    // TM/HM/Key: force qty >= 1
+    if (offset + 3 >= static_cast<uint32_t>(buf.size())) { return false; }
+    EnsureBagDataLoaded(nullptr);
+    uint16_t current_id, current_qty;
+    DecodeSlot(buf, offset, encoding_swapped, &current_id, &current_qty);
+    (void)current_qty;
+    // TM/HM and Key Items always have a positive effective quantity.
     if ((g_tmhm_ids.count(item_id) || g_key_ids.count(item_id)) && qty == 0) { qty = 1; }
+    if (item_id > 0 && qty > 0 && item_id != current_id) {
+        std::string pocket_type;
+        const auto pockets = ResolveQuickPockets(buf);
+        for (const auto &type : {"main", "ball", "berry", "tm", "key"}) {
+            const auto it = pockets.find(type);
+            if (it == pockets.end() || !it->second.ready || it->second.locked) { continue; }
+            const auto &pocket = it->second;
+            if (pocket.is_empty_candidate && offset >= pocket.anchor_offset &&
+                offset < pocket.anchor_offset + kEmptyBootstrapSlots * 4 &&
+                (offset - pocket.anchor_offset) % 4 == 0) {
+                pocket_type = type;
+                break;
+            }
+            const auto slots = MapPocketFromAnchor(buf, pocket.anchor_offset);
+            if (std::any_of(slots.begin(), slots.end(), [offset](const BagSlot &slot) {
+                return slot.offset == offset;
+            })) {
+                pocket_type = type;
+                break;
+            }
+        }
+        auto normalize = [](std::string family) {
+            return family == "hm" ? std::string("tm") : family;
+        };
+        const std::string new_family = normalize(PocketTypeForItemId(item_id));
+        const std::string old_family = current_id ? normalize(PocketTypeForItemId(current_id)) : "";
+        const std::string expected = pocket_type == "main" ? "generic" : pocket_type;
+        const bool allowed = !pocket_type.empty() ? new_family == expected :
+                             !old_family.empty() && new_family == old_family;
+        if (!allowed) { return false; }
+    }
     if (item_id == 0 || qty == 0) {
         bool sw; PocketBounds bounds{};
         if (BestPocketForAnchor(buf, offset, &sw, &bounds) &&
@@ -880,7 +917,7 @@ void WriteSlot(std::vector<uint8_t> &buf, uint32_t offset, uint16_t item_id, uin
         }
         WriteU16Le(buf.data(), offset, 0);
         WriteU16Le(buf.data(), offset + 2, 0);
-        return;
+        return true;
     }
     if (encoding_swapped) {
         WriteU16Le(buf.data(), offset,     qty);
@@ -889,6 +926,7 @@ void WriteSlot(std::vector<uint8_t> &buf, uint32_t offset, uint16_t item_id, uin
         WriteU16Le(buf.data(), offset,     item_id);
         WriteU16Le(buf.data(), offset + 2, qty);
     }
+    return true;
 }
 
 bool CommitBagSectorChecksums(std::vector<uint8_t> &buf, std::string *error) {

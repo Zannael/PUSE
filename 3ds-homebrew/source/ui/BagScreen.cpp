@@ -128,9 +128,9 @@ void BagScreen::RebuildSlotButtons() {
                         int qty = std::atoi(s.c_str());
                         if (qty < 0 || qty > 999) return;
                         const auto& sl = slots_[i];
-                        puse::core::WriteSlot(core->Session().MutableBuffer(),
+                        if (!puse::core::WriteSlot(core->Session().MutableBuffer(),
                             sl.offset, sl.item_id,
-                            static_cast<uint16_t>(qty), sl.encoding_swapped);
+                            static_cast<uint16_t>(qty), sl.encoding_swapped)) return;
                         puse::core::CommitBagSectorChecksums(
                             core->Session().MutableBuffer());
                         core->SetDirty(true);

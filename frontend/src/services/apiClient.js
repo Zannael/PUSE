@@ -349,12 +349,17 @@ const backendClient = {
     getBagPocket(anchorOffset) {
         return backendJson(`/bag/pocket?anchor_offset=${anchorOffset}&_ts=${Date.now()}`, { cache: "no-store" });
     },
-    updateBagItem(payload) {
-        return backendJson("/bag/item/update", {
+    async updateBagItem(payload) {
+        const res = await fetch(`${API_BASE}/bag/item/update`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
         });
+        if (!res.ok) {
+            const error = await res.json().catch(() => null);
+            throw new Error(error?.detail || 'Bag update failed');
+        }
+        return res.json();
     },
     getBagPocketsBootstrap() {
         return backendJson("/bag/pockets/bootstrap");

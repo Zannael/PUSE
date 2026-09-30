@@ -1236,13 +1236,16 @@ async def get_pocket_items(anchor_offset: int):
 @app.post("/bag/item/update")
 async def update_bag_item(update: BagItemUpdate):
     """Update item ID or quantity for a specific slot in memory."""
-    bag_mod.write_slot(
-        current_save["data"],
-        update.offset,
-        update.item_id,
-        update.quantity,
-        encoding=update.encoding,
-    )
+    try:
+        bag_mod.write_slot(
+            current_save["data"],
+            update.offset,
+            update.item_id,
+            update.quantity,
+            encoding=update.encoding,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {"status": "Bag slot updated"}
 
 

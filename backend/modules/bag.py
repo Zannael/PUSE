@@ -214,6 +214,8 @@ def _resolve_family_pocket(data, pocket_type, known_anchor, probe_item_id, valid
                 sparse_floor = max(4, min_slots // 3)
                 if pocket_type == 'ball':
                     sparse_floor = 2
+                elif pocket_type == 'berry':
+                    sparse_floor = 3
                 if slot_count >= sparse_floor and purity >= 0.90:
                     return {
                         'pocket_type': pocket_type,
@@ -1319,6 +1321,26 @@ def map_pocket_from_anchor(data, anchor_offset):
     return items
 
 
+def _pocket_type_at_slot(data, offset):
+    pockets = resolve_quick_pockets(data)
+    for pocket_type in ('main', 'ball', 'berry', 'tm', 'key'):
+        pocket = pockets.get(pocket_type) or {}
+        if pocket.get('locked') or pocket.get('anchor_offset') is None:
+            continue
+        if offset in pocket.get('empty_slot_offsets', []):
+            return pocket_type
+        if any(slot['offset'] == offset for slot in map_pocket_from_anchor(data, pocket['anchor_offset'])):
+            return pocket_type
+    return None
+
+
+def _item_fits_pocket(item_id, pocket_type):
+    family = pocket_type_for_item_id(item_id)
+    if family == 'hm':
+        family = 'tm'
+    return family == ('generic' if pocket_type == 'main' else pocket_type)
+
+
 def write_slot(data, offset, item_id, quantity, encoding=None):
     """
     Scrittura slot sicura con supporto ai due layout:
@@ -1330,9 +1352,21 @@ def write_slot(data, offset, item_id, quantity, encoding=None):
         swapped, _ = _best_pocket_for_anchor(data, offset)
         encoding = "qty_id" if swapped else "id_qty"
 
-    # TM/HM e Key Items: qty effettiva deve restare >= 1.
+    # TM/HM and Key Items always have a positive effective quantity.
     if (item_id in TMHM_ITEM_IDS or item_id in KEY_ITEM_IDS) and quantity <= 0:
         quantity = 1
+
+    current_id, _ = _decode_slot(data, offset, swapped=encoding == "qty_id")
+    if item_id > 0 and quantity > 0 and item_id != current_id:
+        pocket_type = _pocket_type_at_slot(data, offset)
+        if pocket_type is not None:
+            allowed = _item_fits_pocket(item_id, pocket_type)
+        else:
+            old_family = pocket_type_for_item_id(current_id) if current_id else None
+            new_family = pocket_type_for_item_id(item_id)
+            allowed = old_family is not None and (old_family == new_family or {old_family, new_family} == {'tm', 'hm'})
+        if not allowed:
+            raise ValueError('This item belongs in a different bag pocket')
 
     if item_id == 0 or quantity <= 0:
         # Remove a slot by closing the gap. A zero quantity with a nonzero ID

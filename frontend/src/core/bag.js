@@ -799,7 +799,7 @@ function resolveFamilyPocket(buffer, pocketType, knownAnchor, probeItemId, valid
 
         if (slotCount > 0) {
             const purity = familyHits / slotCount;
-            const sparseFloor = Math.max(4, Math.floor(minSlots / 3));
+            const sparseFloor = pocketType === 'ball' ? 2 : pocketType === 'berry' ? 3 : Math.max(4, Math.floor(minSlots / 3));
             if (slotCount >= sparseFloor && purity >= 0.9) {
                 return {
                     pocket_type: pocketType,
@@ -1082,6 +1082,22 @@ export function collectOwnedTmhmItemIds(buffer, itemNameById = new Map()) {
     };
 }
 
+function pocketTypeAtSlot(buffer, offset) {
+    const pockets = resolveQuickPockets(buffer);
+    for (const type of ['main', 'ball', 'berry', 'tm', 'key']) {
+        const pocket = pockets[type];
+        if (!pocket || pocket.locked || !Number.isInteger(pocket.anchor_offset)) continue;
+        if (pocket.empty_slot_offsets?.includes(offset)) return type;
+        if (mapPocketFromAnchor(buffer, pocket.anchor_offset, new Map()).some((slot) => slot.offset === offset)) return type;
+    }
+    return null;
+}
+
+function itemFitsPocket(itemId, pocketType) {
+    const family = pocketTypeForItemId(itemId);
+    return (family === 'hm' ? 'tm' : family) === (pocketType === 'main' ? 'generic' : pocketType);
+}
+
 export function writeSlot(buffer, offset, itemId, quantity, encoding = null) {
     let writeEncoding = encoding;
     if (writeEncoding !== 'id_qty' && writeEncoding !== 'qty_id') {
@@ -1092,6 +1108,17 @@ export function writeSlot(buffer, offset, itemId, quantity, encoding = null) {
     let qty = quantity;
     if ((TMHM_ITEM_IDS.has(itemId) || KEY_ITEM_IDS.has(itemId)) && qty <= 0) {
         qty = 1;
+    }
+
+    const [currentId] = decodeSlot(buffer, offset, writeEncoding === 'qty_id');
+    if (itemId > 0 && qty > 0 && itemId !== currentId) {
+        const pocketType = pocketTypeAtSlot(buffer, offset);
+        const oldFamily = currentId ? pocketTypeForItemId(currentId) : null;
+        const newFamily = pocketTypeForItemId(itemId);
+        const allowed = pocketType
+            ? itemFitsPocket(itemId, pocketType)
+            : oldFamily !== null && (oldFamily === newFamily || (['tm', 'hm'].includes(oldFamily) && ['tm', 'hm'].includes(newFamily)));
+        if (!allowed) throw new Error('This item belongs in a different bag pocket');
     }
 
     if (itemId === 0 || qty <= 0) {

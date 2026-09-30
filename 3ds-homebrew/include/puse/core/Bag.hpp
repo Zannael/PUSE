@@ -39,8 +39,8 @@ std::unordered_map<std::string, BagPocket> ResolveQuickPockets(const std::vector
 // Read slots in pocket starting from anchor_offset. Returns filled+empty slots.
 std::vector<BagSlot> MapPocketFromAnchor(const std::vector<uint8_t> &buf, uint32_t anchor_offset);
 
-// Write item_id/qty to a single slot, respecting encoding.
-void WriteSlot(std::vector<uint8_t> &buf, uint32_t offset, uint16_t item_id, uint16_t qty, bool encoding_swapped);
+// Write item_id/qty to a slot, respecting encoding. Returns false for an invalid pocket or offset.
+bool WriteSlot(std::vector<uint8_t> &buf, uint32_t offset, uint16_t item_id, uint16_t qty, bool encoding_swapped);
 
 // Recompute GBA checksums for all bag sector copies (IDs 13–16).
 // Sector id=13 uses fixed valid_len=0x450 (Unbound special case).

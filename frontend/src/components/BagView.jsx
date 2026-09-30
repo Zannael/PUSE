@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, Package, Edit3, X, ArrowLeft, Star, Save, CircleHelp } from 'lucide-react';
 import { ITEM_ICON_FALLBACK_URL } from '../core/iconResolver.js';
+import { pocketTypeForItemId } from '../core/bag.js';
 
 const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
     const isTmHmItemId = (id) =>
@@ -46,6 +47,14 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
     };
 
     const itemIconUrl = (itemId) => client.getItemIconUrl(itemId);
+
+    const itemFitsSelectedPocket = (itemId) => {
+        const pocket = selectedCand?.is_main_pocket ? 'main' : selectedCand?.pocket_type;
+        if (!pocket || pocket === 'generic') return true;
+        const family = pocketTypeForItemId(itemId);
+        const normalized = family === 'hm' ? 'tm' : family;
+        return normalized === (pocket === 'main' ? 'generic' : pocket);
+    };
 
     const getConfidenceTooltip = (pocket) => {
         if (!pocket) return "";
@@ -253,7 +262,7 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
             alert("Edit applied in memory. Click SAVE BAG CHANGES to write to file.");
         } catch (err) {
             console.error(err);
-            alert("Error while updating slot.");
+            alert(err?.message || "Error while updating slot.");
         }
     };
 
@@ -627,7 +636,7 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
 
                                         <div className="mt-2 max-h-40 overflow-y-auto bg-slate-900/50 rounded-xl border border-white/5 divide-y divide-white/5">
                                             {allItems
-                                                .filter(it => it?.name?.toLowerCase().includes(modalSearch.toLowerCase()))
+                                                .filter(it => itemFitsSelectedPocket(it.id) && it?.name?.toLowerCase().includes(modalSearch.toLowerCase()))
                                                 .slice(0, 20)
                                                 .map(it => (
                                                     <button
