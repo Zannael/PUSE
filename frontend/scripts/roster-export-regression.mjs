@@ -15,8 +15,8 @@ const base = {
 };
 const rows = [
     { ...base, source: 'party', rosterKey: 'party:0', partyIndex: 0 },
-    { ...base, source: 'pc', rosterKey: 'pc:1:1', box: 1, slot: 1, nickname: 'Pipe|Mouse' },
-    { ...base, source: 'pc', rosterKey: 'pc:26:30', box: 26, slot: 30, nickname: 'Preset' },
+    { ...base, nature: undefined, source: 'pc', rosterKey: 'pc:1:1', box: 1, slot: 1, nickname: 'Pipe|Mouse' },
+    { ...base, nature_id: 0, nature: undefined, source: 'pc', rosterKey: 'pc:26:30', box: 26, slot: 30, nickname: 'Preset' },
     { ...base, source: 'pc', rosterKey: 'pc:1:2', box: 1, slot: 2, nickname: 'Not selected' },
     { ...base, source: 'pc', rosterKey: 'pc:1:31', box: 1, slot: 31 },
     { ...base, source: 'party', rosterKey: 'party:1', partyIndex: 1, species_id: 0 },
@@ -35,9 +35,14 @@ assert.equal(roster.pokemon[0].ivs.Spe, 26);
 assert.equal(roster.pokemon[0].moves.length, 2);
 assert.equal(roster.pokemon[0].moves[1].pp_max, 24);
 assert.equal(roster.pokemon[0].held_item.name, 'Master Ball');
+assert.deepEqual(roster.pokemon.map((mon) => mon.nature), [
+    { id: 13, name: 'Jolly' }, { id: 13, name: 'Jolly' }, { id: 0, name: 'Hardy' },
+]);
 const markdown = rosterMarkdown(roster);
 assert.match(markdown, /Pipe\\\|Mouse/);
 assert.match(markdown, /Preset · 30/);
+assert.match(markdown, /\| Box 1 · 1 \|[^\n]*\| Jolly \|/);
+assert.match(markdown, /\| Preset · 30 \|[^\n]*\| Hardy \|/);
 assert.equal((markdown.match(/\| Party 1 \|/g) || []).length, 1);
 assert.equal(buildRoster(rows, [], itemNames, moveNames).pokemon.length, 1);
 assert.deepEqual(rows[0].ivs, base.ivs, 'export mutated source row');

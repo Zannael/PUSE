@@ -1,4 +1,6 @@
 // Read-only projection; the backend implementation in modules/roster_export.py is canonical.
+import { NATURES } from '../core/showdownImport.js';
+
 export const ROSTER_FORMAT = 'puse.roster';
 export const ROSTER_VERSION = 1;
 const STATS = ['HP', 'Atk', 'Def', 'SpA', 'SpD', 'Spe'];
@@ -21,12 +23,13 @@ export function buildRoster(rows, selectedPcKeys, itemNames = new Map(), moveNam
         } else continue;
         const speciesId = Number(row.species_id);
         const itemId = Number(row.item_id) || 0;
+        const natureId = Number(row.nature_id) || 0;
         pokemon.push({
             location,
             species: { id: speciesId, name: row.species_label || row.species_name || `Species #${speciesId}` },
             nickname: row.nickname || '',
             level: Number(row.level) || 0,
-            nature: { id: Number(row.nature_id) || 0, name: row.nature || '' },
+            nature: { id: natureId, name: row.nature || NATURES[natureId] || 'Unknown' },
             shiny: Boolean(row.is_shiny),
             gender: row.gender || 'Unknown',
             ability: { id: Number(row.effective_ability_id) || 0, name: row.ability_name_current || row.effective_ability_name || '', slot: Number(row.current_ability_index) || 0 },

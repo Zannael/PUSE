@@ -1,5 +1,7 @@
 """Versioned, read-only roster projection shared with the browser implementation."""
 
+from modules.party import DB_NATURES
+
 FORMAT = "puse.roster"
 VERSION = 1
 STATS = ("HP", "Atk", "Def", "SpA", "SpD", "Spe")
@@ -32,6 +34,7 @@ def build_roster(rows, selected_pc_keys, item_names=None, move_names=None):
             continue
         species_id = int(row["species_id"])
         item_id = int(row.get("item_id") or 0)
+        nature_id = int(row.get("nature_id") or 0)
         moves = row.get("moves") or []
         pp = row.get("move_pp") or []
         pp_ups = row.get("move_pp_ups") or []
@@ -41,7 +44,7 @@ def build_roster(rows, selected_pc_keys, item_names=None, move_names=None):
             "species": {"id": species_id, "name": row.get("species_label") or row.get("species_name") or f"Species #{species_id}"},
             "nickname": row.get("nickname") or "",
             "level": int(row.get("level") or 0),
-            "nature": {"id": int(row.get("nature_id") or 0), "name": row.get("nature") or ""},
+            "nature": {"id": nature_id, "name": row.get("nature") or DB_NATURES.get(nature_id, "Unknown")},
             "shiny": bool(row.get("is_shiny")),
             "gender": row.get("gender") or "Unknown",
             "ability": {"id": int(row.get("effective_ability_id") or 0), "name": row.get("ability_name_current") or row.get("effective_ability_name") or "", "slot": int(row.get("current_ability_index") or 0)},
