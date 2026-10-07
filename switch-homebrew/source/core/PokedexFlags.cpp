@@ -40,7 +40,7 @@ bool ReadFlagAtOffset(const std::vector<uint8_t> &buffer, const uint32_t base_of
     const uint32_t byte_index = static_cast<uint32_t>(bit_index) / 8U;
     if (byte_index >= kPokedexFlagByteCount) { return false; }
 
-    const std::vector<SaveSection> sections = ListSections(buffer);
+    const std::vector<SaveSection> sections = ActiveUnboundSections(buffer);
     const SaveSection *section = FindActiveTrainerSection(sections);
     if (section == nullptr) { return false; }
 
@@ -55,7 +55,7 @@ bool WriteFlagAtOffset(std::vector<uint8_t> &buffer, const uint32_t base_offset,
     const uint32_t byte_index = static_cast<uint32_t>(bit_index) / 8U;
     if (byte_index >= kPokedexFlagByteCount) { return false; }
 
-    const std::vector<SaveSection> sections = ListSections(buffer);
+    const std::vector<SaveSection> sections = ActiveUnboundSections(buffer);
     const SaveSection *section = FindActiveTrainerSection(sections);
     if (section == nullptr) { return false; }
 

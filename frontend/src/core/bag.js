@@ -1,5 +1,6 @@
+import { recalculateSectionChecksum } from './checksum.js';
 import { ru16, ru32, wu16 } from './binary.js';
-import { OFF_ID, OFF_SAVE_IDX, SECTION_SIZE } from './sections.js';
+import { OFF_ID, OFF_SAVE_IDX, SECTION_SIZE, activeUnboundSlot } from './sections.js';
 import pocketMap from './itemPocketMap.json' with { type: 'json' };
 
 const OFF_VALID_LEN = 0xFF0;
@@ -253,7 +254,10 @@ function scanGlobalIdSetCandidates(buffer, itemId, activeSaveIdx, validIds, scor
 
     const out = [];
     const seen = new Set();
+    const activeOffsets = new Set([...activeUnboundSlot(buffer).values()].map((sec) => sec.offset));
+    if (!activeOffsets.size) return [];
     for (let absOff = 0; absOff < buffer.length - 3; absOff += 2) {
+        if (absOff < 28 * SECTION_SIZE && !activeOffsets.has(Math.floor(absOff / SECTION_SIZE) * SECTION_SIZE)) continue;
         const iid = ru16(buffer, absOff);
         const qty = ru16(buffer, absOff + 2);
         if (iid !== itemId || qty <= 0) {
@@ -301,7 +305,10 @@ function scanGlobalIdSetPockets(buffer, activeSaveIdx, validIds, scoreBonus = 50
     const out = [];
     const seen = new Set();
 
+    const activeOffsets = new Set([...activeUnboundSlot(buffer).values()].map((sec) => sec.offset));
+    if (!activeOffsets.size) return [];
     for (let absOff = 0; absOff < buffer.length - 3; absOff += 2) {
+        if (absOff < 28 * SECTION_SIZE && !activeOffsets.has(Math.floor(absOff / SECTION_SIZE) * SECTION_SIZE)) continue;
         const iid = ru16(buffer, absOff);
         const qty = ru16(buffer, absOff + 2);
         if (!validIds.has(iid) || qty <= 0) {
@@ -346,68 +353,14 @@ function scanGlobalIdSetPockets(buffer, activeSaveIdx, validIds, scoreBonus = 50
     return out;
 }
 
-function computeActiveSaveIdx(buffer, sectorIds = null) {
-    const totalSectors = Math.floor(buffer.length / SECTION_SIZE);
-    let maxIdx = 0;
-
-    for (let secIdx = 0; secIdx < totalSectors; secIdx += 1) {
-        const secOff = secIdx * SECTION_SIZE;
-        const sectId = ru16(buffer, secOff + OFF_ID);
-        if (sectorIds && !sectorIds.has(sectId)) {
-            continue;
-        }
-
-        const saveIdx = ru32(buffer, secOff + OFF_SAVE_IDX);
-        if (saveIdx <= 0 || saveIdx === 0xFFFFFFFF) {
-            continue;
-        }
-        if (saveIdx > maxIdx) {
-            maxIdx = saveIdx;
-        }
-    }
-
-    if (maxIdx > 0) {
-        return maxIdx;
-    }
-
-    for (let secIdx = 0; secIdx < totalSectors; secIdx += 1) {
-        const secOff = secIdx * SECTION_SIZE;
-        const saveIdx = ru32(buffer, secOff + OFF_SAVE_IDX);
-        if (saveIdx <= 0 || saveIdx === 0xFFFFFFFF) {
-            continue;
-        }
-        if (saveIdx > maxIdx) {
-            maxIdx = saveIdx;
-        }
-    }
-
-    return maxIdx;
+function computeActiveSaveIdx(buffer) {
+    return activeUnboundSlot(buffer).get(0)?.idx ?? 0;
 }
 
 function resolveActiveSectionOffsets(buffer, sectionIds = null) {
     const wanted = sectionIds instanceof Set ? sectionIds : (Array.isArray(sectionIds) ? new Set(sectionIds) : null);
-    const best = new Map();
-
-    const totalSectors = Math.floor(buffer.length / SECTION_SIZE);
-    for (let secIdx = 0; secIdx < totalSectors; secIdx += 1) {
-        const secOff = secIdx * SECTION_SIZE;
-        const sectId = ru16(buffer, secOff + OFF_ID);
-        if (wanted && !wanted.has(sectId)) {
-            continue;
-        }
-
-        const saveIdx = ru32(buffer, secOff + OFF_SAVE_IDX);
-        const prev = best.get(sectId);
-        if (!prev || saveIdx > prev.saveIdx) {
-            best.set(sectId, { offset: secOff, saveIdx });
-        }
-    }
-
-    const out = {};
-    best.forEach((meta, secId) => {
-        out[Number(secId)] = Number(meta.offset);
-    });
-    return out;
+    return Object.fromEntries([...activeUnboundSlot(buffer)]
+        .filter(([id]) => !wanted || wanted.has(id)).map(([id, sec]) => [id, sec.offset]));
 }
 
 function pickBestCandidate(candidates) {
@@ -453,13 +406,14 @@ export function scanForItemCandidates(buffer, itemId) {
 
     const totalSectors = Math.floor(buffer.length / SECTION_SIZE);
     const activeSaveIdx = computeActiveSaveIdx(buffer, BAG_SECTOR_IDS);
+    const activeOffsets = new Set([...activeUnboundSlot(buffer).values()].map((sec) => sec.offset));
 
     for (let secIdx = 0; secIdx < totalSectors; secIdx += 1) {
         const secOff = secIdx * SECTION_SIZE;
         const sectId = ru16(buffer, secOff + OFF_ID);
         const saveIdx = ru32(buffer, secOff + OFF_SAVE_IDX);
 
-        if (!BAG_SECTOR_IDS.has(sectId) || saveIdx <= 0) {
+        if (!BAG_SECTOR_IDS.has(sectId) || !activeOffsets.has(secOff)) {
             continue;
         }
 
@@ -1130,6 +1084,7 @@ export function writeSlot(buffer, offset, itemId, quantity, encoding = null) {
         }
         wu16(buffer, offset, 0);
         wu16(buffer, offset + 2, 0);
+        if (offset < 28 * SECTION_SIZE) recalculateSectionChecksum(buffer, Math.floor(offset / SECTION_SIZE) * SECTION_SIZE);
         return;
     }
 
@@ -1140,6 +1095,7 @@ export function writeSlot(buffer, offset, itemId, quantity, encoding = null) {
         wu16(buffer, offset, itemId);
         wu16(buffer, offset + 2, qty);
     }
+    if (offset < 28 * SECTION_SIZE) recalculateSectionChecksum(buffer, Math.floor(offset / SECTION_SIZE) * SECTION_SIZE);
 }
 
 export function formatScanResults(rawCandidates, searchItemId) {

@@ -21,6 +21,9 @@ struct SaveSection {
     uint32_t save_index;
 };
 
+size_t UnboundChecksumLength(uint16_t id);
+std::vector<SaveSection> ActiveUnboundSections(const std::vector<uint8_t>& buffer, bool verify_checksums = true);
+
 uint16_t ComputeSectionChecksum(const uint8_t *payload, size_t payload_len, uint32_t valid_len);
 std::vector<SaveSection> ListSections(const std::vector<uint8_t> &buffer);
 uint16_t ComputeSectionChecksumForSection(const std::vector<uint8_t> &buffer, const SaveSection &section);

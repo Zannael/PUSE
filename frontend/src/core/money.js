@@ -1,6 +1,6 @@
 import { ru16, ru32, wu16, wu32 } from './binary.js';
 import { recalculateTrainerChecksum } from './checksum.js';
-import { findActiveSectionById, findSectionsById } from './sections.js';
+import { findActiveSectionById, activeSections } from './sections.js';
 
 const TRAINER_SECTION_ID = 1;
 const FALLBACK_OFF_MONEY = 0x290;
@@ -30,7 +30,7 @@ export function readMoney(buffer) {
 }
 
 export function updateMoney(buffer, amount) {
-    const trainerSections = findSectionsById(buffer, TRAINER_SECTION_ID);
+    const trainerSections = activeSections(buffer).filter((sec) => sec.id === TRAINER_SECTION_ID);
     if (trainerSections.length === 0) {
         throw new Error('Trainer sections not found');
     }

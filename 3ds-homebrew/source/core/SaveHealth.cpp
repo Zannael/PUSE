@@ -39,12 +39,10 @@ std::string FieldLabel(const int id, const size_t offset) {
         const size_t relative = offset - 0xB0;
         return PcField("Preset slot " + std::to_string(relative / 58 + 1), relative % 58);
     }
-    if (id >= 5 && id <= 12 && offset >= 4 && offset < 0xFF4) {
-        const size_t relative = static_cast<size_t>(id - 5) * 0xFF0 + (offset - 4);
+    if (id >= 5 && id <= 12 && offset >= (id == 5 ? 4U : 0U) && offset < 0xFF0) {
+        const size_t relative = static_cast<size_t>(id - 5) * 0xFF0 + offset - 4;
         const size_t mon_index = relative / 58;
-        if (mon_index < 18 * 30)
-            return PcField("Box " + std::to_string(mon_index / 30 + 1) + " slot " + std::to_string(mon_index % 30 + 1), relative % 58);
-        return "PC storage";
+        return PcField("Box " + std::to_string(mon_index / 30 + 1) + " slot " + std::to_string(mon_index % 30 + 1), relative % 58);
     }
     if (id >= 13 && id <= 16) return "Bag data";
     if (id == 4 && offset >= 0xF34 && offset < 0xF36) return "Battle Points";
@@ -66,12 +64,8 @@ SaveHealthReport BuildSaveHealthReportImpl(const std::vector<uint8_t> &original,
 
     std::array<int, 14> active{};
     active.fill(-1);
-    for (size_t index = 0; index < sections.size(); ++index) {
-        const auto &sec = sections[index];
-        if (sec.section_id >= active.size() || sec.save_index == 0) continue;
-        int &previous = active[sec.section_id];
-        if (previous < 0 || sec.save_index > sections[static_cast<size_t>(previous)].save_index)
-            previous = static_cast<int>(index);
+    for (const auto& sec : ActiveUnboundSections(current, false)) {
+        active[sec.section_id] = static_cast<int>(sec.index);
     }
     if (current.size() < 28 * kSectionSize) report.warning_codes.push_back("short_save");
     if (original.size() != current.size()) report.warning_codes.push_back("size_changed");
@@ -89,8 +83,7 @@ SaveHealthReport BuildSaveHealthReportImpl(const std::vector<uint8_t> &original,
             report.checksums.push_back({id, sec.index, "opaque", sec.stored_checksum, 0, false});
             continue;
         }
-        uint32_t length = id == 0 ? 0xADC : id == 13 ? 0x450 : sec.valid_len;
-        if (length == 0 || length > 0xFF4) length = 0xFF4;
+        const uint32_t length = id == 0 ? 0xF24 : id == 13 ? 0x450 : 0xFF0;
         const uint16_t computed = ComputeSectionChecksum(current.data() + sec.offset, 0xFF4, length);
         const bool ok = computed == sec.stored_checksum;
         report.checksums.push_back({id, sec.index, ok ? "ok" : "mismatch", sec.stored_checksum, computed, true});

@@ -6,51 +6,44 @@ import math
 import os
 import json
 
+from core.sections import active_unbound_slot
 from core.data_loader import load_id_name_file, load_move_base_pp_map
 
-# --- CONFIGURAZIONE TECNICA (PC Unbound) ---
-# Settori che contengono SICURAMENTE Pokémon (Stream Dati Box 1-25)
-POKEMON_STREAM_SECTORS = [5, 6, 7, 8, 9, 10, 11, 12]
-# Settore 4: Contiene il Box Preset (Box 26) - Offset 0xB0
+# Verified Unbound 2.1.1.1 storage regions, end exclusive.
+# The existing API calls the final section-0 box "Preset" (box 26).
+POKEMON_STREAM_SECTORS = list(range(5, 13))
 PRESET_SECTOR_ID = 0
-# Settore 13: Contiene Nomi Box/Config/Items
-OTHER_SECTORS = [13]
-
-# Includiamo il settore 4 nella scansione
-ALL_PC_SECTORS = POKEMON_STREAM_SECTORS + OTHER_SECTORS + [PRESET_SECTOR_ID]
-
+OTHER_SECTORS = [2, 3, 13]
+ALL_PC_SECTORS = POKEMON_STREAM_SECTORS + OTHER_SECTORS + [0]
 SECTION_SIZE = 0x1000
 SECTOR_HEADER_SIZE = 4
-# Unbound PC stream stores 0xFF0 bytes per stream sector after a 4-byte header.
 SECTOR_PAYLOAD_SIZE = 0xFF0
 MON_SIZE_PC = 58
-
-# Offset specifico per il Box Preset dentro il Settore 4
 OFFSET_PRESET_START = 0xB0
-PRESET_CAPACITY = 30  # Un solo box
+PRESET_CAPACITY = 30
 BOX_SLOT_COUNT = 30
+PC_REGIONS = [(5, 4, 0xFF0)] + [(sid, 0, 0xFF0) for sid in range(6, 13)] + [
+    (13, 0, 0x1A8), (30, 0xB0C, 0xFF0), (31, 0, 0xF80),
+    (2, 0xF18, 0xFF0), (3, 0, 0xCC0),
+]
+CHECKSUM_LENGTHS = {0: 0xF24, 4: 0xD98, 13: 0x450}
+UNBOUND_SIGNATURES = {0x01121999, 0x01121998}
+# Fragmented records are now gathered in PC_REGIONS, never guessed from occupancy.
+FALLBACK_BOX_LAYOUTS = {}
 
-FALLBACK_BOX_LAYOUTS = {
-    # Trailer absolute fragmented area (boxes 20-22).
-    20: [
-        ("absolute", 1, 21, 0x1EB0C),
-    ],
-    21: [
-        ("absolute", 1, 30, 0x1F1E8),
-    ],
-    # Stable absolute area observed in this Unbound layout.
-    22: [
-        ("absolute", 1, 30, 0x1F8B4),
-    ],
-    # Logical section-relative fragmented areas (rotate physically with save index).
-    23: [
-        ("section", 2, 1, 4, 0x0F18),
-        ("section", 3, 5, 30, 0x0010),
-    ],
-    24: [
-        ("section", 3, 1, 30, 0x05F4),
-    ],
-}
+
+def section_checksum_length(section_id):
+    return CHECKSUM_LENGTHS.get(section_id, 0xFF0)
+
+
+def active_pc_slot(data):
+    return active_unbound_slot(data)
+
+
+def pc_regions(sectors):
+    offsets = {sec['id']: sec['offset'] for sec in sectors}
+    return [(offsets[sid] + start if sid < 14 else sid * SECTION_SIZE + start,
+             end - start, sid) for sid, start, end in PC_REGIONS]
 
 # --- OFFSET (CFRU COMPACT) ---
 OFF_PID = 0x00
@@ -714,66 +707,27 @@ def release_pc_mon(raw):
 
 
 def get_active_pc_sectors(data):
-    sections = []
-    for i in range(0, len(data), SECTION_SIZE):
-        if i + SECTION_SIZE > len(data): break
-        footer_offset = i + 0xFF0
-        sec_id = ru16(data, footer_offset + 4)
-        save_idx = ru32(data, footer_offset + 12)
-        if sec_id in ALL_PC_SECTORS:
-            sections.append({'id': sec_id, 'idx': save_idx, 'offset': i})
-    if not sections: return []
-    max_idx = max(s['idx'] for s in sections)
-    return sorted([s for s in sections if s['idx'] == max_idx], key=lambda x: x['id'])
+    slot = active_pc_slot(data)
+    return [slot[sid] for sid in sorted(ALL_PC_SECTORS)] if slot else []
 
 
 def rebuild_buffer(save_data, sectors):
-    buffer = bytearray()
-    headers = {}
-    originals = {}
-    preset_buffer = bytearray()  # Buffer speciale per Box Preset
-
-    print(f"[INFO] Ricostruzione Buffer. Payload Size: {SECTOR_PAYLOAD_SIZE}")
-
-    for sec in sectors:
-        off = sec['offset']
-        sec_id = sec['id']
-        originals[sec_id] = save_data[off: off + SECTION_SIZE]
-        headers[sec_id] = save_data[off: off + SECTOR_HEADER_SIZE]
-
-        if sec_id in POKEMON_STREAM_SECTORS:
-            payload = save_data[off + SECTOR_HEADER_SIZE: off + SECTOR_HEADER_SIZE + SECTOR_PAYLOAD_SIZE]
-            buffer += payload
-        elif sec_id == PRESET_SECTOR_ID:
-            # Cattura l'intero settore 4 per il Preset Box
-            preset_buffer = bytearray(save_data[off: off + SECTION_SIZE])
-            print(f"[INFO] Settore 4 (Preset) caricato.")
-
-    # Ritorna anche il buffer del preset
-    return buffer, headers, originals, preset_buffer
+    if not sectors:
+        raise ValueError("No intact Unbound PC save slot")
+    regions = pc_regions(sectors)
+    if any(off + length > len(save_data) for off, length, _ in regions):
+        raise ValueError("PC auxiliary storage is truncated")
+    buffer = bytearray().join(save_data[off:off + length] for off, length, _ in regions)
+    originals = {sec['id']: bytes(save_data[sec['offset']:sec['offset'] + SECTION_SIZE]) for sec in sectors}
+    originals['_pc_stream'] = bytes(buffer)
+    headers = {sec['id']: save_data[sec['offset']:sec['offset'] + 4] for sec in sectors}
+    return buffer, headers, originals, bytearray(originals[0])
 
 
 def resolve_active_section_offsets(save_data, section_ids=None):
-    best = {}
-    wanted = None if section_ids is None else {int(x) for x in section_ids}
-
-    for i in range(0, len(save_data), SECTION_SIZE):
-        if i + SECTION_SIZE > len(save_data):
-            break
-        footer_off = i + 0xFF0
-        sec_id = ru16(save_data, footer_off + 4)
-        if wanted is not None and sec_id not in wanted:
-            continue
-        save_idx = ru32(save_data, footer_off + 12)
-
-        prev = best.get(sec_id)
-        if prev is None or save_idx > prev["idx"]:
-            best[sec_id] = {
-                "offset": i,
-                "idx": save_idx,
-            }
-
-    return {int(sec_id): int(meta["offset"]) for sec_id, meta in best.items()}
+    wanted = None if section_ids is None else set(section_ids)
+    return {sid: sec['offset'] for sid, sec in active_pc_slot(save_data).items()
+            if wanted is None or sid in wanted}
 
 
 def fallback_slot_offset(box_id, slot, save_data=None, section_offsets=None):
@@ -844,10 +798,6 @@ def _validate_fallback_box(data, box_id, section_offsets=None):
     for slot in sorted(slots_to_validate):
         state, mon = _slot_state(data, box_id, slot, section_offsets=section_offsets)
         if state in ("valid", "empty"):
-            continue
-        # Box 23 layout crosses the section boundary at slot 4 in this save family.
-        # That slot can decode as structural garbage while the rest of the box is valid.
-        if int(box_id) == 23 and int(slot) == 4 and state == "invalid":
             continue
         if state not in ("valid", "empty"):
             return False
@@ -1000,61 +950,34 @@ def calculate_checksum(data):
 
 
 def write_save_HYBRID(save_data, sectors, buffer, headers, originals, filename, preset_buffer=None):
+    regions = pc_regions(sectors)
+    expected = sum(length for _, length, _ in regions)
+    if len(buffer) != expected or any(off + length > len(save_data) for off, length, _ in regions):
+        raise ValueError("Invalid PC stream size")
+    baseline = originals['_pc_stream']
+    touched = set()
     cursor = 0
-    p_size = SECTOR_PAYLOAD_SIZE
-
-    for sec in sectors:
-        off = sec['offset']
-        sec_id = sec['id']
-
-        # --- MODIFICA QUI ---
-        if sec_id == PRESET_SECTOR_ID:
-            # Scrittura speciale per il settore Preset
-            if preset_buffer:
-                # 1. Copia il buffer modificato nel save (sovrascrive tutto il settore)
-                save_data[off: off + SECTION_SIZE] = preset_buffer
-
-                # 2. FIX CHECKSUM UNBOUND (La parte critica)
-                # Il gioco calcola il checksum solo sui primi 0xADC byte del settore 0.
-                # Ignora tutto ciò che viene dopo (compreso il footer standard).
-                UNBOUND_PRESET_MAGIC_LEN = 0xADC
-
-                # Prepara i dati per il calcolo (dall'inizio del settore fino a 0xADC)
-                chk_data = save_data[off: off + UNBOUND_PRESET_MAGIC_LEN]
-
-                # Calcola il nuovo checksum
-                new_chk = calculate_checksum(chk_data)
-
-                # Scrivi il checksum nell'offset standard del footer (0xFF6)
-                wu16(save_data, off + 0xFF6, new_chk)
-
-                print(
-                    f"[INFO] Settore {sec_id} (Preset): Checksum calcolato su lunghezza fissa 0x{UNBOUND_PRESET_MAGIC_LEN:X} -> 0x{new_chk:04X}")
-            continue
-        # --------------------
-
-        if sec_id not in POKEMON_STREAM_SECTORS:
-            # Settore non-stream (es. 13): non sovrascrivere con snapshot vecchi.
-            # Manteniamo il contenuto corrente di save_data, cosi' eventuali edit
-            # Bag/Party effettuati dopo il load PC non vengono persi al commit.
-            continue
-
-        # Scrittura PC Stream Standard (Box 1-25)
-        save_data[off: off + SECTOR_HEADER_SIZE] = headers[sec_id]
-        chunk = buffer[cursor: cursor + p_size]
-        save_data[off + SECTOR_HEADER_SIZE: off + SECTOR_HEADER_SIZE + len(chunk)] = chunk
-
-        # Per i box normali, il checksum si calcola sullo standard 0xFF4
-        chk_data = save_data[off: off + 0xFF4]
-        new_chk = calculate_checksum(chk_data)
-        wu16(save_data, off + 0xFF6, new_chk)
-
-        cursor += p_size
-
+    for off, length, sid in regions:
+        for i in range(length):
+            if buffer[cursor + i] != baseline[cursor + i]:
+                save_data[off + i] = buffer[cursor + i]
+                if sid < 14:
+                    touched.add(sid)
+        cursor += length
+    offsets = {sec['id']: sec['offset'] for sec in sectors}
+    if preset_buffer is not None:
+        off = offsets[0]
+        # Merge only edited record bytes, preserving trainer/RTC changes after load.
+        for i in range(OFFSET_PRESET_START, OFFSET_PRESET_START + PRESET_CAPACITY * MON_SIZE_PC):
+            if preset_buffer[i] != originals[0][i]:
+                save_data[off + i] = preset_buffer[i]
+                touched.add(0)
+    for sid in touched:
+        off = offsets[sid]
+        wu16(save_data, off + 0xFF6, calculate_checksum(save_data[off:off + section_checksum_length(sid)]))
     if filename is not None:
-        with open(filename, "wb") as f:
-            f.write(save_data)
-        print(f"Salvato in: {filename}")
+        with open(filename, "wb") as fh:
+            fh.write(save_data)
 
 
 # --- MENU UTILS ---

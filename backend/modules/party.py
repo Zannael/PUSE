@@ -9,11 +9,12 @@ import os
 import math
 import json
 
+from core.sections import active_sections
 from core.data_loader import load_id_name_file, load_move_base_pp_map
 
 # --- CONFIGURAZIONE SALVATAGGIO ---
 SECTION_SIZE = 0x1000
-CHECKSUM_LENGTH = 0xFF4
+CHECKSUM_LENGTH = 0xFF0
 FOOTER_ID_OFF = 0xFF4
 FOOTER_CHK_OFF = 0xFF6
 FOOTER_SAVEIDX_OFF = 0xFFC
@@ -961,15 +962,8 @@ def main():
     with open(save_path, "rb") as f:
         full_data = bytearray(f.read())
 
-    num_sections = len(full_data) // SECTION_SIZE
-    trainer_sections = []
-    for i in range(num_sections):
-        off = i * SECTION_SIZE
-        if ru16(full_data, off + FOOTER_ID_OFF) == TRAINER_SECTION_ID:
-            trainer_sections.append({'off': off, 'idx': ru32(full_data, off + FOOTER_SAVEIDX_OFF)})
-
+    trainer_sections = [sec for sec in active_sections(full_data) if sec['id'] == TRAINER_SECTION_ID]
     if not trainer_sections: return
-    trainer_sections.sort(key=lambda x: x['idx'], reverse=True)
     active_sec_off = trainer_sections[0]['off']
 
     # Caricamento Squadra

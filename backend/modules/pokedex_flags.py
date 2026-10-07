@@ -1,8 +1,8 @@
+from core.sections import active_sections
 import json
 from pathlib import Path
 
 from modules import bag as bag_mod
-from modules import money as money_mod
 
 
 TRAINER_SECTION_ID = 1
@@ -58,7 +58,7 @@ def _dex_bit_index(dex_id: int):
 
 
 def _active_trainer_section_offset(buf):
-    sections = money_mod.list_sections(buf)
+    sections = active_sections(buf)
     matches = [s for s in sections if int(s.get("id", -1)) == TRAINER_SECTION_ID]
     if not matches:
         return None

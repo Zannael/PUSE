@@ -1,5 +1,5 @@
 import { gbaChecksum } from './checksum.js';
-import { listSections, SECTION_SIZE } from './sections.js';
+import { listSections, SECTION_SIZE, activeUnboundSlot } from './sections.js';
 
 const IDS = Array.from({ length: 14 }, (_, index) => index);
 const PC_MON_SIZE = 58;
@@ -32,11 +32,10 @@ function fieldLabel(sectionId, offset) {
         const relative = offset - 0xB0;
         return pcField(`Preset slot ${Math.floor(relative / PC_MON_SIZE) + 1}`, relative % PC_MON_SIZE);
     }
-    if (sectionId >= 5 && sectionId <= 12 && offset >= 4 && offset < 0xFF4) {
-        const relative = (sectionId - 5) * 0xFF0 + (offset - 4);
+    if (sectionId >= 5 && sectionId <= 12 && offset >= (sectionId === 5 ? 4 : 0) && offset < 0xFF0) {
+        const relative = (sectionId - 5) * 0xFF0 + offset - 4;
         const monIndex = Math.floor(relative / PC_MON_SIZE);
-        if (monIndex < 18 * 30) return pcField(`Box ${Math.floor(monIndex / 30) + 1} slot ${monIndex % 30 + 1}`, relative % PC_MON_SIZE);
-        return 'PC storage';
+        return pcField(`Box ${Math.floor(monIndex / 30) + 1} slot ${monIndex % 30 + 1}`, relative % PC_MON_SIZE);
     }
     if (sectionId >= 13 && sectionId <= 16) return 'Bag data';
     if (sectionId === 4 && offset >= 0xF34 && offset < 0xF36) return 'Battle Points';
@@ -45,13 +44,8 @@ function fieldLabel(sectionId, offset) {
 
 export function buildSaveReport(original, current, includeSource = true) {
     const sections = listSections(current);
-    const active = new Map();
-    for (const section of sections) {
-        if (IDS.includes(section.id) && section.saveIdx > 0) {
-            const previous = active.get(section.id);
-            if (!previous || section.saveIdx > previous.saveIdx) active.set(section.id, section);
-        }
-    }
+    const active = new Map([...activeUnboundSlot(current, false)]
+        .map(([id, sec]) => [id, sections[sec.offset / SECTION_SIZE]]));
     const warnings = [];
     if (current.length < 28 * SECTION_SIZE) warnings.push({ code: 'short_save', message: 'Save has fewer than 28 complete sectors.' });
     if (original.length !== current.length) warnings.push({ code: 'size_changed', message: 'Save size changed after upload.' });
@@ -66,8 +60,7 @@ export function buildSaveReport(original, current, includeSource = true) {
             checksums.push({ id, index: section.index, status: 'opaque', stored: section.checksum, computed: null });
             continue;
         }
-        let length = id === 0 ? 0xADC : id === 13 ? 0x450 : section.validLen;
-        if (!(length > 0 && length <= 0xFF4)) length = 0xFF4;
+        const length = id === 0 ? 0xF24 : id === 13 ? 0x450 : 0xFF0;
         const computed = gbaChecksum(current, section.off, length);
         const status = computed === section.checksum ? 'ok' : 'mismatch';
         checksums.push({ id, index: section.index, status, stored: section.checksum, computed });

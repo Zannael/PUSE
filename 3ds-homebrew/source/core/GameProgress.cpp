@@ -133,7 +133,7 @@ bool HasItemInActiveBagSectors(const std::vector<uint8_t> &buf, const std::vecto
         }
     }
     for (const auto &s : sections) {
-        if (!IsBagSectorId(s.section_id) || s.save_index == 0) { continue; }
+        if (!IsBagSectorId(s.section_id)) { continue; }
         if (active_idx > 0 && s.save_index != active_idx) { continue; }
         const size_t end = std::min(s.offset + kFooterValidLenOffset, buf.size());
         for (size_t off = s.offset; off + 3 < end; off += 2) {
@@ -170,7 +170,7 @@ bool BuildGameProgressSnapshot(const std::vector<uint8_t> &buffer,
     }
 
     EnsureBagDataLoaded(nullptr);
-    const auto sections = ListSections(buffer);
+    const auto sections = ActiveUnboundSections(buffer);
     const bool champion = ReadEventFlag(buffer, sections, kFlagSysGameClear);
     const int badges = CountBadges(buffer, sections);
     const size_t normal_index = badges <= 0 ? 0U : std::min(static_cast<size_t>(badges), (sizeof(kNormalCaps) / sizeof(kNormalCaps[0])) - 1U);

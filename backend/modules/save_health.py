@@ -1,6 +1,7 @@
 """Read-only save layout, checksum, and byte-change report."""
 
 import struct
+from core.sections import active_unbound_slot
 
 from .money import compute_section_checksum
 
@@ -63,12 +64,10 @@ def _field_label(section_id, offset):
     if section_id == 0 and 0xB0 <= offset < 0xB0 + 30 * PC_MON_SIZE:
         relative = offset - 0xB0
         return _pc_field(f"Preset slot {relative // PC_MON_SIZE + 1}", relative % PC_MON_SIZE)
-    if section_id in range(5, 13) and 4 <= offset < 0xFF4:
-        relative = (section_id - 5) * 0xFF0 + (offset - 4)
+    if section_id in range(5, 13) and (4 if section_id == 5 else 0) <= offset < 0xFF0:
+        relative = (section_id - 5) * 0xFF0 + offset - 4
         mon_index, inside = divmod(relative, PC_MON_SIZE)
-        if mon_index < 18 * 30:
-            return _pc_field(f"Box {mon_index // 30 + 1} slot {mon_index % 30 + 1}", inside)
-        return "PC storage"
+        return _pc_field(f"Box {mon_index // 30 + 1} slot {mon_index % 30 + 1}", inside)
     if section_id in range(13, 17):
         return "Bag data"
     if section_id == 4 and 0xF34 <= offset < 0xF36:
@@ -81,12 +80,8 @@ def build_save_report(original, current, _include_source=True):
     original = bytes(original)
     current = bytes(current)
     sections = _sections(current)
-    active = {}
-    for section in sections:
-        if section["id"] in SECTION_IDS and section["save_index"] > 0:
-            prev = active.get(section["id"])
-            if prev is None or section["save_index"] > prev["save_index"]:
-                active[section["id"]] = section
+    active = {sid: sections[sec['offset']//SECTION_SIZE]
+              for sid, sec in active_unbound_slot(current, verify_checksums=False).items()}
 
     warnings = []
     if len(current) < 28 * SECTION_SIZE:
@@ -106,9 +101,7 @@ def build_save_report(original, current, _include_source=True):
         if section_id == 4:
             checksums.append({"id": section_id, "index": index, "status": "opaque", "stored": section["stored"], "computed": None})
             continue
-        length = 0xADC if section_id == 0 else 0x450 if section_id == 13 else section["valid_len"]
-        if not 0 < length <= 0xFF4:
-            length = 0xFF4
+        length = 0xF24 if section_id == 0 else 0x450 if section_id == 13 else 0xFF0
         offset = index * SECTION_SIZE
         computed = compute_section_checksum(current[offset:offset + length], length)
         status = "ok" if computed == section["stored"] else "mismatch"

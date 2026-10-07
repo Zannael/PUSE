@@ -1033,7 +1033,7 @@ bool ResolveCurrentAbility(
 }
 
 bool FindActiveTrainerSection(const std::vector<uint8_t> &buffer, SaveSection *section, std::string *error) {
-    const auto sections = ListSections(buffer);
+    const auto sections = ActiveUnboundSections(buffer);
     bool found = false;
     SaveSection active{};
 
@@ -1119,6 +1119,7 @@ bool MutatePartyMon(
     }
 
     WriteMonChecksum(mon);
+    RecalculateSectionChecksum(buffer, sec.offset);
     return true;
 }
 
@@ -1477,7 +1478,7 @@ bool UpdatePartyLevel(
 }
 
 bool CommitPartySectionChecksums(std::vector<uint8_t> &buffer, std::string *error) {
-    const auto sections = ListSections(buffer);
+    const auto sections = ActiveUnboundSections(buffer);
     if (sections.empty()) {
         if (error != nullptr) {
             *error = "save has no sections";
@@ -1508,15 +1509,7 @@ bool CommitPartySectionChecksums(std::vector<uint8_t> &buffer, std::string *erro
         }
         found = true;
 
-        uint32_t valid_len = sec.valid_len;
-        if ((valid_len == 0) || (valid_len > kFooterIdOffset)) {
-            valid_len = kFooterIdOffset;
-        }
-
-        if ((sec.offset + kSectionSize) > buffer.size()) {
-            continue;
-        }
-        const uint16_t chk = ComputeSectionChecksum(&buffer[sec.offset], kFooterIdOffset, valid_len);
+        const uint16_t chk = ComputeSectionChecksum(&buffer[sec.offset], 0xFF0, 0);
         WriteU16Le(&buffer[sec.offset], kFooterChecksumOffset, chk);
     }
 
@@ -1569,7 +1562,7 @@ std::string GenderFromPidAndSpecies(const uint16_t species_id, const uint32_t pi
 }
 
 void RefreshPartyMonChecksums(std::vector<uint8_t> &buffer) {
-    const auto sections = ListSections(buffer);
+    const auto sections = ActiveUnboundSections(buffer);
     for (const auto &sec : sections) {
         if (sec.section_id != kTrainerSectionId) { continue; }
         if ((sec.offset + kSectionSize) > buffer.size()) { continue; }
@@ -1580,6 +1573,7 @@ void RefreshPartyMonChecksums(std::vector<uint8_t> &buffer) {
             if ((sec.offset + mon_off + kMonSize) > buffer.size()) { break; }
             WriteMonChecksum(trainer + mon_off);
         }
+        RecalculateSectionChecksum(buffer, sec.offset);
     }
 }
 

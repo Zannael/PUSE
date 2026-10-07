@@ -1,3 +1,4 @@
+import { activeUnboundSlot } from './sections.js';
 import { ru8, ru16, ru32, wu8, wu16, wu32 } from './binary.js';
 import { gbaChecksum } from './checksum.js';
 import { OFF_ID, OFF_SAVE_IDX, SECTION_SIZE } from './sections.js';
@@ -13,11 +14,13 @@ import { calculateBattlePreview } from './battlePreview.js';
 
 const POKEMON_STREAM_SECTORS = [5, 6, 7, 8, 9, 10, 11, 12];
 const PRESET_SECTOR_ID = 0;
-const OTHER_SECTORS = [13];
+const OTHER_SECTORS = [2, 3, 13];
 const ALL_PC_SECTORS = new Set([...POKEMON_STREAM_SECTORS, ...OTHER_SECTORS, PRESET_SECTOR_ID]);
 
-const SECTOR_HEADER_SIZE = 4;
-const SECTOR_PAYLOAD_SIZE = 0xFF0;
+const PC_REGIONS = [[5, 4, 0xFF0], ...Array.from({ length: 7 }, (_, i) => [i + 6, 0, 0xFF0]),
+    [13, 0, 0x1A8], [30, 0xB0C, 0xFF0], [31, 0, 0xF80], [2, 0xF18, 0xFF0], [3, 0, 0xCC0]];
+
+const checksumLength = (id) => ({ 0: 0xF24, 4: 0xD98, 13: 0x450 }[id] ?? 0xFF0);
 const MON_SIZE_PC = 58;
 
 const OFFSET_PRESET_START = 0xB0;
@@ -28,13 +31,8 @@ const PARTY_COUNT_OFFSET = 0x34;
 const PARTY_START_OFFSET = 0x38;
 const PARTY_MON_SIZE = 100;
 
-const FALLBACK_BOX_LAYOUTS = {
-    20: [['absolute', 1, 21, 0x1EB0C]],
-    21: [['absolute', 1, 30, 0x1F1E8]],
-    22: [['absolute', 1, 30, 0x1F8B4]],
-    23: [['section', 2, 1, 4, 0x0F18], ['section', 3, 5, 30, 0x0010]],
-    24: [['section', 3, 1, 30, 0x05F4]],
-};
+// Exact stream regions include fragmented boxes regardless of occupancy.
+const FALLBACK_BOX_LAYOUTS = {};
 
 const OPAQUE_SECTION_IDS = new Set([4]);
 
@@ -67,7 +65,6 @@ function validateHappiness(happiness) {
     return value;
 }
 
-const UNBOUND_PRESET_MAGIC_LEN = 0xADC;
 
 const CHARMAP = {
     0x00: ' ', 0x01: 'A', 0x02: 'A', 0x03: 'A', 0x04: 'C', 0x05: 'E', 0x06: 'E', 0x07: 'E', 0x08: 'E', 0x09: 'I',
@@ -647,27 +644,15 @@ function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
     };
 }
 
+
 function resolveActiveSectionOffsets(buffer, sectionIds = null) {
-    const wanted = sectionIds instanceof Set ? sectionIds : (Array.isArray(sectionIds) ? new Set(sectionIds) : null);
-    const best = new Map();
+    return Object.fromEntries([...activeUnboundSlot(buffer)].filter(([id]) => !sectionIds || sectionIds.has(id))
+        .map(([id, sec]) => [id, sec.offset]));
+}
 
-    for (let off = 0; off + SECTION_SIZE <= buffer.length; off += SECTION_SIZE) {
-        const secId = ru16(buffer, off + OFF_ID);
-        if (wanted && !wanted.has(secId)) {
-            continue;
-        }
-        const saveIdx = ru32(buffer, off + OFF_SAVE_IDX);
-        const prev = best.get(secId);
-        if (!prev || saveIdx > prev.idx) {
-            best.set(secId, { offset: off, idx: saveIdx });
-        }
-    }
-
-    const out = {};
-    best.forEach((meta, secId) => {
-        out[Number(secId)] = Number(meta.offset);
-    });
-    return out;
+function pcRegions(sectors) {
+    const offsets = Object.fromEntries(sectors.map((sec) => [sec.id, sec.offset]));
+    return PC_REGIONS.map(([id, start, end]) => ({ id, offset: (id < 14 ? offsets[id] : id * SECTION_SIZE) + start, length: end - start }));
 }
 
 function fallbackSlotOffset(boxId, slot, sourceBuffer = null, sectionOffsets = null) {
@@ -769,9 +754,6 @@ function validateFallbackBox(buffer, boxId, sectionOffsets = null, slotOffsets =
         if (state === 'valid' || state === 'empty') {
             continue;
         }
-        if (Number(boxId) === 23 && slot === 4 && state === 'invalid') {
-            continue;
-        }
         if (state !== 'valid' && state !== 'empty') {
             return false;
         }
@@ -797,69 +779,29 @@ function detectFallbackBoxStarts(buffer, sectionOffsets = null, fallbackSlotOffs
 }
 
 export function getActivePcSectors(buffer) {
-    const sections = [];
-
-    for (let off = 0; off + SECTION_SIZE <= buffer.length; off += SECTION_SIZE) {
-        const secId = ru16(buffer, off + OFF_ID);
-        const saveIdx = ru32(buffer, off + OFF_SAVE_IDX);
-        if (ALL_PC_SECTORS.has(secId)) {
-            sections.push({ id: secId, idx: saveIdx, offset: off });
-        }
-    }
-
-    if (sections.length === 0) {
-        return [];
-    }
-
-    const maxIdx = Math.max(...sections.map((s) => s.idx));
-    return sections.filter((s) => s.idx === maxIdx).sort((a, b) => a.id - b.id);
+    return [...activeUnboundSlot(buffer).values()].filter((sec) => ALL_PC_SECTORS.has(sec.id)).sort((a, b) => a.id - b.id);
 }
 
 export function loadPcContext(buffer) {
     const sectors = getActivePcSectors(buffer);
-    if (sectors.length === 0) {
-        throw new Error('PC sectors not found');
-    }
-
-    const headers = {};
-    const pcChunks = [];
-    let presetBuffer = null;
-
-    sectors.forEach((sec) => {
-        const off = sec.offset;
-        headers[sec.id] = buffer.slice(off, off + SECTOR_HEADER_SIZE);
-
-        if (POKEMON_STREAM_SECTORS.includes(sec.id)) {
-            pcChunks.push(buffer.slice(off + SECTOR_HEADER_SIZE, off + SECTOR_HEADER_SIZE + SECTOR_PAYLOAD_SIZE));
-        } else if (sec.id === PRESET_SECTOR_ID) {
-            presetBuffer = buffer.slice(off, off + SECTION_SIZE);
-        }
-    });
-
-    const totalLen = pcChunks.reduce((acc, chunk) => acc + chunk.length, 0);
-    const pcBuffer = new Uint8Array(totalLen);
+    if (sectors.length === 0) throw new Error('PC sectors not found');
+    const regions = pcRegions(sectors);
+    if (regions.some((region) => region.offset + region.length > buffer.length)) throw new Error('PC auxiliary storage is truncated');
+    const pcBuffer = new Uint8Array(regions.reduce((sum, region) => sum + region.length, 0));
     let cursor = 0;
-    pcChunks.forEach((chunk) => {
-        pcBuffer.set(chunk, cursor);
-        cursor += chunk.length;
-    });
-
+    for (const region of regions) {
+        pcBuffer.set(buffer.slice(region.offset, region.offset + region.length), cursor);
+        cursor += region.length;
+    }
+    const presetOffset = sectors.find((sec) => sec.id === 0).offset;
+    const presetBuffer = buffer.slice(presetOffset, presetOffset + SECTION_SIZE);
     const fallbackSectionOffsets = resolveActiveSectionOffsets(buffer, new Set([2, 3]));
     const fallbackSlotOffsets = buildFallbackSlotOffsets(buffer, null, fallbackSectionOffsets);
-    const fallbackBoxStarts = detectFallbackBoxStarts(buffer, fallbackSectionOffsets, fallbackSlotOffsets);
-
-    return {
-        sectors,
-        headers,
-        pcBuffer,
-        presetBuffer,
-        sourceBuffer: buffer,
-        fallbackSectionOffsets,
-        fallbackSlotOffsets,
-        fallbackBoxStarts,
-        absoluteEdits: new Map(),
-        absoluteTouchedSectors: new Set(),
-    };
+    return { sectors, pcBuffer, presetBuffer, sourceBuffer: buffer,
+        originalPcBuffer: pcBuffer.slice(), originalPresetBuffer: presetBuffer.slice(),
+        fallbackSectionOffsets, fallbackSlotOffsets,
+        fallbackBoxStarts: detectFallbackBoxStarts(buffer, fallbackSectionOffsets, fallbackSlotOffsets),
+        absoluteEdits: new Map(), absoluteTouchedSectors: new Set() };
 }
 
 export function getPcBox(context, boxId, speciesMap, speciesMetaById = null) {
@@ -1343,62 +1285,30 @@ export function editPcMonFull(context, payload, speciesMap = null) {
 }
 
 export function applyPcContextToSave(buffer, context) {
-    if (!context || !context.sectors || !context.pcBuffer) {
-        return;
-    }
-
+    if (!context?.pcBuffer) return;
+    const regions = pcRegions(context.sectors);
+    const expected = regions.reduce((sum, region) => sum + region.length, 0);
+    if (context.pcBuffer.length !== expected || regions.some((region) => region.offset + region.length > buffer.length)) throw new Error('Invalid PC stream size');
+    const touched = new Set();
     let cursor = 0;
-    context.sectors.forEach((sec) => {
-        const off = sec.offset;
-        if (sec.id === PRESET_SECTOR_ID) {
-            if (context.presetBuffer) {
-                buffer.set(context.presetBuffer, off);
-                const chk = gbaChecksum(buffer, off, UNBOUND_PRESET_MAGIC_LEN);
-                wu16(buffer, off + 0xFF6, chk);
+    for (const region of regions) {
+        for (let i = 0; i < region.length; i += 1) {
+            if (context.pcBuffer[cursor + i] !== context.originalPcBuffer[cursor + i]) {
+                buffer[region.offset + i] = context.pcBuffer[cursor + i];
+                if (region.id < 14) touched.add(region.id);
             }
-            return;
         }
-
-        if (!POKEMON_STREAM_SECTORS.includes(sec.id)) {
-            return;
-        }
-
-        const header = context.headers[sec.id];
-        if (header) {
-            buffer.set(header, off);
-        }
-
-        const chunk = context.pcBuffer.slice(cursor, cursor + SECTOR_PAYLOAD_SIZE);
-        buffer.set(chunk, off + SECTOR_HEADER_SIZE);
-
-        const chk = gbaChecksum(buffer, off, 0xFF4);
-        wu16(buffer, off + 0xFF6, chk);
-
-        cursor += SECTOR_PAYLOAD_SIZE;
-    });
-
-    if (context.absoluteEdits && context.absoluteEdits.size > 0) {
-        context.absoluteEdits.forEach((raw, absOff) => {
-            buffer.set(raw, absOff);
-        });
+        cursor += region.length;
     }
-
-    if (context.absoluteTouchedSectors && context.absoluteTouchedSectors.size > 0) {
-        context.absoluteTouchedSectors.forEach((secOff) => {
-            if (secOff < 0 || secOff + SECTION_SIZE > buffer.length) {
-                return;
+    const offsets = Object.fromEntries(context.sectors.map((sec) => [sec.id, sec.offset]));
+    if (context.presetBuffer) {
+        for (let i = OFFSET_PRESET_START; i < OFFSET_PRESET_START + PRESET_CAPACITY * MON_SIZE_PC; i += 1) {
+            if (context.presetBuffer[i] !== context.originalPresetBuffer[i]) {
+                buffer[offsets[0] + i] = context.presetBuffer[i];
+                touched.add(0);
             }
-            const secId = ru16(buffer, secOff + OFF_ID);
-            if (OPAQUE_SECTION_IDS.has(secId)) {
-                return;
-            }
-            if (secId === 0) {
-                const chk = gbaChecksum(buffer, secOff, UNBOUND_PRESET_MAGIC_LEN);
-                wu16(buffer, secOff + 0xFF6, chk);
-                return;
-            }
-            const chk = gbaChecksum(buffer, secOff, 0xFF4);
-            wu16(buffer, secOff + 0xFF6, chk);
-        });
+        }
     }
+    for (const id of touched) wu16(buffer, offsets[id] + 0xFF6, gbaChecksum(buffer, offsets[id], checksumLength(id)));
+    return buffer;
 }

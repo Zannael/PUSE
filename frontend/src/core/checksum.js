@@ -2,13 +2,11 @@ import { ru32, wu16 } from './binary.js';
 import {
     OFF_CHECKSUM,
     OFF_ID,
-    OFF_VALID_LEN,
+    unboundChecksumLength,
     SECTION_SIZE,
 } from './sections.js';
 
 const MAX_SECTION_PAYLOAD = 0xFF4;
-const UNBOUND_ITEM_SECTOR_ID = 13;
-const UNBOUND_ITEM_FIXED_LEN = 0x450;
 
 export function gbaChecksum(buffer, offset, length) {
     const safeLength = Math.max(0, length);
@@ -43,16 +41,10 @@ export function normalizedValidLen(validLen) {
 }
 
 export function recalculateSectionChecksum(buffer, sectionOffset) {
+    if (sectionOffset >= 28 * SECTION_SIZE) return null;
     const sectionId = buffer[sectionOffset + OFF_ID] | (buffer[sectionOffset + OFF_ID + 1] << 8);
-    const validLenRaw =
-        buffer[sectionOffset + OFF_VALID_LEN] |
-        (buffer[sectionOffset + OFF_VALID_LEN + 1] << 8) |
-        (buffer[sectionOffset + OFF_VALID_LEN + 2] << 16) |
-        (buffer[sectionOffset + OFF_VALID_LEN + 3] << 24);
-
-    const validLen = sectionId === UNBOUND_ITEM_SECTOR_ID
-        ? UNBOUND_ITEM_FIXED_LEN
-        : normalizedValidLen(validLenRaw >>> 0);
+    if (sectionId === 4) return null;
+    const validLen = unboundChecksumLength(sectionId);
 
     const checksum = gbaChecksum(buffer, sectionOffset, validLen);
     wu16(buffer, sectionOffset + OFF_CHECKSUM, checksum);
@@ -60,13 +52,7 @@ export function recalculateSectionChecksum(buffer, sectionOffset) {
 }
 
 export function recalculateTrainerChecksum(buffer, sectionOffset) {
-    const validLenRaw =
-        buffer[sectionOffset + OFF_VALID_LEN] |
-        (buffer[sectionOffset + OFF_VALID_LEN + 1] << 8) |
-        (buffer[sectionOffset + OFF_VALID_LEN + 2] << 16) |
-        (buffer[sectionOffset + OFF_VALID_LEN + 3] << 24);
-
-    const validLen = normalizedValidLen(validLenRaw >>> 0);
+    const validLen = 0xFF0;
     const checksum = gbaChecksum(buffer, sectionOffset, validLen);
     wu16(buffer, sectionOffset + OFF_CHECKSUM, checksum);
     return checksum;

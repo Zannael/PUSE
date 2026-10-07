@@ -1,3 +1,4 @@
+from core.sections import active_sections
 import json
 from pathlib import Path
 
@@ -45,7 +46,7 @@ def normalize_cap_profile(value):
 
 
 def _find_active_section_by_id(buf, section_id):
-    sections = money_mod.list_sections(buf)
+    sections = active_sections(buf)
     matches = [s for s in sections if int(s.get("id", -1)) == int(section_id)]
     if not matches:
         return None

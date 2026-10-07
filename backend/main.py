@@ -1,3 +1,4 @@
+from core.sections import active_sections, refresh_checksum
 import glob
 import json
 from typing import List
@@ -508,14 +509,14 @@ async def get_money():
     if current_save["data"] is None:
         raise HTTPException(status_code=400, detail="Upload a .sav file first")
 
-    # Reuse list_sections from the money module
-    secs = money_mod.list_sections(current_save["data"])
+    # Read the selected intact ordinary generation
+    secs = active_sections(current_save["data"])
     trainer_secs = [s for s in secs if s["id"] == money_mod.TRAINER_SECTION_ID]
 
     if not trainer_secs:
         raise HTTPException(status_code=404, detail="Trainer section not found")
 
-    # Sort by most recent active save slot (highest saveidx)
+    # The selected slot contains a single trainer section
     trainer_secs.sort(key=lambda x: x['saveidx'], reverse=True)
     payload = trainer_secs[0]["data"]
 
@@ -761,7 +762,7 @@ class PartyLevelUpdate(BaseModel):
 
 # --- Helper logic ---
 def get_active_trainer_offset():
-    """Find offset of active Trainer section (highest saveidx)."""
+    """Find the trainer section in the validated ordinary slot."""
     if not current_save["data"]:
         return None
     return get_active_section_offset(party_mod.TRAINER_SECTION_ID)
@@ -770,7 +771,7 @@ def get_active_trainer_offset():
 def get_active_section_offset(section_id: int):
     if not current_save["data"]:
         return None
-    sections = money_mod.list_sections(current_save["data"])
+    sections = active_sections(current_save["data"])
     matches = [s for s in sections if int(s.get("id", -1)) == int(section_id)]
     if not matches:
         return None
@@ -933,6 +934,7 @@ async def update_party_item(idx: int, data: ItemUpdate):
     _assert_species_unchanged(pk, species_before, "party item update")
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    refresh_checksum(current_save["data"], off)
     return {"status": "Item updated"}
 
 
@@ -950,6 +952,7 @@ async def update_party_ball(idx: int, data: BallUpdate):
     _assert_species_unchanged(pk, species_before, "party ball update")
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    refresh_checksum(current_save["data"], off)
     return {"status": "Ball updated", **_ball_meta(pk.get_ball_id())}
 
 
@@ -972,6 +975,7 @@ async def update_party_happiness(idx: int, data: HappinessUpdate):
         raise HTTPException(status_code=400, detail=str(e))
     _assert_species_unchanged(pk, species_before, "party happiness update")
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    refresh_checksum(current_save["data"], off)
     return {"status": "Happiness updated", "happiness": pk.get_happiness()}
 
 
@@ -989,6 +993,7 @@ async def update_party_nickname(idx: int, data: NicknameUpdate):
     _assert_species_unchanged(pk, species_before, "party nickname update")
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    refresh_checksum(current_save["data"], off)
     return {"status": "Nickname updated", "nickname": pk.nickname}
 
 
@@ -1005,6 +1010,7 @@ async def update_party_species(idx: int, data: SpeciesUpdate):
     pk.recalculate_party_stats(clamp_hp=True)
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    refresh_checksum(current_save["data"], off)
     return {"status": "Species updated", "species_id": data.species_id}
 
 
@@ -1019,6 +1025,7 @@ async def switch_ability(idx: int, data: AbilitySwitch):
     _assert_species_unchanged(pk, species_before, "party ability switch")
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    refresh_checksum(current_save["data"], off)
     return {"status": "Ability/PID updated", "new_index": data.ability_index}
 
 
@@ -1044,6 +1051,7 @@ async def update_ivs(idx: int, stats: StatUpdate):
 
     # Pack and write back to local buffer
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    refresh_checksum(current_save["data"], off)
     return {"status": "IVs updated in memory"}
 
 
@@ -1060,6 +1068,7 @@ async def update_nature(idx: int, data: NatureUpdate):
     _assert_species_unchanged(pk, species_before, "party nature update")
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    refresh_checksum(current_save["data"], off)
     return {"status": f"Nature changed to {party_mod.DB_NATURES.get(data.nature_id)}"}
 
 
@@ -1082,6 +1091,7 @@ async def update_identity(idx: int, data: IdentityUpdate):
     _assert_species_unchanged(pk, species_before, "party identity update")
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    refresh_checksum(current_save["data"], off)
     return {
         "status": "Identity updated",
         "pid": pk.pid,
@@ -1124,6 +1134,7 @@ async def update_party_level(idx: int, data: PartyLevelUpdate):
     _assert_species_unchanged(pk, species_before, "party level update")
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    refresh_checksum(current_save["data"], off)
     return {
         "status": "Level updated",
         "requested_level": requested_level,
@@ -1261,7 +1272,10 @@ async def load_pc():
         raise HTTPException(status_code=404, detail="PC sectors not found")
 
     # Rebuild standard and preset buffers
-    pc_buf, headers, originals, preset_buf = box_mod.rebuild_buffer(current_save["data"], sectors)
+    try:
+        pc_buf, headers, originals, preset_buf = box_mod.rebuild_buffer(current_save["data"], sectors)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     current_save["pc_context"].update({
         "sectors": sectors, "headers": headers,
@@ -1600,6 +1614,7 @@ async def update_evs(idx: int, stats: EvUpdate):
     pk.recalculate_party_stats(clamp_hp=True)
     _assert_species_unchanged(pk, species_before, "party EV update")
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    refresh_checksum(current_save["data"], off)
     return {"status": "EVs updated"}
 
 
@@ -1615,6 +1630,7 @@ async def update_ability(idx: int, data: AbilityUpdate):
     _assert_species_unchanged(pk, species_before, "party ability flag update")
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    refresh_checksum(current_save["data"], off)
     return {"status": "Ability updated"}
 
 
@@ -1634,6 +1650,7 @@ async def update_party_moves(idx: int, data: MovesUpdate):
     _assert_species_unchanged(pk, species_before, "party moves update")
 
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    refresh_checksum(current_save["data"], off)
     return {"status": "Moves updated"}
 
 
@@ -1929,8 +1946,8 @@ async def insert_pc_mon(upd: PCInsert):
 
 
 def _finalize_save_bytes(data, ctx):
-    """Apply the existing save-all reconciliation to a supplied buffer."""
-    sections = money_mod.list_sections(data)
+    """Finalize the selected generation and merge pending PC record changes."""
+    sections = active_sections(data)
 
     # 0. Recompute per-mon checksums for all party mons in the active trainer section.
     # This fixes stale checksums (e.g. item given without checksum update) that would
@@ -1948,8 +1965,7 @@ def _finalize_save_bytes(data, ctx):
     for sec in sections:
         if sec['id'] == party_mod.TRAINER_SECTION_ID:
             off = sec['off']
-            valid_len = party_mod.ru32(data, off + 0xFF0)
-            if valid_len == 0 or valid_len > 0xFF4: valid_len = 0xFF4
+            valid_len = 0xFF0
 
             payload = data[off: off + valid_len]
             new_chk = bag_mod.gba_checksum(payload)
@@ -1980,11 +1996,11 @@ def _finalize_save_bytes(data, ctx):
         if sec_id in OPAQUE_SECTION_IDS:
             continue
         if sec_id == 0:
-            chk_data = data[sec_off: sec_off + 0xADC]
+            chk_data = data[sec_off: sec_off + 0xF24]
             new_chk = bag_mod.gba_checksum(chk_data)
             party_mod.wu16(data, sec_off + 0xFF6, new_chk)
         else:
-            chk_data = data[sec_off: sec_off + 0xFF4]
+            chk_data = data[sec_off: sec_off + box_mod.section_checksum_length(sec_id)]
             new_chk = bag_mod.gba_checksum(chk_data)
             party_mod.wu16(data, sec_off + 0xFF6, new_chk)
 

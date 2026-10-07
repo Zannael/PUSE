@@ -30,12 +30,6 @@ constexpr size_t kPcMovesOff   = 0x27;  // 5 bytes, 4×10-bit move IDs
 constexpr size_t kPcEvsOff     = 0x2C;  // 6 bytes [HP,Atk,Def,Spe,SpA,SpD]
 constexpr size_t kPcIvsOff     = 0x36;  // u32: bits 0-4=HP,5-9=Atk,10-14=Def,15-19=Spe,20-24=SpA,25-29=SpD,bit31=HA
 
-// PC stream sectors (IDs 5–12 inclusive, each contributes 0xFF0 bytes after a 4-byte header)
-constexpr int kPcSectorFirst  = 5;
-constexpr int kPcSectorLast   = 12;
-constexpr size_t kSectorHeaderSize   = 4;
-constexpr size_t kSectorPayloadSize  = 0xFF0;
-
 constexpr uint32_t kMaxValidExp     = 2000000U;
 constexpr uint16_t kMaxValidSpecies = 2500U;
 
@@ -292,84 +286,64 @@ const uint8_t *ConstSlot(const std::vector<uint8_t> &stream, const int box, cons
 
 // --- Public API ---
 
+namespace {
+struct PcRegion { size_t offset; size_t length; int id; };
+size_t PcChecksumLength(int id) {
+    return id == 0 ? 0xF24 : id == 4 ? 0xD98 : id == 13 ? 0x450 : 0xFF0;
+}
+
+
+std::vector<PcRegion> PcRegions(const std::vector<SaveSection>& slot) {
+    std::vector<PcRegion> regions{{slot[5].offset + 4, 0xFEC, 5}};
+    for (int id = 6; id <= 12; ++id) regions.push_back({slot[id].offset, 0xFF0, id});
+    regions.push_back({slot[13].offset, 0x1A8, 13});
+    regions.push_back({30 * 0x1000 + 0xB0C, 0x4E4, 30});
+    regions.push_back({31 * 0x1000, 0xF80, 31});
+    regions.push_back({slot[2].offset + 0xF18, 0xD8, 2});
+    regions.push_back({slot[3].offset, 0xCC0, 3});
+    return regions;
+}
+} // namespace
+
 std::vector<uint8_t> BuildPcStream(const std::vector<uint8_t> &buffer, std::string *error) {
-    const auto sections = ListSections(buffer);
-
-    // For each sector ID 5..12, find the one with the highest save_index.
-    std::unordered_map<int, const SaveSection *> active;
-    for (const auto &s : sections) {
-        const int id = static_cast<int>(s.section_id);
-        if ((id < kPcSectorFirst) || (id > kPcSectorLast)) { continue; }
-        auto it = active.find(id);
-        if ((it == active.end()) || (s.save_index > it->second->save_index)) {
-            active[id] = &s;
-        }
+    const auto slot = ActiveUnboundSections(buffer);
+    if (slot.empty()) {
+        if (error) *error = "No intact Unbound PC save slot";
+        return {};
     }
-
     std::vector<uint8_t> stream;
-    stream.reserve(static_cast<size_t>(kPcSectorLast - kPcSectorFirst + 1) * kSectorPayloadSize);
-
-    for (int id = kPcSectorFirst; id <= kPcSectorLast; ++id) {
-        auto it = active.find(id);
-        if (it == active.end()) {
-            if (error) { *error = "PC sector " + std::to_string(id) + " not found"; }
+    for (const auto& region : PcRegions(slot)) {
+        if (region.offset + region.length > buffer.size()) {
+            if (error) *error = "PC auxiliary storage is truncated";
             return {};
         }
-        const size_t pay_start = it->second->offset + kSectorHeaderSize;
-        const size_t pay_end = pay_start + kSectorPayloadSize;
-        if (pay_end > buffer.size()) {
-            if (error) { *error = "PC sector " + std::to_string(id) + " payload out of bounds"; }
-            return {};
-        }
-        stream.insert(stream.end(), buffer.begin() + static_cast<ptrdiff_t>(pay_start),
-                                    buffer.begin() + static_cast<ptrdiff_t>(pay_end));
+        stream.insert(stream.end(), buffer.begin() + region.offset, buffer.begin() + region.offset + region.length);
     }
-
     return stream;
 }
 
 bool CommitPcStream(std::vector<uint8_t> &buffer, const std::vector<uint8_t> &stream, std::string *error) {
-    const size_t expected = static_cast<size_t>(kPcSectorLast - kPcSectorFirst + 1) * kSectorPayloadSize;
-    if (stream.size() < expected) {
-        if (error) { *error = "stream too short to commit"; }
+    const auto slot = ActiveUnboundSections(buffer);
+    if (slot.empty() || stream.size() != 24 * 30 * kPcMonSize || buffer.size() < 0x20000) {
+        if (error) *error = "Invalid PC stream or save slot";
         return false;
     }
-
-    const auto sections = ListSections(buffer);
-    std::unordered_map<int, const SaveSection *> active;
-    for (const auto &s : sections) {
-        const int id = static_cast<int>(s.section_id);
-        if ((id < kPcSectorFirst) || (id > kPcSectorLast)) { continue; }
-        auto it = active.find(id);
-        if ((it == active.end()) || (s.save_index > it->second->save_index)) {
-            active[id] = &s;
-        }
-    }
-
     size_t cursor = 0;
-    for (int id = kPcSectorFirst; id <= kPcSectorLast; ++id) {
-        auto it = active.find(id);
-        if (it == active.end()) {
-            if (error) { *error = "PC sector " + std::to_string(id) + " not found on commit"; }
-            return false;
+    for (const auto& region : PcRegions(slot)) {
+        bool changed = false;
+        for (size_t i = 0; i < region.length; ++i) {
+            if (buffer[region.offset + i] != stream[cursor + i]) {
+                buffer[region.offset + i] = stream[cursor + i];
+                changed = true;
+            }
         }
-        const SaveSection &s = *it->second;
-        const size_t pay_start = s.offset + kSectorHeaderSize;
-        if ((pay_start + kSectorPayloadSize) > buffer.size()) {
-            if (error) { *error = "PC sector " + std::to_string(id) + " write out of bounds"; }
-            return false;
+        cursor += region.length;
+        if (changed && region.id < 14) {
+            const size_t off = slot[region.id].offset;
+            WriteU16Le(buffer.data() + off, kFooterChecksumOffset,
+                ComputeSectionChecksum(buffer.data() + off, PcChecksumLength(region.id), 0));
         }
-
-        std::copy(stream.begin() + static_cast<ptrdiff_t>(cursor),
-                  stream.begin() + static_cast<ptrdiff_t>(cursor + kSectorPayloadSize),
-                  buffer.begin() + static_cast<ptrdiff_t>(pay_start));
-        cursor += kSectorPayloadSize;
-
-        // Recompute checksum over first 0xFF4 bytes of the sector (header + payload).
-        const uint16_t new_chk = ComputeSectionChecksumForSection(buffer, s);
-        WriteU16Le(buffer.data() + s.offset, kFooterChecksumOffset, new_chk);
     }
-
     return true;
 }
 

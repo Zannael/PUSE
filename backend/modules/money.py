@@ -1,3 +1,4 @@
+from core.sections import active_sections
 import argparse, struct, shutil, os
 
 SECTION_SIZE = 0x1000
@@ -82,13 +83,13 @@ def selfcheck_print(secs):
 def patch_money_everywhere(buf: bytes, new_money: int, dryrun=False):
     new_money = clamp_money(new_money)
     out = bytearray(buf)
-    secs = list_sections(buf)
+    secs = active_sections(buf)
     trainer_secs = [s for s in secs if s["id"] == TRAINER_SECTION_ID]
 
     if not trainer_secs:
         raise RuntimeError("No trainer sections (id=1) found in save.")
 
-    print(f"Found {len(trainer_secs)} section(s) with id=1 — patching all of them.")
+    print(f"Found {len(trainer_secs)} section(s) with id=1 — patching the selected generation.")
 
     for s in trainer_secs:
         off = s["off"]
@@ -181,7 +182,7 @@ def main():
     with open(args.sav, "rb") as f:
         buf = f.read()
 
-    secs = list_sections(buf)
+    secs = active_sections(buf)
     trainer_secs = [s for s in secs if s["id"] == TRAINER_SECTION_ID]
     if not trainer_secs:
         print("No trainer sections found.")

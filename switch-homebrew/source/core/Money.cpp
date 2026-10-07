@@ -35,7 +35,7 @@ void WriteBcd3(uint8_t *buf, const size_t off, const uint32_t value) {
 } // namespace
 
 bool ReadMoney(const std::vector<uint8_t> &buffer, uint32_t *out_money, std::string *error) {
-    const auto sections = ListSections(buffer);
+    const auto sections = ActiveUnboundSections(buffer);
 
     const SaveSection *best = nullptr;
     for (const auto &s : sections) {
@@ -68,7 +68,7 @@ bool ReadMoney(const std::vector<uint8_t> &buffer, uint32_t *out_money, std::str
 
 bool WriteMoney(std::vector<uint8_t> &buffer, const uint32_t money, std::string *error) {
     const uint32_t clamped = (money > kMaxMoney) ? kMaxMoney : money;
-    const auto sections = ListSections(buffer);
+    const auto sections = ActiveUnboundSections(buffer);
     bool any = false;
 
     for (const auto &s : sections) {
@@ -101,7 +101,7 @@ bool WriteMoney(std::vector<uint8_t> &buffer, const uint32_t money, std::string 
 }
 
 bool ReadBp(const std::vector<uint8_t> &buffer, uint16_t *out_bp, std::string *error) {
-    const auto sections = ListSections(buffer);
+    const auto sections = ActiveUnboundSections(buffer);
 
     const SaveSection *best = nullptr;
     for (const auto &s : sections) {
@@ -133,7 +133,7 @@ bool ReadBp(const std::vector<uint8_t> &buffer, uint16_t *out_bp, std::string *e
 }
 
 bool WriteBp(std::vector<uint8_t> &buffer, const uint16_t bp, std::string *error) {
-    const auto sections = ListSections(buffer);
+    const auto sections = ActiveUnboundSections(buffer);
     bool any = false;
 
     for (const auto &s : sections) {

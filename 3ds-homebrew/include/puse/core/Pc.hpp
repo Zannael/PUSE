@@ -11,7 +11,7 @@
 namespace puse::core {
 
 constexpr size_t kPcMonSize = 58;
-constexpr int kPcStreamBoxCount = 18;
+constexpr int kPcStreamBoxCount = 24;
 constexpr int kPcBoxSlotCount = 30;
 
 struct PcMon {
@@ -41,7 +41,8 @@ struct PcMon {
     BattlePreview battle_preview;
 };
 
-// Build the 32640-byte PC stream from save buffer (sectors 5-12, 0xFF0 bytes each).
+// Gather the exact 41760-byte box 1-24 stream, including fragmented records.
+// Record editing covers boxes 1-24; the separate preset API/UI is absent.
 std::vector<uint8_t> BuildPcStream(const std::vector<uint8_t> &buffer, std::string *error = nullptr);
 
 // Write pc_stream back into the save buffer and recompute PC sector checksums.

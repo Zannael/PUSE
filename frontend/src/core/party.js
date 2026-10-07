@@ -1,3 +1,4 @@
+import { recalculateTrainerChecksum } from './checksum.js';
 import { ru8, ru16, ru32, wu8, wu16, wu32 } from './binary.js';
 import { findActiveSectionById } from './sections.js';
 import speciesBaseStats from './speciesBaseStats.json' with { type: 'json' };
@@ -922,6 +923,7 @@ function mutatePartyMon(buffer, monIndex, mutator) {
         throw new Error(`Safety check failed: species changed unexpectedly from ${speciesBefore} to ${speciesAfter}`);
     }
     buffer.set(rawMon, monOffset);
+    recalculateTrainerChecksum(buffer, active.off);
 }
 
 function mutatePartyMonAllowSpeciesChange(buffer, monIndex, mutator) {
@@ -938,6 +940,7 @@ function mutatePartyMonAllowSpeciesChange(buffer, monIndex, mutator) {
     const rawMon = buffer.slice(monOffset, monOffset + PARTY_MON_SIZE);
     mutator(rawMon);
     buffer.set(rawMon, monOffset);
+    recalculateTrainerChecksum(buffer, active.off);
 }
 
 export function updatePartyIvs(buffer, monIndex, payload) {
@@ -1035,6 +1038,7 @@ export function fixPartyMonChecksums(buffer) {
         addMonChecksum(rawMon);
         buffer.set(rawMon, monOffset);
     }
+    recalculateTrainerChecksum(buffer, active.off);
 }
 
 export function updatePartyIdentity(buffer, monIndex, payload) {

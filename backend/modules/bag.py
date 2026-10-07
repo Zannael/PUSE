@@ -1,3 +1,4 @@
+from core.sections import active_unbound_slot, refresh_checksum
 #!/usr/bin/env python3
 # bag.py — Editor Definitivo per Pokemon Unbound
 # Include: Smart Search, Save Index Check e Unbound Fixed Length Checksum
@@ -282,55 +283,14 @@ def _resolve_family_pocket(data, pocket_type, known_anchor, probe_item_id, valid
 
 
 def _compute_active_save_idx(data, sector_ids=None):
-    total_sectors = len(data) // SECTION_SIZE
-    max_idx = 0
-
-    for sec_idx in range(total_sectors):
-        sec_off = sec_idx * SECTION_SIZE
-        sect_id = ru16(data, sec_off + OFF_ID)
-        if sector_ids and sect_id not in sector_ids:
-            continue
-
-        save_idx = ru32(data, sec_off + OFF_SAVE_IDX)
-        if save_idx <= 0 or save_idx == 0xFFFFFFFF:
-            continue
-        if save_idx > max_idx:
-            max_idx = save_idx
-
-    if max_idx > 0:
-        return max_idx
-
-    for sec_idx in range(total_sectors):
-        sec_off = sec_idx * SECTION_SIZE
-        save_idx = ru32(data, sec_off + OFF_SAVE_IDX)
-        if save_idx <= 0 or save_idx == 0xFFFFFFFF:
-            continue
-        if save_idx > max_idx:
-            max_idx = save_idx
-
-    return max_idx
+    slot = active_unbound_slot(data)
+    return slot[0]['idx'] if slot else 0
 
 
 def _resolve_active_section_offsets(data, section_ids=None):
-    best = {}
-    wanted = None if section_ids is None else {int(x) for x in section_ids}
-
-    total_sectors = len(data) // SECTION_SIZE
-    for sec_idx in range(total_sectors):
-        sec_off = sec_idx * SECTION_SIZE
-        sect_id = ru16(data, sec_off + OFF_ID)
-        if wanted is not None and sect_id not in wanted:
-            continue
-
-        save_idx = ru32(data, sec_off + OFF_SAVE_IDX)
-        prev = best.get(sect_id)
-        if prev is None or save_idx > prev['save_idx']:
-            best[sect_id] = {
-                'offset': sec_off,
-                'save_idx': save_idx,
-            }
-
-    return {int(sec_id): int(meta['offset']) for sec_id, meta in best.items()}
+    slot = active_unbound_slot(data)
+    return {sid: sec['offset'] for sid, sec in slot.items()
+            if section_ids is None or sid in section_ids}
 
 
 def _pick_best_candidate(candidates):
@@ -696,37 +656,9 @@ def gba_checksum(data):
 
 # --- RICALCOLO INTELLIGENTE ---
 def recalculate_checksum(data, offset):
-    """
-    Ricalcola il checksum applicando la logica specifica per Unbound.
-    """
     sector_start = (offset // SECTION_SIZE) * SECTION_SIZE
-
-    # 1. Identifica che tipo di settore è
-    sect_id = ru16(data, sector_start + OFF_ID)
-
-    # 2. Determina la lunghezza dei dati su cui calcolare
-    if sect_id == UNBOUND_ITEM_SECTOR_ID:
-        # CASO SPECIALE UNBOUND: Ignora footer, usa lunghezza fissa scoperta
-        valid_len = UNBOUND_ITEM_FIXED_LEN
-        print(f"[FIX] Settore {sect_id} rilevato: Forzo calcolo su 0x{valid_len:X} bytes (Hardcoded)")
-    else:
-        # CASO STANDARD: Leggi lunghezza dal footer
-        valid_len = ru32(data, sector_start + OFF_VALID_LEN)
-        if valid_len > 0xFF4: valid_len = 0xFF4  # Safety cap
-        # print(f"[STD] Settore {sect_id}: Calcolo su 0x{valid_len:X} bytes (da Footer)")
-
-    # 3. Prepara il payload
-    payload = data[sector_start: sector_start + valid_len]
-
-    # Padding a 4 byte (Standard GBA)
-    remainder = valid_len % 4
-    if remainder != 0:
-        payload += b'\x00' * (4 - remainder)
-
-    # 4. Calcola e Scrivi
-    new_chk = gba_checksum(payload)
-    wu16(data, sector_start + OFF_CHK, new_chk)
-    return new_chk
+    refresh_checksum(data, sector_start)
+    return ru16(data, sector_start + OFF_CHK)
 
 
 def get_save_index(data, sector_idx):
@@ -805,7 +737,11 @@ def _scan_global_idset_candidates(data, item_id, active_save_idx, valid_ids, sco
     out = []
     seen = set()
 
+    active_offsets = {sec['offset'] for sec in active_unbound_slot(data).values()}
+    if not active_offsets: return []
     for abs_off in range(0, len(data) - 3, 2):
+        if abs_off < 28 * SECTION_SIZE and (abs_off // SECTION_SIZE) * SECTION_SIZE not in active_offsets:
+            continue
         iid = ru16(data, abs_off)
         qty = ru16(data, abs_off + 2)
         if iid != item_id or qty <= 0:
@@ -855,7 +791,11 @@ def _scan_global_idset_pockets(data, active_save_idx, valid_ids, score_bonus=500
     out = []
     seen = set()
 
+    active_offsets = {sec['offset'] for sec in active_unbound_slot(data).values()}
+    if not active_offsets: return []
     for abs_off in range(0, len(data) - 3, 2):
+        if abs_off < 28 * SECTION_SIZE and (abs_off // SECTION_SIZE) * SECTION_SIZE not in active_offsets:
+            continue
         iid = ru16(data, abs_off)
         qty = ru16(data, abs_off + 2)
         if iid not in valid_ids or qty <= 0:
@@ -1038,6 +978,7 @@ def scan_for_item_candidates(data, item_id):
     medium_candidates = []
     total_sectors = len(data) // SECTION_SIZE
     active_save_idx = _compute_active_save_idx(data, BAG_SECTOR_IDS)
+    active_offsets = {sec['offset'] for sec in active_unbound_slot(data).values()}
 
     for sec_idx in range(total_sectors):
         sec_off = sec_idx * SECTION_SIZE
@@ -1048,7 +989,7 @@ def scan_for_item_candidates(data, item_id):
             continue
 
         # Skip settori vuoti/non inizializzati
-        if save_idx <= 0:
+        if sec_off not in active_offsets:
             continue
 
         # Gli slot sono larghi 4 byte ma possono iniziare su allineamento 0 oppure 2.
@@ -1378,6 +1319,7 @@ def write_slot(data, offset, item_id, quantity, encoding=None):
             offset = end_abs - 4
         wu16(data, offset, 0)
         wu16(data, offset + 2, 0)
+        if offset < 28 * SECTION_SIZE: recalculate_checksum(data, offset)
         return
 
     if encoding == "qty_id":
@@ -1386,6 +1328,7 @@ def write_slot(data, offset, item_id, quantity, encoding=None):
     else:
         wu16(data, offset, item_id)
         wu16(data, offset + 2, quantity)
+    if offset < 28 * SECTION_SIZE: recalculate_checksum(data, offset)
 
 
 # --- MAIN ---

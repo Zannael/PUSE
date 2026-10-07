@@ -261,40 +261,24 @@ struct ItemCandidate {
 
 uint32_t ComputeActiveSaveIdx(const std::vector<uint8_t> &buf,
                                const std::unordered_set<uint16_t> &sector_ids) {
-    uint32_t max_idx = 0;
-    const size_t total = buf.size() / kBagSectionSize;
-    for (size_t i = 0; i < total; ++i) {
-        const uint32_t off = static_cast<uint32_t>(i * kBagSectionSize);
-        const uint16_t sid = ReadU16Le(buf.data(), off + kBagOffId);
-        if (!sector_ids.empty() && !sector_ids.count(sid)) { continue; }
-        const uint32_t sidx = ReadU32Le(buf.data(), off + kBagOffSaveIdx);
-        if (sidx == 0 || sidx == 0xFFFFFFFFU) { continue; }
-        if (sidx > max_idx) { max_idx = sidx; }
-    }
-    if (max_idx > 0) { return max_idx; }
-    // Fallback: scan all sectors
-    for (size_t i = 0; i < total; ++i) {
-        const uint32_t off = static_cast<uint32_t>(i * kBagSectionSize);
-        const uint32_t sidx = ReadU32Le(buf.data(), off + kBagOffSaveIdx);
-        if (sidx == 0 || sidx == 0xFFFFFFFFU) { continue; }
-        if (sidx > max_idx) { max_idx = sidx; }
-    }
-    return max_idx;
+    (void)sector_ids;
+    const auto slot = ActiveUnboundSections(buf);
+    return slot.empty() ? 0 : slot[0].save_index;
 }
 
 std::vector<ItemCandidate> ScanForItemCandidates(const std::vector<uint8_t> &buf, uint16_t item_id) {
     if (item_id == 0) { return {}; }
 
     std::vector<ItemCandidate> strict_list, medium_list;
+    const auto active = ActiveUnboundSections(buf);
     const size_t total = buf.size() / kBagSectionSize;
-    const uint32_t active_idx = ComputeActiveSaveIdx(buf, kBagSectorIds);
 
     for (size_t si = 0; si < total; ++si) {
         const uint32_t sec_off = static_cast<uint32_t>(si * kBagSectionSize);
         const uint16_t sect_id = ReadU16Le(buf.data(), sec_off + kBagOffId);
         const uint32_t save_idx = ReadU32Le(buf.data(), sec_off + kBagOffSaveIdx);
         if (!kBagSectorIds.count(sect_id)) { continue; }
-        if (save_idx == 0) { continue; }
+        if (std::none_of(active.begin(), active.end(), [sec_off](const SaveSection& sec) { return sec.offset == sec_off; })) { continue; }
 
         for (uint32_t rel = 0; rel + 3 < kBagOffValidLen; rel += 2) {
             const uint32_t abs_off = sec_off + rel;
@@ -407,14 +391,14 @@ std::vector<ItemCandidate> ScanGlobalIdSetPockets(const std::vector<uint8_t> &bu
     std::vector<ItemCandidate> out;
     if (valid_ids.empty()) { return out; }
 
+    const auto active = ActiveUnboundSections(buf);
     const size_t total = buf.size() / kBagSectionSize;
-    const uint32_t active_idx = ComputeActiveSaveIdx(buf, kBagSectorIds);
     for (size_t si = 0; si < total; ++si) {
         const uint32_t sec_off = static_cast<uint32_t>(si * kBagSectionSize);
         const uint16_t sect_id = ReadU16Le(buf.data(), sec_off + kBagOffId);
         const uint32_t save_idx = ReadU32Le(buf.data(), sec_off + kBagOffSaveIdx);
         if (!kBagSectorIds.count(sect_id)) { continue; }
-        if (save_idx == 0 || (active_idx > 0 && save_idx != active_idx)) { continue; }
+        if (std::none_of(active.begin(), active.end(), [sec_off](const SaveSection& sec) { return sec.offset == sec_off; })) { continue; }
 
         for (uint32_t rel = 0; rel + 3 < kBagOffValidLen; rel += 2) {
             const uint32_t abs_off = sec_off + rel;
@@ -541,18 +525,13 @@ QuickPocketResult TryStaticAnchor(const std::vector<uint8_t> &buf, uint32_t anch
 QuickPocketResult ResolveMainPocket(const std::vector<uint8_t> &buf) {
     QuickPocketResult r;
     // Try active section 13
-    const size_t total = buf.size() / kBagSectionSize;
-    uint32_t best_save_idx = 0;
+    const auto active = ActiveUnboundSections(buf);
     uint32_t best_sec_off = 0;
     bool found_sec = false;
-    for (size_t i = 0; i < total; ++i) {
-        const uint32_t off = static_cast<uint32_t>(i * kBagSectionSize);
-        const uint16_t sid = ReadU16Le(buf.data(), off + kBagOffId);
-        const uint32_t sidx = ReadU32Le(buf.data(), off + kBagOffSaveIdx);
-        if (sid == kUnboundItemSectorId && sidx > best_save_idx) {
-            best_save_idx = sidx;
-            best_sec_off  = off;
-            found_sec     = true;
+    for (const auto& sec : active) {
+        if (sec.section_id == kUnboundItemSectorId) {
+            best_sec_off = static_cast<uint32_t>(sec.offset);
+            found_sec = true;
         }
     }
 
@@ -917,6 +896,7 @@ bool WriteSlot(std::vector<uint8_t> &buf, uint32_t offset, uint16_t item_id, uin
         }
         WriteU16Le(buf.data(), offset, 0);
         WriteU16Le(buf.data(), offset + 2, 0);
+        if (offset < 28 * kBagSectionSize) RecalculateSectionChecksum(buf, (offset / kBagSectionSize) * kBagSectionSize);
         return true;
     }
     if (encoding_swapped) {
@@ -926,33 +906,16 @@ bool WriteSlot(std::vector<uint8_t> &buf, uint32_t offset, uint16_t item_id, uin
         WriteU16Le(buf.data(), offset,     item_id);
         WriteU16Le(buf.data(), offset + 2, qty);
     }
+    if (offset < 28 * kBagSectionSize) RecalculateSectionChecksum(buf, (offset / kBagSectionSize) * kBagSectionSize);
     return true;
 }
 
 bool CommitBagSectorChecksums(std::vector<uint8_t> &buf, std::string *error) {
-    const size_t total = buf.size() / kBagSectionSize;
-    bool any = false;
-    for (size_t i = 0; i < total; ++i) {
-        const uint32_t off = static_cast<uint32_t>(i * kBagSectionSize);
-        const uint16_t sid = ReadU16Le(buf.data(), off + kBagOffId);
-        if (!kBagSectorIds.count(sid)) { continue; }
-        const uint32_t save_idx = ReadU32Le(buf.data(), off + kBagOffSaveIdx);
-        if (save_idx == 0) { continue; }
-
-        uint32_t valid_len;
-        if (sid == kUnboundItemSectorId) {
-            valid_len = kUnboundItemFixedLen;
-        } else {
-            valid_len = ReadU32Le(buf.data(), off + kBagOffValidLen);
-            if (valid_len == 0 || valid_len > kBagOffId) { valid_len = kBagOffId; }
-        }
-
-        const uint16_t chk = ComputeSectionChecksum(buf.data() + off, kBagOffId, valid_len);
-        WriteU16Le(buf.data(), off + kBagOffChk, chk);
-        any = true;
+    for (const auto& sec : ActiveUnboundSections(buf)) {
+        if (sec.section_id == 13) return RecalculateSectionChecksum(buf, sec.offset);
     }
-    if (!any && error != nullptr) { *error = "no bag sectors found"; }
-    return any;
+    if (error) *error = "no active bag sector found";
+    return false;
 }
 
 std::string PocketTypeForItemId(uint16_t item_id) {
