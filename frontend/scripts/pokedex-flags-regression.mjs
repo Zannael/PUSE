@@ -31,11 +31,17 @@ function pass(label) {
 }
 
 function makeTrainerSectionBuffer() {
-    const buffer = new Uint8Array(SECTION_SIZE);
-    wu32(buffer, OFF_VALID_LEN, 0xFF4);
-    wu16(buffer, OFF_ID, 1);
-    wu32(buffer, OFF_SAVE_IDX, 1);
-    wu16(buffer, OFF_CHECKSUM, gbaChecksum(buffer, 0, 0xFF4));
+    const buffer = new Uint8Array(14 * SECTION_SIZE);
+    for (let i = 0; i < 14; i += 1) {
+        const off = i * SECTION_SIZE;
+        const id = i === 0 ? 1 : i === 1 ? 0 : i;
+        wu32(buffer, off + OFF_VALID_LEN, 0xAABBCCDD);
+        wu16(buffer, off + OFF_ID, id);
+        wu32(buffer, off + 0xFF8, 0x01121999);
+        wu32(buffer, off + OFF_SAVE_IDX, 1);
+        const length = id === 0 ? 0xF24 : id === 4 ? 0xD98 : id === 13 ? 0x450 : 0xFF0;
+        wu16(buffer, off + OFF_CHECKSUM, gbaChecksum(buffer, off, length));
+    }
     return buffer;
 }
 
@@ -81,7 +87,7 @@ if (!clearCaught.ok || clearCaught.caught || !clearCaught.seen) {
 }
 
 const checksum = (buffer[OFF_CHECKSUM] | (buffer[OFF_CHECKSUM + 1] << 8)) >>> 0;
-const expectedChecksum = gbaChecksum(buffer, 0, 0xFF4);
+const expectedChecksum = gbaChecksum(buffer, 0, 0xFF0);
 if (checksum !== expectedChecksum) {
     fail('trainer checksum', `stored=${checksum} expected=${expectedChecksum}`);
 } else {

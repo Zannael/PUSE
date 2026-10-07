@@ -85,7 +85,9 @@ for idx in range(count):
     valid_len = ru32(sec, FOOTER_VALIDLEN_OFF)
     stored = ru16(sec, FOOTER_CHK_OFF)
     save_idx = ru32(sec, FOOTER_SAVEINDEX_OFF)
-    calc = checksum(sec[:FOOTER_ID_OFF], valid_len)
+    # Verified ROM domains; 0xFF0 is opaque footer data, not a length.
+    domain = {0: 0xF24, 4: 0xD98, 13: 0x450}.get(sec_id, 0xFF0)
+    calc = checksum(sec[:domain], domain)
     lines.append(f"{idx},{sec_id},{valid_len},{stored},{calc},{save_idx}")
 
 out_path.write_text('\n'.join(lines) + ('\n' if lines else ''), encoding='utf-8')

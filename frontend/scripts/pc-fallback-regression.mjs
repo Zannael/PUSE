@@ -196,12 +196,9 @@ async function runFewTimesDead(api, fewBytes) {
   const saveRes = await backendRequest(api, '/save-all', { method: 'POST' });
   assert(saveRes.ok, `backend save-all failed (${saveRes.status}): ${JSON.stringify(saveRes.body)}`);
 
-  let backendSaved = null;
-  try {
-    backendSaved = await fs.readFile(path.resolve(process.cwd(), '../backend/edited_save.sav'));
-  } catch {
-    backendSaved = await fs.readFile(path.resolve(process.cwd(), '../edited_save.sav'));
-  }
+  const download = await fetch(`${api}/download`);
+  assert(download.ok, `download failed (${download.status})`);
+  const backendSaved = Buffer.from(await download.arrayBuffer());
   const absOff = box23AbsOffset(targetSlot);
   const secOff = Math.floor(absOff / 0x1000) * 0x1000;
 

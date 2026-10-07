@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "pc:storage-regression": "python3 ../backend/tools/pc_storage_regression.py",
     "pc:fallback-regression": "node scripts/pc-fallback-regression.mjs",
     "pc:release-regression": "node scripts/pc-release-regression.mjs",
     "identity:regression": "node scripts/identity-regression.mjs",
@@ -21,7 +22,7 @@
     "save-health:regression": "node scripts/save-health-regression.mjs",
     "happiness:regression": "node scripts/happiness-regression.mjs",
     "bag:zero-quantity-regression": "node scripts/bag-zero-quantity-regression.mjs",
-    "parity:all": "npm run rtc:time-fixer-regression && npm run rtc:parity-regression && npm run pc:fallback-regression && npm run pc:release-regression && npm run identity:regression && npm run game-progress:regression && npm run pokedex-flags:regression && npm run battle-preview:regression && npm run all-pokemon:regression && npm run roster-export:regression && npm run save-health:regression && npm run happiness:regression && npm run bag:zero-quantity-regression",
+    "parity:all": "npm run pc:storage-regression && npm run rtc:time-fixer-regression && npm run rtc:parity-regression && npm run pc:fallback-regression && npm run pc:release-regression && npm run identity:regression && npm run game-progress:regression && npm run pokedex-flags:regression && npm run battle-preview:regression && npm run all-pokemon:regression && npm run roster-export:regression && npm run save-health:regression && npm run happiness:regression && npm run bag:zero-quantity-regression",
     "icons:manifest": "node scripts/generate-icon-manifests.mjs",
     "icons:check": "node scripts/generate-icon-manifests.mjs --check"
   },
