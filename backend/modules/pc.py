@@ -6,6 +6,7 @@ import math
 import os
 import json
 
+from core.ot_name import validate_ot_name
 from core.sections import active_unbound_slot
 from core.data_loader import load_id_name_file, load_move_base_pp_map
 
@@ -517,6 +518,10 @@ class UnboundPCMon:
             raise ValueError("Invalid ball_id")
         wu8(self.raw, OFF_BALL, bid)
 
+    def set_ot_name(self, name):
+        name = validate_ot_name(name)
+        self.raw[0x14:0x1B] = encode_text(name, 7)
+
     def set_nickname(self, nickname):
         requested = (nickname or "").strip()
         if not requested:
@@ -568,7 +573,7 @@ class UnboundPCMon:
         return ru32(self.raw, 0x04)
 
     def get_owner_name(self):
-        return decode_text(self.raw[OFF_OT_NAME: OFF_OT_NAME + OT_NAME_LEN])
+        return decode_text(self.raw[OFF_OT_NAME: OFF_OT_NAME + OT_NAME_LEN]).replace("’", "'")
 
     def get_owner_misc(self):
         return ru8(self.raw, OFF_OT_MISC_1), ru8(self.raw, OFF_OT_MISC_2)

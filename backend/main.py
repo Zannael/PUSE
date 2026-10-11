@@ -696,6 +696,10 @@ class SpeciesUpdate(BaseModel):
     species_id: int
 
 
+class OTNameUpdate(BaseModel):
+    ot_name: str
+
+
 class NicknameUpdate(BaseModel):
     nickname: str
 
@@ -876,6 +880,7 @@ async def get_party():
         party.append({
             "index": i,
             "nickname": pk.nickname,
+            "ot_name": pk.get_ot_name(),
             "species_name": smeta["species_label"],
             "species_display_name": smeta["species_display_name"],
             "species_label": smeta["species_label"],
@@ -977,6 +982,24 @@ async def update_party_happiness(idx: int, data: HappinessUpdate):
     current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
     return {"status": "Happiness updated", "happiness": pk.get_happiness()}
+
+
+@app.post("/party/{idx}/ot-name")
+async def update_party_ot_name(idx: int, data: OTNameUpdate):
+    off = get_active_trainer_offset()
+    if off is None or not 0 <= idx < min(6, party_mod.ru32(current_save["data"], off + 0x34)):
+        raise HTTPException(status_code=404, detail="Pokemon not found")
+    mon_off = off + 0x38 + idx * 100
+    pk = party_mod.Pokemon(current_save["data"][mon_off:mon_off + 100])
+    if pk.get_species_id() == 0:
+        raise HTTPException(status_code=404, detail="Pokemon not found")
+    try:
+        pk.set_ot_name(data.ot_name)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    current_save["data"][mon_off:mon_off + 100] = pk.pack_data()
+    refresh_checksum(current_save["data"], off)
+    return {"status": "Original Trainer name updated", "ot_name": pk.get_ot_name()}
 
 
 @app.post("/party/{idx}/nickname")
@@ -1377,6 +1400,7 @@ async def get_box(box_id: int):
             "box": m.box,
             "slot": m.slot,
             "nickname": m.nickname,
+            "ot_name": m.get_owner_name(),
             "species_id": m.species_id,
             "species_growth_rate": box_mod.get_species_growth_rate(m.species_id),
             "item_id": m.get_item_id(),
@@ -1678,6 +1702,7 @@ class PCFullUpdate(BaseModel):
     box: int
     slot: int
     nickname: str = None
+    ot_name: str = None
     moves: List[int] = None
     move_pp: List[int] = None
     move_pp_ups: List[int] = None
@@ -1729,6 +1754,11 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
         if upd.species_id <= 0 or upd.species_id not in box_mod.DB_SPECIES:
             raise HTTPException(status_code=400, detail="Invalid species_id")
         target.set_species_id(upd.species_id)
+    if upd.ot_name is not None:
+        try:
+            target.set_ot_name(upd.ot_name)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
     if upd.nickname is not None:
         try:
             target.set_nickname(upd.nickname)
@@ -1912,6 +1942,7 @@ async def insert_pc_mon(upd: PCInsert):
             "box": mon.box,
             "slot": mon.slot,
             "nickname": mon.nickname,
+            "ot_name": mon.get_owner_name(),
             "species_id": mon.species_id,
             "species_growth_rate": box_mod.get_species_growth_rate(mon.species_id),
             "item_id": mon.get_item_id(),

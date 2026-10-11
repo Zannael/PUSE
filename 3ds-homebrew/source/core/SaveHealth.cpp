@@ -13,7 +13,7 @@ std::string PcField(const std::string &prefix, const size_t inside) {
     struct Range { size_t start; size_t end; const char *label; };
     static constexpr Range fields[] = {
         {0x00, 0x04, "PID"}, {0x04, 0x08, "owner ID"}, {0x08, 0x12, "nickname"},
-        {0x1C, 0x1E, "species"}, {0x1E, 0x20, "held item"}, {0x20, 0x24, "EXP"},
+        {0x14, 0x1B, "Original Trainer name"}, {0x1C, 0x1E, "species"}, {0x1E, 0x20, "held item"}, {0x20, 0x24, "EXP"},
         {0x24, 0x25, "PP Ups"}, {0x26, 0x27, "caught ball"}, {0x27, 0x2C, "moves"},
         {0x2C, 0x32, "EVs"}, {0x36, 0x3A, "IVs/ability flag"},
     };
@@ -30,6 +30,7 @@ std::string FieldLabel(const int id, const size_t offset) {
             const size_t slot = (offset - 0x38) / 100 + 1;
             const size_t inside = (offset - 0x38) % 100;
             if (inside >= 0x08 && inside < 0x12) return "Party " + std::to_string(slot) + " nickname";
+            if (inside >= 0x14 && inside < 0x1B) return "Party " + std::to_string(slot) + " Original Trainer name";
             if (inside == 0x54) return "Party " + std::to_string(slot) + " level";
             return "Party " + std::to_string(slot) + " data";
         }

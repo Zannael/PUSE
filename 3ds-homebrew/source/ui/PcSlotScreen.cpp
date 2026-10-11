@@ -203,6 +203,22 @@ void PcSlotScreen::BuildEditFields() {
                 }));
         };
     }
+    // Original Trainer name
+    {
+        auto btn = AddField(y); y += kRowH;
+        btn->eOnTap = [this](sl::ui::Button&) {
+            Core* core = Core::Get();
+            if (!core) return;
+            InputManager::OpenKeyboard(new InputHandlerBuffered(
+                mon_.ot_name, false,
+                [this, core](const std::string& s) {
+                    std::string err;
+                    if (puse::core::UpdatePcMonOtName(core->MutablePcStream(), box_, slot_, s, &err))
+                        CommitAndRefresh();
+                    else starlight::dialog::MessageBox::New(starlight::dialog::MessageBox::Ok, err)->Open();
+                }));
+        };
+    }
     // 1: Species
     {
         auto btn = AddField(y); y += kRowH;
@@ -423,6 +439,7 @@ void PcSlotScreen::RefreshFields() {
     };
 
     set("Nickname: " + mon_.nickname);
+    set("Original Trainer: " + mon_.ot_name);
 
     {
         std::string sp = std::to_string(mon_.species_id);

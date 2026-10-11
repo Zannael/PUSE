@@ -1,3 +1,4 @@
+import { validateOtName } from './otName.js';
 import { recalculateTrainerChecksum } from './checksum.js';
 import { ru8, ru16, ru32, wu8, wu16, wu32 } from './binary.js';
 import { findActiveSectionById } from './sections.js';
@@ -48,7 +49,7 @@ const NATURES = {
 };
 
 const CHARMAP = {
-    0x00: ' ', 0xAB: '!', 0xAC: '?', 0xAD: '.', 0xAE: '-', 0xFF: '',
+    0x00: ' ', 0xAB: '!', 0xAC: '?', 0xAD: '.', 0xAE: '-', 0xB4: "'", 0xFF: '',
     0xA1: '0', 0xA2: '1', 0xA3: '2', 0xA4: '3', 0xA5: '4',
     0xA6: '5', 0xA7: '6', 0xA8: '7', 0xA9: '8', 0xAA: '9',
     0xBB: 'A', 0xBC: 'B', 0xBD: 'C', 0xBE: 'D', 0xBF: 'E', 0xC0: 'F',
@@ -858,6 +859,7 @@ export function getParty(buffer, speciesById, speciesMetaById = null) {
         party.push({
             index: i,
             nickname: decodeText(rawMon.slice(OFF_NICK, OFF_NICK + 10)),
+            ot_name: decodeText(rawMon.slice(0x14, 0x1B)),
             species_name: speciesMeta.species_label,
             species_display_name: speciesMeta.species_display_name,
             species_label: speciesMeta.species_label,
@@ -1006,6 +1008,17 @@ export function updatePartyHappiness(buffer, monIndex, payload) {
             throw new Error('Pokemon not found');
         }
         setHappiness(rawMon, payload.happiness);
+    });
+}
+
+export function updatePartyOtName(buffer, monIndex, payload) {
+    const active = findActiveTrainerSection(buffer);
+    if (!active || !Number.isInteger(monIndex) || monIndex < 0 || monIndex >= Math.min(6, ru32(buffer, active.off + PARTY_COUNT_OFFSET))) {
+        throw new Error('Pokemon not found');
+    }
+    mutatePartyMon(buffer, monIndex, (rawMon) => {
+        if (getSpeciesId(rawMon) === 0) throw new Error('Pokemon not found');
+        rawMon.set(encodeText(validateOtName(payload.ot_name), 7), 0x14);
     });
 }
 

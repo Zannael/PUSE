@@ -284,6 +284,13 @@ const backendClient = {
             body: JSON.stringify(payload),
         });
     },
+    async updatePartyOtName(index, payload) {
+        await backendJson(`/party/${index}/ot-name`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+    },
     async updatePartyNickname(index, payload) {
         await backendJson(`/party/${index}/nickname`, {
             method: "POST",
@@ -607,6 +614,11 @@ const localClient = {
         const { updateBuffer, updatePartyIdentity: patchPartyIdentity } = await getLocalCoreModules();
         updateBuffer((next) => patchPartyIdentity(next, Number(index), payload || {}));
         return { status: 'Identity updated in memory' };
+    },
+    async updatePartyOtName(index, payload) {
+        const { updateBuffer, updatePartyOtName } = await getLocalCoreModules();
+        updateBuffer((next) => updatePartyOtName(next, Number(index), payload || {}));
+        return { status: 'Original Trainer name updated in memory' };
     },
     async updatePartyNickname(index, payload) {
         const { updateBuffer, updatePartyNickname: patchPartyNickname, getSpeciesMap } = await getLocalCoreModules();

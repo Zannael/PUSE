@@ -1,3 +1,4 @@
+#include <puse/core/OtName.hpp>
 #include <puse/core/Party.hpp>
 
 #include <algorithm>
@@ -87,7 +88,7 @@ std::unordered_map<int, std::string> g_abilities_db;
 bool g_static_data_loaded = false;
 
 const std::unordered_map<uint8_t, char> kDecodeCharmap = {
-    {0x00, ' '}, {0xAB, '!'}, {0xAC, '?'}, {0xAD, '.'}, {0xAE, '-'},
+    {0x00, ' '}, {0xAB, '!'}, {0xAC, '?'}, {0xAD, '.'}, {0xAE, '-'}, {0xB4, '\''},
     {0xA1, '0'}, {0xA2, '1'}, {0xA3, '2'}, {0xA4, '3'}, {0xA5, '4'},
     {0xA6, '5'}, {0xA7, '6'}, {0xA8, '7'}, {0xA9, '8'}, {0xAA, '9'},
 };
@@ -1276,6 +1277,19 @@ std::vector<PartyEntry> ParseParty(
     }
 
     return out;
+}
+
+bool UpdatePartyOtName(std::vector<uint8_t> &buffer, const int index, const std::string &value, std::string *error) {
+    std::string name;
+    if (!ValidateOtName(value, &name, error)) return false;
+    return MutatePartyMon(buffer, index, false, [&](uint8_t *mon, std::string *mutation_error) {
+        if (GetSpeciesId(mon) == 0) {
+            if (mutation_error) *mutation_error = "Pokemon not found";
+            return false;
+        }
+        EncodeText(name, mon + kMonOtNameOff, kMonOtNameLen);
+        return true;
+    }, error);
 }
 
 bool UpdatePartyNickname(std::vector<uint8_t> &buffer, const int index, const std::string &nickname, std::string *error) {

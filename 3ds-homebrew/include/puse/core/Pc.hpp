@@ -20,6 +20,7 @@ struct PcMon {
     uint32_t pid;
     uint32_t otid;
     std::string nickname;
+    std::string ot_name;
     uint16_t species_id;
     std::string species_name;
     uint16_t item_id;
@@ -59,6 +60,8 @@ std::vector<PcMon> ParsePcBox(
 int CountPcBoxMons(const std::vector<uint8_t> &stream, int box);
 
 // Slot mutations — box and slot are 1-based.
+bool UpdatePcMonOtName(std::vector<uint8_t> &stream, int box, int slot, const std::string &name, std::string *error = nullptr);
+
 bool UpdatePcMonNickname(std::vector<uint8_t> &stream, int box, int slot, const std::string &nickname, std::string *error = nullptr);
 bool UpdatePcMonSpecies(std::vector<uint8_t> &stream, int box, int slot, uint16_t species_id, std::string *error = nullptr);
 bool UpdatePcMonItem(std::vector<uint8_t> &stream, int box, int slot, uint16_t item_id, std::string *error = nullptr);

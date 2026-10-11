@@ -1,3 +1,4 @@
+#include <puse/core/OtName.hpp>
 #include <puse/core/Pc.hpp>
 
 #include <algorithm>
@@ -41,7 +42,7 @@ const std::array<const char *, 25> kNatureNames = {
 
 // --- Text codec (same simplified charmap as Party.cpp for consistency) ---
 const std::unordered_map<uint8_t, char> kDecodeCharmap = {
-    {0x00, ' '}, {0xAB, '!'}, {0xAC, '?'}, {0xAD, '.'}, {0xAE, '-'},
+    {0x00, ' '}, {0xAB, '!'}, {0xAC, '?'}, {0xAD, '.'}, {0xAE, '-'}, {0xB4, '\''},
     {0xA1, '0'}, {0xA2, '1'}, {0xA3, '2'}, {0xA4, '3'}, {0xA5, '4'},
     {0xA6, '5'}, {0xA7, '6'}, {0xA8, '7'}, {0xA9, '8'}, {0xAA, '9'},
 };
@@ -367,6 +368,7 @@ std::vector<PcMon> ParsePcBox(
         e.slot = slot;
         e.pid = ReadU32Le(mon, kPcPidOff);
         e.otid = ReadU32Le(mon, kPcOtidOff);
+        e.ot_name = DecodeText(mon + 0x14, 7);
         e.nickname = DecodeText(mon + kPcNickOff, 10);
         e.species_id = ReadU16Le(mon, kPcSpeciesOff);
         e.item_id = ReadU16Le(mon, kPcItemOff);
@@ -412,6 +414,19 @@ int CountPcBoxMons(const std::vector<uint8_t> &stream, const int box) {
         if (IsPcMonValid(ConstSlot(stream, box, slot))) { ++count; }
     }
     return count;
+}
+
+bool UpdatePcMonOtName(std::vector<uint8_t> &stream, const int box, const int slot, const std::string &value, std::string *error) {
+    if (!ValidatePcSlotArgs(stream, box, slot, error)) return false;
+    uint8_t *mon = MutableSlot(stream, box, slot);
+    if (!IsPcMonValid(mon)) {
+        if (error) *error = "slot is empty or invalid";
+        return false;
+    }
+    std::string name;
+    if (!ValidateOtName(value, &name, error)) return false;
+    EncodeText(name, mon + 0x14, 7);
+    return true;
 }
 
 bool UpdatePcMonNickname(std::vector<uint8_t> &stream, const int box, const int slot, const std::string &nickname, std::string *error) {

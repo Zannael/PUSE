@@ -1,3 +1,4 @@
+import { validateOtName } from '../core/otName.js';
 import React, { useState, useEffect, useMemo } from 'react';
 import { X, Zap, Save, Search, Download, CircleHelp } from 'lucide-react';
 import { calcCurrentLevel, GROWTH_OPTIONS } from '../core/growth.js';
@@ -365,6 +366,10 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
 
 
     const handleSaveClick = async () => {
+        if (localPk.ot_name !== pokemon.ot_name) {
+            try { validateOtName(localPk.ot_name); }
+            catch (error) { window.alert(error.message); return; }
+        }
         setIsSaving(true);
         setSaveStage('Applying changes...');
         const payload = { ...localPk };
@@ -814,6 +819,21 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                                     placeholder="Nickname (max 10 chars)"
                                 />
                                 <p className="text-[10px] text-slate-500 text-center">Clear this field to restore the species name (max 10 chars).</p>
+                            </div>
+
+                            <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">
+                                <label htmlFor="ot-name" className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
+                                    Original Trainer name
+                                </label>
+                                <input
+                                    id="ot-name"
+                                    type="text"
+                                    maxLength={7}
+                                    value={localPk.ot_name || ''}
+                                    onChange={(e) => setLocalPk({ ...localPk, ot_name: e.target.value })}
+                                    className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 px-4 text-sm outline-none focus:border-blue-500/50"
+                                />
+                                <p className="text-[10px] text-slate-500 text-center">1–7 characters: letters, numbers, spaces and ! ? . - &apos;. Changes this Pokémon’s OT name only; trainer IDs stay the same.</p>
                             </div>
 
                             <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">

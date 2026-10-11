@@ -80,6 +80,8 @@ BattlePreview CalculateBattlePreview(
     const std::array<uint8_t, 6> &evs
 );
 
+bool UpdatePartyOtName(std::vector<uint8_t> &buffer, int index, const std::string &name, std::string *error = nullptr);
+
 bool UpdatePartyNickname(std::vector<uint8_t> &buffer, int index, const std::string &nickname, std::string *error = nullptr);
 bool UpdatePartyItem(std::vector<uint8_t> &buffer, int index, uint16_t item_id, std::string *error = nullptr);
 bool UpdatePartyHappiness(std::vector<uint8_t> &buffer, int index, int happiness, std::string *error = nullptr);

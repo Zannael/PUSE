@@ -1,3 +1,4 @@
+import { validateOtName } from './otName.js';
 import { activeUnboundSlot } from './sections.js';
 import { ru8, ru16, ru32, wu8, wu16, wu32 } from './binary.js';
 import { gbaChecksum } from './checksum.js';
@@ -604,6 +605,7 @@ function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
         box,
         slot,
         nickname: decodeText(raw.slice(OFF_NICK, OFF_NICK + 10)),
+        ot_name: decodeText(raw.slice(OFF_OT_NAME, OFF_OT_NAME + OT_NAME_LEN)),
         species_name: speciesMeta.species_label,
         species_display_name: speciesMeta.species_display_name,
         species_label: speciesMeta.species_label,
@@ -1218,6 +1220,10 @@ export function editPcMonFull(context, payload, speciesMap = null) {
         throw new Error('Pokemon not found in slot');
     }
     const speciesBefore = ru16(raw, OFF_SPECIES);
+
+    if (payload.ot_name !== undefined && payload.ot_name !== null) {
+        raw.set(encodeText(validateOtName(payload.ot_name), OT_NAME_LEN), OFF_OT_NAME);
+    }
 
     if (payload.nickname !== undefined && payload.nickname !== null) {
         const requested = String(payload.nickname).trim();

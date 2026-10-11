@@ -254,6 +254,10 @@ const App = () => {
                 await client.updatePartySpecies(updatedPk.index, { species_id: updatedPk.species_id });
             }
 
+            if (String(updatedPk.ot_name || '').trim() !== String(original.ot_name || '').trim()) {
+                await client.updatePartyOtName(updatedPk.index, { ot_name: updatedPk.ot_name });
+            }
+
             if (String(updatedPk.nickname || '').trim() !== String(original.nickname || '').trim()) {
                 await client.updatePartyNickname(updatedPk.index, { nickname: updatedPk.nickname || '' });
             }
@@ -334,6 +338,10 @@ const App = () => {
 
             if (Number(updatedPk.exp) !== Number(original.exp)) {
                 payload.exp = updatedPk.exp;
+            }
+
+            if (String(updatedPk.ot_name || '').trim() !== String(original.ot_name || '').trim()) {
+                payload.ot_name = updatedPk.ot_name;
             }
 
             if (String(updatedPk.nickname || '').trim() !== String(original.nickname || '').trim()) {

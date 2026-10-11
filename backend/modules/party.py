@@ -9,6 +9,7 @@ import os
 import math
 import json
 
+from core.ot_name import validate_ot_name
 from core.sections import active_sections
 from core.data_loader import load_id_name_file, load_move_base_pp_map
 
@@ -183,7 +184,7 @@ def guess_growth_rate(current_exp, visual_level):
 
 # --- UTILS DI CODIFICA ---
 CHARMAP = {
-    0x00: " ", 0xAB: "!", 0xAC: "?", 0xAD: ".", 0xAE: "-", 0xFF: "",
+    0x00: " ", 0xAB: "!", 0xAC: "?", 0xAD: ".", 0xAE: "-", 0xB4: "'", 0xFF: "",
     0xA1: "0", 0xA2: "1", 0xA3: "2", 0xA4: "3", 0xA5: "4",
     0xA6: "5", 0xA7: "6", 0xA8: "7", 0xA9: "8", 0xAA: "9",
     0xBB: "A", 0xBC: "B", 0xBD: "C", 0xBE: "D", 0xBF: "E", 0xC0: "F",
@@ -806,6 +807,13 @@ class Pokemon:
         b = bytearray(self.substructs['B'])
         b[10] = bid & 0xFF
         self.substructs['B'] = b
+
+    def get_ot_name(self):
+        return decode_text(self.raw[0x14:0x1B])
+
+    def set_ot_name(self, name):
+        name = validate_ot_name(name)
+        self.raw[0x14:0x1B] = encode_text(name, 7)
 
     def set_nickname(self, nickname):
         requested = (nickname or "").strip()

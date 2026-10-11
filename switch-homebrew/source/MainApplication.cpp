@@ -1454,6 +1454,7 @@ void MainApplication::RebuildPcFieldsMenu(const int section_index) {
         section_title = "Summary";
         rows.push_back({"Species", m.species_name});
         rows.push_back({"Nickname", m.nickname.empty() ? "-" : m.nickname});
+        rows.push_back({"Original Trainer", m.ot_name.empty() ? "-" : m.ot_name});
         rows.push_back({"Level", std::to_string(static_cast<int>(m.level))});
         rows.push_back({"Nature", m.nature_name});
         rows.push_back({"Shiny", m.is_shiny ? "Yes" : "No"});
@@ -1538,6 +1539,10 @@ void MainApplication::HandlePcFieldEdit(const int section_index, const std::stri
             if (PromptCatalogChoice("Species", this->species_db_, static_cast<int>(m.species_id), &species_id)) {
                 changed = puse::core::UpdatePcMonSpecies(this->pc_stream_, box, slot, static_cast<uint16_t>(species_id), &error);
             }
+        } else if (field_key == "Original Trainer") {
+            bool submitted = false;
+            const std::string typed = ShowKeyboardInput("Original Trainer name (1-7 characters)", m.ot_name, 7, 24, &submitted);
+            if (submitted) changed = puse::core::UpdatePcMonOtName(this->pc_stream_, box, slot, typed, &error);
         } else if (field_key == "Nickname") {
             bool submitted = false;
             const std::string typed = ShowKeyboardInput("Set nickname (blank: species name)", m.nickname, 10, 24, &submitted);
@@ -1646,6 +1651,10 @@ void MainApplication::HandleFieldEdit(const int section_index, const std::string
             if (PromptCatalogChoice("Species", this->species_db_, static_cast<int>(entry.species_id), &species_id)) {
                 changed = puse::core::UpdatePartySpecies(this->save_session_.MutableBuffer(), this->selected_party_index_, static_cast<uint16_t>(species_id), &error);
             }
+        } else if (field_key == "Original Trainer") {
+            bool submitted = false;
+            const std::string typed = ShowKeyboardInput("Original Trainer name (1-7 characters)", entry.ot_name, 7, 24, &submitted);
+            if (submitted) changed = puse::core::UpdatePartyOtName(this->save_session_.MutableBuffer(), this->selected_party_index_, typed, &error);
         } else if (field_key == "Nickname") {
             bool submitted = false;
             const std::string typed = ShowKeyboardInput("Set nickname (blank: species name)", entry.nickname, 10, 24, &submitted);
@@ -1929,6 +1938,7 @@ void MainApplication::RebuildPokemonFieldsMenu(const int section_index) {
         section_title = "Summary";
         rows.push_back({"Species", entry.species_name});
         rows.push_back({"Nickname", entry.nickname.empty() ? "-" : entry.nickname});
+        rows.push_back({"Original Trainer", entry.ot_name.empty() ? "-" : entry.ot_name});
         rows.push_back({"Level", std::to_string(static_cast<int>(entry.level))});
         rows.push_back({"Nature", entry.nature_name});
         rows.push_back({"Shiny", entry.is_shiny ? "Yes" : "No"});

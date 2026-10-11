@@ -1,3 +1,4 @@
+#include "starlight/dialog/MessageBox.h"
 #include "ui/PokemonFieldsScreen.h"
 #include "Core.h"
 
@@ -157,6 +158,22 @@ void PokemonFieldsScreen::BuildSummaryFields() {
                     if (puse::core::UpdatePartyNickname(
                             core->Session().MutableBuffer(), slot_, s, &err))
                         CommitAndRefresh();
+                }));
+        };
+    }
+    // Original Trainer name
+    {
+        auto btn = AddField(y); y += kRowH;
+        btn->eOnTap = [this](sl::ui::Button&) {
+            Core* core = Core::Get();
+            if (!core) return;
+            InputManager::OpenKeyboard(new InputHandlerBuffered(
+                entry_.ot_name, false,
+                [this, core](const std::string& s) {
+                    std::string err;
+                    if (puse::core::UpdatePartyOtName(core->Session().MutableBuffer(), slot_, s, &err))
+                        CommitAndRefresh();
+                    else starlight::dialog::MessageBox::New(starlight::dialog::MessageBox::Ok, err)->Open();
                 }));
         };
     }
@@ -431,6 +448,8 @@ void PokemonFieldsScreen::RefreshFields() {
     case Section::Summary: {
         if (idx < field_btns_.size())
             field_btns_[idx++]->SetText("Nickname: " + entry_.nickname);
+        if (idx < field_btns_.size())
+            field_btns_[idx++]->SetText("Original Trainer: " + entry_.ot_name);
 
         if (idx < field_btns_.size()) {
             std::string sp = std::to_string(entry_.species_id);

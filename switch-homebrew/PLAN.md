@@ -357,3 +357,12 @@ Each phase is complete only if all are true:
 ---
 
 This plan is the operational roadmap from zero implementation to full parity release on Switch.
+
+
+## Original Trainer name editing
+
+Party and ordinary PC boxes expose a validated Original Trainer name field in Summary, using the existing MenuItem and keyboard flow. Names contain 1–7 supported characters; trainer IDs, PID, species and other Pokemon data are preserved. Native Preset editing remains an existing coverage gap; backend and browser local mode support it through their PC editor.
+
+UI references reviewed: Goldleaf `tools/Goldleaf/ui/ui_AccountLayout.cpp` (rename keyboard/menu pattern) and `ui_MainApplication.cpp` (layout navigation); Plutonium `tools/Plutonium/docs/files.html`, `de/dbb/classpu_1_1ui_1_1elm_1_1_menu_item.html`, and `Plutonium/include/pu/ui/elm/elm_Menu.hpp`. No custom control or navigation was needed.
+
+Verification: `cd ../frontend && npm run ot-name:regression` compares full saved bytes from Python, JavaScript, Switch and 3DS, including apostrophes, name length, rejected characters and identity preservation. The native fixture sources live in each port's `tests/ot_name_parity.cpp`.
