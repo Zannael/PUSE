@@ -40,6 +40,10 @@ def generate_header(profile, serialized):
     lines.append(f'inline constexpr std::array<Region, {len(regions)}> kPcRegions = {{{{')
     lines += [f'    {{{sid}U, {start}U, {end}U}},' for sid,start,end in regions]
     lines.append('}};')
+    for key, regions in profile['storage']['bag'].get('pocket_regions', {}).items():
+        lines.append(f'inline constexpr std::array<Region, {len(regions)}> kBag{key.title()}Regions = {{{{')
+        lines.extend(f'    {{{sid}U, {start}U, {end}U}},' for sid,start,end in regions)
+        lines.append('}};')
     lines += ['struct GameProfile { const char* id; const char* serialized; };',
               'inline constexpr const char kSerialized[] = R"PUSEPROFILE(' + serialized + ')PUSEPROFILE";',
               'inline constexpr GameProfile kBuiltin{kId, kSerialized};',
@@ -79,11 +83,47 @@ def main():
     for entry in profile['catalogs'].values():
         assert (ROOT/'backend/data'/entry['file']).is_file(), entry
     outputs = {ROOT/'frontend/src/core/gameProfile.json':serialized}
+    rr_source = ROOT / 'backend/data/profiles/radical-red-4.1.json'
+    rr_serialized = rr_source.read_text()
+    rr = validate_contract(json.loads(rr_serialized))
+    for entry in rr['catalogs'].values():
+        assert (ROOT/'backend/data'/rr['catalog_base']/entry['file']).is_file(), entry
+    outputs[ROOT/'frontend/src/core/radicalRed41Profile.json'] = rr_serialized
+    outputs[ROOT/'frontend/src/core/radicalRed41Data.json'] = (ROOT/'backend/data/games/radical-red-4.1/catalog.json').read_text()
+    rr_header = generate_header(rr, rr_serialized).replace('namespace puse::core::profile {', 'namespace puse::core::rr_profile {')
     header = generate_header(profile, serialized)
+    header = header.replace('#pragma once', '#pragma once\n#include <vector>\n#include <puse/core/RadicalRedProfile.hpp>',1)
+    old = 'inline const GameProfile* FindProfile(const std::string& id) { return id == kId ? &kBuiltin : nullptr; }'
+    registry = """inline constexpr GameProfile kRadicalRed{rr_profile::kId, rr_profile::kSerialized};
+inline const GameProfile* gActive = &kBuiltin;
+inline const GameProfile& Current() { return *gActive; }
+inline bool IsRadicalRed() { return gActive == &kRadicalRed; }
+inline const GameProfile* FindProfile(const std::string& id) { return id == kId ? &kBuiltin : id == rr_profile::kId ? &kRadicalRed : nullptr; }
+inline bool SelectProfile(const std::string& id) { const auto* selected=FindProfile(id); if (!selected) return false; gActive=selected; return true; }
+inline bool SignatureValid(uint32_t value) { if (IsRadicalRed()) return value==0x08012025; for (auto signature:kContainerSignatures) if (value==signature) return true; return false; }
+inline int PcBoxCount() { return IsRadicalRed() ? rr_profile::kStoragePcBoxCount : kStoragePcBoxCount; }
+inline int ShinyThreshold() { return IsRadicalRed() ? rr_profile::kRulesShinyThreshold : kRulesShinyThreshold; }
+inline int MaxSpeciesId() { return IsRadicalRed() ? rr_profile::kCodecsPcLegacyValidationMaxSpeciesId : kCodecsPcLegacyValidationMaxSpeciesId; }
+inline bool Supports(const std::string& feature) {
+    if (!IsRadicalRed()) return true;
+"""
+    for feature,runtimes in rr['capabilities'].items():
+        supported = runtimes['switch'] not in ('unavailable','preserve-only')
+        registry += f'    if (feature == "{feature}") return {str(supported).lower()};\n'
+    registry += '    return false;\n}'
+    header = header.replace(old, registry)
+    header = header.replace('for (auto value : kContainerChecksumOpaqueIds)', 'if (IsRadicalRed()) return false; for (auto value : kContainerChecksumOpaqueIds)')
+    header = header.replace('inline std::string CatalogAsset(const char* filename) {', 'inline std::string CatalogAsset(const char* filename) {\n    if (IsRadicalRed()) {')
+    rr_catalog_checks='\n'.join(f'        if (std::strcmp(filename, "{entry["file"]}")==0) return "data/{rr["catalog_base"]}/{entry["file"]}";' for entry in rr['catalogs'].values())
+    header=header.replace('    if (IsRadicalRed()) {\n', '    if (IsRadicalRed()) {\n'+rr_catalog_checks+'\n        return {};\n    }\n',1)
+    header=header.replace('return {kId, id};', 'return {Current().id, id};')
+
     for port in ['switch-homebrew','3ds-homebrew']:
         outputs[ROOT/port/'include/puse/core/GameProfile.hpp'] = header
+        outputs[ROOT/port/'include/puse/core/RadicalRedProfile.hpp'] = rr_header
         if args.check:
             outputs[ROOT/port/'romfs/data/profiles'/SOURCE.name] = serialized
+            outputs[ROOT/port/'romfs/data/profiles'/rr_source.name] = rr_serialized
     for path, content in outputs.items():
         if args.check:
             if not path.is_file() or path.read_text() != content: raise SystemExit(f'Stale profile binding: {path}')

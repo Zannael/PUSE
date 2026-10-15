@@ -35,7 +35,7 @@ export function unboundChecksumLength(id) {
     return PROFILE.container.checksum.lengths[id] ?? PROFILE.container.checksum.default_length;
 }
 
-const UNBOUND_SIGNATURES = new Set(PROFILE.container.signatures);
+
 
 export function activeUnboundSlot(buffer, verifyChecksums = true) {
     const slots = [];
@@ -47,7 +47,7 @@ export function activeUnboundSlot(buffer, verifyChecksums = true) {
         for (let i = 0; i < count; i += 1) {
             const off = base + i * SECTION_SIZE;
             const id = ru16(buffer, off + OFF_ID);
-            if (id >= count || sections.has(id) || !UNBOUND_SIGNATURES.has(ru32(buffer, off + PROFILE.container.footer.signature))) break;
+            if (id >= count || sections.has(id) || !PROFILE.container.signatures.includes(ru32(buffer, off + PROFILE.container.footer.signature))) break;
             // Section 4 is opaque; auxiliary sectors and RTC trailers are excluded.
             if (verifyChecksums && !PROFILE.container.checksum.opaque_ids.includes(id) && gbaChecksum(buffer, off, unboundChecksumLength(id)) !== ru16(buffer, off + OFF_CHECKSUM)) break;
             sections.set(id, { id, idx: ru32(buffer, off + OFF_SAVE_IDX), offset: off });

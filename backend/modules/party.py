@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from core.data_loader import catalog_path
-from core.profile import PROFILE
+from core.profile import PROFILE, catalog_file, require_capability
 # party.py — Unbound Editor con HA (Hidden Ability), Natura & Exp Logic
 # Features: Checksum Fix, static data loading, Name Search, Nature Editing, Smart Level, Hidden Ability Toggle.
 
@@ -265,11 +265,11 @@ def load_static_data():
     DB_SPECIES_ABILITIES_META.clear()
     DB_MOVE_BASE_PP.clear()
 
-    DB_ITEMS.update(load_id_name_file(PROFILE["catalogs"]["items"]["file"]))
-    DB_MOVES.update(load_id_name_file(PROFILE["catalogs"]["moves"]["file"]))
-    DB_ABILITIES.update(load_id_name_file(PROFILE["catalogs"]["abilities"]["file"]))
-    DB_SPECIES.update(load_id_name_file(PROFILE["catalogs"]["species"]["file"]))
-    DB_MOVE_BASE_PP.update(load_move_base_pp_map(PROFILE["catalogs"]["move_pp"]["file"]))
+    DB_ITEMS.update(load_id_name_file(catalog_file("items")))
+    DB_MOVES.update(load_id_name_file(catalog_file("moves")))
+    DB_ABILITIES.update(load_id_name_file(catalog_file("abilities")))
+    DB_SPECIES.update(load_id_name_file(catalog_file("species")))
+    DB_MOVE_BASE_PP.update(load_move_base_pp_map(catalog_file("move_pp")))
 
     base_stats_path = catalog_path("base_stats")
     if os.path.exists(base_stats_path):
@@ -808,6 +808,7 @@ class Pokemon:
         self.substructs['B'] = b
 
     def set_ball_id(self, ball_id):
+        require_capability("caught_ball_edit")
         bid = int(ball_id)
         if bid < 0 or bid > 26:
             raise ValueError("Invalid ball_id")

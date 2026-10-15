@@ -1,3 +1,4 @@
+import { supports, PROFILE } from './core/profile.js';
 import React, { lazy, Suspense, useMemo, useState, useEffect } from 'react';
 import {
     Upload,
@@ -44,11 +45,13 @@ const getInitialLegitMode = () => {
 };
 
 const App = () => {
+    const [profileChoice, setProfileChoice] = useState('');
     const [runtimeMode, setRuntimeMode] = useState(getInitialRuntimeMode);
     const [legitMode, setLegitMode] = useState(getInitialLegitMode);
     const [activeTab, setActiveTab] = useState('party');
     const [isLoaded, setIsLoaded] = useState(false);
     const [saveExt, setSaveExt] = useState('.sav');
+    const [trainer, setTrainer] = useState(null);
     const [money, setMoney] = useState(0);
     const [bp, setBp] = useState(0);
     const [showResourcesModal, setShowResourcesModal] = useState(false);
@@ -76,16 +79,19 @@ const App = () => {
         if (!file) return;
 
         try {
-            await client.uploadSave(file);
-            const [mData, bpData] = await Promise.all([client.getMoney(), client.getBp()]);
+            await client.uploadSave(file, profileChoice || null);
+            setTrainer(await client.getTrainer());
+            setActiveTab('party');
+            setPcBoxId(1);
+            const [mData, bpData] = await Promise.all([client.getMoney(), supports('bp') ? client.getBp() : Promise.resolve({bp: 0})]);
             setMoney(Number(mData.money ?? 0));
             setBp(Number(bpData.bp ?? 0));
             setMoneyInput(String(mData.money ?? 0));
             setBpInput(String(bpData.bp ?? 0));
             setSaveExt(file.name.toLowerCase().endsWith('.srm') ? '.srm' : '.sav');
             setIsLoaded(true);
-        } catch {
-            alert("Upload failed for current runtime mode.");
+        } catch (err) {
+            alert(err.message || "Upload failed for current runtime mode.");
         }
     };
 
@@ -427,8 +433,8 @@ const App = () => {
         const amount = Math.max(0, Math.min(999999999, parseInt(moneyInput, 10) || 0));
         const bpAmount = Math.max(0, Math.min(65535, parseInt(bpInput, 10) || 0));
         try {
-            await Promise.all([client.updateMoney(amount), client.updateBp(bpAmount)]);
-            const [mData, bpData] = await Promise.all([client.getMoney(), client.getBp()]);
+            await Promise.all([client.updateMoney(amount), supports('bp') ? client.updateBp(bpAmount) : Promise.resolve()]);
+            const [mData, bpData] = await Promise.all([client.getMoney(), supports('bp') ? client.getBp() : Promise.resolve({bp: 0})]);
             setMoney(Number(mData.money ?? amount));
             setBp(Number(bpData.bp ?? bpAmount));
             setShowResourcesModal(false);
@@ -609,6 +615,14 @@ const App = () => {
                                             </div>
                                         </div>
 
+                                        <label className="mt-4 block text-sm">Game / version
+                                            <select aria-label="Game / version" value={profileChoice} onChange={(e) => setProfileChoice(e.target.value)} className="ml-3 rounded bg-slate-900 p-2">
+                                                <option value="">Recognize save</option>
+                                                <option value="unbound-2.1.1.1">Unbound 2.1.1.1</option>
+                                                <option value="radical-red-4.1">Radical Red 4.1</option>
+                                            </select>
+                                        </label>
+                                        <p className="mt-2 text-xs text-slate-400">Radical Red requires explicit version selection. Confirm that your game is version 4.1.</p>
                                         <div className="mt-4 rounded-2xl border border-dashed border-blue-400/40 bg-slate-900/60 px-4 py-6 text-center">
                                             <p className="text-xs text-slate-300">Drag and drop your file here</p>
                                             <p className="mt-1 text-[11px] text-slate-500">Accepted: <span className="font-mono">.sav</span> and <span className="font-mono">.srm</span></p>
@@ -902,9 +916,9 @@ const App = () => {
                                 onAddPokemon={(target) => setPcInsertTarget(target)}
                                 onReleasePokemon={handleReleasePC}
                             />}
-                            {activeTab === 'all' && <AllPokemonTable key={`all-${refreshKey}`} client={client} />}
+                            {supports('roster_export') && activeTab === 'all' && <AllPokemonTable key={`all-${refreshKey}`} client={client} />}
                             {activeTab === 'bag' && <BagView client={client} initialUnsaved={bagHasUnsavedChanges} onDirtyChange={setBagHasUnsavedChanges} />}
-                            {activeTab === 'dex' && <LivingDexPanel key={`dex-${refreshKey}`} client={client} />}
+                            {supports('pokedex') && activeTab === 'dex' && <LivingDexPanel key={`dex-${refreshKey}`} client={client} />}
                         </Suspense>
                     </div>
                 )}
@@ -977,6 +991,7 @@ const App = () => {
                         </div>
                         <div className="space-y-3">
                             <div>
+                                <p className="text-xs text-slate-400 mb-2">{PROFILE.identity.game} · {trainer?.name} · TID {trainer?.tid} / SID {trainer?.sid}</p>
                                 <label className="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Money</label>
                                 <input
                                     type="number"
@@ -991,7 +1006,7 @@ const App = () => {
                                     className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 font-mono text-emerald-400 outline-none focus:border-blue-500"
                                 />
                             </div>
-                            <div>
+                            {supports('bp') && <div>
                                 <label className="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Battle Points</label>
                                 <input
                                     type="number"
@@ -1005,10 +1020,10 @@ const App = () => {
                                     }}
                                     className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 font-mono text-amber-300 outline-none focus:border-blue-500"
                                 />
-                            </div>
+                            </div>}
                         </div>
                         <p className="text-[11px] text-slate-400">
-                            Money clamps to 0..999999999 and BP clamps to 0..65535.
+                            {PROFILE.identity.game}: money clamps to 0..999999999 and BP clamps to 0..65535.
                         </p>
                         <div className="flex gap-3">
                             <button
@@ -1056,9 +1071,9 @@ const App = () => {
                 <nav aria-label="Editor sections" className="fixed bottom-6 w-[92%] max-w-xl bg-[#1e293b]/95 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-2 shadow-2xl flex justify-around z-50">
                     <TabItem icon={<LayoutGrid size={20}/>} label="Party" active={activeTab === 'party'} onClick={() => handleTabChange('party')} />
                     <TabItem icon={<Users size={20}/>} label="PC Box" active={activeTab === 'pc'} onClick={() => handleTabChange('pc')} />
-                    <TabItem icon={<ListFilter size={20}/>} label="All Pokémon" active={activeTab === 'all'} onClick={() => handleTabChange('all')} />
+                    {supports('roster_export') && <TabItem icon={<ListFilter size={20}/>} label="All Pokémon" active={activeTab === 'all'} onClick={() => handleTabChange('all')} />}
                     <TabItem icon={<Briefcase size={20}/>} label="Bag" active={activeTab === 'bag'} onClick={() => handleTabChange('bag')} />
-                    <TabItem icon={<BookOpen size={20}/>} label="Dex" active={activeTab === 'dex'} onClick={() => handleTabChange('dex')} />
+                    {supports('pokedex') && <TabItem icon={<BookOpen size={20}/>} label="Dex" active={activeTab === 'dex'} onClick={() => handleTabChange('dex')} />}
                 </nav>
             )}
 

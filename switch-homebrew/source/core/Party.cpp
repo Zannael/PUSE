@@ -48,7 +48,6 @@ constexpr size_t kMonSpdOff = profile::kCodecsPartyFieldsSpd;
 constexpr uint8_t kGenderThresholdMaleOnly = 0;
 constexpr uint8_t kGenderThresholdFemaleOnly = 254;
 constexpr uint8_t kGenderThresholdGenderless = 255;
-constexpr int kShinyThreshold = profile::kRulesShinyThreshold;
 constexpr int kInv11Mod25 = 16;
 
 const std::array<const char *, 25> kNatureNames = {
@@ -352,7 +351,7 @@ uint32_t ShinyValue(const uint32_t otid, const uint32_t pid) {
 }
 
 bool IsShiny(const uint32_t otid, const uint32_t pid) {
-    return ShinyValue(otid, pid) < static_cast<uint32_t>(kShinyThreshold);
+    return ShinyValue(otid, pid) < static_cast<uint32_t>(profile::ShinyThreshold());
 }
 
 std::optional<uint8_t> GetGenderThreshold(const uint16_t species_id) {
@@ -702,10 +701,10 @@ bool FindIdentityPid(
             }
         }
 
-        const uint16_t req_high_mod = static_cast<uint16_t>((((target_nature_id % 25U) - (low % 25U)) * kInv11Mod25) % 25U);
+        const uint16_t req_high_mod = static_cast<uint16_t>((static_cast<int>(target_nature_id % 25U) - static_cast<int>(low % 25U) + 25) * kInv11Mod25 % 25);
 
         if (desired_shiny) {
-            for (int sv = 0; sv < kShinyThreshold; ++sv) {
+            for (int sv = 0; sv < profile::ShinyThreshold(); ++sv) {
                 const uint16_t high = static_cast<uint16_t>((tid_sid ^ low ^ static_cast<uint16_t>(sv)) & 0xFFFFU);
                 if ((high % 25U) != req_high_mod) {
                     continue;
@@ -1010,6 +1009,11 @@ bool ResolveCurrentAbility(
     std::string *effective_name,
     std::string *label
 ) {
+    if (profile::IsRadicalRed()) {
+        *effective_id = 0; effective_name->clear();
+        *label = "Native slot " + std::to_string(current_index + 1) + " (game overrides not modeled)";
+        return true;
+    }
     const std::string a1_name = GetAbilityNameById(ability_meta.ability_1_id);
     const std::string a2_name = GetAbilityNameById(ability_meta.ability_2_id);
     const std::string ha_name = GetAbilityNameById(ability_meta.hidden_ability_id);
@@ -1127,10 +1131,24 @@ bool MutatePartyMon(
 
 } // namespace
 
-bool EnsurePartyStaticDataLoaded(std::string *error) {
-    if (g_static_data_loaded) {
+bool ReadTrainerIdentity(const std::vector<uint8_t>& buffer, TrainerIdentity* out) {
+    if (!out) return false;
+    for (const auto& sec: ActiveUnboundSections(buffer)) if (sec.section_id == 0) {
+        out->name = DecodeText(buffer.data()+sec.offset,7);
+        out->gender = buffer[sec.offset+8];
+        out->trainer_id = ReadU32Le(buffer.data()+sec.offset,0xA);
         return true;
     }
+    return false;
+}
+
+bool EnsurePartyStaticDataLoaded(std::string *error) {
+    static std::string loaded_profile;
+    if (g_static_data_loaded && loaded_profile == profile::Current().id) return true;
+    g_static_data_loaded = false;
+    loaded_profile = profile::Current().id;
+    g_species_base_stats.clear(); g_species_identity_meta.clear();
+    g_species_growth_rates.clear(); g_species_abilities_meta.clear(); g_abilities_db.clear(); g_move_base_pp.clear();
 
     const std::string abilities_path = io::ResolveAssetPath(profile::CatalogAsset("abilities.txt"));
     const std::string base_stats_path = io::ResolveAssetPath(profile::CatalogAsset("species_base_stats.json"));
@@ -1139,7 +1157,7 @@ bool EnsurePartyStaticDataLoaded(std::string *error) {
     const std::string species_abilities_path = io::ResolveAssetPath(profile::CatalogAsset("species_abilities_meta.json"));
     const std::string move_table_path = io::ResolveAssetPath(profile::CatalogAsset("move_table_from_rom.json"));
 
-    if (abilities_path.empty() || base_stats_path.empty() || identity_path.empty() || growth_path.empty() || species_abilities_path.empty()) {
+    if ((profile::IsRadicalRed() && move_table_path.empty()) || abilities_path.empty() || base_stats_path.empty() || identity_path.empty() || growth_path.empty() || species_abilities_path.empty()) {
         if (error != nullptr) {
             *error = "missing required static party data files";
         }

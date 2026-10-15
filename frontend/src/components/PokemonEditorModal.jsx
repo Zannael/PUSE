@@ -1,3 +1,4 @@
+import { supports, isRadicalRed } from '../core/profile.js';
 import { validateOtName } from '../core/otName.js';
 import React, { useState, useEffect, useMemo } from 'react';
 import { X, Zap, Save, Search, Download, CircleHelp } from 'lucide-react';
@@ -452,7 +453,7 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                         <button
                             type="button"
                             onClick={() => setShowImport((prev) => !prev)}
-                            disabled={isSaving}
+                            disabled={isSaving || isRadicalRed()}
                             className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
                         >
                             <Download size={12} /> FROM SMOGON
@@ -623,7 +624,7 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                                             >
                                                 <option value="auto">Default from species (recommended)</option>
                                                 {GROWTH_OPTIONS.map((opt) => (
-                                                    <option key={opt.id} value={String(opt.id)}>{opt.id} - {opt.label}</option>
+                                                    <option key={opt.id} value={String(opt.id)}>{opt.id} - {isRadicalRed() ? `Native slot ${opt.id + 1}` : opt.label}</option>
                                                 ))}
                                             </select>
                                         </div>
@@ -682,7 +683,7 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                                                     : 'text-slate-500 hover:text-slate-300'
                                             } ${opt.disabled ? 'opacity-50 cursor-not-allowed hover:text-slate-500' : ''}`}
                                         >
-                                            {opt.label}
+                                            {isRadicalRed() ? `Native slot ${opt.id + 1}` : opt.label}
                                         </button>
                                     ))}
                                 </div>
@@ -912,11 +913,11 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">
                                     Pokédex Flags
                                 </label>
-                                <PokedexFlagsControls
+                                {supports('pokedex') && <PokedexFlagsControls
                                     client={client}
                                     speciesId={localPk.species_id}
                                     speciesLabel={currentSpeciesName}
-                                />
+                                />}
                             </div>
 
                             <div className="bg-slate-800/40 p-6 rounded-2xl border border-white/5 space-y-4">

@@ -1,3 +1,4 @@
+#include <puse/core/GameProfile.hpp>
 #include "Core.h"
 
 #include <sys/stat.h>
@@ -55,6 +56,7 @@ bool IsDir(const std::string& p) {
 
 // depth-bounded walk: collect any .sav matching unbound (case-insensitive).
 // preferred=true match means filename basename is exactly "unbound.sav".
+std::string wanted_save = "unbound";
 void WalkSavs(const std::string& root, int depth,
               std::vector<std::string>* exact,
               std::vector<std::string>* substr_match) {
@@ -71,9 +73,9 @@ void WalkSavs(const std::string& root, int depth,
         } else {
             const std::string lname = ToLower(name);
             if (!EndsWith(lname, ".sav")) continue;
-            if (lname == "unbound.sav") {
+            if (lname == wanted_save + ".sav") {
                 exact->push_back(full);
-            } else if (lname.find("unbound") != std::string::npos) {
+            } else if (lname.find(wanted_save) != std::string::npos) {
                 substr_match->push_back(full);
             }
         }
@@ -93,7 +95,9 @@ std::string FindUnboundSave() {
         "sdmc:/Unbound.sav",
     };
     for (const char* p : kProbe) {
-        if (FileExists(p)) return p;
+        std::string candidate = p;
+        if (wanted_save != "unbound") { const auto at = candidate.find("Unbound"); if (at != std::string::npos) candidate.replace(at, 7, "radicalred"); }
+        if (FileExists(candidate)) return candidate;
     }
 
     // 2) bounded recursive walk of likely roots
@@ -139,10 +143,17 @@ void Core::Init() {
     mkdir("sdmc:/3ds", 0777);
     mkdir("sdmc:/3ds/puse", 0777);
 
+    MessageBox::New(MessageBox::YesNo,
+        "Load Radical Red 4.1?\nYes: Radical Red 4.1\nNo: Unbound 2.1.1.1\nConfirm your ROM version before editing.",
+        [this](int choice) { LoadForProfile(choice == 0 ? "radical-red-4.1" : "unbound-2.1.1.1"); })->Open();
+}
+
+void Core::LoadForProfile(const std::string& profile_id) {
+    wanted_save = profile_id == "radical-red-4.1" ? "radicalred" : "unbound";
     save_path_ = FindUnboundSave();
     if (save_path_.empty()) {
         puse::ui::DiagnosticsScreen::Make(
-            "Unbound.sav not found on SD.\n\n"
+            "Selected game save not found on SD.\nUse radicalred.sav for Radical Red.\n\n"
             "Place it at one of:\n"
             "  sdmc:/3ds/puse/Unbound.sav\n"
             "  sdmc:/3ds/open_agb_firm/saves/\n"
@@ -153,7 +164,7 @@ void Core::Init() {
     }
 
     std::string err;
-    if (!session_.LoadFromFile(save_path_, &err)) {
+    if (!session_.LoadFromFile(save_path_, &err, profile_id)) {
         puse::ui::DiagnosticsScreen::Make(
             "Save found but load failed.\n\n" + save_path_ + "\n\n" + err
         )->Open();
@@ -168,9 +179,9 @@ void Core::Init() {
     }
 
     {
-        std::string sp = puse::io::ResolveAssetPath("data/pokemon.txt");
-        std::string it = puse::io::ResolveAssetPath("data/items.txt");
-        std::string mv = puse::io::ResolveAssetPath("data/moves.txt");
+        std::string sp = puse::io::ResolveAssetPath(puse::core::profile::CatalogAsset("pokemon.txt"));
+        std::string it = puse::io::ResolveAssetPath(puse::core::profile::CatalogAsset("items.txt"));
+        std::string mv = puse::io::ResolveAssetPath(puse::core::profile::CatalogAsset("moves.txt"));
         if (!sp.empty()) species_db_ = puse::io::LoadIdNameFile(sp);
         if (!it.empty()) items_db_   = puse::io::LoadIdNameFile(it);
         if (!mv.empty()) moves_db_   = puse::io::LoadIdNameFile(mv);

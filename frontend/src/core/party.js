@@ -1,13 +1,13 @@
-import { PROFILE } from './profile.js';
+import { PROFILE, profileData } from './profile.js';
 import { validateOtName } from './otName.js';
 import { recalculateTrainerChecksum } from './checksum.js';
 import { ru8, ru16, ru32, wu8, wu16, wu32 } from './binary.js';
 import { findActiveSectionById } from './sections.js';
-import speciesBaseStats from './speciesBaseStats.json' with { type: 'json' };
-import speciesIdentityMeta from './speciesIdentityMeta.json' with { type: 'json' };
-import speciesGrowthRates from './speciesGrowthRates.json' with { type: 'json' };
-import speciesAbilitiesMeta from './speciesAbilitiesMeta.json' with { type: 'json' };
-import abilitiesCatalog from './abilitiesCatalog.json' with { type: 'json' };
+import speciesBaseStatsRaw from './speciesBaseStats.json' with { type: 'json' };
+import speciesIdentityMetaRaw from './speciesIdentityMeta.json' with { type: 'json' };
+import speciesGrowthRatesRaw from './speciesGrowthRates.json' with { type: 'json' };
+import speciesAbilitiesMetaRaw from './speciesAbilitiesMeta.json' with { type: 'json' };
+import abilitiesCatalogRaw from './abilitiesCatalog.json' with { type: 'json' };
 import { getMoveBasePpById } from './catalog.js';
 import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
 import { getBallMeta, validateBallId } from './balls.js';
@@ -35,7 +35,6 @@ const GENDER_THRESHOLD_MALE_ONLY = 0;
 const GENDER_THRESHOLD_FEMALE_ONLY = 254;
 const GENDER_THRESHOLD_GENDERLESS = 255;
 const INV_11_MOD_25 = 16;
-const SHINY_THRESHOLD = PROFILE.rules.shiny_threshold;
 
 const GROWTH_RATE_COUNT = 6;
 
@@ -184,6 +183,7 @@ function getAbilityNameById(abilityId) {
 }
 
 function resolveCurrentAbility(currentIndex, ability1Id, ability1Name, ability2Id, ability2Name, abilityHiddenId, abilityHiddenName) {
+    if (PROFILE.id === 'radical-red-4.1') return { effective_ability_id: null, effective_ability_name: null, ability_name_current: null, ability_label_current: `Native slot ${currentIndex + 1} (game overrides not modeled)` };
     if (currentIndex === 0) {
         const effectiveId = (ability1Id !== null && ability1Id !== 0) ? ability1Id : ability2Id;
         const effectiveName = ability1Name || ability2Name;
@@ -273,7 +273,7 @@ function shinyValue(otid, pid) {
 }
 
 function isShinyPid(otid, pid) {
-    return shinyValue(otid, pid) < SHINY_THRESHOLD;
+    return shinyValue(otid, pid) < PROFILE.rules.shiny_threshold;
 }
 
 function nearestHighForMod(reqMod, preferredHigh) {
@@ -345,7 +345,7 @@ function findIdentityPid(rawMon, payload = {}) {
         const reqHighMod = (((targetNatureId - (low % 25)) * INV_11_MOD_25) % 25 + 25) % 25;
 
         if (desiredShiny) {
-            for (let sv = 0; sv < SHINY_THRESHOLD; sv += 1) {
+            for (let sv = 0; sv < PROFILE.rules.shiny_threshold; sv += 1) {
                 const high = (tidSid ^ low ^ sv) & 0xFFFF;
                 if ((high % 25) !== reqHighMod) {
                     continue;
@@ -1086,4 +1086,22 @@ export function updatePartyLevel(buffer, monIndex, payload) {
         wu8(rawMon, OFF_LEVEL_VISUAL, targetLevel);
         recalculatePartyStats(rawMon, true);
     });
+}
+
+const speciesBaseStats = profileData("base_stats", speciesBaseStatsRaw);
+
+const speciesIdentityMeta = profileData("identity", speciesIdentityMetaRaw);
+
+const speciesGrowthRates = profileData("growth", speciesGrowthRatesRaw);
+
+const speciesAbilitiesMeta = profileData("species_abilities", speciesAbilitiesMetaRaw);
+
+const abilitiesCatalog = profileData("abilities", abilitiesCatalogRaw);
+
+// Trainer identity is read-only; Pokémon OT editors do not rename the player.
+export function readTrainer(buffer) {
+    const section = findActiveSectionById(buffer, 0);
+    if (!section) throw new Error('Trainer profile section not found');
+    const id = ru32(buffer, section.off + 0xA);
+    return {profile_id: PROFILE.id, name: decodeText(buffer.slice(section.off,section.off+7)), gender:buffer[section.off+8], trainer_id:id,tid:id&65535,sid:id>>>16};
 }

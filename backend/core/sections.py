@@ -28,38 +28,34 @@ def refresh_checksum(data, offset):
     struct.pack_into('<H', data, offset + FOOTER["checksum"],
                      calculate_checksum(data[offset:offset + section_checksum_length(sid)]))
 
-def active_unbound_slot(data, verify_checksums=True):
-    """Select one complete, coherent, intact slot; never mix generations.
-
-    Section 4 remains opaque: its footer/signature/counter are checked, but its
-    checksum is deliberately not used to reject or rewrite a slot.
-    Auxiliary sectors 30/31 and the RTC trailer have no ordinary footers.
-    """
-    slots = []
-    for slot in range(PROFILE["container"]["slot_count"]):
-        base = slot * SLOT_SECTIONS * SECTION_SIZE
-        if base + SLOT_SECTIONS * SECTION_SIZE > len(data):
-            continue
+def active_slot(data, profile=None, verify_checksums=True):
+    """Select a coherent generation under an explicit immutable descriptor."""
+    from core.profile import get_profile
+    profile = get_profile() if profile is None else profile
+    c = profile['container']; size = c['section_size']; count = c['sections_per_slot']
+    footer = c['footer']; domains = c['checksum']; slots = []
+    for index in range(c['slot_count']):
+        base = index * count * size
+        if base + count * size > len(data): continue
         sections = {}
-        for index in range(SLOT_SECTIONS):
-            off = base + index * SECTION_SIZE
-            sid = ru16(data, off + FOOTER["id"])
-            if sid not in range(SLOT_SECTIONS) or sid in sections:
-                break
-            if ru32(data, off + FOOTER["signature"]) not in UNBOUND_SIGNATURES:
-                break
-            if verify_checksums and sid not in OPAQUE_IDS and calculate_checksum(data[off:off + section_checksum_length(sid)]) != ru16(data, off + FOOTER["checksum"]):
-                break
-            sections[sid] = {'id': sid, 'idx': ru32(data, off + FOOTER["counter"]), 'offset': off}
-        if len(sections) == SLOT_SECTIONS and len({sec['idx'] for sec in sections.values()}) == 1:
-            slots.append(sections)
-    if not slots:
-        return {}
+        for index in range(count):
+            off = base + index * size; sid = ru16(data, off + footer['id'])
+            if sid not in range(count) or sid in sections: break
+            if ru32(data, off + footer['signature']) not in c['signatures']: break
+            length = domains['lengths'].get(str(sid), domains['default_length'])
+            if verify_checksums and sid not in domains['opaque_ids'] and calculate_checksum(data[off:off+length]) != ru16(data,off+footer['checksum']): break
+            sections[sid] = {'id':sid,'idx':ru32(data,off+footer['counter']),'offset':off}
+        if len(sections) == count and len({sec['idx'] for sec in sections.values()}) == 1: slots.append(sections)
+    if not slots: return {}
     if len(slots) == 2:
         delta = (slots[1][0]['idx'] - slots[0][0]['idx']) & 0xFFFFFFFF
-        if 0 < delta < 0x80000000:
-            return slots[1]
+        if 0 < delta < 0x80000000: return slots[1]
     return slots[0]
+
+
+def active_unbound_slot(data, verify_checksums=True):
+    # Legacy entry point now dispatches through the selected game profile.
+    return active_slot(data, verify_checksums=verify_checksums)
 
 
 def active_sections(data):

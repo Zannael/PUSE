@@ -156,13 +156,60 @@ Verification and remaining boundaries:
 
 ## Milestone 3 — add Radical Red as a second explicit profile
 
-**Status:** pending; follows milestone 2.
+**Status:** implemented for the verified English Radical Red 4.1 ROM; validation and coverage boundaries below.
 
 Begin with Pokémon, trainer and bag operations, using independently validated catalogs and fixtures. Add candidate-based recognition and explicit selection when saves are ambiguous. Expose unsupported operations consistently across runtimes.
 
 Why: a second game tests whether the profile design handles real differences. The upstream adapters share storage but use different species/item mappings and shiny thresholds: Unbound 16, Radical Red 8. Those values still need verification for each supported Radical Red version.
 
 Preserve PUSE's PID-aware editing where verified metadata permits it. Do not equate modern PKHeX legality with a hack's native rules.
+
+### Milestone 3 implementation — 2026-10-15
+
+Milestone 2 was committed first as `3e734b2` (`Introduce verified Unbound game profile across all runtimes`). This milestone registers a second explicit profile; it does not implement milestone 4 structural discovery or milestone 5 game-specific flags/catalog completeness.
+
+**Version and independent evidence.** The supplied 32 MiB ROM has SHA-256 `679d112cdfe699c2793d82c7e7999ac9dfca9e222ad5a85d4f8f1e457cd0283f` and SHA-1 `964f951a0fdaf209e4ea1344883ef0d557bb3a80`. Its live version text at `0x10F6D55` identifies v4.1; the SHA-1 also matches the ROM required by the [Radical Red Character Mode author](https://github.com/jbfish00/RadicalRed-Character-Mode). The supplied `radicalred.sav` is byte-identical to the earlier champion fixture (SHA-256 `c115d09c89b8c800c30a4f53e3d9741a743cc89effac858918368b914104128a`); these are one independent save, not two. Every private ROM/save remains ignored and unchanged.
+
+| Verified Radical Red 4.1 property | Evidence and implemented behavior |
+|---|---|
+| Container | Live section-length table `0x1148BF0`, referenced at `0xDA23C`; ordinary signature `0x08012025`. Complete coherent 14-sector generations with modulo-32-bit counters and checksum fallback. The signature only establishes a CFRU-family candidate, never the exact game/version. |
+| Checksum domains | Section 0 `0xF24`; sections 1–3 and 5–12 `0xFF0`; section 4 **`0xD98`, checksummed**; section 13 `0x450`. Unbound section 4 remains opaque. Shared auxiliary sectors 30/31 still have no historical snapshot or verified independent integrity marker. |
+| PC | Live 25-box pointer table `0x1148930`: RAM `0x02029318` (19 boxes), `0x0203CB44` (3), `0x02027434` (2), `0x02024638` (1). First 24 boxes use the verified fragmented CFRU stream; **Box 25** appends section 0 `[0xB0,0x77C)`. The game names it Box 25, not Preset. All 750 records / 43,500 bytes match loaded game RAM. |
+| Party / identity | Six 100-byte plain records at section 1 `0x38`, count `0x34`; compact PC records are 58 bytes. Nature routine `0x42E9C` uses PID modulo 25. Live shiny routine `0x4449C`, comparison at `0x444B0`, accepts XOR values below **8**. Native ability slots use PID parity / the hidden flag. |
+| Trainer / money | Read-only player name, gender and combined trainer ID in section 0; money at section 1 `0x290`, XOR with section 0 `0xF20`. Live getter `0x9FD58`; maximum literal `0x9FDD4` is 999,999,999. RR money writes do not write Unbound BCD shadows. |
+| Main bag | 450 unencrypted ID/quantity u16 slots: section 13 `[0xAD8,0xFF0)` plus sector 30 `[0,0x1F0)`. Logical deletion compacts across the 326/124-slot split; auxiliary footers remain untouched. |
+| Other pockets | Sector 30: key `[0x1F0,0x31C)` 75 slots, balls `[0x31C,0x3E4)` 50, TMs `[0x3E4,0x5E4)` 128, berries `[0x5E4,0x710)` 75. All five serialized pockets match game RAM. Writers check ROM-derived pocket membership, normalize key/TM quantity before validation, and permit insertion only into the first empty slot. |
+
+**Catalog provenance.** `backend/tools/extract_radical_red_41.py` is restricted to that ROM hash. It reads live ROM header/code references: species names `0x14042CC` (1,376 rows), base stats `0x17B98EC` (28-byte records), ability names `0x10E32C0` (282), move names `0x10F3188` / data `0x11521D0` (1,004), and items `0x13C0000` (750 44-byte records). Live item sanitizer literal `0x10A512C` bounds IDs at 749. Item names support the live pointer-name form; item 616 is Clear Amulet. The generic extractor's old vanilla species table was rejected because it was not the live table. This is a version-pinned extractor, not generic discovery. No upstream GPL adapter code or curated mapping arrays were transplanted. Canonical assets live under `backend/data/games/radical-red-4.1/`; browser and both ROMFS mirrors are generated/synchronized from them.
+
+**Runtime delivery.** Python behavior was implemented first, then ported to browser JavaScript and both C++ cores. Sessions bind the explicit profile and refresh profile-scoped catalogs. Backend `/profiles`, `/profiles/recognize`, `/profile` and `/trainer` expose selection/support/identity; browser clients share the same contract. Web upload has a game/version selector. Switch confirms RR4.1 in its existing file-browser flow using Plutonium's built-in dialog. 3DS asks which supported game to load and searches for `radicalred.sav` or `Unbound.sav`. Existing native menus expose 25 RR boxes, money and bag editing; Unbound-only RTC/BP controls are omitted. ROM-derived native IDs cannot resolve through Unbound icon assets. Before Switch UI edits, reviewed Goldleaf `ui_MainApplication.cpp` and `ui_ExploreMenuLayout.cpp`, Plutonium `docs/files.html`, Menu documentation and `ui_Dialog.hpp`; existing menus/dialogs/full-screen navigation fit without custom-widget escalation.
+
+**Explicit limits.** Existing Pokémon editing, native identity, PC release, trainer money, fixed bag pockets and read-only trainer identity are supported. Player-name/gender/TID mutation, new PC Pokémon construction, caught-ball editing, Preset, BP, RTC, Pokédex/game-progress flags and aggregate roster export are unavailable for RR. Their bytes are preserved; relevant public operations reject before mutation and the web/native flows omit unavailable controls. ROM base ability slots are editable, but **effective ability prediction is unavailable**: five of six fixture Pokémon return a live-game ability different from the base ROM slot. The live modifier at `0x10796BC` depends on game flags/species/trainer inputs; those special-mode rules were not guessed. UI labels show native slots rather than claiming a base ability is effective. Base-stat previews do not model every difficulty/randomizer override. Save signatures cannot prove the selected ROM version. Only this hash-pinned English 4.1 version is validated; other RR versions/modified ROMs require a separate audit. Physical Switch/3DS controller and SD-card validation remains external to host parity and target builds.
+
+**Regression findings.** Broader shiny editing exposed signed-modulo underflow in the native party PID solver: unsigned subtraction could produce a different candidate from Python/JavaScript. Both native cores now normalize the difference before modulo 25, matching the canonical solver. The RR regression exercises this case along with native high move IDs/PP, names, held item, nature, shiny state, happiness, Box 25, XOR money and bag compaction. Synthetic controls also check section-4 fallback, counter rollover, wrong-pocket rejection, inactive generation and auxiliary-footer preservation. No-op and combined edits compare complete save bytes across all four runtimes. Unbound pre-refactor fingerprints remain unchanged.
+
+Reproduce focused validation from the repository root (private input stays read-only):
+
+```bash
+python3 backend/tools/radical_red_regression.py <ignored-radicalred-save>
+python3 backend/tools/radical_red_api_regression.py <ignored-radicalred-save>
+# Compile the existing mGBA public-core adapter with the same flags as milestone 1.
+python3 backend/tools/radical_red_game_validation.py \
+  --rom <ignored-verified-RR4.1-ROM> --save <ignored-radicalred-save> \
+  --probe <compiled-unbound_emulator_probe>
+```
+
+Real-ROM validation used mGBA 0.10.5 commit `26b7884bc25a5933960f3cdcd98bac1ae14d42e2`, built headless. Edited party, all 750 PC records and all five bag regions loaded byte-for-byte into game RAM. Calling the ROM's normal save handler through its live `0x080DA248` hook advanced the generation counter; cold reboot retained the edited party and money. This validates game serialization/load behavior; it is not a graphical gameplay or physical-console test. No ROMs, personal records, save dumps, build outputs or research dependencies are committed.
+
+Verification: focused RR four-runtime byte parity, real ASGI upload/read/unsupported-operation smoke, hash-gated real-ROM load/save/reboot, Python compilation, generator/mirror checks, frontend full parity/lint/build, both homebrew phase 1–4 suites and target builds. Final gate results:
+
+- `radical_red_regression.py` passed complete-save Python/browser/Switch/3DS parity for byte-identical no-op and combined boundary edits, including high move IDs/PP, shiny PID solving, names, Box 25, unknown neighboring record preservation, split-bag compaction, inactive generation and auxiliary footers.
+- `radical_red_api_regression.py` passed actual ASGI recognition/explicit upload/catalog/reader routes and unsupported-feature errors without writing an edited save.
+- `radical_red_game_validation.py` passed the verified ROM load/save/cold-reboot check using the committed public-core probe.
+- Frontend `npm run parity:all`, `npm run lint` and `npm run build` passed. The build retains the existing large-chunk advisory. Unbound profile fingerprints and all existing feature parity gates remain exact.
+- Both native phase 1–4 suites passed after the shared-core changes. Switch standard/lite and 3DS target builds passed; final incremental builds included the metadata fail-closed guards. Existing third-party/compiler warnings remain non-fatal.
+- Generator and both ROMFS mirrors pass `sync_game_profiles.py --check`; Python compile and `git diff --check` pass. The refreshed Switch SD bundle includes both NRO variants and both catalog namespaces, with no saves/ROMs. Build/bundle ownership is restored to the host user.
+- SHA-256 verification confirms all 17 pre-existing private ROM/save fixtures are unchanged. No private fixture, extracted personal data, generated binary or research dependency is included in the patch. Milestones 4 and 5 remain pending.
 
 ## Milestone 4 — add structural ROM discovery
 

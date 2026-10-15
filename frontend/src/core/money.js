@@ -1,4 +1,4 @@
-import { PROFILE } from './profile.js';
+import { PROFILE, isRadicalRed, requireCapability } from './profile.js';
 import { ru16, ru32, wu16, wu32 } from './binary.js';
 import { recalculateTrainerChecksum } from './checksum.js';
 import { findActiveSectionById, activeSections } from './sections.js';
@@ -27,7 +27,13 @@ export function readMoney(buffer) {
         throw new Error('Trainer section not found');
     }
 
-    return ru32(buffer, section.off + FALLBACK_OFF_MONEY);
+    const value=ru32(buffer, section.off + FALLBACK_OFF_MONEY);
+    if (isRadicalRed()) {
+        const key=findActiveSectionById(buffer,0);
+        if(!key)throw new Error('Trainer section not found');
+        return (value ^ ru32(buffer,key.off+0xF20))>>>0;
+    }
+    return value;
 }
 
 export function updateMoney(buffer, amount) {
@@ -37,6 +43,15 @@ export function updateMoney(buffer, amount) {
     }
 
     const safeAmount = Math.max(0, Math.min(MAX_MONEY, Number(amount) || 0));
+    if(isRadicalRed()) {
+        const key=findActiveSectionById(buffer,0);
+        if(!key)throw new Error('Trainer section not found');
+        for(const section of trainerSections) {
+            wu32(buffer,section.off+FALLBACK_OFF_MONEY,(safeAmount ^ ru32(buffer,key.off+0xF20))>>>0);
+            recalculateTrainerChecksum(buffer,section.off);
+        }
+        return safeAmount;
+    }
     const bcd = toBcd3(safeAmount);
 
     trainerSections.forEach((section) => {
@@ -56,6 +71,7 @@ export function updateMoney(buffer, amount) {
 }
 
 export function readBp(buffer) {
+    requireCapability("bp");
     const section = findActiveSectionById(buffer, BP_SECTION_ID);
     if (!section) {
         throw new Error('Battle Points section not found');
@@ -65,6 +81,7 @@ export function readBp(buffer) {
 }
 
 export function updateBp(buffer, amount) {
+    requireCapability("bp");
     const section = findActiveSectionById(buffer, BP_SECTION_ID);
     if (!section) {
         throw new Error('Battle Points section not found');

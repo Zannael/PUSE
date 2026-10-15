@@ -24,6 +24,7 @@ public:
     ~Core() override = default;
 
     void Init() override;
+    void LoadForProfile(const std::string& profile_id);
     void End() override;
     void Update() override;
 

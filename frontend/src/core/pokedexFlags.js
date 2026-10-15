@@ -1,3 +1,4 @@
+import { requireCapability } from './profile.js';
 import { PROFILE } from './profile.js';
 import { ru8, wu8 } from './binary.js';
 import { recalculateTrainerChecksum } from './checksum.js';
@@ -72,6 +73,7 @@ export function isDexSpeciesTrackable(speciesId) {
 }
 
 export function getPokedexFlags(buffer, speciesId) {
+    requireCapability('pokedex');
     const dexId = dexIdForSpeciesId(speciesId);
     if (!isDexSpeciesTrackable(dexId)) {
         return { trackable: false, seen: false, caught: false };
@@ -85,6 +87,7 @@ export function getPokedexFlags(buffer, speciesId) {
 }
 
 export function setPokedexFlag(buffer, speciesId, flag, value) {
+    requireCapability('pokedex');
     const dexId = dexIdForSpeciesId(speciesId);
     const normalized = flag === POKEDEX_FLAG.CAUGHT ? POKEDEX_FLAG.CAUGHT : POKEDEX_FLAG.SEEN;
     const offset = normalized === POKEDEX_FLAG.CAUGHT ? DEX_CAUGHT_OFFSET : DEX_SEEN_OFFSET;
@@ -99,6 +102,7 @@ export function setPokedexFlag(buffer, speciesId, flag, value) {
 }
 
 export function buildPokedexSummary(buffer, speciesRows = []) {
+    requireCapability('pokedex');
     const groups = buildPokedexSpeciesGroups(speciesRows);
 
     let seenCount = 0;

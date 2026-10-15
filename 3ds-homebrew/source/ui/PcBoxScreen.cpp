@@ -100,7 +100,7 @@ void PcBoxScreen::RefreshSlots() {
     // Box label on top
     char buf[48];
     snprintf(buf, sizeof(buf), "Box %d / %d   (%d mons)",
-        box_, puse::core::kPcStreamBoxCount, (int)mons_.size());
+        box_, puse::core::PcStreamBoxCount(), (int)mons_.size());
     box_label_->SetText(buf);
 
     // Grid summary on top (6 per line = 5 lines for 30 slots)
@@ -120,8 +120,8 @@ void PcBoxScreen::RefreshSlots() {
 
 void PcBoxScreen::NavBox(int delta) {
     box_ += delta;
-    if (box_ < 1) box_ = puse::core::kPcStreamBoxCount;
-    if (box_ > puse::core::kPcStreamBoxCount) box_ = 1;
+    if (box_ < 1) box_ = puse::core::PcStreamBoxCount();
+    if (box_ > puse::core::PcStreamBoxCount()) box_ = 1;
     Core* core = Core::Get();
     if (core) core->SetSelectedPcBox(box_);
     LoadBox();

@@ -1,3 +1,4 @@
+import { requireCapability } from './profile.js';
 import { ru8 } from './binary.js';
 import { findActiveSectionById } from './sections.js';
 import { readBp, readMoney } from './money.js';
@@ -90,6 +91,7 @@ function readExpandedEventFlag(buffer, flagId) {
 }
 
 export function readEventFlag(buffer, flagId) {
+    requireCapability('game_progress');
     const id = Number(flagId);
     if (!Number.isFinite(id)) {
         return false;
@@ -156,6 +158,7 @@ function readOrZero(fn, buffer) {
 }
 
 export function buildGameProgressSnapshot(buffer, { itemNameById, capProfile = CAP_PROFILES.NORMAL } = {}) {
+    requireCapability('game_progress');
     const pockets = resolveQuickPockets(buffer);
     const ownedSlots = collectOwnedSlots(buffer, pockets);
     const badgeCount = countBadges(buffer);

@@ -748,6 +748,7 @@ pu::sdl2::TextureHandle::Ref MainApplication::LoadTextureHandle(const std::strin
 }
 
 pu::sdl2::TextureHandle::Ref MainApplication::GetPokemonIcon(const uint16_t species_id) {
+    if (puse::core::profile::IsRadicalRed()) return nullptr;
     auto cache_it = this->pokemon_icon_cache_.find(species_id);
     if (cache_it != this->pokemon_icon_cache_.end()) {
         return cache_it->second;
@@ -828,6 +829,7 @@ pu::sdl2::TextureHandle::Ref MainApplication::GetPokemonIcon(const uint16_t spec
 }
 
 pu::sdl2::TextureHandle::Ref MainApplication::GetItemIcon(const uint16_t item_id) {
+    if (puse::core::profile::IsRadicalRed()) return nullptr;
     if (item_id == 0) {
         return nullptr;
     }
@@ -897,9 +899,9 @@ pu::sdl2::TextureHandle::Ref MainApplication::GetItemIcon(const uint16_t item_id
 }
 
 bool MainApplication::LoadStaticData(std::string *error) {
-    const std::string species_path = io::ResolveAssetPath("data/pokemon.txt");
-    const std::string items_path = io::ResolveAssetPath("data/items.txt");
-    const std::string moves_path = io::ResolveAssetPath("data/moves.txt");
+    const std::string species_path = io::ResolveAssetPath(puse::core::profile::CatalogAsset("pokemon.txt"));
+    const std::string items_path = io::ResolveAssetPath(puse::core::profile::CatalogAsset("items.txt"));
+    const std::string moves_path = io::ResolveAssetPath(puse::core::profile::CatalogAsset("moves.txt"));
 
     if (species_path.empty() || items_path.empty() || moves_path.empty()) {
         if (error) { *error = "missing ROMFS data files"; }
@@ -916,8 +918,11 @@ bool MainApplication::LoadStaticData(std::string *error) {
 
 bool MainApplication::LoadSaveFromPath(const std::string &path, std::string *error) {
     if (!this->save_session_.LoadFromFile(path, error)) {
-        return false;
+        if (!error || error->find("Explicit game/version selection required") == std::string::npos) return false;
+        const int choice = this->CreateShowDialog("Confirm game version", "The save cannot prove the ROM version. Select only if your game is Radical Red 4.1.", {"Radical Red 4.1", "Cancel"}, true);
+        if (choice != 0 || !this->save_session_.LoadFromFile(path, error, "radical-red-4.1")) return false;
     }
+    if (!this->LoadStaticData(error)) return false;
 
     this->party_ = puse::core::ParseParty(this->save_session_.Buffer(), this->species_db_);
     this->dirty_ = false;
@@ -953,6 +958,9 @@ void MainApplication::OnSaveFileSelected(const std::string &path) {
         this->party_list_layout_->SetSubtitle("Loaded " + std::to_string(this->party_.size()) + " slot(s)");
         this->RebuildPartyMenu();
     }
+    puse::core::TrainerIdentity trainer{};
+    if (puse::core::ReadTrainerIdentity(this->save_session_.Buffer(), &trainer))
+        this->home_layout_->SetSubtitle(std::string(puse::core::profile::Current().id) + " | " + trainer.name + " | TID " + std::to_string(trainer.trainer_id & 65535));
     this->UpdateDirtyUi();
     this->RebuildHomeMenu();
 
@@ -1200,14 +1208,15 @@ void MainApplication::RebuildHomeMenu() {
     struct HomeItem { const char *label; const char *desc; };
     const std::vector<HomeItem> items = {
         {"Party",        "Edit your active party (up to 6 Pokemon)"},
-        {"PC",           "Browse and edit PC boxes (boxes 1-18)"},
+        {"PC",           "Browse and edit PC boxes"},
         {"Bag",          "Browse and edit bag pockets"},
-        {"Money & BP",   "Edit trainer money and Battle Points"},
+        {puse::core::profile::IsRadicalRed() ? "Money" : "Money & BP", "Edit supported trainer resources"},
         {"RTC Recovery", "Re-enable the in-game Time Fixer or use advanced recovery"},
         {"Load Save",    "Browse SD card for a .sav file"},
     };
 
     for (size_t i = 0; i < items.size(); ++i) {
+        if (i == 4 && !puse::core::profile::Supports("rtc")) continue;
         auto item = pu::ui::elm::MenuItem::New(std::string(items[i].label) + "   " + items[i].desc);
         item->SetColor({255, 255, 255, 255});
         const int idx = static_cast<int>(i);
@@ -1278,6 +1287,7 @@ void MainApplication::RebuildMoneyMenu() {
     }, HidNpadButton_A);
     menu->AddItem(item);
 
+    if (puse::core::profile::Supports("bp")) {
     // BP item
     uint16_t bp = 0;
     if (!puse::core::ReadBp(this->save_session_.Buffer(), &bp, nullptr)) {
@@ -1300,6 +1310,7 @@ void MainApplication::RebuildMoneyMenu() {
         }
     }, HidNpadButton_A);
     menu->AddItem(bp_item);
+    }
 
     menu->ForceReloadItems();
     menu->SetSelectedIndex(0);
@@ -1309,7 +1320,7 @@ void MainApplication::RebuildPcBoxListMenu() {
     const auto menu = this->pc_box_list_layout_->GetMenu();
     menu->ClearItems();
 
-    for (int box = 1; box <= puse::core::kPcStreamBoxCount; ++box) {
+    for (int box = 1; box <= puse::core::PcStreamBoxCount(); ++box) {
         const int count = puse::core::CountPcBoxMons(this->pc_stream_, box);
         std::ostringstream label;
         label << "Box " << box << "   (" << count << " / " << puse::core::kPcBoxSlotCount << " Pokemon)";
@@ -1336,7 +1347,7 @@ void MainApplication::RebuildPcBoxMenu() {
     const auto menu = this->pc_box_layout_->GetMenu();
     menu->ClearItems();
 
-    if ((this->selected_pc_box_ < 1) || (this->selected_pc_box_ > puse::core::kPcStreamBoxCount)) {
+    if ((this->selected_pc_box_ < 1) || (this->selected_pc_box_ > puse::core::PcStreamBoxCount())) {
         return;
     }
 
@@ -1371,7 +1382,7 @@ void MainApplication::RebuildPcBoxMenu() {
             item->AddOnKey([this, s]() {
                 this->OpenPcMonPage(this->selected_pc_box_, s);
             }, HidNpadButton_A);
-        } else {
+        } else if (puse::core::profile::Supports("pc_insert")) {
             // Empty slot — offer to insert a new Pokemon
             const int s = slot;
             item->SetColor({160, 180, 210, 255});

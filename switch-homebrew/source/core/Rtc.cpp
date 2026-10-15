@@ -1,3 +1,4 @@
+#include <puse/core/GameProfile.hpp>
 #include <puse/core/Rtc.hpp>
 #include <puse/core/Binary.hpp>
 #include <puse/core/SaveSections.hpp>
@@ -216,6 +217,7 @@ bool ReenableTimeFixer(const std::vector<uint8_t> &save,
                        RtcTimeFixerResult *out,
                        std::string *error)
 {
+    if (!profile::Supports("rtc")) { if (error) *error = "Unsupported operation for selected profile"; return false; }
     if (out == nullptr) { if (error) *error = "Output result is required"; return false; }
     if (save.size() != kRtcBodyLen && save.size() != kRtcTrailerSaveLen) {
         if (error) *error = "Unsupported save size; expected 131072 or 131088 bytes";
@@ -441,6 +443,7 @@ bool BuildQuickCandidates(const std::vector<uint8_t> &tampered,
                           RtcQuickResult *out,
                           std::string *error)
 {
+    if (!profile::Supports("rtc")) { if (error) *error = "Unsupported operation for selected profile"; return false; }
     if (!manifest.loaded) { if (error) *error = "Manifest not loaded"; return false; }
     if (tampered.size() < kRtcBodyLen) { if (error) *error = "Save too small"; return false; }
 
@@ -628,6 +631,7 @@ bool BuildPairCandidates(const std::vector<uint8_t> &broken,
                          RtcPairResult *out,
                          std::string *error)
 {
+    if (!profile::Supports("rtc")) { if (error) *error = "Unsupported operation for selected profile"; return false; }
     if (broken.size() < kRtcBodyLen || fixed.size() < kRtcBodyLen) {
         if (error) *error = "Save file too small";
         return false;

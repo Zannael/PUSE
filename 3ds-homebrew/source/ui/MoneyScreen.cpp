@@ -1,3 +1,4 @@
+#include <puse/core/GameProfile.hpp>
 #include "ui/MoneyScreen.h"
 #include "ui/RtcScreen.h"
 #include "Core.h"
@@ -24,7 +25,7 @@ namespace puse::ui {
 MoneyScreen::MoneyScreen()
     : BaseScreen(false)
 {
-    InitChrome("B: Back   A: Edit   X: Save   RTC: Fix");
+    InitChrome(puse::core::profile::IsRadicalRed() ? "B: Back   A: Edit   X: Save" : "B: Back   A: Edit   X: Save   RTC: Fix");
 
     // Top: show money + BP
     info_label_ = topScreen->AddNew<sl::ui::Label>(VRect(0, 35, 400, 100));
@@ -52,6 +53,7 @@ MoneyScreen::MoneyScreen()
             }));
     };
 
+    if (puse::core::profile::Supports("bp")) {
     bp_btn_ = touchScreen->AddNew<sl::ui::Button>(VRect(20, 100, 280, 48));
     bp_btn_->eOnTap = [this](sl::ui::Button&) {
         Core* core = Core::Get();
@@ -71,12 +73,15 @@ MoneyScreen::MoneyScreen()
             }));
     };
 
+    }
+    if (puse::core::profile::Supports("rtc")) {
     rtc_btn_ = touchScreen->AddNew<sl::ui::Button>(VRect(20, 170, 280, 48));
     rtc_btn_->SetText("RTC Recovery...");
     rtc_btn_->eOnTap = [](sl::ui::Button&) {
         puse::ui::RtcScreen::Make()->Open();
     };
 
+    }
     Refresh();
 }
 
@@ -95,12 +100,13 @@ void MoneyScreen::Refresh() {
 
     char ibuf[64];
     snprintf(ibuf, sizeof(ibuf), "Money:  %u\nBP:     %u", money, (unsigned)bp);
+    if (!puse::core::profile::Supports("bp")) snprintf(ibuf, sizeof(ibuf), "Money: %u", money);
     info_label_->SetText(ibuf);
 
     char mbuf[32]; snprintf(mbuf, sizeof(mbuf), "Money: %u  [tap: edit]", money);
     char bbuf[32]; snprintf(bbuf, sizeof(bbuf), "BP:    %u  [tap: edit]", (unsigned)bp);
     money_btn_->SetText(mbuf);
-    bp_btn_->SetText(bbuf);
+    if (bp_btn_) bp_btn_->SetText(bbuf);
 }
 
 void MoneyScreen::Update(bool focused) {

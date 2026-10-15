@@ -1,4 +1,4 @@
-import { PROFILE } from './profile.js';
+import { PROFILE, profileData, getProfile, requireCapability } from './profile.js';
 import { validateOtName } from './otName.js';
 import { activeUnboundSlot } from './sections.js';
 import { ru8, ru16, ru32, wu8, wu16, wu32 } from './binary.js';
@@ -6,10 +6,10 @@ import { gbaChecksum } from './checksum.js';
 import { OFF_ID, OFF_SAVE_IDX, SECTION_SIZE } from './sections.js';
 import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
 import { calcCurrentLevel, getExpAtLevel } from './growth.js';
-import speciesIdentityMeta from './speciesIdentityMeta.json' with { type: 'json' };
-import speciesGrowthRates from './speciesGrowthRates.json' with { type: 'json' };
-import speciesAbilitiesMeta from './speciesAbilitiesMeta.json' with { type: 'json' };
-import abilitiesCatalog from './abilitiesCatalog.json' with { type: 'json' };
+import speciesIdentityMetaRaw from './speciesIdentityMeta.json' with { type: 'json' };
+import speciesGrowthRatesRaw from './speciesGrowthRates.json' with { type: 'json' };
+import speciesAbilitiesMetaRaw from './speciesAbilitiesMeta.json' with { type: 'json' };
+import abilitiesCatalogRaw from './abilitiesCatalog.json' with { type: 'json' };
 import { getMoveBasePpById } from './catalog.js';
 import { getBallMeta, validateBallId } from './balls.js';
 import { calculateBattlePreview } from './battlePreview.js';
@@ -19,13 +19,11 @@ const PRESET_SECTOR_ID = PROFILE.storage.pc.preset.section_id;
 const OTHER_SECTORS = [2, 3, 13];
 const ALL_PC_SECTORS = new Set([...POKEMON_STREAM_SECTORS, ...OTHER_SECTORS, PRESET_SECTOR_ID]);
 
-const PC_REGIONS = PROFILE.storage.pc.regions;
-
 const checksumLength = (id) => PROFILE.container.checksum.lengths[id] ?? PROFILE.container.checksum.default_length;
 const MON_SIZE_PC = PROFILE.storage.pc.record_size;
 
 const OFFSET_PRESET_START = PROFILE.storage.pc.preset.start;
-const PRESET_CAPACITY = PROFILE.storage.pc.preset.count;
+
 const BOX_SLOT_COUNT = PROFILE.storage.pc.slots_per_box;
 const TRAINER_SECTION_ID = PROFILE.storage.party.section_id;
 const PARTY_COUNT_OFFSET = 0x34;
@@ -34,8 +32,6 @@ const PARTY_MON_SIZE = 100;
 
 // Exact stream regions include fragmented boxes regardless of occupancy.
 const FALLBACK_BOX_LAYOUTS = {};
-
-const OPAQUE_SECTION_IDS = new Set(PROFILE.container.checksum.opaque_ids);
 
 const OFF_PID = PROFILE.codecs.pc.fields.pid;
 const OFF_NICK = PROFILE.codecs.pc.fields.nickname;
@@ -56,7 +52,6 @@ const GENDER_THRESHOLD_MALE_ONLY = 0;
 const GENDER_THRESHOLD_FEMALE_ONLY = 254;
 const GENDER_THRESHOLD_GENDERLESS = 255;
 const INV_11_MOD_25 = 16;
-const SHINY_THRESHOLD = PROFILE.rules.shiny_threshold;
 
 function validateHappiness(happiness) {
     const value = Number(happiness);
@@ -65,7 +60,6 @@ function validateHappiness(happiness) {
     }
     return value;
 }
-
 
 const CHARMAP = {
     0x00: ' ', 0x01: 'A', 0x02: 'A', 0x03: 'A', 0x04: 'C', 0x05: 'E', 0x06: 'E', 0x07: 'E', 0x08: 'E', 0x09: 'I',
@@ -376,6 +370,7 @@ function getAbilityNameById(abilityId) {
 }
 
 function resolveCurrentAbility(currentIndex, ability1Id, ability1Name, ability2Id, ability2Name, abilityHiddenId, abilityHiddenName) {
+    if (PROFILE.id === 'radical-red-4.1') return { effective_ability_id: null, effective_ability_name: null, ability_name_current: null, ability_label_current: `Native slot ${currentIndex + 1} (game overrides not modeled)` };
     if (currentIndex === 0) {
         const effectiveId = (ability1Id !== null && ability1Id !== 0) ? ability1Id : ability2Id;
         const effectiveName = ability1Name || ability2Name;
@@ -444,7 +439,7 @@ function shinyValue(otid, pid) {
 }
 
 function isShinyPid(otid, pid) {
-    return shinyValue(otid, pid) < SHINY_THRESHOLD;
+    return shinyValue(otid, pid) < PROFILE.rules.shiny_threshold;
 }
 
 function nearestHighForMod(reqMod, preferredHigh) {
@@ -516,7 +511,7 @@ function findIdentityPid(raw, payload = {}) {
         const reqHighMod = (((targetNatureId - (low % 25)) * INV_11_MOD_25) % 25 + 25) % 25;
 
         if (desiredShiny) {
-            for (let sv = 0; sv < SHINY_THRESHOLD; sv += 1) {
+            for (let sv = 0; sv < PROFILE.rules.shiny_threshold; sv += 1) {
                 const high = (tidSid ^ low ^ sv) & 0xFFFF;
                 if ((high % 25) !== reqHighMod) {
                     continue;
@@ -646,7 +641,6 @@ function parseMon(raw, box, slot, speciesMap, speciesMetaById) {
     };
 }
 
-
 function resolveActiveSectionOffsets(buffer, sectionIds = null) {
     return Object.fromEntries([...activeUnboundSlot(buffer)].filter(([id]) => !sectionIds || sectionIds.has(id))
         .map(([id, sec]) => [id, sec.offset]));
@@ -654,7 +648,7 @@ function resolveActiveSectionOffsets(buffer, sectionIds = null) {
 
 function pcRegions(sectors) {
     const offsets = Object.fromEntries(sectors.map((sec) => [sec.id, sec.offset]));
-    return PC_REGIONS.map(([id, start, end]) => ({ id, offset: (id < PROFILE.container.sections_per_slot ? offsets[id] : id * SECTION_SIZE) + start, length: end - start }));
+    return PROFILE.storage.pc.regions.map(([id, start, end]) => ({ id, offset: (id < PROFILE.container.sections_per_slot ? offsets[id] : id * SECTION_SIZE) + start, length: end - start }));
 }
 
 function fallbackSlotOffset(boxId, slot, sourceBuffer = null, sectionOffsets = null) {
@@ -799,7 +793,7 @@ export function loadPcContext(buffer) {
     const presetBuffer = buffer.slice(presetOffset, presetOffset + SECTION_SIZE);
     const fallbackSectionOffsets = resolveActiveSectionOffsets(buffer, new Set([2, 3]));
     const fallbackSlotOffsets = buildFallbackSlotOffsets(buffer, null, fallbackSectionOffsets);
-    return { sectors, pcBuffer, presetBuffer, sourceBuffer: buffer,
+    return { profileId: getProfile().id, sectors, pcBuffer, presetBuffer, sourceBuffer: buffer,
         originalPcBuffer: pcBuffer.slice(), originalPresetBuffer: presetBuffer.slice(),
         fallbackSectionOffsets, fallbackSlotOffsets,
         fallbackBoxStarts: detectFallbackBoxStarts(buffer, fallbackSectionOffsets, fallbackSlotOffsets),
@@ -807,6 +801,7 @@ export function loadPcContext(buffer) {
 }
 
 export function getPcBox(context, boxId, speciesMap, speciesMetaById = null) {
+    if (getProfile().id === "radical-red-4.1" && Number(boxId)>25) requireCapability("preset");
     const mons = [];
     const metaMap = speciesMetaById || buildSpeciesFormMeta(speciesMap);
     const hasFallback = Boolean(context.fallbackBoxStarts?.[Number(boxId)]);
@@ -846,7 +841,7 @@ export function getPcBox(context, boxId, speciesMap, speciesMetaById = null) {
 
     if (boxId === 26 && context.presetBuffer) {
         let off = OFFSET_PRESET_START;
-        for (let slot = 1; slot <= PRESET_CAPACITY; slot += 1) {
+        for (let slot = 1; slot <= PROFILE.storage.pc.preset.count; slot += 1) {
             if (off + MON_SIZE_PC > context.presetBuffer.length) {
                 break;
             }
@@ -864,6 +859,7 @@ export function getPcBox(context, boxId, speciesMap, speciesMetaById = null) {
 
 function getMonBufferAndOffset(context, box, slot) {
     if (box === 26) {
+        requireCapability('preset');
         if (!context.presetBuffer) {
             throw new Error('Preset sector not loaded');
         }
@@ -1043,6 +1039,7 @@ function buildPcMonRaw(payload, speciesMap, context) {
 
 function isPcSlotOccupied(context, box, slot) {
     if (box === 26) {
+        requireCapability('preset');
         if (!context.presetBuffer) {
             return false;
         }
@@ -1072,6 +1069,7 @@ function isPcSlotOccupied(context, box, slot) {
 
 function isPcSlotWritable(context, box, slot) {
     if (box === 26) {
+        requireCapability('preset');
         if (!context.presetBuffer) {
             return false;
         }
@@ -1107,6 +1105,7 @@ function shouldTrackAbsoluteSectorForChecksum(sourceBuffer, sectorOff) {
 }
 
 export function getWritablePcSlots(context, boxId) {
+    if (getProfile().id === "radical-red-4.1") return [];
     const box = Number(boxId);
     if (!Number.isInteger(box) || box < 1 || box > 26) {
         return [];
@@ -1121,6 +1120,7 @@ export function getWritablePcSlots(context, boxId) {
 }
 
 export function insertPcMon(context, payload, speciesMap = null) {
+    requireCapability("pc_insert");
     const box = Number(payload?.box);
     if (!Number.isInteger(box) || box < 1 || box > 26) {
         throw new Error('Invalid box');
@@ -1151,6 +1151,7 @@ export function insertPcMon(context, payload, speciesMap = null) {
     const raw = buildPcMonRaw(payload, speciesMap, context);
 
     if (box === 26) {
+        requireCapability('preset');
         if (!context.presetBuffer) {
             throw new Error('Preset sector not loaded');
         }
@@ -1292,6 +1293,7 @@ export function editPcMonFull(context, payload, speciesMap = null) {
 
 export function applyPcContextToSave(buffer, context) {
     if (!context?.pcBuffer) return;
+    if (context.profileId && context.profileId !== getProfile().id) throw new Error("PC context profile mismatch");
     const regions = pcRegions(context.sectors);
     const expected = regions.reduce((sum, region) => sum + region.length, 0);
     if (context.pcBuffer.length !== expected || regions.some((region) => region.offset + region.length > buffer.length)) throw new Error('Invalid PC stream size');
@@ -1308,7 +1310,7 @@ export function applyPcContextToSave(buffer, context) {
     }
     const offsets = Object.fromEntries(context.sectors.map((sec) => [sec.id, sec.offset]));
     if (context.presetBuffer) {
-        for (let i = OFFSET_PRESET_START; i < OFFSET_PRESET_START + PRESET_CAPACITY * MON_SIZE_PC; i += 1) {
+        for (let i = OFFSET_PRESET_START; i < OFFSET_PRESET_START + PROFILE.storage.pc.preset.count * MON_SIZE_PC; i += 1) {
             if (context.presetBuffer[i] !== context.originalPresetBuffer[i]) {
                 buffer[offsets[0] + i] = context.presetBuffer[i];
                 touched.add(0);
@@ -1318,3 +1320,11 @@ export function applyPcContextToSave(buffer, context) {
     for (const id of touched) wu16(buffer, offsets[id] + 0xFF6, gbaChecksum(buffer, offsets[id], checksumLength(id)));
     return buffer;
 }
+
+const speciesIdentityMeta = profileData("identity", speciesIdentityMetaRaw);
+
+const speciesGrowthRates = profileData("growth", speciesGrowthRatesRaw);
+
+const speciesAbilitiesMeta = profileData("species_abilities", speciesAbilitiesMetaRaw);
+
+const abilitiesCatalog = profileData("abilities", abilitiesCatalogRaw);

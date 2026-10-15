@@ -1,4 +1,5 @@
-import speciesGrowthRates from './speciesGrowthRates.json' with { type: 'json' };
+import { profileData } from './profile.js';
+import speciesGrowthRatesRaw from './speciesGrowthRates.json' with { type: 'json' };
 
 export const GROWTH_OPTIONS = [
     { id: 0, label: 'Medium Fast' },
@@ -66,3 +67,5 @@ export function calcCurrentLevel(rateIdx, currentExp) {
     }
     return 100;
 }
+
+const speciesGrowthRates = profileData("growth", speciesGrowthRatesRaw);

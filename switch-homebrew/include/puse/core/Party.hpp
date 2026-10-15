@@ -9,6 +9,9 @@
 
 namespace puse::core {
 
+struct TrainerIdentity { std::string name; uint8_t gender; uint32_t trainer_id; };
+bool ReadTrainerIdentity(const std::vector<uint8_t>& buffer, TrainerIdentity* out);
+
 struct BattlePreview {
     bool available;
     std::array<uint16_t, 6> stats; // [HP, Atk, Def, Spe, SpA, SpD]

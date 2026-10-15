@@ -1,3 +1,4 @@
+import { activateProfile, PROFILE, isRadicalRed, profileSummary, allProfiles, recognizeSave, requireCapability } from '../core/profile.js';
 import { strToU8, zipSync } from 'fflate';
 import {
     resolveItemIconUrl,
@@ -150,21 +151,29 @@ async function ensureValidSpeciesId(speciesId) {
 
 const backendClient = {
     getPokemonIconUrl(speciesId) {
-        return resolvePokemonIconUrl(speciesId, API_BASE);
+        return isRadicalRed() ? null : resolvePokemonIconUrl(speciesId, API_BASE);
     },
     getItemIconUrl(itemId) {
-        return resolveItemIconUrl(itemId, API_BASE);
+        return isRadicalRed() ? null : resolveItemIconUrl(itemId, API_BASE);
     },
-    async uploadSave(file) {
+    async uploadSave(file, profileId = null) {
         const formData = new FormData();
         formData.append("file", file);
 
-        const res = await fetch(`${API_BASE}/upload`, { method: "POST", body: formData });
+        const res = await fetch(`${API_BASE}/upload${profileId ? `?profile_id=${encodeURIComponent(profileId)}` : ''}`, { method: "POST", body: formData });
         if (!res.ok) {
-            throw new Error("Upload failed");
+            const body = await res.json();
+            throw new Error(body.detail?.message || body.detail || "Upload failed");
         }
-        return res.json();
+        const result = await res.json();
+        const profile = await backendJson('/profile');
+        await activateProfile(profile.id);
+        return result;
     },
+    getSaveProfile() { return backendJson('/profile'); },
+    getTrainer() { return backendJson('/trainer'); },
+    getProfiles() { return backendJson('/profiles'); },
+    async recognizeSave(file) { const formData = new FormData(); formData.append('file', file); const res = await fetch(`${API_BASE}/profiles/recognize`, {method:'POST',body:formData}); if (!res.ok) throw new Error('Recognition failed'); return res.json(); },
     getMoney() {
         return backendJson("/money");
     },
@@ -212,6 +221,7 @@ const backendClient = {
         return backendJson("/party");
     },
     getAllPokemon() {
+        requireCapability('roster_export');
         return collectAllPokemon(backendClient);
     },
     async updatePartyIvs(index, payload) {
@@ -475,17 +485,22 @@ const backendClient = {
 
 const localClient = {
     getPokemonIconUrl(speciesId) {
-        return resolvePokemonIconUrl(speciesId, API_BASE);
+        return isRadicalRed() ? null : resolvePokemonIconUrl(speciesId, API_BASE);
     },
     getItemIconUrl(itemId) {
-        return resolveItemIconUrl(itemId, API_BASE);
+        return isRadicalRed() ? null : resolveItemIconUrl(itemId, API_BASE);
     },
-    async uploadSave(file) {
+    async uploadSave(file, profileId = null) {
         const { clearPcContext, loadFile, loadCatalog } = await getLocalCoreModules();
         itemNameMapCache = null;
         clearPcContext();
-        await Promise.all([loadFile(file), loadCatalog()]);
+        await loadFile(file, profileId);
+        await loadCatalog(PROFILE.id);
     },
+    async getSaveProfile() { return profileSummary(); },
+    async getTrainer() { const {readTrainer,getBuffer} = await getLocalCoreModules(); return readTrainer(getBuffer()); },
+    async getProfiles() { return allProfiles(); },
+    async recognizeSave(file) { return recognizeSave(new Uint8Array(await file.arrayBuffer())); },
     async getMoney() {
         const { readMoney, getBuffer } = await getLocalCoreModules();
         const money = readMoney(getBuffer());
@@ -563,6 +578,7 @@ const localClient = {
         );
     },
     getAllPokemon() {
+        requireCapability('roster_export');
         return collectAllPokemon(localClient);
     },
     async updatePartyIvs(index, payload) {

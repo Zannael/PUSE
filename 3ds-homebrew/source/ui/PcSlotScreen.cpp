@@ -136,6 +136,9 @@ void PcSlotScreen::RefreshPreview() {
 // ---------------------------------------------------------------------------
 
 void PcSlotScreen::BuildInsertFields() {
+    if (!puse::core::profile::Supports("pc_insert")) {
+        AddField(kRowY0)->SetText("Insertion unavailable for this profile"); return;
+    }
     int y = kRowY0;
 
     // Species ID → insert

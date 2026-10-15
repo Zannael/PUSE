@@ -4,7 +4,7 @@
 
 namespace puse::core {
 
-bool SaveSession::LoadFromFile(const std::string &path, std::string *error) {
+bool SaveSession::LoadFromFile(const std::string &path, std::string *error, const std::string& profile_id) {
     std::ifstream in(path, std::ios::binary);
     if (!in.good()) {
         if (error != nullptr) {
@@ -32,7 +32,10 @@ bool SaveSession::LoadFromFile(const std::string &path, std::string *error) {
         return false;
     }
 
-    profile_ = &profile::kBuiltin;
+    const profile::GameProfile* chosen=nullptr;
+    if(!ChooseProfile(next,profile_id,&chosen,error))return false;
+    profile::SelectProfile(chosen->id);
+    profile_ = chosen;
     buffer_ = std::move(next);
     original_buffer_ = buffer_;
     source_path_ = path;

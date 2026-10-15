@@ -1,16 +1,12 @@
+import { isRadicalRed } from '../core/profile.js';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, Package, Edit3, X, ArrowLeft, Star, Save, CircleHelp } from 'lucide-react';
 import { ITEM_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 import { pocketTypeForItemId } from '../core/bag.js';
 
 const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
-    const isTmHmItemId = (id) =>
-        (id >= 289 && id <= 346) ||
-        (id >= 375 && id <= 444);
-
-    const isKeyItemId = (id) =>
-        (id >= 259 && id <= 288) ||
-        (id >= 348 && id <= 374);
+    const isTmHmItemId = (id) => isRadicalRed() ? ['tm','hm'].includes(pocketTypeForItemId(id)) : ((id >= 289 && id <= 346) || (id >= 375 && id <= 444));
+    const isKeyItemId = (id) => isRadicalRed() ? pocketTypeForItemId(id) === 'key' : ((id >= 259 && id <= 288) || (id >= 348 && id <= 374));
 
     const [searchId, setSearchId] = useState(44);
     const [query, setQuery] = useState("");

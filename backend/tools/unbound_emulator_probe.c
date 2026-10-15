@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
     if (!mCoreLoadFile(core, argv[1]) || !mCoreLoadSaveFile(core, argv[2], false)) return 4;
     core->reset(core);
     char line[2048], path[1024];
-    unsigned frames, keys, address, length;
+    unsigned frames, keys, address, length, arg0, arg1;
     while (fgets(line, sizeof(line), stdin)) {
         if (sscanf(line, "frames %u %u", &frames, &keys) == 2) {
             core->setKeys(core, keys);
@@ -34,6 +34,25 @@ int main(int argc, char **argv) {
                 fwrite(&byte, 1, 1, file);
             }
             fclose(file);
+        } else if (sscanf(line, "call %x %x %x", &address, &arg0, &arg1) == 3) {
+            uint32_t cpsr=0, pc=0, lr=0x0203FFF1, result=0;
+            core->readRegister(core, "cpsr", &cpsr);
+            cpsr |= 0x20;
+            core->busWrite16(core, 0x0203FFF0, 0xE7FE);
+            core->writeRegister(core, "cpsr", &cpsr);
+            core->writeRegister(core, "r0", &arg0);
+            core->writeRegister(core, "r1", &arg1);
+            core->writeRegister(core, "lr", &lr);
+            address &= ~1U;
+            core->writeRegister(core, "pc", &address);
+            for (unsigned step=0;step<100000000;step++) {
+                core->readRegister(core, "pc", &pc);
+                if (pc >= 0x0203FFF0 && pc < 0x0203FFF8) break;
+                core->step(core);
+            }
+            core->readRegister(core, "r0", &result);
+            printf("call %08X result %08X pc %08X\n",address,result,pc); fflush(stdout);
+
         } else if (sscanf(line, "save %1023s", path) == 1) {
             void *data = NULL;
             size_t size = core->savedataClone(core, &data);

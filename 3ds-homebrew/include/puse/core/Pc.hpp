@@ -13,7 +13,7 @@
 namespace puse::core {
 
 constexpr size_t kPcMonSize = profile::kStoragePcRecordSize;
-constexpr int kPcStreamBoxCount = profile::kStoragePcBoxCount;
+inline int PcStreamBoxCount() { return profile::PcBoxCount(); }
 constexpr int kPcBoxSlotCount = profile::kStoragePcSlotsPerBox;
 
 struct PcMon {

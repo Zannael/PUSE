@@ -61,6 +61,7 @@ std::unordered_set<uint16_t> g_hm_ids;
 std::unordered_set<uint16_t> g_tmhm_ids;
 std::unordered_set<uint16_t> g_key_ids;
 bool g_bag_data_loaded = false;
+std::unordered_set<uint16_t> g_rr_main_ids;
 
 void LoadFallbackPocketSets() {
     g_ball_ids = {1,2,3,4,5,6,7,8,9,10,11,12,52,53,54,59,60,
@@ -704,7 +705,10 @@ BagPocket GateUnlockablePocket(const std::vector<uint8_t> &buf,
 // --- Public API ---
 
 bool EnsureBagDataLoaded(std::string *error) {
-    if (g_bag_data_loaded) { return true; }
+    static std::string loaded_profile;
+    if (g_bag_data_loaded && loaded_profile==profile::Current().id) return true;
+    loaded_profile=profile::Current().id;
+    g_bag_data_loaded=false;
 
     const std::string path = io::ResolveAssetPath(profile::CatalogAsset("item_pocket_map.json"));
     bool loaded = false;
@@ -716,12 +720,13 @@ bool EnsureBagDataLoaded(std::string *error) {
             const std::string json = ss.str();
 
             std::unordered_set<uint16_t> ball, berry, tm, hm, key;
+            if(profile::IsRadicalRed()) ExtractPocketIds(json, "main", &g_rr_main_ids);
             const bool ok = ExtractPocketIds(json, "ball", &ball) &&
                             ExtractPocketIds(json, "berry", &berry) &&
                             ExtractPocketIds(json, "tm", &tm) &&
-                            ExtractPocketIds(json, "hm", &hm) &&
+                            (profile::IsRadicalRed() || ExtractPocketIds(json, "hm", &hm)) &&
                             ExtractPocketIds(json, "key", &key);
-            if (ok && !ball.empty() && !berry.empty() && !tm.empty() && !key.empty()) {
+            if (ok && (!profile::IsRadicalRed() || !g_rr_main_ids.empty()) && !ball.empty() && !berry.empty() && !tm.empty() && !key.empty()) {
                 g_ball_ids  = ball;
                 g_berry_ids = berry;
                 g_tm_ids    = tm;
@@ -734,6 +739,11 @@ bool EnsureBagDataLoaded(std::string *error) {
         }
     }
 
+    if (!loaded && profile::IsRadicalRed()) {
+        g_ball_ids.clear(); g_berry_ids.clear(); g_tm_ids.clear(); g_hm_ids.clear(); g_key_ids.clear(); g_tmhm_ids.clear(); g_rr_main_ids.clear();
+        if (error) *error = "Missing required Radical Red pocket catalog";
+        return false;
+    }
     if (!loaded) {
         LoadFallbackPocketSets();
     }
@@ -742,7 +752,87 @@ bool EnsureBagDataLoaded(std::string *error) {
     return true;
 }
 
+namespace {
+using RrPositions = std::unordered_map<std::string,std::vector<uint32_t>>;
+RrPositions RadicalBagOffsets(const std::vector<uint8_t>& buffer) {
+    const auto slot=ActiveUnboundSections(buffer);
+    if(slot.empty())return {};
+    RrPositions result;
+    const auto add=[&](const std::string& key,const auto& regions) {
+        for(const auto& region:regions) {
+            const auto base=region.id<14?slot[region.id].offset:region.id*kSectionSize;
+            if(base+region.end>buffer.size())return false;
+            for(auto off=base+region.start;off<base+region.end;off+=4)result[key].push_back(off);
+        }
+        return true;
+    };
+    if(!add("main",rr_profile::kBagMainRegions) || !add("key",rr_profile::kBagKeyRegions) ||
+       !add("ball",rr_profile::kBagBallRegions) || !add("tm",rr_profile::kBagTmRegions) || !add("berry",rr_profile::kBagBerryRegions))return {};
+    return result;
+}
+std::vector<BagSlot> RadicalBagRows(const std::vector<uint8_t>& buffer,uint32_t anchor) {
+    const auto layout=RadicalBagOffsets(buffer);
+    for(const auto& pair:layout) {
+        if(std::find(pair.second.begin(),pair.second.end(),anchor)==pair.second.end())continue;
+        std::vector<BagSlot> filled,empty;
+        for(auto off:pair.second) {
+            BagSlot slot{ReadU16Le(buffer.data()+off,0),ReadU16Le(buffer.data()+off,2),off,false};
+            if(slot.item_id)filled.push_back(slot);else if(empty.empty())empty.push_back(slot);
+        }
+        filled.insert(filled.end(),empty.begin(),empty.end());return filled;
+    }
+    return {};
+}
+std::unordered_map<std::string,BagPocket> RadicalBagBootstrap(const std::vector<uint8_t>& buffer) {
+    std::unordered_map<std::string,BagPocket> result;
+    for(const auto& pair:RadicalBagOffsets(buffer)) {
+        BagPocket p;p.pocket_type=pair.first;p.anchor_offset=pair.second.front();
+        p.quality="strict";p.source="verified-radical-red-4.1-regions";p.confidence="high";p.ready=true;
+        for(auto off:pair.second)p.slot_count+=ReadU16Le(buffer.data()+off,0)!=0;
+        p.is_empty_candidate=p.slot_count==0;result[pair.first]=p;
+    }
+    return result;
+}
+bool RadicalBagWrite(std::vector<uint8_t>& buffer,uint32_t offset,uint16_t item,uint16_t qty,bool swapped) {
+    if(swapped || item>749)return false;
+    const auto layout=RadicalBagOffsets(buffer);
+    for(const auto& pair:layout) {
+        const auto it=std::find(pair.second.begin(),pair.second.end(),offset);
+        if(it==pair.second.end())continue;
+        const auto& key=pair.first;const auto& positions=pair.second;
+        if((key=="key" || key=="tm") && item)qty=std::max<uint16_t>(1,qty);
+        bool allowed=false;
+        if(key=="main")allowed=g_rr_main_ids.count(item);
+        else if(key=="key")allowed=g_key_ids.count(item);
+        else if(key=="ball")allowed=g_ball_ids.count(item);
+        else if(key=="tm")allowed=g_tm_ids.count(item);
+        else if(key=="berry")allowed=g_berry_ids.count(item);
+        if(item && qty && !allowed)return false;
+        if(item && qty && ReadU16Le(buffer.data()+offset,0)==0) {
+            const auto first=std::find_if(positions.begin(),positions.end(),[&](auto off){return ReadU16Le(buffer.data()+off,0)==0;});
+            if(first==positions.end() || *first!=offset)return false;
+        }
+        std::unordered_set<size_t> touched;
+        if(!item || !qty) {
+            for(auto current=it;current+1!=positions.end();++current) {
+                const auto source=*(current+1),destination=*current;
+                for(size_t i=0;i<4;i++)if(buffer[destination+i]!=buffer[source+i]) {
+                    buffer[destination+i]=buffer[source+i];touched.insert(destination/kSectionSize*kSectionSize);
+                }
+            }
+            std::fill(buffer.begin()+positions.back(),buffer.begin()+positions.back()+4,0);touched.insert(positions.back()/kSectionSize*kSectionSize);
+        } else {
+            WriteU16Le(buffer.data()+offset,0,item);WriteU16Le(buffer.data()+offset,2,qty);touched.insert(offset/kSectionSize*kSectionSize);
+        }
+        for(auto base:touched)RecalculateSectionChecksum(buffer,base);
+        return true;
+    }
+    return false;
+}
+} // namespace
+
 std::unordered_map<std::string, BagPocket> ResolveQuickPockets(const std::vector<uint8_t> &buf) {
+    if(profile::IsRadicalRed()) {EnsureBagDataLoaded(nullptr);return RadicalBagBootstrap(buf);}
     EnsureBagDataLoaded(nullptr);
     std::unordered_map<std::string, BagPocket> out;
 
@@ -810,6 +900,7 @@ std::unordered_map<std::string, BagPocket> ResolveQuickPockets(const std::vector
 }
 
 std::vector<BagSlot> MapPocketFromAnchor(const std::vector<uint8_t> &buf, uint32_t anchor_off) {
+    if(profile::IsRadicalRed()) {return RadicalBagRows(buf, anchor_off);}
     bool sw; PocketBounds b{};
     if (!BestPocketForAnchor(buf, anchor_off, &sw, &b)) { return {}; }
 
@@ -846,6 +937,7 @@ std::vector<BagSlot> MapPocketFromAnchor(const std::vector<uint8_t> &buf, uint32
 
 bool WriteSlot(std::vector<uint8_t> &buf, uint32_t offset, uint16_t item_id, uint16_t qty,
                bool encoding_swapped) {
+    if(profile::IsRadicalRed()) {EnsureBagDataLoaded(nullptr);return RadicalBagWrite(buf,offset,item_id,qty,encoding_swapped);}
     if (offset + 3 >= static_cast<uint32_t>(buf.size())) { return false; }
     EnsureBagDataLoaded(nullptr);
     uint16_t current_id, current_qty;

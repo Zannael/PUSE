@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Package, Trash2 } from 'lucide-react';
 import { POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 
-const VISIBLE_BOX_SEQUENCE = [...Array.from({ length: 24 }, (_, idx) => idx + 1), 26];
+import { PROFILE, isRadicalRed } from '../core/profile.js';
 const BOX_SLOTS = 30;
 
 function getBoxLabel(boxId) {
@@ -10,6 +10,7 @@ function getBoxLabel(boxId) {
 }
 
 const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon, onReleasePokemon }) => {
+    const VISIBLE_BOX_SEQUENCE = useMemo(() => isRadicalRed() ? Array.from({length: PROFILE.storage.pc.box_count}, (_, i) => i + 1) : [...Array.from({length:24}, (_, i) => i + 1),26], []);
     const [pokemon, setPokemon] = useState([]);
     const [writableSlots, setWritableSlots] = useState(new Set());
     const [loading, setLoading] = useState(false);
@@ -42,13 +43,13 @@ const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon, onRel
 
     useEffect(() => {
         setPcLoaded(false);
-    }, [client]);
+    }, [client, VISIBLE_BOX_SEQUENCE]);
 
     useEffect(() => {
         if (!VISIBLE_BOX_SEQUENCE.includes(Number(boxId))) {
             onBoxChange(1);
         }
-    }, [boxId, onBoxChange]);
+    }, [boxId, onBoxChange, VISIBLE_BOX_SEQUENCE]);
 
     const handlePrevBox = () => {
         const idx = VISIBLE_BOX_SEQUENCE.indexOf(Number(boxId));

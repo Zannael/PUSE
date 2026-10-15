@@ -1,3 +1,4 @@
+#include <puse/core/GameProfile.hpp>
 #include "io/IconLoader.h"
 
 #include <cstdio>
@@ -48,6 +49,7 @@ static const char* kItemRoots[] = {
 static const int kItemRootCount = 2;
 
 std::string ResolveMonIconPath(uint16_t species_id) {
+    if (puse::core::profile::IsRadicalRed()) return "";
     char buf4[8], buf3[8], prefix[24];
     snprintf(buf4,   sizeof(buf4),   "%04d",           (int)species_id);
     snprintf(buf3,   sizeof(buf3),   "%03d",           (int)species_id);
@@ -70,6 +72,7 @@ std::string ResolveMonIconPath(uint16_t species_id) {
 }
 
 std::string ResolveItemIconPath(uint16_t item_id) {
+    if (puse::core::profile::IsRadicalRed()) return "";
     char buf4[8], buf3[8];
     snprintf(buf4, sizeof(buf4), "%04d", (int)item_id);
     snprintf(buf3, sizeof(buf3), "%03d", (int)item_id);

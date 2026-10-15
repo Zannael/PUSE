@@ -1,4 +1,5 @@
-import speciesBaseStats from './speciesBaseStats.json' with { type: 'json' };
+import { profileData } from './profile.js';
+import speciesBaseStatsRaw from './speciesBaseStats.json' with { type: 'json' };
 
 const HIDDEN_POWER_TYPES = [
     'Fighting', 'Flying', 'Poison', 'Ground', 'Rock', 'Bug', 'Ghost', 'Steel',
@@ -73,3 +74,5 @@ export function calculateBattlePreview(input) {
         hidden_power_type: calculateHiddenPowerType(input?.ivs),
     };
 }
+
+const speciesBaseStats = profileData("base_stats", speciesBaseStatsRaw);

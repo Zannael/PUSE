@@ -1,3 +1,4 @@
+import { requireCapability } from './profile.js';
 import { ru16, ru32, wu16, wu32 } from './binary.js';
 
 const SECTION_SIZE = 0x1000;
@@ -194,6 +195,7 @@ function coherentSaveGenerations(buffer) {
 }
 
 export function reenableTimeFixer(saveBytes) {
+    requireCapability('rtc');
     const source = saveBytes instanceof Uint8Array ? saveBytes : new Uint8Array(saveBytes);
     if (source.length !== SAVE_BODY_LEN && source.length !== SAVE_WITH_TRAILER_LEN) {
         throw new Error(
@@ -247,6 +249,7 @@ export function reenableTimeFixer(saveBytes) {
 }
 
 export function buildManifest(brokenBytes, fixedBytes) {
+    requireCapability('rtc');
     const brokenById = sectionsById(brokenBytes);
     const fixedById = sectionsById(fixedBytes);
     const commonIds = Object.keys(brokenById)
@@ -305,6 +308,7 @@ export function buildManifest(brokenBytes, fixedBytes) {
 }
 
 export function buildCandidateFromPair(broken, fixed, manifest, profile) {
+    requireCapability('rtc');
     const out = new Uint8Array(broken);
     const brokenLatest = latestById(broken);
     const fixedLatest = latestById(fixed);
@@ -363,6 +367,7 @@ export function buildCandidateFromPair(broken, fixed, manifest, profile) {
 }
 
 export function buildCandidatesFromPair(broken, fixed, manifest, profiles = DEFAULT_PROFILES) {
+    requireCapability('rtc');
     const out = {};
     for (const profile of profiles) {
         const candidate = buildCandidateFromPair(broken, fixed, manifest, profile);
@@ -375,6 +380,7 @@ export function buildCandidatesFromPair(broken, fixed, manifest, profiles = DEFA
 }
 
 export function buildQuickCandidatesFromSingle(tampered, manifest) {
+    requireCapability('rtc');
     const srcLatest = latestById(tampered);
     const sourceIdx = Math.max(...Array.from({ length: 14 }, (_, sid) => srcLatest[sid].save_idx));
     const targetIdx = sourceIdx + 1;

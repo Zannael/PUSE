@@ -98,6 +98,9 @@ void PartyListScreen::RefreshSlots() {
     char buf[32];
     snprintf(buf, sizeof(buf), "Party: %d / 6\n", (int)party_.size());
     info = buf;
+    puse::core::TrainerIdentity trainer{};
+    if (core && puse::core::ReadTrainerIdentity(core->Session().Buffer(), &trainer))
+        info += trainer.name + "  TID " + std::to_string(trainer.trainer_id & 65535) + "\n";
     if (core && core->LegitMode()) info += "[Legit Mode ON]\n";
     info += "\n";
     for (auto& e : party_) {

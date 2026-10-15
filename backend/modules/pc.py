@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from core.data_loader import catalog_path
-from core.profile import PROFILE
+from core.profile import PROFILE, catalog_file, require_capability
 import struct
 import sys
 import shutil
@@ -34,7 +34,7 @@ FALLBACK_BOX_LAYOUTS = {}
 
 
 def section_checksum_length(section_id):
-    return CHECKSUM_LENGTHS.get(section_id, PROFILE["container"]["checksum"]["default_length"])
+    return PROFILE["container"]["checksum"]["lengths"].get(str(section_id), PROFILE["container"]["checksum"]["default_length"])
 
 
 def active_pc_slot(data):
@@ -94,11 +94,11 @@ def load_static_data():
     DB_SPECIES_ABILITIES_META.clear()
     DB_MOVE_BASE_PP.clear()
 
-    DB_SPECIES.update(load_id_name_file(PROFILE["catalogs"]["species"]["file"]))
-    DB_ITEMS.update(load_id_name_file(PROFILE["catalogs"]["items"]["file"]))
-    DB_MOVES.update(load_id_name_file(PROFILE["catalogs"]["moves"]["file"]))
-    DB_ABILITIES.update(load_id_name_file(PROFILE["catalogs"]["abilities"]["file"]))
-    DB_MOVE_BASE_PP.update(load_move_base_pp_map(PROFILE["catalogs"]["move_pp"]["file"]))
+    DB_SPECIES.update(load_id_name_file(catalog_file("species")))
+    DB_ITEMS.update(load_id_name_file(catalog_file("items")))
+    DB_MOVES.update(load_id_name_file(catalog_file("moves")))
+    DB_ABILITIES.update(load_id_name_file(catalog_file("abilities")))
+    DB_MOVE_BASE_PP.update(load_move_base_pp_map(catalog_file("move_pp")))
 
     identity_meta_path = catalog_path("identity")
     if os.path.exists(identity_meta_path):
@@ -513,6 +513,7 @@ class UnboundPCMon:
         wu8(self.raw, OFF_HAPPINESS, value)
 
     def set_ball_id(self, ball_id):
+        require_capability("caught_ball_edit")
         bid = int(ball_id)
         if bid < 0 or bid > 26:
             raise ValueError("Invalid ball_id")
@@ -713,7 +714,7 @@ def release_pc_mon(raw):
 
 def get_active_pc_sectors(data):
     slot = active_pc_slot(data)
-    return [slot[sid] for sid in sorted(ALL_PC_SECTORS)] if slot else []
+    return [dict(slot[sid], profile_id=PROFILE['id']) for sid in sorted(ALL_PC_SECTORS)] if slot else []
 
 
 def rebuild_buffer(save_data, sectors):
@@ -882,6 +883,7 @@ def build_pc_mon_raw(
     ot_misc_1=None,
     ot_misc_2=None,
 ):
+    require_capability("pc_insert")
     sid = int(species_id)
     if sid <= 0 or sid not in DB_SPECIES:
         raise ValueError("Invalid species_id")
@@ -955,6 +957,7 @@ def calculate_checksum(data):
 
 
 def write_save_HYBRID(save_data, sectors, buffer, headers, originals, filename, preset_buffer=None):
+    if any(sec.get("profile_id", PROFILE["id"]) != PROFILE["id"] for sec in sectors): raise ValueError("PC context profile mismatch")
     regions = pc_regions(sectors)
     expected = sum(length for _, length, _ in regions)
     if len(buffer) != expected or any(off + length > len(save_data) for off, length, _ in regions):

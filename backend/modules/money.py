@@ -90,6 +90,14 @@ def patch_money_everywhere(buf: bytes, new_money: int, dryrun=False):
     if not trainer_secs:
         raise RuntimeError("No trainer sections (id=1) found in save.")
 
+    if PROFILE['id']=='radical-red-4.1':
+        selected={s['id']:s for s in secs}
+        key=ru32(buf,selected[0]['off']+0xF20)
+        wu32(out,trainer_secs[0]['off']+FALLBACK_OFF_MONEY,new_money ^ key)
+        from core.sections import refresh_checksum
+        refresh_checksum(out,trainer_secs[0]['off'])
+        return bytes(out)
+
     print(f"Found {len(trainer_secs)} section(s) with id=1 — patching the selected generation.")
 
     for s in trainer_secs:
@@ -231,3 +239,12 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def read_money(buf):
+    sections = {s['id']:s for s in active_sections(buf)}
+    if TRAINER_SECTION_ID not in sections: raise ValueError('Trainer section not found')
+    value=ru32(buf,sections[TRAINER_SECTION_ID]['off']+FALLBACK_OFF_MONEY)
+    if PROFILE['id']=='radical-red-4.1':
+        value ^= ru32(buf,sections[0]['off']+0xF20)
+    return value

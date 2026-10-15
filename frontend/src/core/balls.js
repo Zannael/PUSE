@@ -1,3 +1,5 @@
+import { isRadicalRed, requireCapability } from './profile.js';
+
 export const BALL_CATALOG = [
     { ball_id: 0, item_id: 1, name: 'Master Ball' },
     { ball_id: 1, item_id: 2, name: 'Ultra Ball' },
@@ -32,6 +34,7 @@ export const BALL_BY_ID = new Map(BALL_CATALOG.map((entry) => [entry.ball_id, en
 
 export function getBallMeta(ballId) {
     const bid = Number(ballId);
+    if (isRadicalRed()) return { ball_id: bid, ball_item_id: null, ball_name: `Preserved ball #${bid}` };
     const meta = BALL_BY_ID.get(bid);
     if (meta) {
         return {
@@ -48,10 +51,12 @@ export function getBallMeta(ballId) {
 }
 
 export function getBallsList() {
+    if (isRadicalRed()) return [];
     return BALL_CATALOG.map((entry) => ({ ...entry }));
 }
 
 export function validateBallId(ballId) {
+    requireCapability('caught_ball_edit');
     const bid = Number(ballId);
     if (!Number.isInteger(bid) || !BALL_BY_ID.has(bid)) {
         throw new Error('Invalid ball_id');

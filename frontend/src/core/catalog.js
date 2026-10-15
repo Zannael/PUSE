@@ -1,4 +1,4 @@
-import { DEFAULT_PROFILE_ID, catalogFile, getProfile } from './profile.js';
+import { DEFAULT_PROFILE_ID, catalogFile, getProfile, PROFILE, isRadicalRed, gameCatalog } from './profile.js';
 import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
 
 const cache = {
@@ -95,13 +95,19 @@ function parseMoveBasePp(moveTable) {
     return out;
 }
 
-export async function loadCatalog(profileId = DEFAULT_PROFILE_ID) {
+export async function loadCatalog(profileId = PROFILE.id) {
     getProfile(profileId);
-    if (cache.profileId !== profileId) throw new Error("Catalog profile mismatch");
+    if (cache.profileId !== profileId) { cache.loaded = false; cache.profileId = profileId; }
     if (cache.loaded) {
         return;
     }
 
+    if (isRadicalRed()) {
+        const data=gameCatalog();
+        const map=(key)=>new Map(Object.entries(data[key]).map(([id,value])=>[Number(id),value]));
+        cache.itemsById=map('items'); cache.movesById=map('moves'); cache.abilitiesById=map('abilities');cache.speciesById=map('species');
+        cache.moveBasePpById=map('move_pp');cache.speciesMetaById=buildSpeciesFormMeta(cache.speciesById);cache.loaded=true;return;
+    }
     const [itemsText, movesText, abilitiesText, pokemonText, tmsText, moveTable] = await Promise.all([
         fetchText(`${DATA_BASE_URL}/${catalogFile('items', profileId)}`),
         fetchText(`${DATA_BASE_URL}/${catalogFile('moves', profileId)}`),

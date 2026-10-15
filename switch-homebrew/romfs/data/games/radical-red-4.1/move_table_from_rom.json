@@ -1,0 +1,5024 @@
+{
+  "moves": [
+    {
+      "move_id": 0,
+      "base_pp": 35,
+      "name": "-"
+    },
+    {
+      "move_id": 1,
+      "base_pp": 35,
+      "name": "Pound"
+    },
+    {
+      "move_id": 2,
+      "base_pp": 25,
+      "name": "Karate Chop"
+    },
+    {
+      "move_id": 3,
+      "base_pp": 10,
+      "name": "Double Slap"
+    },
+    {
+      "move_id": 4,
+      "base_pp": 15,
+      "name": "Comet Punch"
+    },
+    {
+      "move_id": 5,
+      "base_pp": 20,
+      "name": "Mega Punch"
+    },
+    {
+      "move_id": 6,
+      "base_pp": 20,
+      "name": "Pay Day"
+    },
+    {
+      "move_id": 7,
+      "base_pp": 15,
+      "name": "Fire Punch"
+    },
+    {
+      "move_id": 8,
+      "base_pp": 15,
+      "name": "Ice Punch"
+    },
+    {
+      "move_id": 9,
+      "base_pp": 15,
+      "name": "ThunderPunch"
+    },
+    {
+      "move_id": 10,
+      "base_pp": 35,
+      "name": "Scratch"
+    },
+    {
+      "move_id": 11,
+      "base_pp": 30,
+      "name": "Vise Grip"
+    },
+    {
+      "move_id": 12,
+      "base_pp": 5,
+      "name": "Guillotine"
+    },
+    {
+      "move_id": 13,
+      "base_pp": 10,
+      "name": "Razor Wind"
+    },
+    {
+      "move_id": 14,
+      "base_pp": 20,
+      "name": "Swords Dance"
+    },
+    {
+      "move_id": 15,
+      "base_pp": 25,
+      "name": "Cut"
+    },
+    {
+      "move_id": 16,
+      "base_pp": 35,
+      "name": "Gust"
+    },
+    {
+      "move_id": 17,
+      "base_pp": 35,
+      "name": "Wing Attack"
+    },
+    {
+      "move_id": 18,
+      "base_pp": 5,
+      "name": "Whirlwind"
+    },
+    {
+      "move_id": 19,
+      "base_pp": 15,
+      "name": "Fly"
+    },
+    {
+      "move_id": 20,
+      "base_pp": 20,
+      "name": "Bind"
+    },
+    {
+      "move_id": 21,
+      "base_pp": 20,
+      "name": "Slam"
+    },
+    {
+      "move_id": 22,
+      "base_pp": 25,
+      "name": "Vine Whip"
+    },
+    {
+      "move_id": 23,
+      "base_pp": 20,
+      "name": "Stomp"
+    },
+    {
+      "move_id": 24,
+      "base_pp": 30,
+      "name": "Double Kick"
+    },
+    {
+      "move_id": 25,
+      "base_pp": 5,
+      "name": "Mega Kick"
+    },
+    {
+      "move_id": 26,
+      "base_pp": 10,
+      "name": "Jump Kick"
+    },
+    {
+      "move_id": 27,
+      "base_pp": 15,
+      "name": "Rolling Kick"
+    },
+    {
+      "move_id": 28,
+      "base_pp": 15,
+      "name": "Sand Attack"
+    },
+    {
+      "move_id": 29,
+      "base_pp": 15,
+      "name": "Headbutt"
+    },
+    {
+      "move_id": 30,
+      "base_pp": 25,
+      "name": "Horn Attack"
+    },
+    {
+      "move_id": 31,
+      "base_pp": 20,
+      "name": "Fury Attack"
+    },
+    {
+      "move_id": 32,
+      "base_pp": 5,
+      "name": "Horn Drill"
+    },
+    {
+      "move_id": 33,
+      "base_pp": 35,
+      "name": "Tackle"
+    },
+    {
+      "move_id": 34,
+      "base_pp": 15,
+      "name": "Body Slam"
+    },
+    {
+      "move_id": 35,
+      "base_pp": 20,
+      "name": "Wrap"
+    },
+    {
+      "move_id": 36,
+      "base_pp": 20,
+      "name": "Take Down"
+    },
+    {
+      "move_id": 37,
+      "base_pp": 10,
+      "name": "Thrash"
+    },
+    {
+      "move_id": 38,
+      "base_pp": 15,
+      "name": "Double-Edge"
+    },
+    {
+      "move_id": 39,
+      "base_pp": 30,
+      "name": "Tail Whip"
+    },
+    {
+      "move_id": 40,
+      "base_pp": 35,
+      "name": "Poison Sting"
+    },
+    {
+      "move_id": 41,
+      "base_pp": 20,
+      "name": "Twineedle"
+    },
+    {
+      "move_id": 42,
+      "base_pp": 20,
+      "name": "Pin Missile"
+    },
+    {
+      "move_id": 43,
+      "base_pp": 30,
+      "name": "Leer"
+    },
+    {
+      "move_id": 44,
+      "base_pp": 25,
+      "name": "Bite"
+    },
+    {
+      "move_id": 45,
+      "base_pp": 15,
+      "name": "Growl"
+    },
+    {
+      "move_id": 46,
+      "base_pp": 5,
+      "name": "Roar"
+    },
+    {
+      "move_id": 47,
+      "base_pp": 15,
+      "name": "Sing"
+    },
+    {
+      "move_id": 48,
+      "base_pp": 20,
+      "name": "Supersonic"
+    },
+    {
+      "move_id": 49,
+      "base_pp": 20,
+      "name": "Sonic Boom"
+    },
+    {
+      "move_id": 50,
+      "base_pp": 20,
+      "name": "Disable"
+    },
+    {
+      "move_id": 51,
+      "base_pp": 30,
+      "name": "Acid"
+    },
+    {
+      "move_id": 52,
+      "base_pp": 25,
+      "name": "Ember"
+    },
+    {
+      "move_id": 53,
+      "base_pp": 15,
+      "name": "Flamethrower"
+    },
+    {
+      "move_id": 54,
+      "base_pp": 30,
+      "name": "Mist"
+    },
+    {
+      "move_id": 55,
+      "base_pp": 25,
+      "name": "Water Gun"
+    },
+    {
+      "move_id": 56,
+      "base_pp": 5,
+      "name": "Hydro Pump"
+    },
+    {
+      "move_id": 57,
+      "base_pp": 15,
+      "name": "Surf"
+    },
+    {
+      "move_id": 58,
+      "base_pp": 10,
+      "name": "Ice Beam"
+    },
+    {
+      "move_id": 59,
+      "base_pp": 5,
+      "name": "Blizzard"
+    },
+    {
+      "move_id": 60,
+      "base_pp": 20,
+      "name": "Psybeam"
+    },
+    {
+      "move_id": 61,
+      "base_pp": 20,
+      "name": "Bubble Beam"
+    },
+    {
+      "move_id": 62,
+      "base_pp": 20,
+      "name": "Aurora Beam"
+    },
+    {
+      "move_id": 63,
+      "base_pp": 5,
+      "name": "Hyper Beam"
+    },
+    {
+      "move_id": 64,
+      "base_pp": 35,
+      "name": "Peck"
+    },
+    {
+      "move_id": 65,
+      "base_pp": 20,
+      "name": "Drill Peck"
+    },
+    {
+      "move_id": 66,
+      "base_pp": 20,
+      "name": "Submission"
+    },
+    {
+      "move_id": 67,
+      "base_pp": 20,
+      "name": "Low Kick"
+    },
+    {
+      "move_id": 68,
+      "base_pp": 20,
+      "name": "Counter"
+    },
+    {
+      "move_id": 69,
+      "base_pp": 20,
+      "name": "Seismic Toss"
+    },
+    {
+      "move_id": 70,
+      "base_pp": 15,
+      "name": "Strength"
+    },
+    {
+      "move_id": 71,
+      "base_pp": 25,
+      "name": "Absorb"
+    },
+    {
+      "move_id": 72,
+      "base_pp": 15,
+      "name": "Mega Drain"
+    },
+    {
+      "move_id": 73,
+      "base_pp": 10,
+      "name": "Leech Seed"
+    },
+    {
+      "move_id": 74,
+      "base_pp": 20,
+      "name": "Growth"
+    },
+    {
+      "move_id": 75,
+      "base_pp": 25,
+      "name": "Razor Leaf"
+    },
+    {
+      "move_id": 76,
+      "base_pp": 10,
+      "name": "Solar Beam"
+    },
+    {
+      "move_id": 77,
+      "base_pp": 35,
+      "name": "PoisonPowder"
+    },
+    {
+      "move_id": 78,
+      "base_pp": 30,
+      "name": "Stun Spore"
+    },
+    {
+      "move_id": 79,
+      "base_pp": 15,
+      "name": "Sleep Powder"
+    },
+    {
+      "move_id": 80,
+      "base_pp": 10,
+      "name": "Petal Dance"
+    },
+    {
+      "move_id": 81,
+      "base_pp": 40,
+      "name": "String Shot"
+    },
+    {
+      "move_id": 82,
+      "base_pp": 10,
+      "name": "Dragon Rage"
+    },
+    {
+      "move_id": 83,
+      "base_pp": 15,
+      "name": "Fire Spin"
+    },
+    {
+      "move_id": 84,
+      "base_pp": 30,
+      "name": "ThunderShock"
+    },
+    {
+      "move_id": 85,
+      "base_pp": 15,
+      "name": "Thunderbolt"
+    },
+    {
+      "move_id": 86,
+      "base_pp": 20,
+      "name": "Thunder Wave"
+    },
+    {
+      "move_id": 87,
+      "base_pp": 10,
+      "name": "Thunder"
+    },
+    {
+      "move_id": 88,
+      "base_pp": 15,
+      "name": "Rock Throw"
+    },
+    {
+      "move_id": 89,
+      "base_pp": 10,
+      "name": "Earthquake"
+    },
+    {
+      "move_id": 90,
+      "base_pp": 5,
+      "name": "Soul Robbery"
+    },
+    {
+      "move_id": 91,
+      "base_pp": 10,
+      "name": "Dig"
+    },
+    {
+      "move_id": 92,
+      "base_pp": 10,
+      "name": "Toxic"
+    },
+    {
+      "move_id": 93,
+      "base_pp": 25,
+      "name": "Confusion"
+    },
+    {
+      "move_id": 94,
+      "base_pp": 10,
+      "name": "Psychic"
+    },
+    {
+      "move_id": 95,
+      "base_pp": 20,
+      "name": "Hypnosis"
+    },
+    {
+      "move_id": 96,
+      "base_pp": 40,
+      "name": "Meditate"
+    },
+    {
+      "move_id": 97,
+      "base_pp": 30,
+      "name": "Agility"
+    },
+    {
+      "move_id": 98,
+      "base_pp": 30,
+      "name": "Quick Attack"
+    },
+    {
+      "move_id": 99,
+      "base_pp": 20,
+      "name": "Rage"
+    },
+    {
+      "move_id": 100,
+      "base_pp": 20,
+      "name": "Teleport"
+    },
+    {
+      "move_id": 101,
+      "base_pp": 15,
+      "name": "Night Shade"
+    },
+    {
+      "move_id": 102,
+      "base_pp": 10,
+      "name": "Mimic"
+    },
+    {
+      "move_id": 103,
+      "base_pp": 40,
+      "name": "Screech"
+    },
+    {
+      "move_id": 104,
+      "base_pp": 15,
+      "name": "Double Team"
+    },
+    {
+      "move_id": 105,
+      "base_pp": 5,
+      "name": "Recover"
+    },
+    {
+      "move_id": 106,
+      "base_pp": 30,
+      "name": "Harden"
+    },
+    {
+      "move_id": 107,
+      "base_pp": 10,
+      "name": "Minimize"
+    },
+    {
+      "move_id": 108,
+      "base_pp": 10,
+      "name": "Smokescreen"
+    },
+    {
+      "move_id": 109,
+      "base_pp": 10,
+      "name": "Confuse Ray"
+    },
+    {
+      "move_id": 110,
+      "base_pp": 40,
+      "name": "Withdraw"
+    },
+    {
+      "move_id": 111,
+      "base_pp": 40,
+      "name": "Defense Curl"
+    },
+    {
+      "move_id": 112,
+      "base_pp": 20,
+      "name": "Barrier"
+    },
+    {
+      "move_id": 113,
+      "base_pp": 30,
+      "name": "Light Screen"
+    },
+    {
+      "move_id": 114,
+      "base_pp": 5,
+      "name": "Haze"
+    },
+    {
+      "move_id": 115,
+      "base_pp": 20,
+      "name": "Reflect"
+    },
+    {
+      "move_id": 116,
+      "base_pp": 30,
+      "name": "Focus Energy"
+    },
+    {
+      "move_id": 117,
+      "base_pp": 10,
+      "name": "Bide"
+    },
+    {
+      "move_id": 118,
+      "base_pp": 30,
+      "name": "Metronome"
+    },
+    {
+      "move_id": 119,
+      "base_pp": 20,
+      "name": "Mirror Move"
+    },
+    {
+      "move_id": 120,
+      "base_pp": 5,
+      "name": "Selfdestruct"
+    },
+    {
+      "move_id": 121,
+      "base_pp": 10,
+      "name": "Egg Bomb"
+    },
+    {
+      "move_id": 122,
+      "base_pp": 30,
+      "name": "Lick"
+    },
+    {
+      "move_id": 123,
+      "base_pp": 20,
+      "name": "Smog"
+    },
+    {
+      "move_id": 124,
+      "base_pp": 20,
+      "name": "Sludge"
+    },
+    {
+      "move_id": 125,
+      "base_pp": 20,
+      "name": "Bone Club"
+    },
+    {
+      "move_id": 126,
+      "base_pp": 5,
+      "name": "Fire Blast"
+    },
+    {
+      "move_id": 127,
+      "base_pp": 15,
+      "name": "Waterfall"
+    },
+    {
+      "move_id": 128,
+      "base_pp": 15,
+      "name": "Clamp"
+    },
+    {
+      "move_id": 129,
+      "base_pp": 20,
+      "name": "Swift"
+    },
+    {
+      "move_id": 130,
+      "base_pp": 10,
+      "name": "Skull Bash"
+    },
+    {
+      "move_id": 131,
+      "base_pp": 15,
+      "name": "Spike Cannon"
+    },
+    {
+      "move_id": 132,
+      "base_pp": 35,
+      "name": "Constrict"
+    },
+    {
+      "move_id": 133,
+      "base_pp": 20,
+      "name": "Amnesia"
+    },
+    {
+      "move_id": 134,
+      "base_pp": 15,
+      "name": "Kinesis"
+    },
+    {
+      "move_id": 135,
+      "base_pp": 5,
+      "name": "Soft-Boiled"
+    },
+    {
+      "move_id": 136,
+      "base_pp": 10,
+      "name": "Hi Jump Kick"
+    },
+    {
+      "move_id": 137,
+      "base_pp": 30,
+      "name": "Glare"
+    },
+    {
+      "move_id": 138,
+      "base_pp": 15,
+      "name": "Dream Eater"
+    },
+    {
+      "move_id": 139,
+      "base_pp": 40,
+      "name": "Poison Gas"
+    },
+    {
+      "move_id": 140,
+      "base_pp": 20,
+      "name": "Barrage"
+    },
+    {
+      "move_id": 141,
+      "base_pp": 15,
+      "name": "Leech Life"
+    },
+    {
+      "move_id": 142,
+      "base_pp": 10,
+      "name": "Lovely Kiss"
+    },
+    {
+      "move_id": 143,
+      "base_pp": 5,
+      "name": "Sky Attack"
+    },
+    {
+      "move_id": 144,
+      "base_pp": 10,
+      "name": "Transform"
+    },
+    {
+      "move_id": 145,
+      "base_pp": 30,
+      "name": "Bubble"
+    },
+    {
+      "move_id": 146,
+      "base_pp": 10,
+      "name": "Dizzy Punch"
+    },
+    {
+      "move_id": 147,
+      "base_pp": 15,
+      "name": "Spore"
+    },
+    {
+      "move_id": 148,
+      "base_pp": 10,
+      "name": "Flash"
+    },
+    {
+      "move_id": 149,
+      "base_pp": 15,
+      "name": "Psywave"
+    },
+    {
+      "move_id": 150,
+      "base_pp": 40,
+      "name": "Splash"
+    },
+    {
+      "move_id": 151,
+      "base_pp": 20,
+      "name": "Acid Armor"
+    },
+    {
+      "move_id": 152,
+      "base_pp": 10,
+      "name": "Crabhammer"
+    },
+    {
+      "move_id": 153,
+      "base_pp": 5,
+      "name": "Explosion"
+    },
+    {
+      "move_id": 154,
+      "base_pp": 15,
+      "name": "Fury Swipes"
+    },
+    {
+      "move_id": 155,
+      "base_pp": 10,
+      "name": "Bonemerang"
+    },
+    {
+      "move_id": 156,
+      "base_pp": 5,
+      "name": "Rest"
+    },
+    {
+      "move_id": 157,
+      "base_pp": 10,
+      "name": "Rock Slide"
+    },
+    {
+      "move_id": 158,
+      "base_pp": 15,
+      "name": "Hyper Fang"
+    },
+    {
+      "move_id": 159,
+      "base_pp": 30,
+      "name": "Sharpen"
+    },
+    {
+      "move_id": 160,
+      "base_pp": 5,
+      "name": "Dark Hole"
+    },
+    {
+      "move_id": 161,
+      "base_pp": 10,
+      "name": "Tri Attack"
+    },
+    {
+      "move_id": 162,
+      "base_pp": 10,
+      "name": "Super Fang"
+    },
+    {
+      "move_id": 163,
+      "base_pp": 20,
+      "name": "Slash"
+    },
+    {
+      "move_id": 164,
+      "base_pp": 10,
+      "name": "Substitute"
+    },
+    {
+      "move_id": 165,
+      "base_pp": 1,
+      "name": "Struggle"
+    },
+    {
+      "move_id": 166,
+      "base_pp": 1,
+      "name": "Sketch"
+    },
+    {
+      "move_id": 167,
+      "base_pp": 10,
+      "name": "Triple Kick"
+    },
+    {
+      "move_id": 168,
+      "base_pp": 25,
+      "name": "Thief"
+    },
+    {
+      "move_id": 169,
+      "base_pp": 10,
+      "name": "Spider Web"
+    },
+    {
+      "move_id": 170,
+      "base_pp": 5,
+      "name": "Mind Reader"
+    },
+    {
+      "move_id": 171,
+      "base_pp": 15,
+      "name": "Nightmare"
+    },
+    {
+      "move_id": 172,
+      "base_pp": 25,
+      "name": "Flame Wheel"
+    },
+    {
+      "move_id": 173,
+      "base_pp": 15,
+      "name": "Snore"
+    },
+    {
+      "move_id": 174,
+      "base_pp": 10,
+      "name": "Curse"
+    },
+    {
+      "move_id": 175,
+      "base_pp": 15,
+      "name": "Flail"
+    },
+    {
+      "move_id": 176,
+      "base_pp": 30,
+      "name": "Conversion 2"
+    },
+    {
+      "move_id": 177,
+      "base_pp": 5,
+      "name": "Aeroblast"
+    },
+    {
+      "move_id": 178,
+      "base_pp": 40,
+      "name": "Cotton Spore"
+    },
+    {
+      "move_id": 179,
+      "base_pp": 15,
+      "name": "Reversal"
+    },
+    {
+      "move_id": 180,
+      "base_pp": 10,
+      "name": "Spite"
+    },
+    {
+      "move_id": 181,
+      "base_pp": 25,
+      "name": "Powder Snow"
+    },
+    {
+      "move_id": 182,
+      "base_pp": 10,
+      "name": "Protect"
+    },
+    {
+      "move_id": 183,
+      "base_pp": 30,
+      "name": "Mach Punch"
+    },
+    {
+      "move_id": 184,
+      "base_pp": 10,
+      "name": "Scary Face"
+    },
+    {
+      "move_id": 185,
+      "base_pp": 20,
+      "name": "Feint Attack"
+    },
+    {
+      "move_id": 186,
+      "base_pp": 10,
+      "name": "Sweet Kiss"
+    },
+    {
+      "move_id": 187,
+      "base_pp": 10,
+      "name": "Belly Drum"
+    },
+    {
+      "move_id": 188,
+      "base_pp": 10,
+      "name": "Sludge Bomb"
+    },
+    {
+      "move_id": 189,
+      "base_pp": 10,
+      "name": "Mud-Slap"
+    },
+    {
+      "move_id": 190,
+      "base_pp": 10,
+      "name": "Octazooka"
+    },
+    {
+      "move_id": 191,
+      "base_pp": 20,
+      "name": "Spikes"
+    },
+    {
+      "move_id": 192,
+      "base_pp": 5,
+      "name": "Zap Cannon"
+    },
+    {
+      "move_id": 193,
+      "base_pp": 40,
+      "name": "Foresight"
+    },
+    {
+      "move_id": 194,
+      "base_pp": 5,
+      "name": "Destiny Bond"
+    },
+    {
+      "move_id": 195,
+      "base_pp": 5,
+      "name": "Perish Song"
+    },
+    {
+      "move_id": 196,
+      "base_pp": 15,
+      "name": "Icy Wind"
+    },
+    {
+      "move_id": 197,
+      "base_pp": 5,
+      "name": "Detect"
+    },
+    {
+      "move_id": 198,
+      "base_pp": 10,
+      "name": "Bone Rush"
+    },
+    {
+      "move_id": 199,
+      "base_pp": 5,
+      "name": "Lock-On"
+    },
+    {
+      "move_id": 200,
+      "base_pp": 10,
+      "name": "Outrage"
+    },
+    {
+      "move_id": 201,
+      "base_pp": 10,
+      "name": "Sandstorm"
+    },
+    {
+      "move_id": 202,
+      "base_pp": 10,
+      "name": "Giga Drain"
+    },
+    {
+      "move_id": 203,
+      "base_pp": 10,
+      "name": "Endure"
+    },
+    {
+      "move_id": 204,
+      "base_pp": 5,
+      "name": "Charm"
+    },
+    {
+      "move_id": 205,
+      "base_pp": 20,
+      "name": "Rollout"
+    },
+    {
+      "move_id": 206,
+      "base_pp": 40,
+      "name": "False Swipe"
+    },
+    {
+      "move_id": 207,
+      "base_pp": 15,
+      "name": "Swagger"
+    },
+    {
+      "move_id": 208,
+      "base_pp": 5,
+      "name": "Milk Drink"
+    },
+    {
+      "move_id": 209,
+      "base_pp": 20,
+      "name": "Spark"
+    },
+    {
+      "move_id": 210,
+      "base_pp": 20,
+      "name": "Fury Cutter"
+    },
+    {
+      "move_id": 211,
+      "base_pp": 25,
+      "name": "Steel Wing"
+    },
+    {
+      "move_id": 212,
+      "base_pp": 5,
+      "name": "Mean Look"
+    },
+    {
+      "move_id": 213,
+      "base_pp": 15,
+      "name": "Attract"
+    },
+    {
+      "move_id": 214,
+      "base_pp": 10,
+      "name": "Sleep Talk"
+    },
+    {
+      "move_id": 215,
+      "base_pp": 5,
+      "name": "Heal Bell"
+    },
+    {
+      "move_id": 216,
+      "base_pp": 20,
+      "name": "Return"
+    },
+    {
+      "move_id": 217,
+      "base_pp": 15,
+      "name": "Present"
+    },
+    {
+      "move_id": 218,
+      "base_pp": 20,
+      "name": "Frustration"
+    },
+    {
+      "move_id": 219,
+      "base_pp": 25,
+      "name": "Safeguard"
+    },
+    {
+      "move_id": 220,
+      "base_pp": 20,
+      "name": "Pain Split"
+    },
+    {
+      "move_id": 221,
+      "base_pp": 5,
+      "name": "Sacred Fire"
+    },
+    {
+      "move_id": 222,
+      "base_pp": 30,
+      "name": "Magnitude"
+    },
+    {
+      "move_id": 223,
+      "base_pp": 5,
+      "name": "DynamicPunch"
+    },
+    {
+      "move_id": 224,
+      "base_pp": 10,
+      "name": "Megahorn"
+    },
+    {
+      "move_id": 225,
+      "base_pp": 20,
+      "name": "DragonBreath"
+    },
+    {
+      "move_id": 226,
+      "base_pp": 40,
+      "name": "Baton Pass"
+    },
+    {
+      "move_id": 227,
+      "base_pp": 5,
+      "name": "Encore"
+    },
+    {
+      "move_id": 228,
+      "base_pp": 20,
+      "name": "Pursuit"
+    },
+    {
+      "move_id": 229,
+      "base_pp": 40,
+      "name": "Rapid Spin"
+    },
+    {
+      "move_id": 230,
+      "base_pp": 20,
+      "name": "Sweet Scent"
+    },
+    {
+      "move_id": 231,
+      "base_pp": 15,
+      "name": "Iron Tail"
+    },
+    {
+      "move_id": 232,
+      "base_pp": 35,
+      "name": "Metal Claw"
+    },
+    {
+      "move_id": 233,
+      "base_pp": 10,
+      "name": "Vital Throw"
+    },
+    {
+      "move_id": 234,
+      "base_pp": 5,
+      "name": "Morning Sun"
+    },
+    {
+      "move_id": 235,
+      "base_pp": 5,
+      "name": "Synthesis"
+    },
+    {
+      "move_id": 236,
+      "base_pp": 5,
+      "name": "Moonlight"
+    },
+    {
+      "move_id": 237,
+      "base_pp": 15,
+      "name": "Hidden Power"
+    },
+    {
+      "move_id": 238,
+      "base_pp": 5,
+      "name": "Cross Chop"
+    },
+    {
+      "move_id": 239,
+      "base_pp": 20,
+      "name": "Twister"
+    },
+    {
+      "move_id": 240,
+      "base_pp": 5,
+      "name": "Rain Dance"
+    },
+    {
+      "move_id": 241,
+      "base_pp": 5,
+      "name": "Sunny Day"
+    },
+    {
+      "move_id": 242,
+      "base_pp": 15,
+      "name": "Crunch"
+    },
+    {
+      "move_id": 243,
+      "base_pp": 20,
+      "name": "Mirror Coat"
+    },
+    {
+      "move_id": 244,
+      "base_pp": 10,
+      "name": "Psych Up"
+    },
+    {
+      "move_id": 245,
+      "base_pp": 5,
+      "name": "Extremespeed"
+    },
+    {
+      "move_id": 246,
+      "base_pp": 5,
+      "name": "AncientPower"
+    },
+    {
+      "move_id": 247,
+      "base_pp": 15,
+      "name": "Shadow Ball"
+    },
+    {
+      "move_id": 248,
+      "base_pp": 10,
+      "name": "Future Sight"
+    },
+    {
+      "move_id": 249,
+      "base_pp": 15,
+      "name": "Rock Smash"
+    },
+    {
+      "move_id": 250,
+      "base_pp": 15,
+      "name": "Whirlpool"
+    },
+    {
+      "move_id": 251,
+      "base_pp": 10,
+      "name": "Beat Up"
+    },
+    {
+      "move_id": 252,
+      "base_pp": 5,
+      "name": "Fake Out"
+    },
+    {
+      "move_id": 253,
+      "base_pp": 10,
+      "name": "Uproar"
+    },
+    {
+      "move_id": 254,
+      "base_pp": 20,
+      "name": "Stockpile"
+    },
+    {
+      "move_id": 255,
+      "base_pp": 10,
+      "name": "Spit Up"
+    },
+    {
+      "move_id": 256,
+      "base_pp": 10,
+      "name": "Swallow"
+    },
+    {
+      "move_id": 257,
+      "base_pp": 10,
+      "name": "Heat Wave"
+    },
+    {
+      "move_id": 258,
+      "base_pp": 10,
+      "name": "Snowscape"
+    },
+    {
+      "move_id": 259,
+      "base_pp": 15,
+      "name": "Torment"
+    },
+    {
+      "move_id": 260,
+      "base_pp": 15,
+      "name": "Flatter"
+    },
+    {
+      "move_id": 261,
+      "base_pp": 15,
+      "name": "Will-O-Wisp"
+    },
+    {
+      "move_id": 262,
+      "base_pp": 10,
+      "name": "Memento"
+    },
+    {
+      "move_id": 263,
+      "base_pp": 20,
+      "name": "Facade"
+    },
+    {
+      "move_id": 264,
+      "base_pp": 20,
+      "name": "Focus Punch"
+    },
+    {
+      "move_id": 265,
+      "base_pp": 10,
+      "name": "SmellingSalt"
+    },
+    {
+      "move_id": 266,
+      "base_pp": 20,
+      "name": "Follow Me"
+    },
+    {
+      "move_id": 267,
+      "base_pp": 20,
+      "name": "Nature Power"
+    },
+    {
+      "move_id": 268,
+      "base_pp": 20,
+      "name": "Charge"
+    },
+    {
+      "move_id": 269,
+      "base_pp": 20,
+      "name": "Taunt"
+    },
+    {
+      "move_id": 270,
+      "base_pp": 20,
+      "name": "Helping Hand"
+    },
+    {
+      "move_id": 271,
+      "base_pp": 10,
+      "name": "Trick"
+    },
+    {
+      "move_id": 272,
+      "base_pp": 10,
+      "name": "Role Play"
+    },
+    {
+      "move_id": 273,
+      "base_pp": 10,
+      "name": "Wish"
+    },
+    {
+      "move_id": 274,
+      "base_pp": 20,
+      "name": "Assist"
+    },
+    {
+      "move_id": 275,
+      "base_pp": 20,
+      "name": "Ingrain"
+    },
+    {
+      "move_id": 276,
+      "base_pp": 5,
+      "name": "Superpower"
+    },
+    {
+      "move_id": 277,
+      "base_pp": 15,
+      "name": "Magic Coat"
+    },
+    {
+      "move_id": 278,
+      "base_pp": 10,
+      "name": "Recycle"
+    },
+    {
+      "move_id": 279,
+      "base_pp": 10,
+      "name": "Revenge"
+    },
+    {
+      "move_id": 280,
+      "base_pp": 15,
+      "name": "Brick Break"
+    },
+    {
+      "move_id": 281,
+      "base_pp": 10,
+      "name": "Yawn"
+    },
+    {
+      "move_id": 282,
+      "base_pp": 20,
+      "name": "Knock Off"
+    },
+    {
+      "move_id": 283,
+      "base_pp": 5,
+      "name": "Endeavor"
+    },
+    {
+      "move_id": 284,
+      "base_pp": 5,
+      "name": "Eruption"
+    },
+    {
+      "move_id": 285,
+      "base_pp": 10,
+      "name": "Skill Swap"
+    },
+    {
+      "move_id": 286,
+      "base_pp": 10,
+      "name": "Imprison"
+    },
+    {
+      "move_id": 287,
+      "base_pp": 20,
+      "name": "Refresh"
+    },
+    {
+      "move_id": 288,
+      "base_pp": 5,
+      "name": "Grudge"
+    },
+    {
+      "move_id": 289,
+      "base_pp": 10,
+      "name": "Snatch"
+    },
+    {
+      "move_id": 290,
+      "base_pp": 20,
+      "name": "Secret Power"
+    },
+    {
+      "move_id": 291,
+      "base_pp": 10,
+      "name": "Dive"
+    },
+    {
+      "move_id": 292,
+      "base_pp": 20,
+      "name": "Arm Thrust"
+    },
+    {
+      "move_id": 293,
+      "base_pp": 20,
+      "name": "Camouflage"
+    },
+    {
+      "move_id": 294,
+      "base_pp": 20,
+      "name": "Tail Glow"
+    },
+    {
+      "move_id": 295,
+      "base_pp": 10,
+      "name": "Luster Purge"
+    },
+    {
+      "move_id": 296,
+      "base_pp": 10,
+      "name": "Mist Ball"
+    },
+    {
+      "move_id": 297,
+      "base_pp": 5,
+      "name": "FeatherDance"
+    },
+    {
+      "move_id": 298,
+      "base_pp": 20,
+      "name": "Teeter Dance"
+    },
+    {
+      "move_id": 299,
+      "base_pp": 10,
+      "name": "Blaze Kick"
+    },
+    {
+      "move_id": 300,
+      "base_pp": 15,
+      "name": "Mud Sport"
+    },
+    {
+      "move_id": 301,
+      "base_pp": 20,
+      "name": "Ice Ball"
+    },
+    {
+      "move_id": 302,
+      "base_pp": 15,
+      "name": "Needle Arm"
+    },
+    {
+      "move_id": 303,
+      "base_pp": 5,
+      "name": "Slack Off"
+    },
+    {
+      "move_id": 304,
+      "base_pp": 10,
+      "name": "Hyper Voice"
+    },
+    {
+      "move_id": 305,
+      "base_pp": 15,
+      "name": "Poison Fang"
+    },
+    {
+      "move_id": 306,
+      "base_pp": 10,
+      "name": "Crush Claw"
+    },
+    {
+      "move_id": 307,
+      "base_pp": 4,
+      "name": "Blast Burn"
+    },
+    {
+      "move_id": 308,
+      "base_pp": 4,
+      "name": "Hydro Cannon"
+    },
+    {
+      "move_id": 309,
+      "base_pp": 10,
+      "name": "Meteor Mash"
+    },
+    {
+      "move_id": 310,
+      "base_pp": 15,
+      "name": "Astonish"
+    },
+    {
+      "move_id": 311,
+      "base_pp": 10,
+      "name": "Weather Ball"
+    },
+    {
+      "move_id": 312,
+      "base_pp": 5,
+      "name": "Aromatherapy"
+    },
+    {
+      "move_id": 313,
+      "base_pp": 20,
+      "name": "Fake Tears"
+    },
+    {
+      "move_id": 314,
+      "base_pp": 25,
+      "name": "Air Cutter"
+    },
+    {
+      "move_id": 315,
+      "base_pp": 5,
+      "name": "Overheat"
+    },
+    {
+      "move_id": 316,
+      "base_pp": 40,
+      "name": "Odor Sleuth"
+    },
+    {
+      "move_id": 317,
+      "base_pp": 15,
+      "name": "Rock Tomb"
+    },
+    {
+      "move_id": 318,
+      "base_pp": 5,
+      "name": "Silver Wind"
+    },
+    {
+      "move_id": 319,
+      "base_pp": 40,
+      "name": "Metal Sound"
+    },
+    {
+      "move_id": 320,
+      "base_pp": 15,
+      "name": "Grasswhistle"
+    },
+    {
+      "move_id": 321,
+      "base_pp": 20,
+      "name": "Tickle"
+    },
+    {
+      "move_id": 322,
+      "base_pp": 20,
+      "name": "Cosmic Power"
+    },
+    {
+      "move_id": 323,
+      "base_pp": 5,
+      "name": "Water Spout"
+    },
+    {
+      "move_id": 324,
+      "base_pp": 15,
+      "name": "Signal Beam"
+    },
+    {
+      "move_id": 325,
+      "base_pp": 20,
+      "name": "Shadow Punch"
+    },
+    {
+      "move_id": 326,
+      "base_pp": 20,
+      "name": "Extrasensory"
+    },
+    {
+      "move_id": 327,
+      "base_pp": 15,
+      "name": "Sky Uppercut"
+    },
+    {
+      "move_id": 328,
+      "base_pp": 15,
+      "name": "Sand Tomb"
+    },
+    {
+      "move_id": 329,
+      "base_pp": 5,
+      "name": "Sheer Cold"
+    },
+    {
+      "move_id": 330,
+      "base_pp": 10,
+      "name": "Muddy Water"
+    },
+    {
+      "move_id": 331,
+      "base_pp": 30,
+      "name": "Bullet Seed"
+    },
+    {
+      "move_id": 332,
+      "base_pp": 20,
+      "name": "Aerial Ace"
+    },
+    {
+      "move_id": 333,
+      "base_pp": 30,
+      "name": "Icicle Spear"
+    },
+    {
+      "move_id": 334,
+      "base_pp": 15,
+      "name": "Iron Defense"
+    },
+    {
+      "move_id": 335,
+      "base_pp": 5,
+      "name": "Block"
+    },
+    {
+      "move_id": 336,
+      "base_pp": 40,
+      "name": "Howl"
+    },
+    {
+      "move_id": 337,
+      "base_pp": 15,
+      "name": "Dragon Claw"
+    },
+    {
+      "move_id": 338,
+      "base_pp": 4,
+      "name": "Frenzy Plant"
+    },
+    {
+      "move_id": 339,
+      "base_pp": 20,
+      "name": "Bulk Up"
+    },
+    {
+      "move_id": 340,
+      "base_pp": 5,
+      "name": "Bounce"
+    },
+    {
+      "move_id": 341,
+      "base_pp": 15,
+      "name": "Mud Shot"
+    },
+    {
+      "move_id": 342,
+      "base_pp": 25,
+      "name": "Poison Tail"
+    },
+    {
+      "move_id": 343,
+      "base_pp": 25,
+      "name": "Covet"
+    },
+    {
+      "move_id": 344,
+      "base_pp": 15,
+      "name": "Volt Tackle"
+    },
+    {
+      "move_id": 345,
+      "base_pp": 20,
+      "name": "Magical Leaf"
+    },
+    {
+      "move_id": 346,
+      "base_pp": 15,
+      "name": "Water Sport"
+    },
+    {
+      "move_id": 347,
+      "base_pp": 20,
+      "name": "Calm Mind"
+    },
+    {
+      "move_id": 348,
+      "base_pp": 15,
+      "name": "Leaf Blade"
+    },
+    {
+      "move_id": 349,
+      "base_pp": 20,
+      "name": "Dragon Dance"
+    },
+    {
+      "move_id": 350,
+      "base_pp": 10,
+      "name": "Rock Blast"
+    },
+    {
+      "move_id": 351,
+      "base_pp": 20,
+      "name": "Shock Wave"
+    },
+    {
+      "move_id": 352,
+      "base_pp": 20,
+      "name": "Water Pulse"
+    },
+    {
+      "move_id": 353,
+      "base_pp": 5,
+      "name": "Doom Desire"
+    },
+    {
+      "move_id": 354,
+      "base_pp": 5,
+      "name": "Psycho Boost"
+    },
+    {
+      "move_id": 355,
+      "base_pp": 10,
+      "name": "Leech Fang"
+    },
+    {
+      "move_id": 356,
+      "base_pp": 15,
+      "name": "Air Slash"
+    },
+    {
+      "move_id": 357,
+      "base_pp": 20,
+      "name": "Aqua Jet"
+    },
+    {
+      "move_id": 358,
+      "base_pp": 10,
+      "name": "Aqua Tail"
+    },
+    {
+      "move_id": 359,
+      "base_pp": 20,
+      "name": "Aura Sphere"
+    },
+    {
+      "move_id": 360,
+      "base_pp": 10,
+      "name": "Avalanche"
+    },
+    {
+      "move_id": 361,
+      "base_pp": 15,
+      "name": "Brave Bird"
+    },
+    {
+      "move_id": 362,
+      "base_pp": 10,
+      "name": "Bug Buzz"
+    },
+    {
+      "move_id": 363,
+      "base_pp": 30,
+      "name": "Bullet Punch"
+    },
+    {
+      "move_id": 364,
+      "base_pp": 10,
+      "name": "Charge Beam"
+    },
+    {
+      "move_id": 365,
+      "base_pp": 5,
+      "name": "Close Combat"
+    },
+    {
+      "move_id": 366,
+      "base_pp": 20,
+      "name": "Cross Poison"
+    },
+    {
+      "move_id": 367,
+      "base_pp": 15,
+      "name": "Dark Pulse"
+    },
+    {
+      "move_id": 368,
+      "base_pp": 15,
+      "name": "Discharge"
+    },
+    {
+      "move_id": 369,
+      "base_pp": 5,
+      "name": "Draco Meteor"
+    },
+    {
+      "move_id": 370,
+      "base_pp": 10,
+      "name": "Dragon Pulse"
+    },
+    {
+      "move_id": 371,
+      "base_pp": 10,
+      "name": "Drain Punch"
+    },
+    {
+      "move_id": 372,
+      "base_pp": 10,
+      "name": "Earth Power"
+    },
+    {
+      "move_id": 373,
+      "base_pp": 10,
+      "name": "Energy Ball"
+    },
+    {
+      "move_id": 374,
+      "base_pp": 5,
+      "name": "Focus Blast"
+    },
+    {
+      "move_id": 375,
+      "base_pp": 10,
+      "name": "Force Palm"
+    },
+    {
+      "move_id": 376,
+      "base_pp": 5,
+      "name": "Giga Impact"
+    },
+    {
+      "move_id": 377,
+      "base_pp": 20,
+      "name": "Grass Knot"
+    },
+    {
+      "move_id": 378,
+      "base_pp": 5,
+      "name": "Gunk Shot"
+    },
+    {
+      "move_id": 379,
+      "base_pp": 10,
+      "name": "Hammer Arm"
+    },
+    {
+      "move_id": 380,
+      "base_pp": 5,
+      "name": "Head Smash"
+    },
+    {
+      "move_id": 381,
+      "base_pp": 30,
+      "name": "Ice Shard"
+    },
+    {
+      "move_id": 382,
+      "base_pp": 15,
+      "name": "Iron Head"
+    },
+    {
+      "move_id": 383,
+      "base_pp": 15,
+      "name": "Lava Plume"
+    },
+    {
+      "move_id": 384,
+      "base_pp": 20,
+      "name": "Magnet Bomb"
+    },
+    {
+      "move_id": 385,
+      "base_pp": 10,
+      "name": "Mud Bomb"
+    },
+    {
+      "move_id": 386,
+      "base_pp": 20,
+      "name": "Nasty Plot"
+    },
+    {
+      "move_id": 387,
+      "base_pp": 15,
+      "name": "Night Slash"
+    },
+    {
+      "move_id": 388,
+      "base_pp": 5,
+      "name": "Ominous Wind"
+    },
+    {
+      "move_id": 389,
+      "base_pp": 20,
+      "name": "Power Gem"
+    },
+    {
+      "move_id": 390,
+      "base_pp": 10,
+      "name": "Power Whip"
+    },
+    {
+      "move_id": 391,
+      "base_pp": 20,
+      "name": "Psycho Cut"
+    },
+    {
+      "move_id": 392,
+      "base_pp": 20,
+      "name": "Rock Climb"
+    },
+    {
+      "move_id": 393,
+      "base_pp": 20,
+      "name": "Rock Polish"
+    },
+    {
+      "move_id": 394,
+      "base_pp": 5,
+      "name": "Rock Wrecker"
+    },
+    {
+      "move_id": 395,
+      "base_pp": 5,
+      "name": "Roost"
+    },
+    {
+      "move_id": 396,
+      "base_pp": 15,
+      "name": "Seed Bomb"
+    },
+    {
+      "move_id": 397,
+      "base_pp": 15,
+      "name": "Shadow Claw"
+    },
+    {
+      "move_id": 398,
+      "base_pp": 30,
+      "name": "Shadow Sneak"
+    },
+    {
+      "move_id": 399,
+      "base_pp": 30,
+      "name": "Vacuum Wave"
+    },
+    {
+      "move_id": 400,
+      "base_pp": 15,
+      "name": "X-Scissor"
+    },
+    {
+      "move_id": 401,
+      "base_pp": 15,
+      "name": "Zen Headbutt"
+    },
+    {
+      "move_id": 402,
+      "base_pp": 10,
+      "name": "Switcheroo"
+    },
+    {
+      "move_id": 403,
+      "base_pp": 10,
+      "name": "Drill Run"
+    },
+    {
+      "move_id": 404,
+      "base_pp": 20,
+      "name": "Bulldoze"
+    },
+    {
+      "move_id": 405,
+      "base_pp": 15,
+      "name": "Electroweb"
+    },
+    {
+      "move_id": 406,
+      "base_pp": 20,
+      "name": "Flame Charge"
+    },
+    {
+      "move_id": 407,
+      "base_pp": 10,
+      "name": "Frost Breath"
+    },
+    {
+      "move_id": 408,
+      "base_pp": 25,
+      "name": "Heart Stamp"
+    },
+    {
+      "move_id": 409,
+      "base_pp": 15,
+      "name": "Hone Claws"
+    },
+    {
+      "move_id": 410,
+      "base_pp": 10,
+      "name": "Horn Leech"
+    },
+    {
+      "move_id": 411,
+      "base_pp": 20,
+      "name": "Coil"
+    },
+    {
+      "move_id": 412,
+      "base_pp": 10,
+      "name": "Hurricane"
+    },
+    {
+      "move_id": 413,
+      "base_pp": 10,
+      "name": "Icicle Crash"
+    },
+    {
+      "move_id": 414,
+      "base_pp": 30,
+      "name": "Work Up"
+    },
+    {
+      "move_id": 415,
+      "base_pp": 20,
+      "name": "Quiver Dance"
+    },
+    {
+      "move_id": 416,
+      "base_pp": 10,
+      "name": "Leaf Tornado"
+    },
+    {
+      "move_id": 417,
+      "base_pp": 20,
+      "name": "Low Sweep"
+    },
+    {
+      "move_id": 418,
+      "base_pp": 15,
+      "name": "Snarl"
+    },
+    {
+      "move_id": 419,
+      "base_pp": 20,
+      "name": "Struggle Bug"
+    },
+    {
+      "move_id": 420,
+      "base_pp": 20,
+      "name": "Steamroller"
+    },
+    {
+      "move_id": 421,
+      "base_pp": 10,
+      "name": "Storm Throw"
+    },
+    {
+      "move_id": 422,
+      "base_pp": 10,
+      "name": "Venoshock"
+    },
+    {
+      "move_id": 423,
+      "base_pp": 15,
+      "name": "Wild Charge"
+    },
+    {
+      "move_id": 424,
+      "base_pp": 20,
+      "name": "Poison Jab"
+    },
+    {
+      "move_id": 425,
+      "base_pp": 20,
+      "name": "Acid Spray"
+    },
+    {
+      "move_id": 426,
+      "base_pp": 10,
+      "name": "Fiery Dance"
+    },
+    {
+      "move_id": 427,
+      "base_pp": 15,
+      "name": "Clear Smog"
+    },
+    {
+      "move_id": 428,
+      "base_pp": 5,
+      "name": "Leaf Storm"
+    },
+    {
+      "move_id": 429,
+      "base_pp": 5,
+      "name": "Stone Edge"
+    },
+    {
+      "move_id": 430,
+      "base_pp": 10,
+      "name": "Payback"
+    },
+    {
+      "move_id": 431,
+      "base_pp": 15,
+      "name": "Fire Fang"
+    },
+    {
+      "move_id": 432,
+      "base_pp": 15,
+      "name": "Ice Fang"
+    },
+    {
+      "move_id": 433,
+      "base_pp": 15,
+      "name": "Thunder Fang"
+    },
+    {
+      "move_id": 434,
+      "base_pp": 15,
+      "name": "Flare Blitz"
+    },
+    {
+      "move_id": 435,
+      "base_pp": 5,
+      "name": "Inferno"
+    },
+    {
+      "move_id": 436,
+      "base_pp": 10,
+      "name": "Hex"
+    },
+    {
+      "move_id": 437,
+      "base_pp": 15,
+      "name": "Dual Chop"
+    },
+    {
+      "move_id": 438,
+      "base_pp": 10,
+      "name": "Double Hit"
+    },
+    {
+      "move_id": 439,
+      "base_pp": 10,
+      "name": "Cotton Guard"
+    },
+    {
+      "move_id": 440,
+      "base_pp": 15,
+      "name": "Acrobatics"
+    },
+    {
+      "move_id": 441,
+      "base_pp": 15,
+      "name": "Flame Burst"
+    },
+    {
+      "move_id": 442,
+      "base_pp": 20,
+      "name": "U-turn"
+    },
+    {
+      "move_id": 443,
+      "base_pp": 20,
+      "name": "Volt Switch"
+    },
+    {
+      "move_id": 444,
+      "base_pp": 10,
+      "name": "Dragon Tail"
+    },
+    {
+      "move_id": 445,
+      "base_pp": 5,
+      "name": "Circle Throw"
+    },
+    {
+      "move_id": 446,
+      "base_pp": 10,
+      "name": "Mirror Shot"
+    },
+    {
+      "move_id": 447,
+      "base_pp": 15,
+      "name": "Wood Hammer"
+    },
+    {
+      "move_id": 448,
+      "base_pp": 10,
+      "name": "Heal Pulse"
+    },
+    {
+      "move_id": 449,
+      "base_pp": 10,
+      "name": "Flash Cannon"
+    },
+    {
+      "move_id": 450,
+      "base_pp": 20,
+      "name": "Bug Bite"
+    },
+    {
+      "move_id": 451,
+      "base_pp": 20,
+      "name": "Pluck"
+    },
+    {
+      "move_id": 452,
+      "base_pp": 15,
+      "name": "Shell Smash"
+    },
+    {
+      "move_id": 453,
+      "base_pp": 20,
+      "name": "Rage Powder"
+    },
+    {
+      "move_id": 454,
+      "base_pp": 10,
+      "name": "Wake-Up Slap"
+    },
+    {
+      "move_id": 455,
+      "base_pp": 10,
+      "name": "Razor Shell"
+    },
+    {
+      "move_id": 456,
+      "base_pp": 20,
+      "name": "Copycat"
+    },
+    {
+      "move_id": 457,
+      "base_pp": 40,
+      "name": "Miracle Eye"
+    },
+    {
+      "move_id": 458,
+      "base_pp": 5,
+      "name": "Sucker Punch"
+    },
+    {
+      "move_id": 459,
+      "base_pp": 15,
+      "name": "Scald"
+    },
+    {
+      "move_id": 460,
+      "base_pp": 10,
+      "name": "Brine"
+    },
+    {
+      "move_id": 461,
+      "base_pp": 30,
+      "name": "Fairy Wind"
+    },
+    {
+      "move_id": 462,
+      "base_pp": 10,
+      "name": "Doll Eyes"
+    },
+    {
+      "move_id": 463,
+      "base_pp": 10,
+      "name": "Play Rough"
+    },
+    {
+      "move_id": 464,
+      "base_pp": 15,
+      "name": "Moonblast"
+    },
+    {
+      "move_id": 465,
+      "base_pp": 10,
+      "name": "Drain Kiss"
+    },
+    {
+      "move_id": 466,
+      "base_pp": 10,
+      "name": "Dazzle Gleam"
+    },
+    {
+      "move_id": 467,
+      "base_pp": 15,
+      "name": "Disarm Cry"
+    },
+    {
+      "move_id": 468,
+      "base_pp": 20,
+      "name": "Stealth Rock"
+    },
+    {
+      "move_id": 469,
+      "base_pp": 20,
+      "name": "Toxic Spikes"
+    },
+    {
+      "move_id": 470,
+      "base_pp": 10,
+      "name": "Healing Wish"
+    },
+    {
+      "move_id": 471,
+      "base_pp": 10,
+      "name": "Lunar Dance"
+    },
+    {
+      "move_id": 472,
+      "base_pp": 15,
+      "name": "Tailwind"
+    },
+    {
+      "move_id": 473,
+      "base_pp": 10,
+      "name": "Boomburst"
+    },
+    {
+      "move_id": 474,
+      "base_pp": 15,
+      "name": "Incinerate"
+    },
+    {
+      "move_id": 475,
+      "base_pp": 10,
+      "name": "Worry Seed"
+    },
+    {
+      "move_id": 476,
+      "base_pp": 10,
+      "name": "Gastro Acid"
+    },
+    {
+      "move_id": 477,
+      "base_pp": 10,
+      "name": "Geomancy"
+    },
+    {
+      "move_id": 478,
+      "base_pp": 10,
+      "name": "Flower Guard"
+    },
+    {
+      "move_id": 479,
+      "base_pp": 10,
+      "name": "Rototiller"
+    },
+    {
+      "move_id": 480,
+      "base_pp": 10,
+      "name": "Shift Gear"
+    },
+    {
+      "move_id": 481,
+      "base_pp": 20,
+      "name": "Sticky Web"
+    },
+    {
+      "move_id": 482,
+      "base_pp": 10,
+      "name": "Stored Power"
+    },
+    {
+      "move_id": 483,
+      "base_pp": 30,
+      "name": "Acupressure"
+    },
+    {
+      "move_id": 484,
+      "base_pp": 5,
+      "name": "Punishment"
+    },
+    {
+      "move_id": 485,
+      "base_pp": 10,
+      "name": "Assurance"
+    },
+    {
+      "move_id": 486,
+      "base_pp": 10,
+      "name": "Dragon Rush"
+    },
+    {
+      "move_id": 487,
+      "base_pp": 10,
+      "name": "Dark Void"
+    },
+    {
+      "move_id": 488,
+      "base_pp": 10,
+      "name": "Feint"
+    },
+    {
+      "move_id": 489,
+      "base_pp": 10,
+      "name": "PhantomForce"
+    },
+    {
+      "move_id": 490,
+      "base_pp": 15,
+      "name": "Petal Storm"
+    },
+    {
+      "move_id": 491,
+      "base_pp": 10,
+      "name": "Play Nice"
+    },
+    {
+      "move_id": 492,
+      "base_pp": 10,
+      "name": "Roar of Time"
+    },
+    {
+      "move_id": 493,
+      "base_pp": 5,
+      "name": "Spacial Rend"
+    },
+    {
+      "move_id": 494,
+      "base_pp": 5,
+      "name": "Magma Storm"
+    },
+    {
+      "move_id": 495,
+      "base_pp": 5,
+      "name": "Final Gambit"
+    },
+    {
+      "move_id": 496,
+      "base_pp": 5,
+      "name": "Shadow Force"
+    },
+    {
+      "move_id": 497,
+      "base_pp": 20,
+      "name": "Nuzzle"
+    },
+    {
+      "move_id": 498,
+      "base_pp": 5,
+      "name": "Retaliate"
+    },
+    {
+      "move_id": 499,
+      "base_pp": 35,
+      "name": "Metal Bash"
+    },
+    {
+      "move_id": 500,
+      "base_pp": 5,
+      "name": "Judgment"
+    },
+    {
+      "move_id": 501,
+      "base_pp": 20,
+      "name": "Freeze-Dry"
+    },
+    {
+      "move_id": 502,
+      "base_pp": 10,
+      "name": "Psyshock"
+    },
+    {
+      "move_id": 503,
+      "base_pp": 15,
+      "name": "Round"
+    },
+    {
+      "move_id": 504,
+      "base_pp": 10,
+      "name": "Tail Slap"
+    },
+    {
+      "move_id": 505,
+      "base_pp": 15,
+      "name": "Gear Grind"
+    },
+    {
+      "move_id": 506,
+      "base_pp": 15,
+      "name": "Natural Gift"
+    },
+    {
+      "move_id": 507,
+      "base_pp": 20,
+      "name": "Chip Away"
+    },
+    {
+      "move_id": 508,
+      "base_pp": 15,
+      "name": "Smack Down"
+    },
+    {
+      "move_id": 509,
+      "base_pp": 5,
+      "name": "Space Hole"
+    },
+    {
+      "move_id": 510,
+      "base_pp": 5,
+      "name": "Gyro Ball"
+    },
+    {
+      "move_id": 511,
+      "base_pp": 5,
+      "name": "Space Fury"
+    },
+    {
+      "move_id": 512,
+      "base_pp": 15,
+      "name": "Attack Order"
+    },
+    {
+      "move_id": 513,
+      "base_pp": 10,
+      "name": "Defend Order"
+    },
+    {
+      "move_id": 514,
+      "base_pp": 5,
+      "name": "Heal Order"
+    },
+    {
+      "move_id": 515,
+      "base_pp": 20,
+      "name": "Captivate"
+    },
+    {
+      "move_id": 516,
+      "base_pp": 15,
+      "name": "Defog"
+    },
+    {
+      "move_id": 517,
+      "base_pp": 10,
+      "name": "Origin Pulse"
+    },
+    {
+      "move_id": 518,
+      "base_pp": 10,
+      "name": "Cliff Blades"
+    },
+    {
+      "move_id": 519,
+      "base_pp": 10,
+      "name": "Guard Swap"
+    },
+    {
+      "move_id": 520,
+      "base_pp": 5,
+      "name": "Steam Pump"
+    },
+    {
+      "move_id": 521,
+      "base_pp": 10,
+      "name": "Metal Burst"
+    },
+    {
+      "move_id": 522,
+      "base_pp": 20,
+      "name": "Me First"
+    },
+    {
+      "move_id": 523,
+      "base_pp": 10,
+      "name": "Power Swap"
+    },
+    {
+      "move_id": 524,
+      "base_pp": 10,
+      "name": "Power Trick"
+    },
+    {
+      "move_id": 525,
+      "base_pp": 10,
+      "name": "Psycho Shift"
+    },
+    {
+      "move_id": 526,
+      "base_pp": 5,
+      "name": "Wring Out"
+    },
+    {
+      "move_id": 527,
+      "base_pp": 5,
+      "name": "Kings Shield"
+    },
+    {
+      "move_id": 528,
+      "base_pp": 10,
+      "name": "Psystrike"
+    },
+    {
+      "move_id": 529,
+      "base_pp": 15,
+      "name": "Autotomize"
+    },
+    {
+      "move_id": 530,
+      "base_pp": 5,
+      "name": "DiamondStorm"
+    },
+    {
+      "move_id": 531,
+      "base_pp": 10,
+      "name": "Sludge Wave"
+    },
+    {
+      "move_id": 532,
+      "base_pp": 10,
+      "name": "Heavy Slam"
+    },
+    {
+      "move_id": 533,
+      "base_pp": 10,
+      "name": "Synchronoise"
+    },
+    {
+      "move_id": 534,
+      "base_pp": 10,
+      "name": "Electro Ball"
+    },
+    {
+      "move_id": 535,
+      "base_pp": 15,
+      "name": "Foul Play"
+    },
+    {
+      "move_id": 536,
+      "base_pp": 15,
+      "name": "Entrainment"
+    },
+    {
+      "move_id": 537,
+      "base_pp": 10,
+      "name": "Night Daze"
+    },
+    {
+      "move_id": 538,
+      "base_pp": 15,
+      "name": "Echoed Voice"
+    },
+    {
+      "move_id": 539,
+      "base_pp": 10,
+      "name": "Land's Wrath"
+    },
+    {
+      "move_id": 540,
+      "base_pp": 10,
+      "name": "OblivionWing"
+    },
+    {
+      "move_id": 541,
+      "base_pp": 10,
+      "name": "Heart Swap"
+    },
+    {
+      "move_id": 542,
+      "base_pp": 10,
+      "name": "Aqua Fang"
+    },
+    {
+      "move_id": 543,
+      "base_pp": 15,
+      "name": "Sacred Sword"
+    },
+    {
+      "move_id": 544,
+      "base_pp": 10,
+      "name": "Heat Crash"
+    },
+    {
+      "move_id": 545,
+      "base_pp": 15,
+      "name": "Head Charge"
+    },
+    {
+      "move_id": 546,
+      "base_pp": 5,
+      "name": "Techno Blast"
+    },
+    {
+      "move_id": 547,
+      "base_pp": 10,
+      "name": "Relic Song"
+    },
+    {
+      "move_id": 548,
+      "base_pp": 10,
+      "name": "Secret Sword"
+    },
+    {
+      "move_id": 549,
+      "base_pp": 10,
+      "name": "Glaciate"
+    },
+    {
+      "move_id": 550,
+      "base_pp": 5,
+      "name": "Bolt Strike"
+    },
+    {
+      "move_id": 551,
+      "base_pp": 5,
+      "name": "Blue Flare"
+    },
+    {
+      "move_id": 552,
+      "base_pp": 5,
+      "name": "Freeze Shock"
+    },
+    {
+      "move_id": 553,
+      "base_pp": 5,
+      "name": "Ice Burn"
+    },
+    {
+      "move_id": 554,
+      "base_pp": 5,
+      "name": "V-create"
+    },
+    {
+      "move_id": 555,
+      "base_pp": 5,
+      "name": "Fusion Flare"
+    },
+    {
+      "move_id": 556,
+      "base_pp": 5,
+      "name": "Fusion Bolt"
+    },
+    {
+      "move_id": 557,
+      "base_pp": 25,
+      "name": "Fell Stinger"
+    },
+    {
+      "move_id": 558,
+      "base_pp": 30,
+      "name": "Noble Roar"
+    },
+    {
+      "move_id": 559,
+      "base_pp": 5,
+      "name": "DragonAscent"
+    },
+    {
+      "move_id": 560,
+      "base_pp": 20,
+      "name": "Parting Shot"
+    },
+    {
+      "move_id": 561,
+      "base_pp": 20,
+      "name": "Topsy-Turvy"
+    },
+    {
+      "move_id": 562,
+      "base_pp": 10,
+      "name": "Core Enforce"
+    },
+    {
+      "move_id": 563,
+      "base_pp": 20,
+      "name": "Chatter"
+    },
+    {
+      "move_id": 564,
+      "base_pp": 20,
+      "name": "Confide"
+    },
+    {
+      "move_id": 565,
+      "base_pp": 20,
+      "name": "Water Star"
+    },
+    {
+      "move_id": 566,
+      "base_pp": 10,
+      "name": "MysticalFire"
+    },
+    {
+      "move_id": 567,
+      "base_pp": 5,
+      "name": "Spiky Shield"
+    },
+    {
+      "move_id": 568,
+      "base_pp": 15,
+      "name": "EerieImpulse"
+    },
+    {
+      "move_id": 569,
+      "base_pp": 40,
+      "name": "Hold Back"
+    },
+    {
+      "move_id": 570,
+      "base_pp": 20,
+      "name": "Infestation"
+    },
+    {
+      "move_id": 571,
+      "base_pp": 20,
+      "name": "PowerUpPunch"
+    },
+    {
+      "move_id": 572,
+      "base_pp": 10,
+      "name": "1000 Arrows"
+    },
+    {
+      "move_id": 573,
+      "base_pp": 10,
+      "name": "1000 Waves"
+    },
+    {
+      "move_id": 574,
+      "base_pp": 20,
+      "name": "Para Charge"
+    },
+    {
+      "move_id": 575,
+      "base_pp": 5,
+      "name": "Searing Shot"
+    },
+    {
+      "move_id": 576,
+      "base_pp": 5,
+      "name": "Seed Flare"
+    },
+    {
+      "move_id": 577,
+      "base_pp": 20,
+      "name": "Accelerock"
+    },
+    {
+      "move_id": 578,
+      "base_pp": 20,
+      "name": "Anchor Shot"
+    },
+    {
+      "move_id": 579,
+      "base_pp": 20,
+      "name": "Aurora Veil"
+    },
+    {
+      "move_id": 580,
+      "base_pp": 5,
+      "name": "Baneful Bunk"
+    },
+    {
+      "move_id": 581,
+      "base_pp": 15,
+      "name": "Beak Blast"
+    },
+    {
+      "move_id": 582,
+      "base_pp": 20,
+      "name": "Brutal Swing"
+    },
+    {
+      "move_id": 583,
+      "base_pp": 5,
+      "name": "Burn Up"
+    },
+    {
+      "move_id": 584,
+      "base_pp": 5,
+      "name": "Clang Scales"
+    },
+    {
+      "move_id": 585,
+      "base_pp": 10,
+      "name": "Dark Lariat"
+    },
+    {
+      "move_id": 586,
+      "base_pp": 15,
+      "name": "Draco Hammer"
+    },
+    {
+      "move_id": 587,
+      "base_pp": 15,
+      "name": "Fire Lash"
+    },
+    {
+      "move_id": 588,
+      "base_pp": 10,
+      "name": "FirstImpress"
+    },
+    {
+      "move_id": 589,
+      "base_pp": 5,
+      "name": "Fleur Cannon"
+    },
+    {
+      "move_id": 590,
+      "base_pp": 10,
+      "name": "Floral Heal"
+    },
+    {
+      "move_id": 591,
+      "base_pp": 20,
+      "name": "Gear Up"
+    },
+    {
+      "move_id": 592,
+      "base_pp": 10,
+      "name": "HiHorsepower"
+    },
+    {
+      "move_id": 593,
+      "base_pp": 10,
+      "name": "Ice Hammer"
+    },
+    {
+      "move_id": 594,
+      "base_pp": 30,
+      "name": "Laser Focus"
+    },
+    {
+      "move_id": 595,
+      "base_pp": 40,
+      "name": "Leafage"
+    },
+    {
+      "move_id": 596,
+      "base_pp": 10,
+      "name": "Liquidation"
+    },
+    {
+      "move_id": 597,
+      "base_pp": 10,
+      "name": "Lunge"
+    },
+    {
+      "move_id": 598,
+      "base_pp": 5,
+      "name": "Geist Beam"
+    },
+    {
+      "move_id": 599,
+      "base_pp": 10,
+      "name": "Multi-Attack"
+    },
+    {
+      "move_id": 600,
+      "base_pp": 10,
+      "name": "Nature's Mad"
+    },
+    {
+      "move_id": 601,
+      "base_pp": 15,
+      "name": "Pollen Puff"
+    },
+    {
+      "move_id": 602,
+      "base_pp": 10,
+      "name": "Power Trip"
+    },
+    {
+      "move_id": 603,
+      "base_pp": 4,
+      "name": "Prism Laser"
+    },
+    {
+      "move_id": 604,
+      "base_pp": 10,
+      "name": "Psychic Fang"
+    },
+    {
+      "move_id": 605,
+      "base_pp": 20,
+      "name": "Purify"
+    },
+    {
+      "move_id": 606,
+      "base_pp": 15,
+      "name": "Revel Dance"
+    },
+    {
+      "move_id": 607,
+      "base_pp": 10,
+      "name": "Shadow Bone"
+    },
+    {
+      "move_id": 608,
+      "base_pp": 5,
+      "name": "Shell Trap"
+    },
+    {
+      "move_id": 609,
+      "base_pp": 5,
+      "name": "Shore Up"
+    },
+    {
+      "move_id": 610,
+      "base_pp": 10,
+      "name": "Smart Strike"
+    },
+    {
+      "move_id": 611,
+      "base_pp": 10,
+      "name": "Solar Blade"
+    },
+    {
+      "move_id": 612,
+      "base_pp": 10,
+      "name": "Sparkle Aria"
+    },
+    {
+      "move_id": 613,
+      "base_pp": 10,
+      "name": "Spect Thief"
+    },
+    {
+      "move_id": 614,
+      "base_pp": 10,
+      "name": "Speed Swap"
+    },
+    {
+      "move_id": 615,
+      "base_pp": 10,
+      "name": "Spirit Lock"
+    },
+    {
+      "move_id": 616,
+      "base_pp": 15,
+      "name": "Spotlight"
+    },
+    {
+      "move_id": 617,
+      "base_pp": 10,
+      "name": "Bad Tantrum"
+    },
+    {
+      "move_id": 618,
+      "base_pp": 5,
+      "name": "Strength Sap"
+    },
+    {
+      "move_id": 619,
+      "base_pp": 5,
+      "name": "Sunsteel Ram"
+    },
+    {
+      "move_id": 620,
+      "base_pp": 20,
+      "name": "Teary Look"
+    },
+    {
+      "move_id": 621,
+      "base_pp": 15,
+      "name": "Throat Chop"
+    },
+    {
+      "move_id": 622,
+      "base_pp": 20,
+      "name": "Toxic Thread"
+    },
+    {
+      "move_id": 623,
+      "base_pp": 10,
+      "name": "Trop Kick"
+    },
+    {
+      "move_id": 624,
+      "base_pp": 10,
+      "name": "Zing Zap"
+    },
+    {
+      "move_id": 625,
+      "base_pp": 10,
+      "name": "Elec Terrain"
+    },
+    {
+      "move_id": 626,
+      "base_pp": 10,
+      "name": "Gras Terrain"
+    },
+    {
+      "move_id": 627,
+      "base_pp": 10,
+      "name": "Mist Terrain"
+    },
+    {
+      "move_id": 628,
+      "base_pp": 10,
+      "name": "Psyc Terrain"
+    },
+    {
+      "move_id": 629,
+      "base_pp": 10,
+      "name": "Grass Pledge"
+    },
+    {
+      "move_id": 630,
+      "base_pp": 10,
+      "name": "Fire Pledge"
+    },
+    {
+      "move_id": 631,
+      "base_pp": 10,
+      "name": "Water Pledge"
+    },
+    {
+      "move_id": 632,
+      "base_pp": 5,
+      "name": "Trick Room"
+    },
+    {
+      "move_id": 633,
+      "base_pp": 10,
+      "name": "Magic Room"
+    },
+    {
+      "move_id": 634,
+      "base_pp": 10,
+      "name": "Wonder Room"
+    },
+    {
+      "move_id": 635,
+      "base_pp": 10,
+      "name": "Crafty Guard"
+    },
+    {
+      "move_id": 636,
+      "base_pp": 10,
+      "name": "Mat Block"
+    },
+    {
+      "move_id": 637,
+      "base_pp": 15,
+      "name": "Quick Guard"
+    },
+    {
+      "move_id": 638,
+      "base_pp": 10,
+      "name": "Wide Guard"
+    },
+    {
+      "move_id": 639,
+      "base_pp": 20,
+      "name": "Aqua Ring"
+    },
+    {
+      "move_id": 640,
+      "base_pp": 20,
+      "name": "Aroma Mist"
+    },
+    {
+      "move_id": 641,
+      "base_pp": 10,
+      "name": "Belch"
+    },
+    {
+      "move_id": 642,
+      "base_pp": 15,
+      "name": "Bestow"
+    },
+    {
+      "move_id": 643,
+      "base_pp": 10,
+      "name": "Fling"
+    },
+    {
+      "move_id": 644,
+      "base_pp": 10,
+      "name": "Flying Press"
+    },
+    {
+      "move_id": 645,
+      "base_pp": 5,
+      "name": "Gravity"
+    },
+    {
+      "move_id": 646,
+      "base_pp": 10,
+      "name": "Guard Split"
+    },
+    {
+      "move_id": 647,
+      "base_pp": 15,
+      "name": "Heal Block"
+    },
+    {
+      "move_id": 648,
+      "base_pp": 25,
+      "name": "Ion Deluge"
+    },
+    {
+      "move_id": 649,
+      "base_pp": 30,
+      "name": "Lucky Chant"
+    },
+    {
+      "move_id": 650,
+      "base_pp": 10,
+      "name": "Magnet Rise"
+    },
+    {
+      "move_id": 651,
+      "base_pp": 20,
+      "name": "Magnet Flux"
+    },
+    {
+      "move_id": 652,
+      "base_pp": 20,
+      "name": "Powder"
+    },
+    {
+      "move_id": 653,
+      "base_pp": 10,
+      "name": "Power Split"
+    },
+    {
+      "move_id": 654,
+      "base_pp": 15,
+      "name": "Reflect Type"
+    },
+    {
+      "move_id": 655,
+      "base_pp": 15,
+      "name": "Simple Beam"
+    },
+    {
+      "move_id": 656,
+      "base_pp": 20,
+      "name": "Soak"
+    },
+    {
+      "move_id": 657,
+      "base_pp": 15,
+      "name": "Telekinesis"
+    },
+    {
+      "move_id": 658,
+      "base_pp": 20,
+      "name": "TrickoTreat"
+    },
+    {
+      "move_id": 659,
+      "base_pp": 20,
+      "name": "Venom Drench"
+    },
+    {
+      "move_id": 660,
+      "base_pp": 20,
+      "name": "Woods Curse"
+    },
+    {
+      "move_id": 661,
+      "base_pp": 5,
+      "name": "Mind Blown"
+    },
+    {
+      "move_id": 662,
+      "base_pp": 5,
+      "name": "PhotonGeyser"
+    },
+    {
+      "move_id": 663,
+      "base_pp": 15,
+      "name": "Plasma Fists"
+    },
+    {
+      "move_id": 664,
+      "base_pp": 20,
+      "name": "Electrify"
+    },
+    {
+      "move_id": 665,
+      "base_pp": 15,
+      "name": "Embargo"
+    },
+    {
+      "move_id": 666,
+      "base_pp": 10,
+      "name": "Fairy Lock"
+    },
+    {
+      "move_id": 667,
+      "base_pp": 5,
+      "name": "Light ofRuin"
+    },
+    {
+      "move_id": 668,
+      "base_pp": 5,
+      "name": "Trump Card"
+    },
+    {
+      "move_id": 669,
+      "base_pp": 15,
+      "name": "After You"
+    },
+    {
+      "move_id": 670,
+      "base_pp": 15,
+      "name": "Instruct"
+    },
+    {
+      "move_id": 671,
+      "base_pp": 15,
+      "name": "Quash"
+    },
+    {
+      "move_id": 672,
+      "base_pp": 30,
+      "name": "Happy Hour"
+    },
+    {
+      "move_id": 673,
+      "base_pp": 5,
+      "name": "Dbl IronBash"
+    },
+    {
+      "move_id": 674,
+      "base_pp": 5,
+      "name": "Last Resort"
+    },
+    {
+      "move_id": 675,
+      "base_pp": 10,
+      "name": "Sky Drop"
+    },
+    {
+      "move_id": 676,
+      "base_pp": 40,
+      "name": "Celebrate"
+    },
+    {
+      "move_id": 677,
+      "base_pp": 40,
+      "name": "Hold Hands"
+    },
+    {
+      "move_id": 678,
+      "base_pp": 5,
+      "name": "D-Max Cannon"
+    },
+    {
+      "move_id": 679,
+      "base_pp": 15,
+      "name": "Snipe Shot"
+    },
+    {
+      "move_id": 680,
+      "base_pp": 10,
+      "name": "Jaw Lock"
+    },
+    {
+      "move_id": 681,
+      "base_pp": 10,
+      "name": "Stuff Cheeks"
+    },
+    {
+      "move_id": 682,
+      "base_pp": 5,
+      "name": "No Retreat"
+    },
+    {
+      "move_id": 683,
+      "base_pp": 15,
+      "name": "Tar Shot"
+    },
+    {
+      "move_id": 684,
+      "base_pp": 20,
+      "name": "Magic Powder"
+    },
+    {
+      "move_id": 685,
+      "base_pp": 10,
+      "name": "Dragon Darts"
+    },
+    {
+      "move_id": 686,
+      "base_pp": 10,
+      "name": "Teatime"
+    },
+    {
+      "move_id": 687,
+      "base_pp": 15,
+      "name": "Octolock"
+    },
+    {
+      "move_id": 688,
+      "base_pp": 10,
+      "name": "Bolt Beak"
+    },
+    {
+      "move_id": 689,
+      "base_pp": 5,
+      "name": "FishiousRend"
+    },
+    {
+      "move_id": 690,
+      "base_pp": 10,
+      "name": "Court Change"
+    },
+    {
+      "move_id": 691,
+      "base_pp": 5,
+      "name": "Clang Soul"
+    },
+    {
+      "move_id": 692,
+      "base_pp": 10,
+      "name": "Body Press"
+    },
+    {
+      "move_id": 693,
+      "base_pp": 15,
+      "name": "Decorate"
+    },
+    {
+      "move_id": 694,
+      "base_pp": 10,
+      "name": "Drum Beating"
+    },
+    {
+      "move_id": 695,
+      "base_pp": 5,
+      "name": "Snap Trap"
+    },
+    {
+      "move_id": 696,
+      "base_pp": 5,
+      "name": "Pyro Ball"
+    },
+    {
+      "move_id": 697,
+      "base_pp": 5,
+      "name": "Giant Blade"
+    },
+    {
+      "move_id": 698,
+      "base_pp": 5,
+      "name": "Giant Bash"
+    },
+    {
+      "move_id": 699,
+      "base_pp": 10,
+      "name": "Aura Wheel"
+    },
+    {
+      "move_id": 700,
+      "base_pp": 10,
+      "name": "Break Swipe"
+    },
+    {
+      "move_id": 701,
+      "base_pp": 40,
+      "name": "Branch Poke"
+    },
+    {
+      "move_id": 702,
+      "base_pp": 10,
+      "name": "Overdrive"
+    },
+    {
+      "move_id": 703,
+      "base_pp": 10,
+      "name": "Apple Acid"
+    },
+    {
+      "move_id": 704,
+      "base_pp": 10,
+      "name": "Grav Apple"
+    },
+    {
+      "move_id": 705,
+      "base_pp": 15,
+      "name": "Spirit Break"
+    },
+    {
+      "move_id": 706,
+      "base_pp": 10,
+      "name": "StrangeSteam"
+    },
+    {
+      "move_id": 707,
+      "base_pp": 10,
+      "name": "Life Dew"
+    },
+    {
+      "move_id": 708,
+      "base_pp": 5,
+      "name": "Obstruct"
+    },
+    {
+      "move_id": 709,
+      "base_pp": 10,
+      "name": "False Yield"
+    },
+    {
+      "move_id": 710,
+      "base_pp": 4,
+      "name": "Meteor Rush"
+    },
+    {
+      "move_id": 711,
+      "base_pp": 5,
+      "name": "Eternabeam"
+    },
+    {
+      "move_id": 712,
+      "base_pp": 5,
+      "name": "Steel Beam"
+    },
+    {
+      "move_id": 713,
+      "base_pp": 20,
+      "name": "Expand Force"
+    },
+    {
+      "move_id": 714,
+      "base_pp": 5,
+      "name": "Steel Roller"
+    },
+    {
+      "move_id": 715,
+      "base_pp": 25,
+      "name": "Scale Shot"
+    },
+    {
+      "move_id": 716,
+      "base_pp": 10,
+      "name": "Meteor Beam"
+    },
+    {
+      "move_id": 717,
+      "base_pp": 10,
+      "name": "ShellSideArm"
+    },
+    {
+      "move_id": 718,
+      "base_pp": 5,
+      "name": "MistyExplode"
+    },
+    {
+      "move_id": 719,
+      "base_pp": 20,
+      "name": "Grassy Glide"
+    },
+    {
+      "move_id": 720,
+      "base_pp": 20,
+      "name": "Rising Volt"
+    },
+    {
+      "move_id": 721,
+      "base_pp": 10,
+      "name": "TerrainPulse"
+    },
+    {
+      "move_id": 722,
+      "base_pp": 10,
+      "name": "SkitterSmack"
+    },
+    {
+      "move_id": 723,
+      "base_pp": 5,
+      "name": "Jealous Burn"
+    },
+    {
+      "move_id": 724,
+      "base_pp": 5,
+      "name": "Lash Out"
+    },
+    {
+      "move_id": 725,
+      "base_pp": 5,
+      "name": "Poltergeist"
+    },
+    {
+      "move_id": 726,
+      "base_pp": 40,
+      "name": "Corrode Gas"
+    },
+    {
+      "move_id": 727,
+      "base_pp": 10,
+      "name": "Coaching"
+    },
+    {
+      "move_id": 728,
+      "base_pp": 20,
+      "name": "Flip Turn"
+    },
+    {
+      "move_id": 729,
+      "base_pp": 10,
+      "name": "Triple Axel"
+    },
+    {
+      "move_id": 730,
+      "base_pp": 10,
+      "name": "DualWingbeat"
+    },
+    {
+      "move_id": 731,
+      "base_pp": 10,
+      "name": "Scorch Sands"
+    },
+    {
+      "move_id": 732,
+      "base_pp": 5,
+      "name": "Jungle Heal"
+    },
+    {
+      "move_id": 733,
+      "base_pp": 5,
+      "name": "Wicked Blow"
+    },
+    {
+      "move_id": 734,
+      "base_pp": 5,
+      "name": "SurgeStrikes"
+    },
+    {
+      "move_id": 735,
+      "base_pp": 10,
+      "name": "Freeze Glare"
+    },
+    {
+      "move_id": 736,
+      "base_pp": 10,
+      "name": "Thunder Kick"
+    },
+    {
+      "move_id": 737,
+      "base_pp": 10,
+      "name": "Fiery Wrath"
+    },
+    {
+      "move_id": 738,
+      "base_pp": 15,
+      "name": "Thunder Cage"
+    },
+    {
+      "move_id": 739,
+      "base_pp": 5,
+      "name": "DragonEnergy"
+    },
+    {
+      "move_id": 740,
+      "base_pp": 5,
+      "name": "Astral Bomb"
+    },
+    {
+      "move_id": 741,
+      "base_pp": 5,
+      "name": "GlacialLance"
+    },
+    {
+      "move_id": 742,
+      "base_pp": 1,
+      "name": "Banned Spell"
+    },
+    {
+      "move_id": 743,
+      "base_pp": 5,
+      "name": "Zippy Zap"
+    },
+    {
+      "move_id": 744,
+      "base_pp": 5,
+      "name": "Sappy Seed"
+    },
+    {
+      "move_id": 745,
+      "base_pp": 5,
+      "name": "Freezy Frost"
+    },
+    {
+      "move_id": 746,
+      "base_pp": 5,
+      "name": "SparklySwirl"
+    },
+    {
+      "move_id": 747,
+      "base_pp": 5,
+      "name": "BouncyBubble"
+    },
+    {
+      "move_id": 748,
+      "base_pp": 10,
+      "name": "Sonic Slash"
+    },
+    {
+      "move_id": 749,
+      "base_pp": 5,
+      "name": "DracoBarrage"
+    },
+    {
+      "move_id": 750,
+      "base_pp": 15,
+      "name": "Stone Axe"
+    },
+    {
+      "move_id": 751,
+      "base_pp": 5,
+      "name": "HeadlongRush"
+    },
+    {
+      "move_id": 752,
+      "base_pp": 20,
+      "name": "VictoryDance"
+    },
+    {
+      "move_id": 753,
+      "base_pp": 15,
+      "name": "InfernoMarch"
+    },
+    {
+      "move_id": 754,
+      "base_pp": 15,
+      "name": "Cease Edge"
+    },
+    {
+      "move_id": 755,
+      "base_pp": 15,
+      "name": "Trip Arrows"
+    },
+    {
+      "move_id": 756,
+      "base_pp": 15,
+      "name": "Barb Barrage"
+    },
+    {
+      "move_id": 757,
+      "base_pp": 15,
+      "name": "Chloroblast"
+    },
+    {
+      "move_id": 758,
+      "base_pp": 15,
+      "name": "BitterMalice"
+    },
+    {
+      "move_id": 759,
+      "base_pp": 10,
+      "name": "Esper Wing"
+    },
+    {
+      "move_id": 760,
+      "base_pp": 15,
+      "name": "Dire Claw"
+    },
+    {
+      "move_id": 761,
+      "base_pp": 5,
+      "name": "MountainGale"
+    },
+    {
+      "move_id": 762,
+      "base_pp": 10,
+      "name": "PsyshieldRam"
+    },
+    {
+      "move_id": 763,
+      "base_pp": 10,
+      "name": "MysticPower"
+    },
+    {
+      "move_id": 764,
+      "base_pp": 15,
+      "name": "Wave Crash"
+    },
+    {
+      "move_id": 765,
+      "base_pp": 10,
+      "name": "Flower Trick"
+    },
+    {
+      "move_id": 766,
+      "base_pp": 10,
+      "name": "Torch Song"
+    },
+    {
+      "move_id": 767,
+      "base_pp": 10,
+      "name": "Aqua Step"
+    },
+    {
+      "move_id": 768,
+      "base_pp": 10,
+      "name": "Hyper Drill"
+    },
+    {
+      "move_id": 769,
+      "base_pp": 5,
+      "name": "Armor Cannon"
+    },
+    {
+      "move_id": 770,
+      "base_pp": 10,
+      "name": "Bitter Blade"
+    },
+    {
+      "move_id": 771,
+      "base_pp": 10,
+      "name": "Aqua Cutter"
+    },
+    {
+      "move_id": 772,
+      "base_pp": 10,
+      "name": "Rage Fist"
+    },
+    {
+      "move_id": 773,
+      "base_pp": 10,
+      "name": "Glaive Rush"
+    },
+    {
+      "move_id": 774,
+      "base_pp": 10,
+      "name": "LastRespects"
+    },
+    {
+      "move_id": 775,
+      "base_pp": 10,
+      "name": "Shed Tail"
+    },
+    {
+      "move_id": 776,
+      "base_pp": 15,
+      "name": "Jet Punch"
+    },
+    {
+      "move_id": 777,
+      "base_pp": 5,
+      "name": "Spin Out"
+    },
+    {
+      "move_id": 778,
+      "base_pp": 5,
+      "name": "Crash Course"
+    },
+    {
+      "move_id": 779,
+      "base_pp": 5,
+      "name": "ElectroDrift"
+    },
+    {
+      "move_id": 780,
+      "base_pp": 1,
+      "name": "Revive Bless"
+    },
+    {
+      "move_id": 781,
+      "base_pp": 5,
+      "name": "Giga Hammer"
+    },
+    {
+      "move_id": 782,
+      "base_pp": 10,
+      "name": "Raging Bull"
+    },
+    {
+      "move_id": 783,
+      "base_pp": 10,
+      "name": "Twin Beam"
+    },
+    {
+      "move_id": 784,
+      "base_pp": 10,
+      "name": "Kow. Cleave"
+    },
+    {
+      "move_id": 785,
+      "base_pp": 5,
+      "name": "DoubleShock"
+    },
+    {
+      "move_id": 786,
+      "base_pp": 20,
+      "name": "Trailblaze"
+    },
+    {
+      "move_id": 787,
+      "base_pp": 10,
+      "name": "Pounce"
+    },
+    {
+      "move_id": 788,
+      "base_pp": 5,
+      "name": "Make It Rain"
+    },
+    {
+      "move_id": 789,
+      "base_pp": 10,
+      "name": "Popu. Bomb"
+    },
+    {
+      "move_id": 790,
+      "base_pp": 5,
+      "name": "Lunar Bless"
+    },
+    {
+      "move_id": 791,
+      "base_pp": 5,
+      "name": "Take Heart"
+    },
+    {
+      "move_id": 792,
+      "base_pp": 5,
+      "name": "Silk Trap"
+    },
+    {
+      "move_id": 793,
+      "base_pp": 10,
+      "name": "Axe Kick"
+    },
+    {
+      "move_id": 794,
+      "base_pp": 10,
+      "name": "Lum. Crash"
+    },
+    {
+      "move_id": 795,
+      "base_pp": 15,
+      "name": "Ice Spinner"
+    },
+    {
+      "move_id": 796,
+      "base_pp": 15,
+      "name": "Salt Cure"
+    },
+    {
+      "move_id": 797,
+      "base_pp": 10,
+      "name": "Triple Dive"
+    },
+    {
+      "move_id": 798,
+      "base_pp": 15,
+      "name": "Mortal Spin"
+    },
+    {
+      "move_id": 799,
+      "base_pp": 10,
+      "name": "Fillet Away"
+    },
+    {
+      "move_id": 800,
+      "base_pp": 10,
+      "name": "Chilly Rec."
+    },
+    {
+      "move_id": 801,
+      "base_pp": 20,
+      "name": "Chill Water"
+    },
+    {
+      "move_id": 802,
+      "base_pp": 10,
+      "name": "Comeuppance"
+    },
+    {
+      "move_id": 803,
+      "base_pp": 10,
+      "name": "Tidy Up"
+    },
+    {
+      "move_id": 804,
+      "base_pp": 10,
+      "name": "Ruination"
+    },
+    {
+      "move_id": 805,
+      "base_pp": 15,
+      "name": "Psyblade"
+    },
+    {
+      "move_id": 806,
+      "base_pp": 15,
+      "name": "Hydro Steam"
+    },
+    {
+      "move_id": 807,
+      "base_pp": 10,
+      "name": "Bleak Storm"
+    },
+    {
+      "move_id": 808,
+      "base_pp": 10,
+      "name": "WildbltStorm"
+    },
+    {
+      "move_id": 809,
+      "base_pp": 10,
+      "name": "Sandsr Storm"
+    },
+    {
+      "move_id": 810,
+      "base_pp": 10,
+      "name": "Spring Storm"
+    },
+    {
+      "move_id": 811,
+      "base_pp": 5,
+      "name": "Blood Moon"
+    },
+    {
+      "move_id": 812,
+      "base_pp": 5,
+      "name": "Macha Got."
+    },
+    {
+      "move_id": 813,
+      "base_pp": 10,
+      "name": "Ivy Cudgel"
+    },
+    {
+      "move_id": 814,
+      "base_pp": 10,
+      "name": "Elec. Shot"
+    },
+    {
+      "move_id": 815,
+      "base_pp": 5,
+      "name": "Thundrclap"
+    },
+    {
+      "move_id": 816,
+      "base_pp": 10,
+      "name": "TachyonCut"
+    },
+    {
+      "move_id": 817,
+      "base_pp": 10,
+      "name": "Psy. Noise"
+    },
+    {
+      "move_id": 818,
+      "base_pp": 10,
+      "name": "Upper Hand"
+    },
+    {
+      "move_id": 819,
+      "base_pp": 10,
+      "name": "Fickle Beam"
+    },
+    {
+      "move_id": 820,
+      "base_pp": 10,
+      "name": "Burning Bul."
+    },
+    {
+      "move_id": 821,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 822,
+      "base_pp": 10,
+      "name": "MightyCleave"
+    },
+    {
+      "move_id": 823,
+      "base_pp": 10,
+      "name": "Hard Press"
+    },
+    {
+      "move_id": 824,
+      "base_pp": 10,
+      "name": "Dragon Cheer"
+    },
+    {
+      "move_id": 825,
+      "base_pp": 10,
+      "name": "Allure Voice"
+    },
+    {
+      "move_id": 826,
+      "base_pp": 10,
+      "name": "Temper Flare"
+    },
+    {
+      "move_id": 827,
+      "base_pp": 15,
+      "name": "Super Slam"
+    },
+    {
+      "move_id": 828,
+      "base_pp": 15,
+      "name": "Mal. Chain"
+    },
+    {
+      "move_id": 829,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 830,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 831,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 832,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 833,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 834,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 835,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 836,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 837,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 838,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 839,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 840,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 841,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 842,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 843,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 844,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 845,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 846,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 847,
+      "base_pp": 0,
+      "name": "Placeholder"
+    },
+    {
+      "move_id": 848,
+      "base_pp": 1,
+      "name": "Z-Move 1"
+    },
+    {
+      "move_id": 849,
+      "base_pp": 1,
+      "name": "Z-Move 2"
+    },
+    {
+      "move_id": 850,
+      "base_pp": 1,
+      "name": "Z-Move 3"
+    },
+    {
+      "move_id": 851,
+      "base_pp": 1,
+      "name": "Z-Move 4"
+    },
+    {
+      "move_id": 852,
+      "base_pp": 1,
+      "name": "Z-Move 5"
+    },
+    {
+      "move_id": 853,
+      "base_pp": 1,
+      "name": "Z-Move 6"
+    },
+    {
+      "move_id": 854,
+      "base_pp": 1,
+      "name": "Z-Move 7"
+    },
+    {
+      "move_id": 855,
+      "base_pp": 1,
+      "name": "Z-Move 8"
+    },
+    {
+      "move_id": 856,
+      "base_pp": 1,
+      "name": "Z-Move 9"
+    },
+    {
+      "move_id": 857,
+      "base_pp": 1,
+      "name": "Z-Move 10"
+    },
+    {
+      "move_id": 858,
+      "base_pp": 1,
+      "name": "Z-Move 11"
+    },
+    {
+      "move_id": 859,
+      "base_pp": 1,
+      "name": "Z-Move 12"
+    },
+    {
+      "move_id": 860,
+      "base_pp": 1,
+      "name": "Z-Move 13"
+    },
+    {
+      "move_id": 861,
+      "base_pp": 1,
+      "name": "Z-Move 14"
+    },
+    {
+      "move_id": 862,
+      "base_pp": 1,
+      "name": "Z-Move 15"
+    },
+    {
+      "move_id": 863,
+      "base_pp": 1,
+      "name": "Z-Move 16"
+    },
+    {
+      "move_id": 864,
+      "base_pp": 1,
+      "name": "Z-Move 17"
+    },
+    {
+      "move_id": 865,
+      "base_pp": 1,
+      "name": "Z-Move 18"
+    },
+    {
+      "move_id": 866,
+      "base_pp": 1,
+      "name": "Z-Move 19"
+    },
+    {
+      "move_id": 867,
+      "base_pp": 1,
+      "name": "Z-Move 20"
+    },
+    {
+      "move_id": 868,
+      "base_pp": 1,
+      "name": "Z-Move 21"
+    },
+    {
+      "move_id": 869,
+      "base_pp": 1,
+      "name": "Z-Move 22"
+    },
+    {
+      "move_id": 870,
+      "base_pp": 1,
+      "name": "Z-Move 23"
+    },
+    {
+      "move_id": 871,
+      "base_pp": 1,
+      "name": "Z-Move 24"
+    },
+    {
+      "move_id": 872,
+      "base_pp": 1,
+      "name": "Z-Move 25"
+    },
+    {
+      "move_id": 873,
+      "base_pp": 1,
+      "name": "Z-Move 26"
+    },
+    {
+      "move_id": 874,
+      "base_pp": 1,
+      "name": "Z-Move 27"
+    },
+    {
+      "move_id": 875,
+      "base_pp": 1,
+      "name": "Z-Move 28"
+    },
+    {
+      "move_id": 876,
+      "base_pp": 1,
+      "name": "Z-Move 29"
+    },
+    {
+      "move_id": 877,
+      "base_pp": 1,
+      "name": "Z-Move 30"
+    },
+    {
+      "move_id": 878,
+      "base_pp": 1,
+      "name": "Z-Move 31"
+    },
+    {
+      "move_id": 879,
+      "base_pp": 1,
+      "name": "Z-Move 32"
+    },
+    {
+      "move_id": 880,
+      "base_pp": 1,
+      "name": "Z-Move 33"
+    },
+    {
+      "move_id": 881,
+      "base_pp": 1,
+      "name": "Z-Move 34"
+    },
+    {
+      "move_id": 882,
+      "base_pp": 1,
+      "name": "Z-Move 35"
+    },
+    {
+      "move_id": 883,
+      "base_pp": 1,
+      "name": "Z-Move 36"
+    },
+    {
+      "move_id": 884,
+      "base_pp": 1,
+      "name": "Z-Move 37"
+    },
+    {
+      "move_id": 885,
+      "base_pp": 1,
+      "name": "Z-Move 38"
+    },
+    {
+      "move_id": 886,
+      "base_pp": 1,
+      "name": "Z-Move 39"
+    },
+    {
+      "move_id": 887,
+      "base_pp": 1,
+      "name": "Z-Move 40"
+    },
+    {
+      "move_id": 888,
+      "base_pp": 1,
+      "name": "Z-Move 41"
+    },
+    {
+      "move_id": 889,
+      "base_pp": 1,
+      "name": "Z-Move 42"
+    },
+    {
+      "move_id": 890,
+      "base_pp": 1,
+      "name": "Z-Move 43"
+    },
+    {
+      "move_id": 891,
+      "base_pp": 1,
+      "name": "Z-Move 44"
+    },
+    {
+      "move_id": 892,
+      "base_pp": 1,
+      "name": "Z-Move 45"
+    },
+    {
+      "move_id": 893,
+      "base_pp": 1,
+      "name": "Z-Move 46"
+    },
+    {
+      "move_id": 894,
+      "base_pp": 1,
+      "name": "Z-Move 47"
+    },
+    {
+      "move_id": 895,
+      "base_pp": 1,
+      "name": "Z-Move 48"
+    },
+    {
+      "move_id": 896,
+      "base_pp": 1,
+      "name": "Z-Move 49"
+    },
+    {
+      "move_id": 897,
+      "base_pp": 1,
+      "name": "Z-Move 50"
+    },
+    {
+      "move_id": 898,
+      "base_pp": 1,
+      "name": "Z-Move 51"
+    },
+    {
+      "move_id": 899,
+      "base_pp": 1,
+      "name": "Z-Move 52"
+    },
+    {
+      "move_id": 900,
+      "base_pp": 1,
+      "name": "Z-Move 53"
+    },
+    {
+      "move_id": 901,
+      "base_pp": 10,
+      "name": "Guard"
+    },
+    {
+      "move_id": 902,
+      "base_pp": 10,
+      "name": "Strike"
+    },
+    {
+      "move_id": 903,
+      "base_pp": 10,
+      "name": "Strike"
+    },
+    {
+      "move_id": 904,
+      "base_pp": 10,
+      "name": "Knuckle"
+    },
+    {
+      "move_id": 905,
+      "base_pp": 10,
+      "name": "Knuckle"
+    },
+    {
+      "move_id": 906,
+      "base_pp": 10,
+      "name": "Airstream"
+    },
+    {
+      "move_id": 907,
+      "base_pp": 10,
+      "name": "Airstream"
+    },
+    {
+      "move_id": 908,
+      "base_pp": 10,
+      "name": "Ooze"
+    },
+    {
+      "move_id": 909,
+      "base_pp": 10,
+      "name": "Ooze"
+    },
+    {
+      "move_id": 910,
+      "base_pp": 10,
+      "name": "Quake"
+    },
+    {
+      "move_id": 911,
+      "base_pp": 10,
+      "name": "Quake"
+    },
+    {
+      "move_id": 912,
+      "base_pp": 10,
+      "name": "Rockfall"
+    },
+    {
+      "move_id": 913,
+      "base_pp": 10,
+      "name": "Rockfall"
+    },
+    {
+      "move_id": 914,
+      "base_pp": 10,
+      "name": "Flutterby"
+    },
+    {
+      "move_id": 915,
+      "base_pp": 10,
+      "name": "Flutterby"
+    },
+    {
+      "move_id": 916,
+      "base_pp": 10,
+      "name": "Phantasm"
+    },
+    {
+      "move_id": 917,
+      "base_pp": 10,
+      "name": "Phantasm"
+    },
+    {
+      "move_id": 918,
+      "base_pp": 10,
+      "name": "Steelspike"
+    },
+    {
+      "move_id": 919,
+      "base_pp": 10,
+      "name": "Steelspike"
+    },
+    {
+      "move_id": 920,
+      "base_pp": 10,
+      "name": "Flare"
+    },
+    {
+      "move_id": 921,
+      "base_pp": 10,
+      "name": "Flare"
+    },
+    {
+      "move_id": 922,
+      "base_pp": 10,
+      "name": "Geyser"
+    },
+    {
+      "move_id": 923,
+      "base_pp": 10,
+      "name": "Geyser"
+    },
+    {
+      "move_id": 924,
+      "base_pp": 10,
+      "name": "Overgrowth"
+    },
+    {
+      "move_id": 925,
+      "base_pp": 10,
+      "name": "Overgrowth"
+    },
+    {
+      "move_id": 926,
+      "base_pp": 10,
+      "name": "Lightning"
+    },
+    {
+      "move_id": 927,
+      "base_pp": 10,
+      "name": "Lightning"
+    },
+    {
+      "move_id": 928,
+      "base_pp": 10,
+      "name": "Mindstorm"
+    },
+    {
+      "move_id": 929,
+      "base_pp": 10,
+      "name": "Mindstorm"
+    },
+    {
+      "move_id": 930,
+      "base_pp": 10,
+      "name": "Hailstorm"
+    },
+    {
+      "move_id": 931,
+      "base_pp": 10,
+      "name": "Hailstorm"
+    },
+    {
+      "move_id": 932,
+      "base_pp": 10,
+      "name": "Wyrmwind"
+    },
+    {
+      "move_id": 933,
+      "base_pp": 10,
+      "name": "Wyrmwind"
+    },
+    {
+      "move_id": 934,
+      "base_pp": 10,
+      "name": "Darkness"
+    },
+    {
+      "move_id": 935,
+      "base_pp": 10,
+      "name": "Darkness"
+    },
+    {
+      "move_id": 936,
+      "base_pp": 10,
+      "name": "Starfall"
+    },
+    {
+      "move_id": 937,
+      "base_pp": 10,
+      "name": "Starfall"
+    },
+    {
+      "move_id": 938,
+      "base_pp": 10,
+      "name": "Vine Lash"
+    },
+    {
+      "move_id": 939,
+      "base_pp": 10,
+      "name": "Vine Lash"
+    },
+    {
+      "move_id": 940,
+      "base_pp": 10,
+      "name": "Wildfire"
+    },
+    {
+      "move_id": 941,
+      "base_pp": 10,
+      "name": "Wildfire"
+    },
+    {
+      "move_id": 942,
+      "base_pp": 10,
+      "name": "Cannonade"
+    },
+    {
+      "move_id": 943,
+      "base_pp": 10,
+      "name": "Cannonade"
+    },
+    {
+      "move_id": 944,
+      "base_pp": 10,
+      "name": "Befuddle"
+    },
+    {
+      "move_id": 945,
+      "base_pp": 10,
+      "name": "Befuddle"
+    },
+    {
+      "move_id": 946,
+      "base_pp": 10,
+      "name": "Voltcrash"
+    },
+    {
+      "move_id": 947,
+      "base_pp": 10,
+      "name": "Voltcrash"
+    },
+    {
+      "move_id": 948,
+      "base_pp": 10,
+      "name": "Goldrush"
+    },
+    {
+      "move_id": 949,
+      "base_pp": 10,
+      "name": "Goldrush"
+    },
+    {
+      "move_id": 950,
+      "base_pp": 10,
+      "name": "Chistrike"
+    },
+    {
+      "move_id": 951,
+      "base_pp": 10,
+      "name": "Chistrike"
+    },
+    {
+      "move_id": 952,
+      "base_pp": 10,
+      "name": "Terror"
+    },
+    {
+      "move_id": 953,
+      "base_pp": 10,
+      "name": "Terror"
+    },
+    {
+      "move_id": 954,
+      "base_pp": 10,
+      "name": "Foamburst"
+    },
+    {
+      "move_id": 955,
+      "base_pp": 10,
+      "name": "Foamburst"
+    },
+    {
+      "move_id": 956,
+      "base_pp": 10,
+      "name": "Resonance"
+    },
+    {
+      "move_id": 957,
+      "base_pp": 10,
+      "name": "Resonance"
+    },
+    {
+      "move_id": 958,
+      "base_pp": 10,
+      "name": "Cuddle"
+    },
+    {
+      "move_id": 959,
+      "base_pp": 10,
+      "name": "Cuddle"
+    },
+    {
+      "move_id": 960,
+      "base_pp": 10,
+      "name": "Replenish"
+    },
+    {
+      "move_id": 961,
+      "base_pp": 10,
+      "name": "Replenish"
+    },
+    {
+      "move_id": 962,
+      "base_pp": 10,
+      "name": "Malodor"
+    },
+    {
+      "move_id": 963,
+      "base_pp": 10,
+      "name": "Malodor"
+    },
+    {
+      "move_id": 964,
+      "base_pp": 10,
+      "name": "Meltdown"
+    },
+    {
+      "move_id": 965,
+      "base_pp": 10,
+      "name": "Meltdown"
+    },
+    {
+      "move_id": 966,
+      "base_pp": 10,
+      "name": "Drum Solo"
+    },
+    {
+      "move_id": 967,
+      "base_pp": 10,
+      "name": "Drum Solo"
+    },
+    {
+      "move_id": 968,
+      "base_pp": 10,
+      "name": "Fireball"
+    },
+    {
+      "move_id": 969,
+      "base_pp": 10,
+      "name": "Fireball"
+    },
+    {
+      "move_id": 970,
+      "base_pp": 10,
+      "name": "Hydrosnipe"
+    },
+    {
+      "move_id": 971,
+      "base_pp": 10,
+      "name": "Hydrosnipe"
+    },
+    {
+      "move_id": 972,
+      "base_pp": 10,
+      "name": "Windrage"
+    },
+    {
+      "move_id": 973,
+      "base_pp": 10,
+      "name": "Windrage"
+    },
+    {
+      "move_id": 974,
+      "base_pp": 10,
+      "name": "Gravitas"
+    },
+    {
+      "move_id": 975,
+      "base_pp": 10,
+      "name": "Gravitas"
+    },
+    {
+      "move_id": 976,
+      "base_pp": 10,
+      "name": "Stonesurge"
+    },
+    {
+      "move_id": 977,
+      "base_pp": 10,
+      "name": "Stonesurge"
+    },
+    {
+      "move_id": 978,
+      "base_pp": 10,
+      "name": "Volcalith"
+    },
+    {
+      "move_id": 979,
+      "base_pp": 10,
+      "name": "Volcalith"
+    },
+    {
+      "move_id": 980,
+      "base_pp": 10,
+      "name": "Tartness"
+    },
+    {
+      "move_id": 981,
+      "base_pp": 10,
+      "name": "Tartness"
+    },
+    {
+      "move_id": 982,
+      "base_pp": 10,
+      "name": "Sweetness"
+    },
+    {
+      "move_id": 983,
+      "base_pp": 10,
+      "name": "Sweetness"
+    },
+    {
+      "move_id": 984,
+      "base_pp": 10,
+      "name": "Sandblast"
+    },
+    {
+      "move_id": 985,
+      "base_pp": 10,
+      "name": "Sandblast"
+    },
+    {
+      "move_id": 986,
+      "base_pp": 10,
+      "name": "Stunshock"
+    },
+    {
+      "move_id": 987,
+      "base_pp": 10,
+      "name": "Stunshock"
+    },
+    {
+      "move_id": 988,
+      "base_pp": 10,
+      "name": "Centiferno"
+    },
+    {
+      "move_id": 989,
+      "base_pp": 10,
+      "name": "Centiferno"
+    },
+    {
+      "move_id": 990,
+      "base_pp": 10,
+      "name": "Smite"
+    },
+    {
+      "move_id": 991,
+      "base_pp": 10,
+      "name": "Smite"
+    },
+    {
+      "move_id": 992,
+      "base_pp": 10,
+      "name": "Snooze"
+    },
+    {
+      "move_id": 993,
+      "base_pp": 10,
+      "name": "Snooze"
+    },
+    {
+      "move_id": 994,
+      "base_pp": 10,
+      "name": "Finale"
+    },
+    {
+      "move_id": 995,
+      "base_pp": 10,
+      "name": "Finale"
+    },
+    {
+      "move_id": 996,
+      "base_pp": 10,
+      "name": "Steelsurge"
+    },
+    {
+      "move_id": 997,
+      "base_pp": 10,
+      "name": "Steelsurge"
+    },
+    {
+      "move_id": 998,
+      "base_pp": 10,
+      "name": "Depletion"
+    },
+    {
+      "move_id": 999,
+      "base_pp": 10,
+      "name": "Depletion"
+    },
+    {
+      "move_id": 1000,
+      "base_pp": 10,
+      "name": "One Blow"
+    },
+    {
+      "move_id": 1001,
+      "base_pp": 10,
+      "name": "One Blow"
+    },
+    {
+      "move_id": 1002,
+      "base_pp": 10,
+      "name": "Rapid Flow"
+    },
+    {
+      "move_id": 1003,
+      "base_pp": 10,
+      "name": "Rapid Flow"
+    }
+  ]
+}

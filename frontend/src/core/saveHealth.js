@@ -32,7 +32,7 @@ function fieldLabel(sectionId, offset) {
     }
     if (sectionId === 0 && offset >= 0xB0 && offset < 0xB0 + 30 * PC_MON_SIZE) {
         const relative = offset - 0xB0;
-        return pcField(`Preset slot ${Math.floor(relative / PC_MON_SIZE) + 1}`, relative % PC_MON_SIZE);
+        return pcField(`${PROFILE.id === 'radical-red-4.1' ? 'Box 25' : 'Preset'} slot ${Math.floor(relative / PC_MON_SIZE) + 1}`, relative % PC_MON_SIZE);
     }
     if (sectionId >= 5 && sectionId <= 12 && offset >= (sectionId === 5 ? 4 : 0) && offset < 0xFF0) {
         const relative = (sectionId - 5) * 0xFF0 + offset - 4;

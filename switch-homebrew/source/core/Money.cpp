@@ -1,5 +1,6 @@
 #include <puse/core/GameProfile.hpp>
 #include <puse/core/Money.hpp>
+#include <algorithm>
 
 #include <puse/core/Binary.hpp>
 #include <puse/core/SaveSections.hpp>
@@ -64,12 +65,26 @@ bool ReadMoney(const std::vector<uint8_t> &buffer, uint32_t *out_money, std::str
     }
 
     *out_money = ReadU32Le(buffer.data() + best->offset, kMoneyU32Off);
+    if (profile::IsRadicalRed()) {
+        const auto key=std::find_if(sections.begin(),sections.end(),[](const auto& sec){return sec.section_id==0;});
+        if(key==sections.end())return false;
+        *out_money ^= ReadU32Le(buffer.data()+key->offset,0xF20);
+    }
     return true;
 }
 
 bool WriteMoney(std::vector<uint8_t> &buffer, const uint32_t money, std::string *error) {
     const uint32_t clamped = (money > kMaxMoney) ? kMaxMoney : money;
     const auto sections = ActiveUnboundSections(buffer);
+    if (profile::IsRadicalRed()) {
+        const auto key=std::find_if(sections.begin(),sections.end(),[](const auto& sec){return sec.section_id==0;});
+        const auto trainer=std::find_if(sections.begin(),sections.end(),[](const auto& sec){return sec.section_id==1;});
+        if(key==sections.end() || trainer==sections.end()) {if(error)*error="Trainer section not found";return false;}
+        const auto value=std::min(money,kMaxMoney)^ReadU32Le(buffer.data()+key->offset,0xF20);
+        WriteU32Le(buffer.data()+trainer->offset,kMoneyU32Off,value);
+        return RecalculateSectionChecksum(buffer,trainer->offset);
+    }
+
     bool any = false;
 
     for (const auto &s : sections) {
@@ -102,6 +117,7 @@ bool WriteMoney(std::vector<uint8_t> &buffer, const uint32_t money, std::string 
 }
 
 bool ReadBp(const std::vector<uint8_t> &buffer, uint16_t *out_bp, std::string *error) {
+    if (!profile::Supports("bp")) { if(error) *error="Unsupported operation: bp"; return false; }
     const auto sections = ActiveUnboundSections(buffer);
 
     const SaveSection *best = nullptr;
@@ -134,6 +150,7 @@ bool ReadBp(const std::vector<uint8_t> &buffer, uint16_t *out_bp, std::string *e
 }
 
 bool WriteBp(std::vector<uint8_t> &buffer, const uint16_t bp, std::string *error) {
+    if (!profile::Supports("bp")) { if(error) *error="Unsupported operation: bp"; return false; }
     const auto sections = ActiveUnboundSections(buffer);
     bool any = false;
 

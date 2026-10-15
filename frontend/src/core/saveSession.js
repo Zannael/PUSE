@@ -1,4 +1,4 @@
-import { DEFAULT_PROFILE_ID, getProfile } from './profile.js';
+import { DEFAULT_PROFILE_ID, getProfile, chooseProfile, activateProfile } from './profile.js';
 
 const session = {
     saveBuffer: null,
@@ -19,13 +19,15 @@ function cloneBuffer(buffer) {
     return new Uint8Array(buffer);
 }
 
-export async function loadFile(file) {
+export async function loadFile(file, profileId = null) {
     if (!file) {
         throw new Error('Missing file');
     }
 
     const bytes = new Uint8Array(await file.arrayBuffer());
-    session.profileId = getProfile().id;
+    const chosen = chooseProfile(bytes, profileId);
+    await activateProfile(chosen);
+    session.profileId = chosen;
     session.saveBuffer = bytes;
     session.originalBuffer = cloneBuffer(bytes);
     session.filename = file.name || 'edited_save.sav';

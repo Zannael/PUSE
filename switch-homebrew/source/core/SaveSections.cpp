@@ -6,6 +6,42 @@
 
 namespace puse::core {
 
+std::vector<const profile::GameProfile*> RecognizeProfiles(const std::vector<uint8_t>& buffer) {
+    std::vector<const profile::GameProfile*> result;
+    for (const auto* game : {&profile::kBuiltin, &profile::kRadicalRed}) {
+        for (size_t base : {size_t(0), size_t(14*4096)}) {
+            if (base+14*4096 > buffer.size()) continue;
+            std::array<bool,14> seen{}; bool valid=true;
+            const auto counter=ReadU32Le(buffer.data()+base,kFooterSaveIndexOffset);
+            for(size_t i=0;i<14;i++) {
+                const auto* bytes=buffer.data()+base+i*4096;
+                const auto id=ReadU16Le(bytes,kFooterIdOffset);
+                const auto sig=ReadU32Le(bytes,0xFF8);
+                const bool signature=game==&profile::kRadicalRed ? sig==0x08012025 : sig==0x01121999 || sig==0x01121998;
+                if(id>=14 || seen[id] || !signature || ReadU32Le(bytes,kFooterSaveIndexOffset)!=counter) {valid=false;break;}
+                seen[id]=true;
+            }
+            if(valid) {result.push_back(game);break;}
+        }
+    }
+    return result;
+}
+
+bool ChooseProfile(const std::vector<uint8_t>& buffer,const std::string& requested,const profile::GameProfile** out,std::string* error) {
+    const auto candidates=RecognizeProfiles(buffer);
+    if(!requested.empty()) {
+        const auto* chosen=profile::FindProfile(requested);
+        if(!chosen || std::find(candidates.begin(),candidates.end(),chosen)==candidates.end()) {
+            if(error)*error="Save does not match the selected profile container";return false;
+        }
+        *out=chosen;return true;
+    }
+    if(candidates.size()>1 || (candidates.size()==1 && candidates[0]==&profile::kRadicalRed)) {
+        if(error)*error="Explicit game/version selection required";return false;
+    }
+    *out=&profile::kBuiltin;return true;
+}
+
 size_t UnboundChecksumLength(uint16_t id) {
     return profile::ChecksumLength(id);
 }
@@ -24,7 +60,7 @@ std::vector<SaveSection> ActiveUnboundSections(const std::vector<uint8_t>& buffe
             const auto& sec = sections[i];
             const auto signature = ReadU32Le(buffer.data() + sec.offset, profile::kContainerFooterSignature);
             if (sec.section_id >= profile::kContainerSectionsPerSlot || seen[sec.section_id] || sec.save_index != counter ||
-                std::find(profile::kContainerSignatures.begin(), profile::kContainerSignatures.end(), signature) == profile::kContainerSignatures.end()) {
+                !profile::SignatureValid(signature)) {
                 valid = false; break;
             }
             // Retain section 4's opaque checksum protection.

@@ -9,7 +9,7 @@ namespace puse::core {
 
 class SaveSession {
   public:
-    bool LoadFromFile(const std::string &path, std::string *error = nullptr);
+    bool LoadFromFile(const std::string &path, std::string *error = nullptr, const std::string& profile_id = "");
     bool ExportToFile(const std::string &path, std::string *error = nullptr) const;
 
     void Clear();

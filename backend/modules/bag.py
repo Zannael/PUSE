@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from core.data_loader import catalog_path
-from core.profile import PROFILE
+from core.profile import PROFILE, catalog_file
 from core.sections import active_unbound_slot, refresh_checksum
 # bag.py — Editor Definitivo per Pokemon Unbound
 # Include: Smart Search, Save Index Check e Unbound Fixed Length Checksum
@@ -105,6 +105,9 @@ MAIN_POCKET_PROBE_IDS = [13, 84, 197, 94, 24, 26, 16, 493, 603, 606, 72]
 
 
 def pocket_type_for_item_id(item_id):
+    if PROFILE["id"] == "radical-red-4.1":
+        pockets = json.loads(catalog_path("pockets").read_text())["pockets"]
+        return next(("generic" if key == "main" else key for key, value in pockets.items() if item_id in value["ids"]), "unknown")
     if item_id in KEY_ITEM_IDS:
         return "key"
     if item_id in BALL_ITEM_IDS:
@@ -466,6 +469,9 @@ def _gate_unlockable_pocket(data, pocket, pocket_type, required_item_id, key_ids
 
 
 def resolve_quick_pockets(data):
+    if PROFILE["id"] == "radical-red-4.1":
+        from modules import radical_bag
+        return radical_bag.bootstrap(data)
     if not data:
         return {}
 
@@ -584,7 +590,7 @@ def wu16(b, o, v): struct.pack_into("<H", b, o, v)
 
 
 def load_item_names_from_file():
-    items = load_id_name_file(PROFILE["catalogs"]["items"]["file"])
+    items = load_id_name_file(catalog_file("items"))
     if not items:
         return
     DB_ITEMS.clear()
@@ -599,6 +605,7 @@ def load_names_from_ct():
 
 
 def load_tm_names_from_file():
+    if PROFILE["id"] == "radical-red-4.1": return
     tm_path = catalog_path("tms")
     if not tm_path.exists():
         return
@@ -964,6 +971,13 @@ def scan_for_item_candidates(data, item_id):
     - deduplica per tasca e save copy (attivo/inattivo),
     - evita falsi positivi da scansione raw globale.
     """
+    if PROFILE["id"] == "radical-red-4.1":
+        from modules.radical_bag import offsets
+        active=active_unbound_slot(data)
+        return [{"offset":positions[0],"qty":ru16(data,next(off for off in positions if ru16(data,off)==item_id)+2),
+                 "sector":positions[0]//4096,"sect_id":13 if key=="main" else 30,"save_idx":active[0]["idx"],
+                 "pocket_slots":len(positions),"pocket_dups":0,"score":100,"quality":"strict"}
+                for key,positions in offsets(data).items() if item_id and any(ru16(data,off)==item_id for off in positions)]
     if item_id <= 0:
         return []
 
@@ -1216,6 +1230,9 @@ def scan_for_item_candidates(data, item_id):
 
 # --- MAPPATURA TASCA ---
 def map_pocket_from_anchor(data, anchor_offset):
+    if PROFILE["id"] == "radical-red-4.1":
+        from modules import radical_bag
+        return radical_bag.pocket(data, anchor_offset, DB_ITEMS)
     swapped, bounds = _best_pocket_for_anchor(data, anchor_offset)
     if not bounds:
         return []
@@ -1276,6 +1293,9 @@ def _item_fits_pocket(item_id, pocket_type):
 
 
 def write_slot(data, offset, item_id, quantity, encoding=None):
+    if PROFILE["id"] == "radical-red-4.1":
+        from modules import radical_bag
+        return radical_bag.write(data, offset, item_id, quantity, encoding)
     """
     Scrittura slot sicura con supporto ai due layout:
     - id_qty  : [item_id, qty]

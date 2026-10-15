@@ -1,10 +1,10 @@
 # PUSE game profile contract (schema 1)
 
-PUSE currently registers one built-in profile: `unbound-2.1.1.1`, for the verified English Unbound 2.1.1.1 ROM. A profile describes existing editor behavior; it does not establish compatibility merely because a save has a familiar signature. Uploads keep the existing validation and error behavior. Automatic game/version recognition and selection of a second game belong to milestone 3.
+PUSE registers two verified English profiles: `unbound-2.1.1.1` and `radical-red-4.1`. Recognition returns structural family candidates; it cannot identify an exact ROM version. Radical Red and ambiguous candidates require explicit game/version selection. Unbound remains the default for legacy standalone tools. See `romre/CFRU_IMPLEMENTATION_PLAN.md` for ROM hashes and independent game validation.
 
 ## Canonical source and runtime bindings
 
-`backend/data/profiles/unbound-2.1.1.1.json` is canonical. Python loads and recursively freezes this contract. Browser local mode imports the generated `frontend/src/core/gameProfile.json` and freezes it. Each native core uses generated `include/puse/core/GameProfile.hpp` bindings: constexpr traits for binary operations and the exact canonical JSON for inspection. Native ROMFS mirrors also contain the profile JSON. No JSON parser or new application dependency is required by the portable cores.
+`backend/data/profiles/*.json` are canonical. Python loads and recursively freezes this contract. Browser local mode imports the generated `frontend/src/core/gameProfile.json` and freezes it. Each native core uses generated `include/puse/core/GameProfile.hpp` bindings: constexpr traits for binary operations and the exact canonical JSON for inspection. Native ROMFS mirrors also contain the profile JSON. No JSON parser or new application dependency is required by the portable cores.
 
 Run from the repository root:
 
@@ -39,7 +39,7 @@ Do not hand-edit generated bindings or mirrored JSON. The synchronization check 
 
 Backend uploads retain `current_save["profile_id"]`; local browser sessions retain `profileId` through mutations and buffer replacement, accessible through `getSessionProfile()`. Both native `SaveSession` implementations retain a built-in profile pointer, expose `Profile()`, and reset it on `Clear()`. Failed native loads preserve the existing session and profile.
 
-Existing low-level entry points retain their signatures and use the one registered immutable profile. This preserves API payloads and legacy standalone tools. Slot selection, checksums, PC regions, party/PC record offsets, resource offsets, bag anchors, Pokédex offsets, key limits and catalog bindings now consume profile data. Some field packing, text tables, growth formulas, progression flags and fallback metadata loaders remain inside the explicitly named Unbound codecs. They must not silently be reused for a second game: milestone 3 must dispatch verified codecs/catalogs and respect capabilities. The extraction/catalog-completeness work remains milestone 4/5.
+Existing low-level entry points retain their signatures and use the selected immutable profile through a read-only view. This preserves API payloads and legacy standalone tools. Slot selection, checksums, PC regions, party/PC record offsets, resource offsets, bag anchors, Pokédex offsets, key limits and catalog bindings now consume profile data. Some field packing, text tables, growth formulas, progression flags and fallback metadata loaders remain inside the explicitly named Unbound codecs. Radical Red uses independently verified shared record layouts, its own catalog namespace, 25-box addressing, fixed fragmented bag pockets, XOR money and shiny threshold 8. Unbound-specific flags, presets and item/name mappings are never substituted for missing Radical Red metadata. The extraction/catalog-completeness work remains milestone 4/5.
 
 ## Native identity and lossless preservation
 
@@ -51,4 +51,22 @@ Insertion now reserves any PC/Preset record whose native species ID is nonzero, 
 
 Nine SHA-256 fingerprints captured from synthetic pre-refactor outputs cover no-ops, PC mutations and combined preset/resources/bag/party/Pokédex mutations under normal, rotated and wrapped generation layouts. The regression compares current outputs to those fixed fingerprints. The four-runtime storage regression independently checks the complete gather/scatter serialization. Contract serialization, immutable selection, unsupported-profile rejection, session lifecycle, unknown-record reservation/preservation and backend upload payload compatibility have focused tests.
 
-Private saves and ROMs are never profile assets. Shared auxiliary sectors still have no verified historical snapshot; section 4 remains opaque to generic checksum reconciliation. Homebrew Preset editing and save-review UI remain unavailable. Native builds and host parity do not substitute for physical-console controller/save validation.
+Private saves and ROMs are never profile assets. Shared auxiliary sectors still have no verified historical snapshot; Unbound section 4 remains opaque; Radical Red section 4 has a verified `0xD98` checksum domain. Homebrew Preset editing and save-review UI remain unavailable. Native builds and host parity do not substitute for physical-console controller/save validation.
+
+## Radical Red 4.1 coverage and selection
+
+| Operation | Backend / browser / Switch / 3DS |
+|---|---|
+| Existing Party / PC records, PID-aware identity, names, items, moves/PP, levels, stats, happiness | Supported |
+| PC boxes 1–25 and release | Supported; Box 25 is ordinary storage |
+| Player name / gender / combined TID/SID | Read-only |
+| Money | Read/write, u32 XOR with trainer key; max 999,999,999 |
+| Five fixed bag pockets | Read/write; main pocket compaction crosses its two physical regions |
+| New Pokémon construction, caught-ball editing, Preset, BP, RTC, Pokédex / progress flags, aggregate roster | Unavailable; preserved / guarded |
+| Effective ability and special-mode battle-rule prediction | Unavailable; native ability slots and base-ROM stats remain explicit |
+
+The web loader exposes explicit version selection. Backend upload accepts `profile_id` as an optional query parameter; `/profiles/recognize` returns candidates without activating them. Browser local and backend clients expose matching profile and read-only trainer methods. Switch uses the existing file browser and a built-in version-confirmation dialog; 3DS chooses the supported game before looking for `radicalred.sav` or `Unbound.sav`. Selection loads profile-scoped catalogs and suppresses Unbound-only controls/icons.
+
+Canonical Radical Red assets are generated by `backend/tools/extract_radical_red_41.py --rom <verified-ROM> --out backend/data/games/radical-red-4.1`, then the profile generator and both ROMFS sync scripts above. The extractor rejects other ROM hashes. Runtime assets contain extracted metadata, never ROM/save bytes. Missing required native Radical Red pocket catalogs fail closed instead of invoking Unbound fallback sets.
+
+Focused tests: `python3 backend/tools/radical_red_regression.py <private-save>` compares full bytes in four runtimes; `radical_red_api_regression.py` exercises actual ASGI routes without external dependencies; `radical_red_game_validation.py --rom <ROM> --save <save> --probe <mGBA-adapter>` optionally checks real-game load/save/reboot. Private fixtures are read-only and temporary outputs are cleaned. Unsupported versions, difficulty/randomizer overrides and physical-console validation remain explicit limits, not inferred compatibility.

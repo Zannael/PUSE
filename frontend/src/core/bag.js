@@ -1,4 +1,5 @@
-import { PROFILE } from './profile.js';
+import { PROFILE, isRadicalRed, gameCatalog } from './profile.js';
+import { radicalBagRows, radicalBagBootstrap, radicalBagWrite, radicalBagOffsets } from './radicalBag.js';
 import { recalculateSectionChecksum } from './checksum.js';
 import { ru16, ru32, wu16 } from './binary.js';
 import { OFF_ID, OFF_SAVE_IDX, SECTION_SIZE, activeUnboundSlot } from './sections.js';
@@ -380,6 +381,7 @@ function pickBestCandidate(candidates) {
 }
 
 export function pocketTypeForItemId(itemId) {
+    if (isRadicalRed()) return ({1:"generic",2:"key",3:"ball",4:"tm",5:"berry"}[gameCatalog().pockets[itemId]] ?? "unknown");
     if (KEY_ITEM_IDS.has(itemId)) return 'key';
     if (BALL_ITEM_IDS.has(itemId)) return 'ball';
     if (BERRY_ITEM_IDS.has(itemId)) return 'berry';
@@ -389,6 +391,7 @@ export function pocketTypeForItemId(itemId) {
 }
 
 export function scanForItemCandidates(buffer, itemId) {
+    if (isRadicalRed()) return Object.entries(radicalBagOffsets(buffer)).filter(([,positions])=>itemId>0 && positions.some((off)=>ru16(buffer,off)===itemId)).map(([key,positions])=>({offset:positions[0],qty:ru16(buffer,positions.find((off)=>ru16(buffer,off)===itemId)+2),sector:Math.floor(positions[0]/4096),sect_id:key==='main'?13:30,save_idx:activeUnboundSlot(buffer).get(0).idx,pocket_slots:positions.length,pocket_dups:0,score:100,quality:'strict'}));
     if (itemId <= 0) {
         return [];
     }
@@ -600,6 +603,7 @@ export function scanForItemCandidates(buffer, itemId) {
 }
 
 export function mapPocketFromAnchor(buffer, anchorOffset, itemNameById) {
+    if (isRadicalRed()) return radicalBagRows(buffer, anchorOffset, itemNameById);
     const [swapped, bounds] = bestPocketForAnchor(buffer, anchorOffset);
     if (!bounds) {
         return [];
@@ -978,6 +982,7 @@ function gateUnlockablePocket(buffer, pocket, pocketType, requiredItemId, keyIds
 }
 
 export function resolveQuickPockets(buffer) {
+    if (isRadicalRed()) return radicalBagBootstrap(buffer);
     if (!buffer || buffer.length === 0) {
         return {};
     }
@@ -1045,6 +1050,7 @@ function itemFitsPocket(itemId, pocketType) {
 }
 
 export function writeSlot(buffer, offset, itemId, quantity, encoding = null) {
+    if (isRadicalRed()) return radicalBagWrite(buffer, offset, itemId, quantity, encoding);
     let writeEncoding = encoding;
     if (writeEncoding !== 'id_qty' && writeEncoding !== 'qty_id') {
         const [swapped] = bestPocketForAnchor(buffer, offset);

@@ -24,6 +24,8 @@ struct SaveSection {
 };
 
 size_t UnboundChecksumLength(uint16_t id);
+std::vector<const profile::GameProfile*> RecognizeProfiles(const std::vector<uint8_t>& buffer);
+bool ChooseProfile(const std::vector<uint8_t>& buffer, const std::string& requested, const profile::GameProfile** out, std::string* error);
 std::vector<SaveSection> ActiveUnboundSections(const std::vector<uint8_t>& buffer, bool verify_checksums = true);
 
 uint16_t ComputeSectionChecksum(const uint8_t *payload, size_t payload_len, uint32_t valid_len);

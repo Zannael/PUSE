@@ -33,7 +33,6 @@ constexpr size_t kPcEvsOff     = profile::kCodecsPcFieldsEvs;  // 6 bytes [HP,At
 constexpr size_t kPcIvsOff     = profile::kCodecsPcFieldsIvs;  // u32: bits 0-4=HP,5-9=Atk,10-14=Def,15-19=Spe,20-24=SpA,25-29=SpD,bit31=HA
 
 constexpr uint32_t kMaxValidExp     = profile::kCodecsPcLegacyValidationMaxExp;
-constexpr uint16_t kMaxValidSpecies = profile::kCodecsPcLegacyValidationMaxSpeciesId;
 
 const std::array<const char *, 25> kNatureNames = {
     "Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "Docile", "Relaxed", "Impish", "Lax",
@@ -108,7 +107,7 @@ bool SlotInStreamBounds(const std::vector<uint8_t> &stream, const int box, const
 bool IsPcMonValid(const uint8_t *mon) {
     const uint16_t species = ReadU16Le(mon, kPcSpeciesOff);
     const uint32_t exp = ReadU32Le(mon, kPcExpOff);
-    return (species > 0) && (species <= kMaxValidSpecies) && (exp > 0) && (exp <= kMaxValidExp);
+    return (species > 0) && (species <= profile::MaxSpeciesId()) && (exp > 0) && (exp <= kMaxValidExp);
 }
 
 // Read 4×10-bit packed moves from 5 bytes at kPcMovesOff.
@@ -222,7 +221,7 @@ bool IsShinyPc(const uint32_t otid, const uint32_t pid) {
     const uint16_t tid = static_cast<uint16_t>(otid & 0xFFFFU);
     const uint16_t sid = static_cast<uint16_t>((otid >> 16U) & 0xFFFFU);
     const uint16_t sv = static_cast<uint16_t>(tid ^ sid ^ (pid & 0xFFFFU) ^ ((pid >> 16U) & 0xFFFFU));
-    return sv < profile::kRulesShinyThreshold;
+    return sv < profile::ShinyThreshold();
 }
 
 // Walk PID to find one with target_nature (% 25), preserving ability bit unless HA.
@@ -265,7 +264,7 @@ void SetPcShiny(uint8_t *mon, const bool desired_shiny) {
 }
 
 bool ValidatePcSlotArgs(const std::vector<uint8_t> &stream, const int box, const int slot, std::string *error) {
-    if ((box < 1) || (box > kPcStreamBoxCount) || (slot < 1) || (slot > kPcBoxSlotCount)) {
+    if ((box < 1) || (box > PcStreamBoxCount()) || (slot < 1) || (slot > kPcBoxSlotCount)) {
         if (error) { *error = "box/slot out of range"; }
         return false;
     }
@@ -302,6 +301,7 @@ std::vector<PcRegion> PcRegions(const std::vector<SaveSection>& slot) {
             slot[region.id].offset : region.id * kSectionSize;
         regions.push_back({base + region.start, region.end - region.start, static_cast<int>(region.id)});
     }
+    if (profile::IsRadicalRed()) regions.push_back({slot[0].offset + 0xB0, 1740, 0});
     return regions;
 }
 } // namespace
@@ -325,7 +325,7 @@ std::vector<uint8_t> BuildPcStream(const std::vector<uint8_t> &buffer, std::stri
 
 bool CommitPcStream(std::vector<uint8_t> &buffer, const std::vector<uint8_t> &stream, std::string *error) {
     const auto slot = ActiveUnboundSections(buffer);
-    if (slot.empty() || stream.size() != kPcStreamBoxCount * kPcBoxSlotCount * kPcMonSize || buffer.size() < profile::kContainerFlashSize) {
+    if (slot.empty() || stream.size() != PcStreamBoxCount() * kPcBoxSlotCount * kPcMonSize || buffer.size() < profile::kContainerFlashSize) {
         if (error) *error = "Invalid PC stream or save slot";
         return false;
     }
@@ -354,7 +354,7 @@ std::vector<PcMon> ParsePcBox(
     const std::unordered_map<int, std::string> &species_db
 ) {
     std::vector<PcMon> out;
-    if ((box < 1) || (box > kPcStreamBoxCount)) { return out; }
+    if ((box < 1) || (box > PcStreamBoxCount())) { return out; }
 
     EnsurePartyStaticDataLoaded(nullptr);
 
@@ -407,7 +407,7 @@ std::vector<PcMon> ParsePcBox(
 }
 
 int CountPcBoxMons(const std::vector<uint8_t> &stream, const int box) {
-    if ((box < 1) || (box > kPcStreamBoxCount)) { return 0; }
+    if ((box < 1) || (box > PcStreamBoxCount())) { return 0; }
     int count = 0;
     for (int slot = 1; slot <= kPcBoxSlotCount; ++slot) {
         if (!SlotInStreamBounds(stream, box, slot)) { break; }
@@ -640,13 +640,14 @@ bool InsertPcMon(std::vector<uint8_t> &stream,
                  const std::unordered_map<int, std::string> &species_db,
                  std::string *error)
 {
+    if (!profile::Supports("pc_insert")) { if (error) *error="Unsupported operation: pc_insert"; return false; }
     if (!ValidatePcSlotArgs(stream, box, slot, error)) { return false; }
     uint8_t *mon = MutableSlot(stream, box, slot);
     if (ReadU16Le(mon, kPcSpeciesOff) != 0) {
         if (error) *error = "slot is occupied";
         return false;
     }
-    if (species_id == 0 || species_id > kMaxValidSpecies) {
+    if (species_id == 0 || species_id > profile::MaxSpeciesId()) {
         if (error) *error = "invalid species_id";
         return false;
     }

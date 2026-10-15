@@ -1,3 +1,4 @@
+#include <puse/core/GameProfile.hpp>
 #include <puse/core/GameProgress.hpp>
 
 #include <algorithm>
@@ -164,6 +165,7 @@ bool BuildGameProgressSnapshot(const std::vector<uint8_t> &buffer,
                                const std::string &cap_profile,
                                GameProgressSnapshot *out,
                                std::string *error) {
+    if (!profile::Supports("game_progress")) { if (error) *error = "Unsupported operation for selected profile"; return false; }
     if (out == nullptr) {
         if (error != nullptr) { *error = "output snapshot is null"; }
         return false;

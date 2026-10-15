@@ -79,6 +79,7 @@ bool IsDexSpeciesTrackable(const uint16_t species_id) {
 }
 
 PokedexFlags GetPokedexFlags(const std::vector<uint8_t> &buffer, const uint16_t species_id) {
+    if (!profile::Supports("pokedex")) return {};
     PokedexFlags flags{};
     flags.trackable = IsDexSpeciesTrackable(species_id);
     if (!flags.trackable) {
@@ -90,6 +91,7 @@ PokedexFlags GetPokedexFlags(const std::vector<uint8_t> &buffer, const uint16_t 
 }
 
 bool SetPokedexFlag(std::vector<uint8_t> &buffer, const uint16_t species_id, const std::string &flag, const bool value, PokedexFlags *out) {
+    if (!profile::Supports("pokedex")) { return false; }
     const bool caught = flag == "caught";
     const uint32_t offset = caught ? kPokedexCaughtOffset : kPokedexSeenOffset;
     if (!WriteFlagAtOffset(buffer, offset, species_id, value)) {

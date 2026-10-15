@@ -10,10 +10,10 @@ def validate_contract(profile):
     require(profile.get('schema_version') == 1, 'unsupported schema version')
     for key in ('id', 'identity', 'container', 'storage', 'codecs', 'rules', 'catalogs', 'capabilities', 'requirements', 'evidence'):
         require(key in profile, f'missing {key}')
-    require(profile['id'] == 'unbound-2.1.1.1', 'unregistered profile ID')
+    require(profile['id'] in ('unbound-2.1.1.1', 'radical-red-4.1'), 'unregistered profile ID')
     c, storage, codecs = profile['container'], profile['storage'], profile['codecs']
-    require(codecs['pc']['id'] == 'unbound-cfru-compact-v1', 'unsupported PC codec')
-    require(codecs['party']['id'] == 'unbound-party-v1', 'unsupported party codec')
+    require(codecs['pc']['id'] in ('unbound-cfru-compact-v1','cfru-compact-58-v1'), 'unsupported PC codec')
+    require(codecs['party']['id'] in ('unbound-party-v1','cfru-party-100-v1'), 'unsupported party codec')
     require(codecs['text']['id'] == 'puse-unbound-gen3-text-v1', 'unsupported text codec')
     require(c['checksum']['algorithm'] == 'gba-u32-fold16', 'unsupported checksum codec')
     require(c['section_size'] > c['footer']['counter'] + 3, 'footer outside sector')
@@ -32,6 +32,7 @@ def validate_contract(profile):
     for kind in ('pc', 'party'):
         require(all(isinstance(off, int) and 0 <= off < codecs[kind]['record_size'] for off in codecs[kind]['fields'].values()), f'{kind} offsets')
     require(profile['identity']['save_version_detection'] is False, 'unverified version detection')
+    require(profile.get('catalog_base', '') in ('', 'games/radical-red-4.1'), 'catalog namespace path')
     for key, entry in profile['catalogs'].items():
         require(entry['id_space'] == profile['id'], f'{key} ID namespace')
         require('/' not in entry['file'] and '\\' not in entry['file'] and '..' not in entry['file'], f'{key} filename')

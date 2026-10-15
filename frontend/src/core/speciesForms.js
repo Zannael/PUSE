@@ -1,4 +1,5 @@
-import speciesFormAliases from './speciesFormAliases.json' with { type: 'json' };
+import { profileData } from './profile.js';
+import speciesFormAliasesRaw from './speciesFormAliases.json' with { type: 'json' };
 
 export function buildSpeciesFormMeta(speciesById) {
     const byName = new Map();
@@ -58,3 +59,5 @@ export function getSpeciesFormMeta(metaById, speciesById, speciesId) {
         is_form_variant: false,
     };
 }
+
+const speciesFormAliases = profileData("forms", speciesFormAliasesRaw);

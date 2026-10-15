@@ -1,4 +1,4 @@
-from core.profile import DEFAULT_PROFILE_ID, PROFILE, get_profile
+from core.profile import DEFAULT_PROFILE_ID, PROFILE, get_profile, select_profile, recognize_save, choose_profile, supports, require_capability, all_profiles
 from core.sections import active_sections, refresh_checksum
 import glob
 import json
@@ -101,6 +101,7 @@ def _should_track_absolute_sector_for_checksum(data, sector_off):
 
 @app.post("/rtc/repair-candidates")
 async def rtc_repair_candidates(broken: UploadFile = File(...), fixed: UploadFile = File(...)):
+    _require_feature("rtc")
     broken_bytes = await broken.read()
     fixed_bytes = await fixed.read()
 
@@ -146,6 +147,7 @@ async def rtc_repair_candidates(broken: UploadFile = File(...), fixed: UploadFil
 
 @app.post("/rtc/quick-fix")
 async def rtc_quick_fix(file: UploadFile = File(...)):
+    _require_feature("rtc")
     raw = await file.read()
     if not raw:
         raise HTTPException(status_code=400, detail="Save file is required")
@@ -187,6 +189,7 @@ async def rtc_quick_fix(file: UploadFile = File(...)):
 
 @app.post("/rtc/time-fixer-reset")
 async def rtc_time_fixer_reset(file: UploadFile = File(...)):
+    _require_feature("rtc")
     """Re-enable Unbound's one-use Time Fixer while preserving all opaque metadata."""
     raw = await file.read()
     if not raw:
@@ -258,6 +261,7 @@ SPECIAL_SPRITE_BY_TOKEN = {
 
 
 def _load_species_form_aliases() -> dict[int, dict]:
+    if PROFILE["id"] == "radical-red-4.1": return {}
     path = os.path.join(BASE_DIR, "data", "species_form_aliases.json")
     if not os.path.exists(path):
         return {}
@@ -277,6 +281,7 @@ def _load_species_form_aliases() -> dict[int, dict]:
 
 
 def _load_species_id_tokens() -> dict[int, str]:
+    if PROFILE["id"] == "radical-red-4.1": return {}
     path = os.path.join(BASE_DIR, "data", "species_id.txt")
     if not os.path.exists(path):
         return {}
@@ -375,6 +380,7 @@ def _species_meta(sid: int) -> dict:
 
 @app.get("/pokemon-icon/{species_id}")
 async def get_pokemon_icon(species_id: int):
+    if PROFILE["id"] == "radical-red-4.1": raise HTTPException(status_code=404, detail="No profile-specific icon")
     # 1. Check cache
     if species_id in icon_cache:
         return FileResponse(icon_cache[species_id])
@@ -436,6 +442,7 @@ async def get_pokemon_icon(species_id: int):
 
 @app.get("/item-icon/{item_id}")
 async def get_item_icon(item_id: int):
+    if PROFILE["id"] == "radical-red-4.1": raise HTTPException(status_code=404, detail="No profile-specific icon")
     if item_id <= 0:
         raise HTTPException(status_code=404, detail="Item icon not found")
 
@@ -490,11 +497,51 @@ def load_databases():
         )
 
 
+def _require_feature(feature):
+    try: require_capability(feature)
+    except ValueError as error: raise HTTPException(status_code=400, detail=str(error)) from error
+
+
+@app.get('/profiles')
+async def profiles():
+    return [{'id':p['id'],'identity':dict(p['identity']),'capabilities':{k:dict(v) for k,v in p['capabilities'].items()},'box_count':p['storage']['pc']['box_count']} for p in all_profiles()]
+
+
+@app.post('/profiles/recognize')
+async def recognize_profile(file: UploadFile = File(...)):
+    return recognize_save(await file.read())
+
+
+@app.get('/profile')
+async def loaded_profile():
+    p=get_profile(current_save['profile_id'])
+    return {'id':p['id'],'game':p['identity']['game'],'versions':list(p['identity']['versions']),
+        'box_count':p['storage']['pc']['box_count'],
+        'capabilities':{k:dict(v) for k,v in p['capabilities'].items()}}
+
+
+@app.get('/trainer')
+async def trainer_profile():
+    if current_save['data'] is None: raise HTTPException(status_code=400,detail='Upload a save first')
+    sections=active_sections(current_save['data'])
+    section=next((s for s in sections if s['id']==0),None)
+    if not section:raise HTTPException(status_code=404,detail='Trainer profile section not found')
+    raw=section['data'];identity=party_mod.ru32(raw,0xA)
+    return {'profile_id':get_profile()['id'],'name':party_mod.decode_text(raw[:7]),
+            'gender':raw[8],'trainer_id':identity,'tid':identity&65535,'sid':identity>>16}
+
+
 @app.post("/upload")
-async def upload_save(file: UploadFile = File(...)):
+async def upload_save(file: UploadFile = File(...), profile_id: str | None = None):
     """Load the .sav or .srm file into memory."""
     content = await file.read()
-    current_save["profile_id"] = get_profile()["id"]
+    try:
+        selected = choose_profile(content, profile_id)
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail={'message':str(error), **recognize_save(content)}) from error
+    select_profile(selected)
+    load_databases()
+    current_save["profile_id"] = selected
     current_save["data"] = bytearray(content)
     current_save["original_data"] = bytes(content)
     current_save["filename"] = file.filename
@@ -524,12 +571,13 @@ async def get_money():
     payload = trainer_secs[0]["data"]
 
     # Read u32 money value at the expected offset
-    money = money_mod.ru32(payload, money_mod.FALLBACK_OFF_MONEY)
+    money = money_mod.read_money(current_save["data"])
     return {"money": money}
 
 
 @app.get("/bp")
 async def get_battle_points():
+    _require_feature("bp")
     """Read Battle Points from active section 4 payload."""
     if current_save["data"] is None:
         raise HTTPException(status_code=400, detail="Upload a .sav file first")
@@ -544,6 +592,7 @@ async def get_battle_points():
 
 @app.get("/game-progress")
 async def get_game_progress(cap_profile: str = "normal"):
+    _require_feature("game_progress")
     """Return a read-only save progress snapshot for local/backend parity."""
     if current_save["data"] is None:
         raise HTTPException(status_code=400, detail="Upload a .sav file first")
@@ -564,6 +613,7 @@ class PokedexFlagUpdate(BaseModel):
 
 @app.get("/pokedex/flags/{species_id}")
 async def get_pokedex_flags(species_id: int):
+    _require_feature("pokedex")
     """Return internal Pokédex seen/caught flags for one species."""
     if current_save["data"] is None:
         raise HTTPException(status_code=400, detail="Upload a .sav file first")
@@ -572,6 +622,7 @@ async def get_pokedex_flags(species_id: int):
 
 @app.post("/pokedex/flags/{species_id}")
 async def update_pokedex_flag(species_id: int, data: PokedexFlagUpdate):
+    _require_feature("pokedex")
     """Update one internal Pokédex flag and refresh the trainer checksum."""
     if current_save["data"] is None:
         raise HTTPException(status_code=400, detail="Upload a .sav file first")
@@ -583,6 +634,7 @@ async def update_pokedex_flag(species_id: int, data: PokedexFlagUpdate):
 
 @app.get("/pokedex/summary")
 async def get_pokedex_summary():
+    _require_feature("pokedex")
     """Return seen/caught completion across trackable species rows."""
     if current_save["data"] is None:
         raise HTTPException(status_code=400, detail="Upload a .sav file first")
@@ -600,6 +652,7 @@ async def get_pokedex_summary():
 
 @app.post("/bp/update")
 async def update_battle_points(amount: int):
+    _require_feature("bp")
     """Update Battle Points in active section 4 payload."""
     if current_save["data"] is None:
         raise HTTPException(status_code=400, detail="Upload a .sav file first")
@@ -720,6 +773,8 @@ def _assert_species_unchanged(pk, expected_species_id: int, op_label: str):
 
 
 def _resolve_current_ability(current_index: int, ability_1_id, ability_1_name, ability_2_id, ability_2_name, ability_hidden_id, ability_hidden_name):
+    if PROFILE["id"] == "radical-red-4.1":
+        return None, None, f"Native slot {current_index + 1} (game overrides not modeled)"
     effective_id = None
     effective_name = None
     label = "Unknown Ability"
@@ -742,6 +797,8 @@ def _resolve_current_ability(current_index: int, ability_1_id, ability_1_name, a
 
 def _ball_meta(ball_id):
     bid = int(ball_id)
+    if PROFILE["id"] == "radical-red-4.1":
+        return {"ball_id": bid, "ball_item_id": None, "ball_name": f"Preserved ball #{bid}"}
     meta = party_mod.BALL_BY_ID.get(bid)
     if meta:
         return {
@@ -757,6 +814,7 @@ def _ball_meta(ball_id):
 
 
 def _assert_valid_ball_id(ball_id):
+    _require_feature("caught_ball_edit")
     bid = int(ball_id)
     if bid not in party_mod.BALL_BY_ID:
         raise HTTPException(status_code=400, detail="Invalid ball_id")
@@ -1192,6 +1250,7 @@ async def get_all_items():
 
 @app.get("/balls")
 async def get_all_balls():
+    if not supports("caught_ball_edit"): return []
     """Return caught-ball enum values with display item metadata."""
     return [dict(entry) for entry in party_mod.BALL_CATALOG]
 
@@ -1366,6 +1425,7 @@ async def load_pc():
 
 @app.get("/pc/box/{box_id}")
 async def get_box(box_id: int):
+    if PROFILE["id"] == "radical-red-4.1" and box_id > 25: _require_feature("preset")
     """Return all Pokemon in a box with edit-ready data."""
     # Filter loaded Pokemon in context by selected box
     mons = [m for m in current_save["pc_context"]["mons"] if m.box == box_id]
@@ -1444,6 +1504,7 @@ async def get_box(box_id: int):
 
 @app.get("/pc/writable-slots/{box_id}")
 async def get_pc_writable_slots(box_id: int):
+    if not supports("pc_insert"): return {"box": int(box_id), "writable_slots": []}
     if not current_save["data"]:
         raise HTTPException(status_code=400, detail="Upload a .sav file")
 
@@ -1500,6 +1561,7 @@ class PCRelease(BaseModel):
 
 @app.post("/pc/edit")
 async def edit_pc_mon(upd: PCUpdate):
+    if int(upd.box) == 26: _require_feature("preset")
     # Find target Pokemon in global state
     target = next((m for m in current_save["pc_context"]["mons"]
                    if m.box == upd.box and m.slot == upd.slot), None)
@@ -1555,6 +1617,7 @@ async def edit_pc_mon(upd: PCUpdate):
 
 @app.post("/pc/release")
 async def release_pc_mon(upd: PCRelease):
+    if int(upd.box) == 26: _require_feature("preset")
     if not current_save["data"]:
         raise HTTPException(status_code=400, detail="Upload a .sav file")
     if current_save["pc_context"].get("pc_buffer") is None:
@@ -1743,6 +1806,7 @@ class PCInsert(BaseModel):
 
 @app.post("/pc/edit-full")
 async def edit_pc_mon_full(upd: PCFullUpdate):
+    if int(upd.box) == 26: _require_feature("preset")
     # Find pokemon in loaded context
     target = next((m for m in current_save["pc_context"]["mons"]
                    if m.box == upd.box and m.slot == upd.slot), None)
@@ -1827,6 +1891,7 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
 
 @app.post("/pc/insert")
 async def insert_pc_mon(upd: PCInsert):
+    _require_feature("pc_insert")
     if not current_save["data"]:
         raise HTTPException(status_code=400, detail="Upload a .sav file")
 
@@ -2038,7 +2103,7 @@ def _finalize_save_bytes(data, ctx):
         if sec_off < 0 or sec_off + 0x1000 > len(data):
             continue
         sec_id = party_mod.ru16(data, sec_off + 0xFF4)
-        if sec_id in OPAQUE_SECTION_IDS:
+        if sec_id in PROFILE["container"]["checksum"]["opaque_ids"]:
             continue
         if sec_id == 0:
             chk_data = data[sec_off: sec_off + box_mod.section_checksum_length(0)]

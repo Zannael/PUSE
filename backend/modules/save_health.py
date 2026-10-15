@@ -66,7 +66,7 @@ def _field_label(section_id, offset):
         return "Trainer data"
     if section_id == 0 and 0xB0 <= offset < 0xB0 + 30 * PC_MON_SIZE:
         relative = offset - 0xB0
-        return _pc_field(f"Preset slot {relative // PC_MON_SIZE + 1}", relative % PC_MON_SIZE)
+        return _pc_field(f"{'Box 25' if PROFILE['id'] == 'radical-red-4.1' else 'Preset'} slot {relative // PC_MON_SIZE + 1}", relative % PC_MON_SIZE)
     if section_id in range(5, 13) and (4 if section_id == 5 else 0) <= offset < 0xFF0:
         relative = (section_id - 5) * 0xFF0 + offset - 4
         mon_index, inside = divmod(relative, PC_MON_SIZE)
