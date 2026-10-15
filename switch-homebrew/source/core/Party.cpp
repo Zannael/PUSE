@@ -1,3 +1,4 @@
+#include <puse/core/GameProfile.hpp>
 #include <puse/core/OtName.hpp>
 #include <puse/core/Party.hpp>
 
@@ -24,30 +25,30 @@ namespace puse::core {
 
 namespace {
 
-constexpr size_t kTrainerSectionId = 1;
-constexpr size_t kMonDataStart = 0x20;
-constexpr size_t kMonSize = 100;
-constexpr size_t kTeamCountOff = 0x34;
-constexpr size_t kPartyBaseOff = 0x38;
-constexpr size_t kMonNickOff = 0x08;
-constexpr size_t kMonPidOff = 0x00;
-constexpr size_t kMonOtidOff = 0x04;
-constexpr size_t kMonOtNameOff = 0x14;
-constexpr size_t kMonOtNameLen = 7;
-constexpr size_t kMonChecksumOff = 0x1C;
-constexpr size_t kMonLevelVisualOff = 0x54;
-constexpr size_t kMonCurrHpOff = 0x56;
-constexpr size_t kMonMaxHpOff = 0x58;
-constexpr size_t kMonAtkOff = 0x5A;
-constexpr size_t kMonDefOff = 0x5C;
-constexpr size_t kMonSpeOff = 0x5E;
-constexpr size_t kMonSpaOff = 0x60;
-constexpr size_t kMonSpdOff = 0x62;
+constexpr size_t kTrainerSectionId = profile::kStoragePartySectionId;
+constexpr size_t kMonDataStart = profile::kCodecsPartyFieldsDataStart;
+constexpr size_t kMonSize = profile::kStoragePartyRecordSize;
+constexpr size_t kTeamCountOff = profile::kStoragePartyCountOffset;
+constexpr size_t kPartyBaseOff = profile::kStoragePartyStart;
+constexpr size_t kMonNickOff = profile::kCodecsPartyFieldsNickname;
+constexpr size_t kMonPidOff = profile::kCodecsPartyFieldsPid;
+constexpr size_t kMonOtidOff = profile::kCodecsPartyFieldsOtid;
+constexpr size_t kMonOtNameOff = profile::kCodecsPartyFieldsOtName;
+constexpr size_t kMonOtNameLen = profile::kCodecsTextOtNameLength;
+constexpr size_t kMonChecksumOff = profile::kCodecsPartyFieldsChecksum;
+constexpr size_t kMonLevelVisualOff = profile::kCodecsPartyFieldsLevelVisual;
+constexpr size_t kMonCurrHpOff = profile::kCodecsPartyFieldsCurrHp;
+constexpr size_t kMonMaxHpOff = profile::kCodecsPartyFieldsMaxHp;
+constexpr size_t kMonAtkOff = profile::kCodecsPartyFieldsAtk;
+constexpr size_t kMonDefOff = profile::kCodecsPartyFieldsDef;
+constexpr size_t kMonSpeOff = profile::kCodecsPartyFieldsSpe;
+constexpr size_t kMonSpaOff = profile::kCodecsPartyFieldsSpa;
+constexpr size_t kMonSpdOff = profile::kCodecsPartyFieldsSpd;
 
 constexpr uint8_t kGenderThresholdMaleOnly = 0;
 constexpr uint8_t kGenderThresholdFemaleOnly = 254;
 constexpr uint8_t kGenderThresholdGenderless = 255;
-constexpr int kShinyThreshold = 16;
+constexpr int kShinyThreshold = profile::kRulesShinyThreshold;
 constexpr int kInv11Mod25 = 16;
 
 const std::array<const char *, 25> kNatureNames = {
@@ -945,7 +946,7 @@ int CalcCurrentLevel(const int rate_idx, const uint32_t current_exp) {
 }
 
 std::pair<int, std::string> GuessGrowthRate(const uint32_t current_exp, const uint8_t visual_level) {
-    const int visual = std::max(1, std::min(100, static_cast<int>(visual_level)));
+    const int visual = std::max(1, std::min(static_cast<int>(profile::kRulesLevelMax), static_cast<int>(visual_level)));
 
     struct Candidate {
         int rate;
@@ -960,7 +961,7 @@ std::pair<int, std::string> GuessGrowthRate(const uint32_t current_exp, const ui
     for (int rate = 0; rate < 6; ++rate) {
         const int inferred = CalcCurrentLevel(rate, current_exp);
         const uint32_t exp_at_visual = ExpAtLevel(rate, visual);
-        const uint32_t exp_at_next = ExpAtLevel(rate, std::min(100, visual + 1));
+        const uint32_t exp_at_next = ExpAtLevel(rate, std::min(static_cast<int>(profile::kRulesLevelMax), visual + 1));
         const bool in_band = (exp_at_visual <= current_exp) && (current_exp < exp_at_next);
 
         int exp_distance = 0;
@@ -1131,12 +1132,12 @@ bool EnsurePartyStaticDataLoaded(std::string *error) {
         return true;
     }
 
-    const std::string abilities_path = io::ResolveAssetPath("data/abilities.txt");
-    const std::string base_stats_path = io::ResolveAssetPath("data/species_base_stats.json");
-    const std::string identity_path = io::ResolveAssetPath("data/species_identity_meta.json");
-    const std::string growth_path = io::ResolveAssetPath("data/species_growth_rates.json");
-    const std::string species_abilities_path = io::ResolveAssetPath("data/species_abilities_meta.json");
-    const std::string move_table_path = io::ResolveAssetPath("data/move_table_from_rom.json");
+    const std::string abilities_path = io::ResolveAssetPath(profile::CatalogAsset("abilities.txt"));
+    const std::string base_stats_path = io::ResolveAssetPath(profile::CatalogAsset("species_base_stats.json"));
+    const std::string identity_path = io::ResolveAssetPath(profile::CatalogAsset("species_identity_meta.json"));
+    const std::string growth_path = io::ResolveAssetPath(profile::CatalogAsset("species_growth_rates.json"));
+    const std::string species_abilities_path = io::ResolveAssetPath(profile::CatalogAsset("species_abilities_meta.json"));
+    const std::string move_table_path = io::ResolveAssetPath(profile::CatalogAsset("move_table_from_rom.json"));
 
     if (abilities_path.empty() || base_stats_path.empty() || identity_path.empty() || growth_path.empty() || species_abilities_path.empty()) {
         if (error != nullptr) {
@@ -1296,7 +1297,7 @@ bool UpdatePartyNickname(std::vector<uint8_t> &buffer, const int index, const st
     return MutatePartyMon(buffer, index, false, [&](uint8_t *mon, std::string *mutation_error) {
         std::string requested = nickname;
         if (requested.find_first_not_of(" \t\r\n") == std::string::npos) {
-            const auto species_path = io::ResolveAssetPath("data/pokemon.txt");
+            const auto species_path = io::ResolveAssetPath(profile::CatalogAsset("pokemon.txt"));
             const auto species_db = io::LoadIdNameFile(species_path);
             const auto it = species_db.find(static_cast<int>(GetSpeciesId(mon)));
             if (it == species_db.end()) {
@@ -1400,7 +1401,7 @@ bool UpdatePartyIvs(std::vector<uint8_t> &buffer, const int index, const std::ar
     return MutatePartyMon(buffer, index, false, [&](uint8_t *mon, std::string *) {
         std::array<uint8_t, 6> clamped = ivs;
         for (auto &v : clamped) {
-            v = static_cast<uint8_t>(std::clamp(static_cast<int>(v), 0, 31));
+            v = static_cast<uint8_t>(std::clamp(static_cast<int>(v), 0, static_cast<int>(profile::kRulesIvMax)));
         }
         SetIvs(mon, clamped);
         RecalculatePartyStats(mon, true);
@@ -1448,7 +1449,7 @@ bool UpdatePartyLevel(
     std::string *error
 ) {
     return MutatePartyMon(buffer, index, false, [&](uint8_t *mon, std::string *op_error) {
-        const int target_level = std::clamp(requested_level, 1, 100);
+        const int target_level = std::clamp(requested_level, 1, static_cast<int>(profile::kRulesLevelMax));
         int resolved_growth_rate = -1;
         std::string confidence;
 

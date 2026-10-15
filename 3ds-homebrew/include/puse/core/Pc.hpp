@@ -1,5 +1,7 @@
 #pragma once
 
+#include <puse/core/GameProfile.hpp>
+
 #include <array>
 #include <cstdint>
 #include <string>
@@ -10,9 +12,9 @@
 
 namespace puse::core {
 
-constexpr size_t kPcMonSize = 58;
-constexpr int kPcStreamBoxCount = 24;
-constexpr int kPcBoxSlotCount = 30;
+constexpr size_t kPcMonSize = profile::kStoragePcRecordSize;
+constexpr int kPcStreamBoxCount = profile::kStoragePcBoxCount;
+constexpr int kPcBoxSlotCount = profile::kStoragePcSlotsPerBox;
 
 struct PcMon {
     int box;

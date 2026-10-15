@@ -1,13 +1,15 @@
 #pragma once
 
+#include <puse/core/GameProfile.hpp>
+
 #include <cstdint>
 #include <string>
 #include <vector>
 
 namespace puse::core {
 
-constexpr uint32_t kMaxMoney = 999999999U;
-constexpr uint16_t kMaxBp = 65535U;
+constexpr uint32_t kMaxMoney = profile::kRulesMoneyMax;
+constexpr uint16_t kMaxBp = profile::kRulesBpMax;
 
 bool ReadMoney(const std::vector<uint8_t> &buffer, uint32_t *out_money, std::string *error = nullptr);
 bool WriteMoney(std::vector<uint8_t> &buffer, uint32_t money, std::string *error = nullptr);

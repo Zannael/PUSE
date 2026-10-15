@@ -1,6 +1,8 @@
+import { DEFAULT_PROFILE_ID, catalogFile, getProfile } from './profile.js';
 import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
 
 const cache = {
+    profileId: DEFAULT_PROFILE_ID,
     itemsById: null,
     movesById: null,
     abilitiesById: null,
@@ -93,18 +95,20 @@ function parseMoveBasePp(moveTable) {
     return out;
 }
 
-export async function loadCatalog() {
+export async function loadCatalog(profileId = DEFAULT_PROFILE_ID) {
+    getProfile(profileId);
+    if (cache.profileId !== profileId) throw new Error("Catalog profile mismatch");
     if (cache.loaded) {
         return;
     }
 
     const [itemsText, movesText, abilitiesText, pokemonText, tmsText, moveTable] = await Promise.all([
-        fetchText(`${DATA_BASE_URL}/items.txt`),
-        fetchText(`${DATA_BASE_URL}/moves.txt`),
-        fetchText(`${DATA_BASE_URL}/abilities.txt`),
-        fetchText(`${DATA_BASE_URL}/pokemon.txt`),
-        fetchText(`${DATA_BASE_URL}/tms.txt`),
-        fetchJson(`${DATA_BASE_URL}/move_table_from_rom.json`),
+        fetchText(`${DATA_BASE_URL}/${catalogFile('items', profileId)}`),
+        fetchText(`${DATA_BASE_URL}/${catalogFile('moves', profileId)}`),
+        fetchText(`${DATA_BASE_URL}/${catalogFile('abilities', profileId)}`),
+        fetchText(`${DATA_BASE_URL}/${catalogFile('species', profileId)}`),
+        fetchText(`${DATA_BASE_URL}/${catalogFile('tms', profileId)}`),
+        fetchJson(`${DATA_BASE_URL}/${catalogFile('move_pp', profileId)}`),
     ]);
 
     cache.itemsById = parseIdNameText(itemsText);

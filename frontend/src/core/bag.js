@@ -1,12 +1,13 @@
+import { PROFILE } from './profile.js';
 import { recalculateSectionChecksum } from './checksum.js';
 import { ru16, ru32, wu16 } from './binary.js';
 import { OFF_ID, OFF_SAVE_IDX, SECTION_SIZE, activeUnboundSlot } from './sections.js';
 import pocketMap from './itemPocketMap.json' with { type: 'json' };
 
-const OFF_VALID_LEN = 0xFF0;
+const OFF_VALID_LEN = PROFILE.container.footer.payload_end;
 
-const UNBOUND_ITEM_SECTOR_ID = 13;
-const BAG_SECTOR_IDS = new Set([13, 14, 15, 16]);
+const UNBOUND_ITEM_SECTOR_ID = PROFILE.storage.bag.item_section_id;
+const BAG_SECTOR_IDS = new Set(PROFILE.storage.bag.sector_ids);
 
 const MAX_PLAUSIBLE_ITEM_ID = 4095;
 const MAX_PLAUSIBLE_ITEM_QTY = 2000;
@@ -57,18 +58,9 @@ if (KEY_ITEM_IDS.size === 0) FALLBACK_KEY_IDS.forEach((id) => KEY_ITEM_IDS.add(i
 
 const TMHM_ITEM_IDS = new Set([...TM_ITEM_IDS, ...HM_ITEM_IDS]);
 
-const KNOWN_POCKET_ANCHORS = {
-    ball: 0x1E31C,
-    tm: 0x1E3E4,
-    berry: 0x1E5E4,
-};
+const KNOWN_POCKET_ANCHORS = PROFILE.storage.bag.known_anchors;
 
-const KNOWN_POCKET_REL_OFFSETS = {
-    main: 0xAD8,
-    ball: 0x31C,
-    tm: 0x3E4,
-    berry: 0x5E4,
-};
+const KNOWN_POCKET_REL_OFFSETS = PROFILE.storage.bag.relative_offsets;
 
 const TM_CASE_ITEM_ID = 364;
 const BERRY_POUCH_ITEM_ID = 365;

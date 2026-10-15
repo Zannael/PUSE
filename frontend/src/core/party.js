@@ -1,3 +1,4 @@
+import { PROFILE } from './profile.js';
 import { validateOtName } from './otName.js';
 import { recalculateTrainerChecksum } from './checksum.js';
 import { ru8, ru16, ru32, wu8, wu16, wu32 } from './binary.js';
@@ -12,29 +13,29 @@ import { buildSpeciesFormMeta, getSpeciesFormMeta } from './speciesForms.js';
 import { getBallMeta, validateBallId } from './balls.js';
 import { calculateBattlePreview } from './battlePreview.js';
 
-const TRAINER_SECTION_ID = 1;
-const PARTY_COUNT_OFFSET = 0x34;
-const PARTY_START_OFFSET = 0x38;
-const PARTY_MON_SIZE = 100;
+const TRAINER_SECTION_ID = PROFILE.storage.party.section_id;
+const PARTY_COUNT_OFFSET = PROFILE.storage.party.count_offset;
+const PARTY_START_OFFSET = PROFILE.storage.party.start;
+const PARTY_MON_SIZE = PROFILE.storage.party.record_size;
 
-const OFF_PID = 0x00;
-const OFF_NICK = 0x08;
-const OFF_CHECKSUM = 0x1C;
-const OFF_DATA_START = 0x20;
-const OFF_LEVEL_VISUAL = 0x54;
-const OFF_CURR_HP = 0x56;
-const OFF_MAX_HP = 0x58;
-const OFF_ATK = 0x5A;
-const OFF_DEF = 0x5C;
-const OFF_SPE = 0x5E;
-const OFF_SPA = 0x60;
-const OFF_SPD = 0x62;
+const OFF_PID = PROFILE.codecs.party.fields.pid;
+const OFF_NICK = PROFILE.codecs.party.fields.nickname;
+const OFF_CHECKSUM = PROFILE.codecs.party.fields.checksum;
+const OFF_DATA_START = PROFILE.codecs.party.fields.data_start;
+const OFF_LEVEL_VISUAL = PROFILE.codecs.party.fields.level_visual;
+const OFF_CURR_HP = PROFILE.codecs.party.fields.curr_hp;
+const OFF_MAX_HP = PROFILE.codecs.party.fields.max_hp;
+const OFF_ATK = PROFILE.codecs.party.fields.atk;
+const OFF_DEF = PROFILE.codecs.party.fields.def;
+const OFF_SPE = PROFILE.codecs.party.fields.spe;
+const OFF_SPA = PROFILE.codecs.party.fields.spa;
+const OFF_SPD = PROFILE.codecs.party.fields.spd;
 
 const GENDER_THRESHOLD_MALE_ONLY = 0;
 const GENDER_THRESHOLD_FEMALE_ONLY = 254;
 const GENDER_THRESHOLD_GENDERLESS = 255;
 const INV_11_MOD_25 = 16;
-const SHINY_THRESHOLD = 16;
+const SHINY_THRESHOLD = PROFILE.rules.shiny_threshold;
 
 const GROWTH_RATE_COUNT = 6;
 
@@ -767,13 +768,13 @@ function calcCurrentLevel(rateIdx, currentExp) {
 }
 
 function guessGrowthRate(currentExp, visualLevel) {
-    const visual = Math.max(1, Math.min(100, Number(visualLevel || 1)));
+    const visual = Math.max(1, Math.min(PROFILE.rules.level_max, Number(visualLevel || 1)));
     const ranked = [];
 
     for (let rate = 0; rate < GROWTH_RATE_COUNT; rate += 1) {
         const inferred = calcCurrentLevel(rate, currentExp);
         const expAtVisual = getExpAtLevel(rate, visual);
-        const expAtNext = getExpAtLevel(rate, Math.min(100, visual + 1));
+        const expAtNext = getExpAtLevel(rate, Math.min(PROFILE.rules.level_max, visual + 1));
         const inBand = currentExp >= expAtVisual && currentExp < expAtNext;
 
         let expDistance = 0;
@@ -1064,7 +1065,7 @@ export function updatePartyIdentity(buffer, monIndex, payload) {
 
 export function updatePartyLevel(buffer, monIndex, payload) {
     mutatePartyMon(buffer, monIndex, (rawMon) => {
-        const targetLevel = Math.max(1, Math.min(100, Number(payload?.target_level || 1)));
+        const targetLevel = Math.max(1, Math.min(PROFILE.rules.level_max, Number(payload?.target_level || 1)));
         const currentExp = getExp(rawMon);
         const visualLevel = ru8(rawMon, OFF_LEVEL_VISUAL);
 

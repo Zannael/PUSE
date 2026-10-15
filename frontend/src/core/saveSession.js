@@ -1,5 +1,8 @@
+import { DEFAULT_PROFILE_ID, getProfile } from './profile.js';
+
 const session = {
     saveBuffer: null,
+    profileId: null,
     originalBuffer: null,
     filename: null,
     dirty: false,
@@ -22,6 +25,7 @@ export async function loadFile(file) {
     }
 
     const bytes = new Uint8Array(await file.arrayBuffer());
+    session.profileId = getProfile().id;
     session.saveBuffer = bytes;
     session.originalBuffer = cloneBuffer(bytes);
     session.filename = file.name || 'edited_save.sav';
@@ -48,6 +52,7 @@ export function setBuffer(nextBuffer, { dirty = true } = {}) {
     if (!(nextBuffer instanceof Uint8Array)) {
         throw new Error('setBuffer expects Uint8Array');
     }
+    session.profileId = getProfile(session.profileId ?? DEFAULT_PROFILE_ID).id;
     session.saveBuffer = nextBuffer;
     if (dirty) {
         session.dirty = true;
@@ -91,4 +96,9 @@ export function setPcContext(pcContext) {
 
 export function clearPcContext() {
     session.pcContext = null;
+}
+
+export function getSessionProfile() {
+    assertLoaded();
+    return getProfile(session.profileId);
 }

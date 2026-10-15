@@ -1,3 +1,4 @@
+#include <puse/core/GameProfile.hpp>
 #include <puse/core/Money.hpp>
 
 #include <puse/core/Binary.hpp>
@@ -7,13 +8,13 @@ namespace puse::core {
 
 namespace {
 
-constexpr uint16_t kTrainerSectionId = 1;
-constexpr size_t kMoneyU32Off = 0x290;
-constexpr size_t kMoneyBcdOff = 0x28D;
-constexpr uint32_t kMaxBcdMoney = 999999U;
+constexpr uint16_t kTrainerSectionId = profile::kStorageResourcesTrainerSectionId;
+constexpr size_t kMoneyU32Off = profile::kStorageResourcesMoneyOffset;
+constexpr size_t kMoneyBcdOff = profile::kStorageResourcesMoneyBcdOffset;
+constexpr uint32_t kMaxBcdMoney = profile::kRulesBcdMoneyMax;
 
-constexpr uint16_t kBpSectionId = 4;
-constexpr size_t kBpOffset = 0xF34;
+constexpr uint16_t kBpSectionId = profile::kStorageResourcesBpSectionId;
+constexpr size_t kBpOffset = profile::kStorageResourcesBpOffset;
 
 // Python to_bcd3: b0=(s[1]<<4)|s[0], b1=(s[3]<<4)|s[2], b2=(s[5]<<4)|s[4]
 // s[0..5] are most-significant to least-significant decimal digits.

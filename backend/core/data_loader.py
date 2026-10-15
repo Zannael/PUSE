@@ -1,4 +1,5 @@
 import json
+from core.profile import catalog_file
 from pathlib import Path
 
 
@@ -8,6 +9,10 @@ def backend_root() -> Path:
 
 def data_path(filename: str) -> Path:
     return backend_root() / "data" / filename
+
+
+def catalog_path(key: str) -> Path:
+    return data_path(catalog_file(key))
 
 
 def load_id_name_file(filename: str) -> dict[int, str]:

@@ -1,3 +1,4 @@
+#include <puse/core/GameProfile.hpp>
 #include <puse/core/PokedexFlags.hpp>
 
 #include <puse/core/Binary.hpp>
@@ -29,7 +30,7 @@ int DexBitIndex(const uint16_t species_id) {
 }
 
 uint16_t ResolveDexId(const uint16_t species_id) {
-    static const auto mapping = puse::io::LoadIdNameFile(puse::io::ResolveAssetPath("data/pokedex_species_map.txt"));
+    static const auto mapping = puse::io::LoadIdNameFile(puse::io::ResolveAssetPath(profile::CatalogAsset("pokedex_species_map.txt")));
     const auto it = mapping.find(static_cast<int>(species_id));
     return it == mapping.end() ? 0 : static_cast<uint16_t>(std::stoi(it->second));
 }

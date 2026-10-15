@@ -1,3 +1,4 @@
+#include <puse/core/GameProfile.hpp>
 #include <puse/core/OtName.hpp>
 #include <puse/core/Pc.hpp>
 
@@ -18,21 +19,21 @@ namespace puse::core {
 namespace {
 
 // --- CFRU compact PC mon offsets (58-byte format) ---
-constexpr size_t kPcPidOff     = 0x00;
-constexpr size_t kPcOtidOff    = 0x04;
-constexpr size_t kPcNickOff    = 0x08;  // 10 bytes
-constexpr size_t kPcSpeciesOff = 0x1C;
-constexpr size_t kPcItemOff    = 0x1E;
-constexpr size_t kPcExpOff     = 0x20;
-constexpr size_t kPcPpUpsOff   = 0x24;  // 1 byte, 4×2-bit
-constexpr size_t kPcBallOff    = 0x26;
-constexpr size_t kPcHappinessOff = 0x25;
-constexpr size_t kPcMovesOff   = 0x27;  // 5 bytes, 4×10-bit move IDs
-constexpr size_t kPcEvsOff     = 0x2C;  // 6 bytes [HP,Atk,Def,Spe,SpA,SpD]
-constexpr size_t kPcIvsOff     = 0x36;  // u32: bits 0-4=HP,5-9=Atk,10-14=Def,15-19=Spe,20-24=SpA,25-29=SpD,bit31=HA
+constexpr size_t kPcPidOff     = profile::kCodecsPcFieldsPid;
+constexpr size_t kPcOtidOff    = profile::kCodecsPcFieldsOtid;
+constexpr size_t kPcNickOff    = profile::kCodecsPcFieldsNickname;  // 10 bytes
+constexpr size_t kPcSpeciesOff = profile::kCodecsPcFieldsSpecies;
+constexpr size_t kPcItemOff    = profile::kCodecsPcFieldsItem;
+constexpr size_t kPcExpOff     = profile::kCodecsPcFieldsExp;
+constexpr size_t kPcPpUpsOff   = profile::kCodecsPcFieldsPpUps;  // 1 byte, 4×2-bit
+constexpr size_t kPcBallOff    = profile::kCodecsPcFieldsBall;
+constexpr size_t kPcHappinessOff = profile::kCodecsPcFieldsHappiness;
+constexpr size_t kPcMovesOff   = profile::kCodecsPcFieldsMoveIds;  // 5 bytes, 4×10-bit move IDs
+constexpr size_t kPcEvsOff     = profile::kCodecsPcFieldsEvs;  // 6 bytes [HP,Atk,Def,Spe,SpA,SpD]
+constexpr size_t kPcIvsOff     = profile::kCodecsPcFieldsIvs;  // u32: bits 0-4=HP,5-9=Atk,10-14=Def,15-19=Spe,20-24=SpA,25-29=SpD,bit31=HA
 
-constexpr uint32_t kMaxValidExp     = 2000000U;
-constexpr uint16_t kMaxValidSpecies = 2500U;
+constexpr uint32_t kMaxValidExp     = profile::kCodecsPcLegacyValidationMaxExp;
+constexpr uint16_t kMaxValidSpecies = profile::kCodecsPcLegacyValidationMaxSpeciesId;
 
 const std::array<const char *, 25> kNatureNames = {
     "Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "Docile", "Relaxed", "Impish", "Lax",
@@ -221,7 +222,7 @@ bool IsShinyPc(const uint32_t otid, const uint32_t pid) {
     const uint16_t tid = static_cast<uint16_t>(otid & 0xFFFFU);
     const uint16_t sid = static_cast<uint16_t>((otid >> 16U) & 0xFFFFU);
     const uint16_t sv = static_cast<uint16_t>(tid ^ sid ^ (pid & 0xFFFFU) ^ ((pid >> 16U) & 0xFFFFU));
-    return sv < 16U;
+    return sv < profile::kRulesShinyThreshold;
 }
 
 // Walk PID to find one with target_nature (% 25), preserving ability bit unless HA.
@@ -290,18 +291,17 @@ const uint8_t *ConstSlot(const std::vector<uint8_t> &stream, const int box, cons
 namespace {
 struct PcRegion { size_t offset; size_t length; int id; };
 size_t PcChecksumLength(int id) {
-    return id == 0 ? 0xF24 : id == 4 ? 0xD98 : id == 13 ? 0x450 : 0xFF0;
+    return profile::ChecksumLength(id);
 }
 
 
 std::vector<PcRegion> PcRegions(const std::vector<SaveSection>& slot) {
-    std::vector<PcRegion> regions{{slot[5].offset + 4, 0xFEC, 5}};
-    for (int id = 6; id <= 12; ++id) regions.push_back({slot[id].offset, 0xFF0, id});
-    regions.push_back({slot[13].offset, 0x1A8, 13});
-    regions.push_back({30 * 0x1000 + 0xB0C, 0x4E4, 30});
-    regions.push_back({31 * 0x1000, 0xF80, 31});
-    regions.push_back({slot[2].offset + 0xF18, 0xD8, 2});
-    regions.push_back({slot[3].offset, 0xCC0, 3});
+    std::vector<PcRegion> regions;
+    for (const auto& region : profile::kPcRegions) {
+        const auto base = region.id < profile::kContainerSectionsPerSlot ?
+            slot[region.id].offset : region.id * kSectionSize;
+        regions.push_back({base + region.start, region.end - region.start, static_cast<int>(region.id)});
+    }
     return regions;
 }
 } // namespace
@@ -325,7 +325,7 @@ std::vector<uint8_t> BuildPcStream(const std::vector<uint8_t> &buffer, std::stri
 
 bool CommitPcStream(std::vector<uint8_t> &buffer, const std::vector<uint8_t> &stream, std::string *error) {
     const auto slot = ActiveUnboundSections(buffer);
-    if (slot.empty() || stream.size() != 24 * 30 * kPcMonSize || buffer.size() < 0x20000) {
+    if (slot.empty() || stream.size() != kPcStreamBoxCount * kPcBoxSlotCount * kPcMonSize || buffer.size() < profile::kContainerFlashSize) {
         if (error) *error = "Invalid PC stream or save slot";
         return false;
     }
@@ -339,7 +339,7 @@ bool CommitPcStream(std::vector<uint8_t> &buffer, const std::vector<uint8_t> &st
             }
         }
         cursor += region.length;
-        if (changed && region.id < 14) {
+        if (changed && region.id < static_cast<int>(profile::kContainerSectionsPerSlot)) {
             const size_t off = slot[region.id].offset;
             WriteU16Le(buffer.data() + off, kFooterChecksumOffset,
                 ComputeSectionChecksum(buffer.data() + off, PcChecksumLength(region.id), 0));
@@ -438,7 +438,7 @@ bool UpdatePcMonNickname(std::vector<uint8_t> &stream, const int box, const int 
     }
     std::string requested = nickname;
     if (requested.find_first_not_of(" \t\r\n") == std::string::npos) {
-        const auto species_path = io::ResolveAssetPath("data/pokemon.txt");
+        const auto species_path = io::ResolveAssetPath(profile::CatalogAsset("pokemon.txt"));
         const auto species_db = io::LoadIdNameFile(species_path);
         const auto it = species_db.find(static_cast<int>(ReadU16Le(mon, kPcSpeciesOff)));
         if (it == species_db.end()) {
@@ -497,7 +497,7 @@ bool UpdatePcMonLevel(std::vector<uint8_t> &stream, const int box, const int slo
         if (error) { *error = "slot is empty or invalid"; }
         return false;
     }
-    const int clamped = std::clamp(level, 1, 100);
+    const int clamped = std::clamp(level, 1, static_cast<int>(profile::kRulesLevelMax));
     const uint16_t species_id = ReadU16Le(mon, kPcSpeciesOff);
     EnsurePartyStaticDataLoaded(nullptr);
     int growth_rate = GetSpeciesGrowthRate(static_cast<int>(species_id));
@@ -642,7 +642,7 @@ bool InsertPcMon(std::vector<uint8_t> &stream,
 {
     if (!ValidatePcSlotArgs(stream, box, slot, error)) { return false; }
     uint8_t *mon = MutableSlot(stream, box, slot);
-    if (IsPcMonValid(mon)) {
+    if (ReadU16Le(mon, kPcSpeciesOff) != 0) {
         if (error) *error = "slot is occupied";
         return false;
     }
@@ -675,11 +675,11 @@ bool InsertPcMon(std::vector<uint8_t> &stream,
     // Species
     WriteU16Le(mon, kPcSpeciesOff, species_id);
     mon[kPcBallOff] = 3;
-    mon[kPcHappinessOff] = 70;
+    mon[kPcHappinessOff] = profile::kRulesInsertHappiness;
 
     // EXP from level
     {
-        const int target_level = std::max(1, std::min(100, level));
+        const int target_level = std::max(1, std::min(static_cast<int>(profile::kRulesLevelMax), level));
         int gr = GetSpeciesGrowthRate(static_cast<int>(species_id));
         if (gr < 0) gr = 0;
         const uint32_t exp = GetExpForLevel(gr, target_level);

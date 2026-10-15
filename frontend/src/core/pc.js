@@ -1,3 +1,4 @@
+import { PROFILE } from './profile.js';
 import { validateOtName } from './otName.js';
 import { activeUnboundSlot } from './sections.js';
 import { ru8, ru16, ru32, wu8, wu16, wu32 } from './binary.js';
@@ -14,20 +15,19 @@ import { getBallMeta, validateBallId } from './balls.js';
 import { calculateBattlePreview } from './battlePreview.js';
 
 const POKEMON_STREAM_SECTORS = [5, 6, 7, 8, 9, 10, 11, 12];
-const PRESET_SECTOR_ID = 0;
+const PRESET_SECTOR_ID = PROFILE.storage.pc.preset.section_id;
 const OTHER_SECTORS = [2, 3, 13];
 const ALL_PC_SECTORS = new Set([...POKEMON_STREAM_SECTORS, ...OTHER_SECTORS, PRESET_SECTOR_ID]);
 
-const PC_REGIONS = [[5, 4, 0xFF0], ...Array.from({ length: 7 }, (_, i) => [i + 6, 0, 0xFF0]),
-    [13, 0, 0x1A8], [30, 0xB0C, 0xFF0], [31, 0, 0xF80], [2, 0xF18, 0xFF0], [3, 0, 0xCC0]];
+const PC_REGIONS = PROFILE.storage.pc.regions;
 
-const checksumLength = (id) => ({ 0: 0xF24, 4: 0xD98, 13: 0x450 }[id] ?? 0xFF0);
-const MON_SIZE_PC = 58;
+const checksumLength = (id) => PROFILE.container.checksum.lengths[id] ?? PROFILE.container.checksum.default_length;
+const MON_SIZE_PC = PROFILE.storage.pc.record_size;
 
-const OFFSET_PRESET_START = 0xB0;
-const PRESET_CAPACITY = 30;
-const BOX_SLOT_COUNT = 30;
-const TRAINER_SECTION_ID = 1;
+const OFFSET_PRESET_START = PROFILE.storage.pc.preset.start;
+const PRESET_CAPACITY = PROFILE.storage.pc.preset.count;
+const BOX_SLOT_COUNT = PROFILE.storage.pc.slots_per_box;
+const TRAINER_SECTION_ID = PROFILE.storage.party.section_id;
 const PARTY_COUNT_OFFSET = 0x34;
 const PARTY_START_OFFSET = 0x38;
 const PARTY_MON_SIZE = 100;
@@ -35,28 +35,28 @@ const PARTY_MON_SIZE = 100;
 // Exact stream regions include fragmented boxes regardless of occupancy.
 const FALLBACK_BOX_LAYOUTS = {};
 
-const OPAQUE_SECTION_IDS = new Set([4]);
+const OPAQUE_SECTION_IDS = new Set(PROFILE.container.checksum.opaque_ids);
 
-const OFF_PID = 0x00;
-const OFF_NICK = 0x08;
-const OFF_OT_MISC_1 = 0x12;
-const OFF_OT_MISC_2 = 0x13;
-const OFF_OT_NAME = 0x14;
-const OT_NAME_LEN = 7;
-const OFF_SPECIES = 0x1C;
-const OFF_ITEM = 0x1E;
-const OFF_EXP = 0x20;
-const OFF_MOVES = 0x24;
-const OFF_BALL = 0x26;
-const OFF_HAPPINESS = 0x25;
-const OFF_EVS = 0x2C;
-const OFF_IVS = 0x36;
+const OFF_PID = PROFILE.codecs.pc.fields.pid;
+const OFF_NICK = PROFILE.codecs.pc.fields.nickname;
+const OFF_OT_MISC_1 = PROFILE.codecs.pc.fields.ot_misc_1;
+const OFF_OT_MISC_2 = PROFILE.codecs.pc.fields.ot_misc_2;
+const OFF_OT_NAME = PROFILE.codecs.pc.fields.ot_name;
+const OT_NAME_LEN = PROFILE.codecs.text.ot_name_length;
+const OFF_SPECIES = PROFILE.codecs.pc.fields.species;
+const OFF_ITEM = PROFILE.codecs.pc.fields.item;
+const OFF_EXP = PROFILE.codecs.pc.fields.exp;
+const OFF_MOVES = PROFILE.codecs.pc.fields.legacy_moves_anchor;
+const OFF_BALL = PROFILE.codecs.pc.fields.ball;
+const OFF_HAPPINESS = PROFILE.codecs.pc.fields.happiness;
+const OFF_EVS = PROFILE.codecs.pc.fields.evs;
+const OFF_IVS = PROFILE.codecs.pc.fields.ivs;
 
 const GENDER_THRESHOLD_MALE_ONLY = 0;
 const GENDER_THRESHOLD_FEMALE_ONLY = 254;
 const GENDER_THRESHOLD_GENDERLESS = 255;
 const INV_11_MOD_25 = 16;
-const SHINY_THRESHOLD = 16;
+const SHINY_THRESHOLD = PROFILE.rules.shiny_threshold;
 
 function validateHappiness(happiness) {
     const value = Number(happiness);
@@ -130,7 +130,7 @@ function isValidMon(raw) {
     }
     const speciesId = ru16(raw, OFF_SPECIES);
     const exp = ru32(raw, OFF_EXP);
-    if (speciesId === 0 || speciesId > 2500) {
+    if (speciesId === 0 || speciesId > PROFILE.codecs.pc.legacy_validation.max_species_id) {
         return false;
     }
     return exp > 0 && exp <= 2_000_000;
@@ -654,7 +654,7 @@ function resolveActiveSectionOffsets(buffer, sectionIds = null) {
 
 function pcRegions(sectors) {
     const offsets = Object.fromEntries(sectors.map((sec) => [sec.id, sec.offset]));
-    return PC_REGIONS.map(([id, start, end]) => ({ id, offset: (id < 14 ? offsets[id] : id * SECTION_SIZE) + start, length: end - start }));
+    return PC_REGIONS.map(([id, start, end]) => ({ id, offset: (id < PROFILE.container.sections_per_slot ? offsets[id] : id * SECTION_SIZE) + start, length: end - start }));
 }
 
 function fallbackSlotOffset(boxId, slot, sourceBuffer = null, sectionOffsets = null) {
@@ -983,7 +983,7 @@ function buildPcMonRaw(payload, speciesMap, context) {
     if (payload?.exp !== undefined && payload?.exp !== null) {
         exp = Number(payload.exp);
     } else {
-        const level = Math.max(1, Math.min(100, Number(payload?.level ?? 5) || 5));
+        const level = Math.max(1, Math.min(PROFILE.rules.level_max, Number(payload?.level ?? 5) || 5));
         const rate = getSpeciesGrowthRate(speciesId);
         exp = getExpAtLevel(rate === null ? 0 : rate, level);
     }
@@ -996,7 +996,7 @@ function buildPcMonRaw(payload, speciesMap, context) {
     wu16(raw, OFF_ITEM, Number(payload?.item_id ?? 0));
     wu32(raw, OFF_EXP, Number(exp));
     wu8(raw, OFF_BALL, validateBallId(payload?.ball_id ?? 3));
-    wu8(raw, OFF_HAPPINESS, validateHappiness(payload?.happiness ?? 70));
+    wu8(raw, OFF_HAPPINESS, validateHappiness(payload?.happiness ?? PROFILE.rules.insert_happiness));
     wu32(raw, OFF_PID, ((speciesId * 2654435761) >>> 0));
     const inferredOwner = inferDefaultOwnerTemplate(context);
     wu32(raw, 0x04, Number(payload?.otid ?? inferredOwner.otid) >>> 0);
@@ -1050,12 +1050,12 @@ function isPcSlotOccupied(context, box, slot) {
         if (off + MON_SIZE_PC > context.presetBuffer.length) {
             return false;
         }
-        return isValidMon(context.presetBuffer.slice(off, off + MON_SIZE_PC));
+        return ru16(context.presetBuffer, off + OFF_SPECIES) !== 0;
     }
 
     const streamOff = (((box - 1) * 30) + (slot - 1)) * MON_SIZE_PC;
     if (streamOff + MON_SIZE_PC <= context.pcBuffer.length) {
-        return isValidMon(context.pcBuffer.slice(streamOff, streamOff + MON_SIZE_PC));
+        return ru16(context.pcBuffer, streamOff + OFF_SPECIES) !== 0;
     }
 
     const hasFallback = Boolean(context.fallbackBoxStarts?.[Number(box)]);
@@ -1064,7 +1064,7 @@ function isPcSlotOccupied(context, box, slot) {
             ?? fallbackSlotOffset(box, slot, context.sourceBuffer, context.fallbackSectionOffsets);
         if (Number.isInteger(absOff) && absOff + MON_SIZE_PC <= context.sourceBuffer.length) {
             const raw = context.absoluteEdits?.get(absOff) || context.sourceBuffer.slice(absOff, absOff + MON_SIZE_PC);
-            return isValidMon(raw);
+            return ru16(raw, OFF_SPECIES) !== 0;
         }
     }
     return false;
@@ -1301,7 +1301,7 @@ export function applyPcContextToSave(buffer, context) {
         for (let i = 0; i < region.length; i += 1) {
             if (context.pcBuffer[cursor + i] !== context.originalPcBuffer[cursor + i]) {
                 buffer[region.offset + i] = context.pcBuffer[cursor + i];
-                if (region.id < 14) touched.add(region.id);
+                if (region.id < PROFILE.container.sections_per_slot) touched.add(region.id);
             }
         }
         cursor += region.length;

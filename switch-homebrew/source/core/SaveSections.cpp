@@ -2,31 +2,33 @@
 
 #include <puse/core/Binary.hpp>
 #include <array>
+#include <algorithm>
 
 namespace puse::core {
 
 size_t UnboundChecksumLength(uint16_t id) {
-    return id == 0 ? 0xF24 : id == 4 ? 0xD98 : id == 13 ? 0x450 : 0xFF0;
+    return profile::ChecksumLength(id);
 }
 
 std::vector<SaveSection> ActiveUnboundSections(const std::vector<uint8_t>& buffer, bool verify_checksums) {
     std::vector<std::vector<SaveSection>> slots;
     const auto sections = ListSections(buffer);
-    for (size_t base : {size_t(0), size_t(14)}) {
-        if (sections.size() < base + 14) continue;
-        std::vector<SaveSection> slot(14);
+    for (size_t slot_index = 0; slot_index < profile::kContainerSlotCount; ++slot_index) {
+        const size_t base = slot_index * profile::kContainerSectionsPerSlot;
+        if (sections.size() < base + profile::kContainerSectionsPerSlot) continue;
+        std::vector<SaveSection> slot(profile::kContainerSectionsPerSlot);
         bool valid = true;
-        std::array<bool, 14> seen{};
+        std::array<bool, profile::kContainerSectionsPerSlot> seen{};
         const auto counter = sections[base].save_index;
-        for (size_t i = base; i < base + 14; ++i) {
+        for (size_t i = base; i < base + profile::kContainerSectionsPerSlot; ++i) {
             const auto& sec = sections[i];
-            const auto signature = ReadU32Le(buffer.data() + sec.offset, 0xFF8);
-            if (sec.section_id > 13 || seen[sec.section_id] || sec.save_index != counter ||
-                (signature != 0x01121999 && signature != 0x01121998)) {
+            const auto signature = ReadU32Le(buffer.data() + sec.offset, profile::kContainerFooterSignature);
+            if (sec.section_id >= profile::kContainerSectionsPerSlot || seen[sec.section_id] || sec.save_index != counter ||
+                std::find(profile::kContainerSignatures.begin(), profile::kContainerSignatures.end(), signature) == profile::kContainerSignatures.end()) {
                 valid = false; break;
             }
             // Retain section 4's opaque checksum protection.
-            if (verify_checksums && sec.section_id != 4 && ComputeSectionChecksum(buffer.data() + sec.offset,
+            if (verify_checksums && !profile::Opaque(sec.section_id) && ComputeSectionChecksum(buffer.data() + sec.offset,
                     UnboundChecksumLength(sec.section_id), 0) != sec.stored_checksum) {
                 valid = false; break;
             }
@@ -113,13 +115,13 @@ bool IsSectionChecksumValid(const std::vector<uint8_t> &buffer, const SaveSectio
 
 bool RecalculateSectionChecksum(std::vector<uint8_t> &buffer, const size_t section_offset) {
     // Auxiliary sectors do not have ordinary section checksums.
-    if (section_offset >= 28 * kSectionSize) return true;
+    if (section_offset >= profile::kContainerSlotCount * profile::kContainerSectionsPerSlot * kSectionSize) return true;
     if ((section_offset + kSectionSize) > buffer.size()) {
         return false;
     }
 
     const uint16_t id = ReadU16Le(&buffer[section_offset], kFooterIdOffset);
-    if (id == 4) return true;
+    if (profile::Opaque(id)) return true;
     const uint16_t checksum = ComputeSectionChecksum(&buffer[section_offset], UnboundChecksumLength(id), 0);
     WriteU16Le(&buffer[section_offset], kFooterChecksumOffset, checksum);
     return true;

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from core.data_loader import catalog_path
+from core.profile import PROFILE
 # party.py — Unbound Editor con HA (Hidden Ability), Natura & Exp Logic
 # Features: Checksum Fix, static data loading, Name Search, Nature Editing, Smart Level, Hidden Ability Toggle.
 
@@ -14,27 +16,32 @@ from core.sections import active_sections
 from core.data_loader import load_id_name_file, load_move_base_pp_map
 
 # --- CONFIGURAZIONE SALVATAGGIO ---
-SECTION_SIZE = 0x1000
-CHECKSUM_LENGTH = 0xFF0
-FOOTER_ID_OFF = 0xFF4
-FOOTER_CHK_OFF = 0xFF6
-FOOTER_SAVEIDX_OFF = 0xFFC
-TRAINER_SECTION_ID = 1
+SECTION_SIZE = PROFILE["container"]["section_size"]
+CHECKSUM_LENGTH = PROFILE["container"]["checksum"]["default_length"]
+FOOTER_ID_OFF = PROFILE["container"]["footer"]["id"]
+FOOTER_CHK_OFF = PROFILE["container"]["footer"]["checksum"]
+FOOTER_SAVEIDX_OFF = PROFILE["container"]["footer"]["counter"]
+TRAINER_SECTION_ID = PROFILE["storage"]["party"]["section_id"]
+
+PARTY_COUNT_OFFSET = PROFILE["storage"]["party"]["count_offset"]
+PARTY_START_OFFSET = PROFILE["storage"]["party"]["start"]
+PARTY_MON_SIZE = PROFILE["storage"]["party"]["record_size"]
+PARTY_CAPACITY = PROFILE["storage"]["party"]["capacity"]
 
 # Offsets Pokémon (Unbound Party)
-OFF_PID = 0x00
-OFF_OTID = 0x04
-OFF_NICK = 0x08
-OFF_DATA_START = 0x20
-OFF_CHECKSUM = 0x1C
-OFF_LEVEL_VISUAL = 0x54
-OFF_CURR_HP = 0x56
-OFF_MAX_HP = 0x58
-OFF_ATK = 0x5A
-OFF_DEF = 0x5C
-OFF_SPE = 0x5E
-OFF_SPA = 0x60
-OFF_SPD = 0x62
+OFF_PID = PROFILE["codecs"]["party"]["fields"]["pid"]
+OFF_OTID = PROFILE["codecs"]["party"]["fields"]["otid"]
+OFF_NICK = PROFILE["codecs"]["party"]["fields"]["nickname"]
+OFF_DATA_START = PROFILE["codecs"]["party"]["fields"]["data_start"]
+OFF_CHECKSUM = PROFILE["codecs"]["party"]["fields"]["checksum"]
+OFF_LEVEL_VISUAL = PROFILE["codecs"]["party"]["fields"]["level_visual"]
+OFF_CURR_HP = PROFILE["codecs"]["party"]["fields"]["curr_hp"]
+OFF_MAX_HP = PROFILE["codecs"]["party"]["fields"]["max_hp"]
+OFF_ATK = PROFILE["codecs"]["party"]["fields"]["atk"]
+OFF_DEF = PROFILE["codecs"]["party"]["fields"]["def"]
+OFF_SPE = PROFILE["codecs"]["party"]["fields"]["spe"]
+OFF_SPA = PROFILE["codecs"]["party"]["fields"]["spa"]
+OFF_SPD = PROFILE["codecs"]["party"]["fields"]["spd"]
 
 BALL_CATALOG = [
     {"ball_id": 0, "item_id": 1, "name": "Master Ball"},
@@ -82,7 +89,7 @@ GENDER_THRESHOLD_MALE_ONLY = 0
 GENDER_THRESHOLD_FEMALE_ONLY = 254
 GENDER_THRESHOLD_GENDERLESS = 255
 _INV_11_MOD_25 = 16
-SHINY_THRESHOLD = 16
+SHINY_THRESHOLD = PROFILE["rules"]["shiny_threshold"]
 
 DB_NATURES = {
     0: "Hardy", 1: "Lonely", 2: "Brave", 3: "Adamant",
@@ -140,13 +147,13 @@ def calc_current_level(rate_idx, current_exp):
 
 
 def guess_growth_rate(current_exp, visual_level):
-    visual = max(1, min(100, int(visual_level)))
+    visual = max(1, min(PROFILE["rules"]["level_max"], int(visual_level)))
     ranked = []
 
     for rate in range(6):
         inferred = calc_current_level(rate, current_exp)
         exp_at_visual = get_exp_at_level(rate, visual)
-        exp_at_next = get_exp_at_level(rate, min(100, visual + 1))
+        exp_at_next = get_exp_at_level(rate, min(PROFILE["rules"]["level_max"], visual + 1))
         in_band = exp_at_visual <= current_exp < exp_at_next
 
         if in_band:
@@ -258,13 +265,13 @@ def load_static_data():
     DB_SPECIES_ABILITIES_META.clear()
     DB_MOVE_BASE_PP.clear()
 
-    DB_ITEMS.update(load_id_name_file("items.txt"))
-    DB_MOVES.update(load_id_name_file("moves.txt"))
-    DB_ABILITIES.update(load_id_name_file("abilities.txt"))
-    DB_SPECIES.update(load_id_name_file("pokemon.txt"))
-    DB_MOVE_BASE_PP.update(load_move_base_pp_map("move_table_from_rom.json"))
+    DB_ITEMS.update(load_id_name_file(PROFILE["catalogs"]["items"]["file"]))
+    DB_MOVES.update(load_id_name_file(PROFILE["catalogs"]["moves"]["file"]))
+    DB_ABILITIES.update(load_id_name_file(PROFILE["catalogs"]["abilities"]["file"]))
+    DB_SPECIES.update(load_id_name_file(PROFILE["catalogs"]["species"]["file"]))
+    DB_MOVE_BASE_PP.update(load_move_base_pp_map(PROFILE["catalogs"]["move_pp"]["file"]))
 
-    base_stats_path = os.path.join(os.path.dirname(__file__), "..", "data", "species_base_stats.json")
+    base_stats_path = catalog_path("base_stats")
     if os.path.exists(base_stats_path):
         with open(base_stats_path, "r", encoding="utf-8") as fh:
             raw_stats = json.loads(fh.read())
@@ -280,7 +287,7 @@ def load_static_data():
                 "spd": int(stats.get("spd", 0)),
             }
 
-    identity_meta_path = os.path.join(os.path.dirname(__file__), "..", "data", "species_identity_meta.json")
+    identity_meta_path = catalog_path("identity")
     if os.path.exists(identity_meta_path):
         with open(identity_meta_path, "r", encoding="utf-8") as fh:
             raw_identity = json.loads(fh.read())
@@ -294,7 +301,7 @@ def load_static_data():
                 "gender_threshold": int(threshold) & 0xFF,
             }
 
-    growth_rates_path = os.path.join(os.path.dirname(__file__), "..", "data", "species_growth_rates.json")
+    growth_rates_path = catalog_path("growth")
     if os.path.exists(growth_rates_path):
         with open(growth_rates_path, "r", encoding="utf-8") as fh:
             raw_growth = json.loads(fh.read())
@@ -308,7 +315,7 @@ def load_static_data():
             if 0 <= rate_int <= 5:
                 DB_SPECIES_GROWTH_RATES[int(sid)] = rate_int
 
-    species_abilities_path = os.path.join(os.path.dirname(__file__), "..", "data", "species_abilities_meta.json")
+    species_abilities_path = catalog_path("species_abilities")
     if os.path.exists(species_abilities_path):
         with open(species_abilities_path, "r", encoding="utf-8") as fh:
             raw_abilities = json.loads(fh.read())
@@ -976,15 +983,15 @@ def main():
 
     # Caricamento Squadra
     sec_data = full_data[active_sec_off: active_sec_off + SECTION_SIZE]
-    PARTY_OFFSET = 0x38
-    team_count = ru32(sec_data, 0x34)
+    PARTY_OFFSET = PARTY_START_OFFSET
+    team_count = ru32(sec_data, PARTY_COUNT_OFFSET)
     if team_count > 6: team_count = 6
 
     pokemon_list = []
     print("\n--- SQUADRA ATTUALE ---")
     for i in range(team_count):
-        mon_off = PARTY_OFFSET + (i * 100)
-        p = Pokemon(sec_data[mon_off: mon_off + 100])
+        mon_off = PARTY_OFFSET + (i * PARTY_MON_SIZE)
+        p = Pokemon(sec_data[mon_off: mon_off + PARTY_MON_SIZE])
         pokemon_list.append(p)
         s_name = DB_SPECIES.get(p.get_species_id(), "???")
         ha_status = "HA" if p.get_hidden_ability_flag() else "Std"
@@ -1010,8 +1017,8 @@ def main():
                 off = sec['off']
                 c_data = bytearray(full_data[off: off + SECTION_SIZE])
                 for i, p_data in enumerate(packed):
-                    mo = PARTY_OFFSET + (i * 100)
-                    c_data[mo: mo + 100] = p_data
+                    mo = PARTY_OFFSET + (i * PARTY_MON_SIZE)
+                    c_data[mo: mo + PARTY_MON_SIZE] = p_data
                 chk = calculate_section_checksum(c_data)
                 wu16(c_data, FOOTER_CHK_OFF, chk)
                 full_data[off: off + SECTION_SIZE] = c_data

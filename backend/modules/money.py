@@ -1,17 +1,18 @@
+from core.profile import PROFILE
 from core.sections import active_sections
 import argparse, struct, shutil, os
 
-SECTION_SIZE = 0x1000
-FOOTER_VALIDLEN_OFF = 0xFF0
-FOOTER_ID_OFF = 0xFF4
-FOOTER_CHK_OFF = 0xFF6
-FOOTER_SAVEINDEX_OFF = 0xFFC
+SECTION_SIZE = PROFILE["container"]["section_size"]
+FOOTER_VALIDLEN_OFF = PROFILE["container"]["footer"]["payload_end"]
+FOOTER_ID_OFF = PROFILE["container"]["footer"]["id"]
+FOOTER_CHK_OFF = PROFILE["container"]["footer"]["checksum"]
+FOOTER_SAVEINDEX_OFF = PROFILE["container"]["footer"]["counter"]
 
-TRAINER_SECTION_ID = 1
+TRAINER_SECTION_ID = PROFILE["storage"]["resources"]["trainer_section_id"]
 # fallback u32 offset we observed; used only if search fails
-FALLBACK_OFF_MONEY = 0x290
+FALLBACK_OFF_MONEY = PROFILE["storage"]["resources"]["money_offset"]
 MIN_MONEY = 0
-MAX_MONEY = 999999999
+MAX_MONEY = PROFILE["rules"]["money_max"]
 
 def ru16(b,o): return struct.unpack_from("<H", b, o)[0]
 def ru32(b,o): return struct.unpack_from("<I", b, o)[0]

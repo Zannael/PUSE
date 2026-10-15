@@ -1,12 +1,13 @@
+import { PROFILE } from './profile.js';
 import { ru8, wu8 } from './binary.js';
 import { recalculateTrainerChecksum } from './checksum.js';
 import { findActiveSectionById } from './sections.js';
 import { buildPokedexSpeciesGroups, dexIdForSpeciesId, MAX_TRACKED_DEX_ID } from './pokedexCatalog.js';
 
-export const TRAINER_SECTION_ID = 1;
-export const DEX_SEEN_OFFSET = 0x0310;
-export const DEX_CAUGHT_OFFSET = 0x038D;
-export const DEX_FLAG_BYTE_COUNT = 125;
+export const TRAINER_SECTION_ID = PROFILE.storage.pokedex.section_id;
+export const DEX_SEEN_OFFSET = PROFILE.storage.pokedex.seen_offset;
+export const DEX_CAUGHT_OFFSET = PROFILE.storage.pokedex.caught_offset;
+export const DEX_FLAG_BYTE_COUNT = PROFILE.storage.pokedex.byte_count;
 export { MAX_TRACKED_DEX_ID };
 
 export const POKEDEX_FLAG = {

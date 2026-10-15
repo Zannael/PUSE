@@ -1,15 +1,16 @@
 """Read-only save layout, checksum, and byte-change report."""
+from core.profile import PROFILE
 
 import struct
-from core.sections import active_unbound_slot
+from core.sections import active_unbound_slot, section_checksum_length
 
 from .money import compute_section_checksum
 
-SECTION_SIZE = 0x1000
-SECTION_IDS = range(14)
-PARTY_START = 0x38
-PARTY_SIZE = 100
-PC_MON_SIZE = 58
+SECTION_SIZE = PROFILE["container"]["section_size"]
+SECTION_IDS = range(PROFILE["container"]["sections_per_slot"])
+PARTY_START = PROFILE["storage"]["party"]["start"]
+PARTY_SIZE = PROFILE["storage"]["party"]["record_size"]
+PC_MON_SIZE = PROFILE["storage"]["pc"]["record_size"]
 
 
 def _u16(data, offset):
@@ -100,10 +101,10 @@ def build_save_report(original, current, _include_source=True):
         if section is None:
             continue
         index = section["index"]
-        if section_id == 4:
+        if section_id in PROFILE["container"]["checksum"]["opaque_ids"]:
             checksums.append({"id": section_id, "index": index, "status": "opaque", "stored": section["stored"], "computed": None})
             continue
-        length = 0xF24 if section_id == 0 else 0x450 if section_id == 13 else 0xFF0
+        length = section_checksum_length(section_id)
         offset = index * SECTION_SIZE
         computed = compute_section_checksum(current[offset:offset + length], length)
         status = "ok" if computed == section["stored"] else "mismatch"

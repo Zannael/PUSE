@@ -1,3 +1,4 @@
+from core.profile import DEFAULT_PROFILE_ID, PROFILE, get_profile
 from core.sections import active_sections, refresh_checksum
 import glob
 import json
@@ -64,6 +65,7 @@ app.add_middleware(
 # --- 1. Keep all shared state definitions at the top ---
 current_save = {
     "data": None,
+    "profile_id": DEFAULT_PROFILE_ID,
     "original_data": None,
     "filename": None,
     "pc_context": {
@@ -79,11 +81,11 @@ current_save = {
     }
 }
 
-OPAQUE_SECTION_IDS = {4}
-BP_SECTION_ID = 4
-BP_OFFSET_IN_SECTION = 0xF34
+OPAQUE_SECTION_IDS = frozenset(PROFILE["container"]["checksum"]["opaque_ids"])
+BP_SECTION_ID = PROFILE["storage"]["resources"]["bp_section_id"]
+BP_OFFSET_IN_SECTION = PROFILE["storage"]["resources"]["bp_offset"]
 BP_MIN = 0
-BP_MAX = 65535
+BP_MAX = PROFILE["rules"]["bp_max"]
 
 
 def _should_track_absolute_sector_for_checksum(data, sector_off):
@@ -492,6 +494,7 @@ def load_databases():
 async def upload_save(file: UploadFile = File(...)):
     """Load the .sav or .srm file into memory."""
     content = await file.read()
+    current_save["profile_id"] = get_profile()["id"]
     current_save["data"] = bytearray(content)
     current_save["original_data"] = bytes(content)
     current_save["filename"] = file.filename
@@ -803,11 +806,11 @@ def _infer_default_owner_template() -> dict:
     trainer_off = get_active_trainer_offset()
     if trainer_off is not None and current_save.get("data"):
         sec_data = current_save["data"][trainer_off: trainer_off + party_mod.SECTION_SIZE]
-        team_count = min(6, int(party_mod.ru32(sec_data, 0x34)))
+        team_count = min(party_mod.PARTY_CAPACITY, int(party_mod.ru32(sec_data, party_mod.PARTY_COUNT_OFFSET)))
         for idx in range(team_count):
-            mon_off = 0x38 + (idx * 100)
-            raw = sec_data[mon_off: mon_off + 100]
-            if len(raw) < 100:
+            mon_off = party_mod.PARTY_START_OFFSET + (idx * party_mod.PARTY_MON_SIZE)
+            raw = sec_data[mon_off: mon_off + party_mod.PARTY_MON_SIZE]
+            if len(raw) < party_mod.PARTY_MON_SIZE:
                 continue
             try:
                 p = party_mod.Pokemon(raw)
@@ -851,13 +854,13 @@ async def get_party():
         raise HTTPException(status_code=404, detail="Invalid save file")
 
     sec_data = current_save["data"][off: off + party_mod.SECTION_SIZE]
-    team_count = party_mod.ru32(sec_data, 0x34)
+    team_count = party_mod.ru32(sec_data, party_mod.PARTY_COUNT_OFFSET)
     if team_count > 6: team_count = 6
 
     party = []
     for i in range(team_count):
-        mon_off = 0x38 + (i * 100)
-        pk = party_mod.Pokemon(sec_data[mon_off: mon_off + 100])
+        mon_off = party_mod.PARTY_START_OFFSET + (i * party_mod.PARTY_MON_SIZE)
+        pk = party_mod.Pokemon(sec_data[mon_off: mon_off + party_mod.PARTY_MON_SIZE])
         smeta = _species_meta(pk.get_species_id())
         ability_1_id, ability_2_id, ability_hidden_id = party_mod.get_species_ability_ids(pk.get_species_id())
         ability_1_name = party_mod.get_ability_name(ability_1_id)
@@ -931,14 +934,14 @@ async def get_party():
 @app.post("/party/{idx}/item")
 async def update_party_item(idx: int, data: ItemUpdate):
     off = get_active_trainer_offset()
-    mon_off = off + 0x38 + (idx * 100)
-    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    mon_off = off + party_mod.PARTY_START_OFFSET + (idx * party_mod.PARTY_MON_SIZE)
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE])
     species_before = pk.get_species_id()
 
     pk.set_item(data.item_id)
     _assert_species_unchanged(pk, species_before, "party item update")
 
-    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
     return {"status": "Item updated"}
 
@@ -946,8 +949,8 @@ async def update_party_item(idx: int, data: ItemUpdate):
 @app.post("/party/{idx}/ball")
 async def update_party_ball(idx: int, data: BallUpdate):
     off = get_active_trainer_offset()
-    mon_off = off + 0x38 + (idx * 100)
-    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    mon_off = off + party_mod.PARTY_START_OFFSET + (idx * party_mod.PARTY_MON_SIZE)
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE])
     species_before = pk.get_species_id()
 
     try:
@@ -956,7 +959,7 @@ async def update_party_ball(idx: int, data: BallUpdate):
         raise HTTPException(status_code=400, detail=str(e))
     _assert_species_unchanged(pk, species_before, "party ball update")
 
-    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
     return {"status": "Ball updated", **_ball_meta(pk.get_ball_id())}
 
@@ -966,11 +969,11 @@ async def update_party_happiness(idx: int, data: HappinessUpdate):
     off = get_active_trainer_offset()
     if off is None:
         raise HTTPException(status_code=404, detail="Trainer section not found")
-    team_count = min(6, party_mod.ru32(current_save["data"], off + 0x34))
+    team_count = min(party_mod.PARTY_CAPACITY, party_mod.ru32(current_save["data"], off + party_mod.PARTY_COUNT_OFFSET))
     if idx < 0 or idx >= team_count:
         raise HTTPException(status_code=404, detail="Pokemon not found")
-    mon_off = off + 0x38 + (idx * 100)
-    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    mon_off = off + party_mod.PARTY_START_OFFSET + (idx * party_mod.PARTY_MON_SIZE)
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE])
     species_before = pk.get_species_id()
     if not species_before:
         raise HTTPException(status_code=404, detail="Pokemon not found")
@@ -979,7 +982,7 @@ async def update_party_happiness(idx: int, data: HappinessUpdate):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     _assert_species_unchanged(pk, species_before, "party happiness update")
-    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
     return {"status": "Happiness updated", "happiness": pk.get_happiness()}
 
@@ -987,17 +990,17 @@ async def update_party_happiness(idx: int, data: HappinessUpdate):
 @app.post("/party/{idx}/ot-name")
 async def update_party_ot_name(idx: int, data: OTNameUpdate):
     off = get_active_trainer_offset()
-    if off is None or not 0 <= idx < min(6, party_mod.ru32(current_save["data"], off + 0x34)):
+    if off is None or not 0 <= idx < min(party_mod.PARTY_CAPACITY, party_mod.ru32(current_save["data"], off + party_mod.PARTY_COUNT_OFFSET)):
         raise HTTPException(status_code=404, detail="Pokemon not found")
-    mon_off = off + 0x38 + idx * 100
-    pk = party_mod.Pokemon(current_save["data"][mon_off:mon_off + 100])
+    mon_off = off + party_mod.PARTY_START_OFFSET + idx * party_mod.PARTY_MON_SIZE
+    pk = party_mod.Pokemon(current_save["data"][mon_off:mon_off + party_mod.PARTY_MON_SIZE])
     if pk.get_species_id() == 0:
         raise HTTPException(status_code=404, detail="Pokemon not found")
     try:
         pk.set_ot_name(data.ot_name)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    current_save["data"][mon_off:mon_off + 100] = pk.pack_data()
+    current_save["data"][mon_off:mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
     return {"status": "Original Trainer name updated", "ot_name": pk.get_ot_name()}
 
@@ -1005,8 +1008,8 @@ async def update_party_ot_name(idx: int, data: OTNameUpdate):
 @app.post("/party/{idx}/nickname")
 async def update_party_nickname(idx: int, data: NicknameUpdate):
     off = get_active_trainer_offset()
-    mon_off = off + 0x38 + (idx * 100)
-    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    mon_off = off + party_mod.PARTY_START_OFFSET + (idx * party_mod.PARTY_MON_SIZE)
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE])
     species_before = pk.get_species_id()
 
     try:
@@ -1015,7 +1018,7 @@ async def update_party_nickname(idx: int, data: NicknameUpdate):
         raise HTTPException(status_code=400, detail=str(e))
     _assert_species_unchanged(pk, species_before, "party nickname update")
 
-    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
     return {"status": "Nickname updated", "nickname": pk.nickname}
 
@@ -1026,13 +1029,13 @@ async def update_party_species(idx: int, data: SpeciesUpdate):
         raise HTTPException(status_code=400, detail="Invalid species_id")
 
     off = get_active_trainer_offset()
-    mon_off = off + 0x38 + (idx * 100)
-    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    mon_off = off + party_mod.PARTY_START_OFFSET + (idx * party_mod.PARTY_MON_SIZE)
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE])
 
     pk.set_species_id(data.species_id)
     pk.recalculate_party_stats(clamp_hp=True)
 
-    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
     return {"status": "Species updated", "species_id": data.species_id}
 
@@ -1040,14 +1043,14 @@ async def update_party_species(idx: int, data: SpeciesUpdate):
 @app.post("/party/{idx}/ability-switch")
 async def switch_ability(idx: int, data: AbilitySwitch):
     off = get_active_trainer_offset()
-    mon_off = off + 0x38 + (idx * 100)
-    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    mon_off = off + party_mod.PARTY_START_OFFSET + (idx * party_mod.PARTY_MON_SIZE)
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE])
     species_before = pk.get_species_id()
 
     pk.set_ability_slot(data.ability_index)
     _assert_species_unchanged(pk, species_before, "party ability switch")
 
-    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
     return {"status": "Ability/PID updated", "new_index": data.ability_index}
 
@@ -1056,10 +1059,10 @@ async def switch_ability(idx: int, data: AbilitySwitch):
 async def update_ivs(idx: int, stats: StatUpdate):
     """Update IVs (0-31) while preserving HA and Egg bits."""
     off = get_active_trainer_offset()
-    mon_off = off + 0x38 + (idx * 100)
+    mon_off = off + party_mod.PARTY_START_OFFSET + (idx * party_mod.PARTY_MON_SIZE)
 
     # Load pokemon from buffer
-    pk_data = current_save["data"][mon_off: mon_off + 100]
+    pk_data = current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE]
     pk = party_mod.Pokemon(pk_data)
     species_before = pk.get_species_id()
 
@@ -1073,7 +1076,7 @@ async def update_ivs(idx: int, stats: StatUpdate):
     _assert_species_unchanged(pk, species_before, "party IV update")
 
     # Pack and write back to local buffer
-    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
     return {"status": "IVs updated in memory"}
 
@@ -1082,15 +1085,15 @@ async def update_ivs(idx: int, stats: StatUpdate):
 async def update_nature(idx: int, data: NatureUpdate):
     """Update nature and recalculate PID."""
     off = get_active_trainer_offset()
-    mon_off = off + 0x38 + (idx * 100)
+    mon_off = off + party_mod.PARTY_START_OFFSET + (idx * party_mod.PARTY_MON_SIZE)
 
-    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE])
     species_before = pk.get_species_id()
     pk.set_nature(data.nature_id)
     pk.recalculate_party_stats(clamp_hp=True)
     _assert_species_unchanged(pk, species_before, "party nature update")
 
-    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
     return {"status": f"Nature changed to {party_mod.DB_NATURES.get(data.nature_id)}"}
 
@@ -1100,9 +1103,9 @@ async def update_identity(idx: int, data: IdentityUpdate):
     off = get_active_trainer_offset()
     if off is None:
         raise HTTPException(status_code=404, detail="Invalid save file")
-    mon_off = off + 0x38 + (idx * 100)
+    mon_off = off + party_mod.PARTY_START_OFFSET + (idx * party_mod.PARTY_MON_SIZE)
 
-    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE])
     species_before = pk.get_species_id()
 
     try:
@@ -1113,7 +1116,7 @@ async def update_identity(idx: int, data: IdentityUpdate):
     pk.recalculate_party_stats(clamp_hp=True)
     _assert_species_unchanged(pk, species_before, "party identity update")
 
-    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
     return {
         "status": "Identity updated",
@@ -1130,8 +1133,8 @@ async def update_party_level(idx: int, data: PartyLevelUpdate):
     if off is None:
         raise HTTPException(status_code=404, detail="Invalid save file")
 
-    mon_off = off + 0x38 + (idx * 100)
-    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    mon_off = off + party_mod.PARTY_START_OFFSET + (idx * party_mod.PARTY_MON_SIZE)
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE])
     species_before = pk.get_species_id()
 
     requested_level = int(data.target_level)
@@ -1156,7 +1159,7 @@ async def update_party_level(idx: int, data: PartyLevelUpdate):
     pk.recalculate_party_stats(clamp_hp=True)
     _assert_species_unchanged(pk, species_before, "party level update")
 
-    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
     return {
         "status": "Level updated",
@@ -1626,8 +1629,8 @@ class ItemUpdate(BaseModel):
 @app.post("/party/{idx}/evs")
 async def update_evs(idx: int, stats: EvUpdate):
     off = get_active_trainer_offset()
-    mon_off = off + 0x38 + (idx * 100)
-    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    mon_off = off + party_mod.PARTY_START_OFFSET + (idx * party_mod.PARTY_MON_SIZE)
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE])
     species_before = pk.get_species_id()
 
     new_evs = {
@@ -1637,7 +1640,7 @@ async def update_evs(idx: int, stats: EvUpdate):
     pk.set_evs(new_evs)
     pk.recalculate_party_stats(clamp_hp=True)
     _assert_species_unchanged(pk, species_before, "party EV update")
-    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
     return {"status": "EVs updated"}
 
@@ -1645,15 +1648,15 @@ async def update_evs(idx: int, stats: EvUpdate):
 @app.post("/party/{idx}/ability")
 async def update_ability(idx: int, data: AbilityUpdate):
     off = get_active_trainer_offset()
-    mon_off = off + 0x38 + (idx * 100)
-    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    mon_off = off + party_mod.PARTY_START_OFFSET + (idx * party_mod.PARTY_MON_SIZE)
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE])
     species_before = pk.get_species_id()
 
     # In Unbound, the HA flag is handled inside the IVs/Ability byte
     pk.set_hidden_ability_flag(1 if data.is_hidden else 0)
     _assert_species_unchanged(pk, species_before, "party ability flag update")
 
-    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
     return {"status": "Ability updated"}
 
@@ -1661,8 +1664,8 @@ async def update_ability(idx: int, data: AbilityUpdate):
 @app.post("/party/{idx}/moves")
 async def update_party_moves(idx: int, data: MovesUpdate):
     off = get_active_trainer_offset()
-    mon_off = off + 0x38 + (idx * 100)
-    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + 100])
+    mon_off = off + party_mod.PARTY_START_OFFSET + (idx * party_mod.PARTY_MON_SIZE)
+    pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE])
     species_before = pk.get_species_id()
 
     for move_id in data.moves:
@@ -1673,7 +1676,7 @@ async def update_party_moves(idx: int, data: MovesUpdate):
     pk.set_moves(data.moves, move_pp=data.move_pp, move_pp_ups=data.move_pp_ups)
     _assert_species_unchanged(pk, species_before, "party moves update")
 
-    current_save["data"][mon_off: mon_off + 100] = pk.pack_data()
+    current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
     return {"status": "Moves updated"}
 
@@ -1728,7 +1731,7 @@ class PCInsert(BaseModel):
     exp: int = None
     item_id: int = 0
     ball_id: int = 3
-    happiness: int = 70
+    happiness: int = PROFILE["rules"]["insert_happiness"]
     moves: List[int] = None
     ivs: dict = None
     evs: dict = None
@@ -1835,6 +1838,17 @@ async def insert_pc_mon(upd: PCInsert):
         raise HTTPException(status_code=400, detail="Invalid box")
 
     occupied = {int(m.slot) for m in current_save["pc_context"].get("mons", []) if int(m.box) == box}
+    # A nonzero native species ID reserves storage even when legacy readers
+    # cannot decode/catalog it. Unknown records must not become empty slots.
+    ctx = current_save["pc_context"]
+    raw_buffer = ctx.get("preset_buffer") if box == PROFILE["storage"]["pc"]["preset"]["api_box"] else ctx.get("pc_buffer")
+    base = box_mod.OFFSET_PRESET_START if box == PROFILE["storage"]["pc"]["preset"]["api_box"] else (box - 1) * box_mod.BOX_SLOT_COUNT * box_mod.MON_SIZE_PC
+    if raw_buffer is not None:
+        for candidate in range(1, box_mod.BOX_SLOT_COUNT + 1):
+            offset = base + (candidate - 1) * box_mod.MON_SIZE_PC
+            if offset + box_mod.MON_SIZE_PC <= len(raw_buffer) and box_mod.ru16(raw_buffer, offset + box_mod.OFF_SPECIES) != 0:
+                occupied.add(candidate)
+
 
     slot = upd.slot
     if slot is not None:
@@ -1986,17 +2000,17 @@ def _finalize_save_bytes(data, ctx):
     trainer_sections = [s for s in sections if s['id'] == party_mod.TRAINER_SECTION_ID]
     active_trainer_off = max(trainer_sections, key=lambda s: s['saveidx'])['off'] if trainer_sections else None
     if active_trainer_off is not None:
-        team_count = min(6, party_mod.ru32(data, active_trainer_off + 0x34))
+        team_count = min(party_mod.PARTY_CAPACITY, party_mod.ru32(data, active_trainer_off + party_mod.PARTY_COUNT_OFFSET))
         for idx in range(team_count):
-            mon_off = active_trainer_off + 0x38 + idx * 100
-            pk = party_mod.Pokemon(data[mon_off: mon_off + 100])
-            data[mon_off: mon_off + 100] = pk.pack_data()
+            mon_off = active_trainer_off + party_mod.PARTY_START_OFFSET + idx * party_mod.PARTY_MON_SIZE
+            pk = party_mod.Pokemon(data[mon_off: mon_off + party_mod.PARTY_MON_SIZE])
+            data[mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
 
     # 1. Recalculate trainer section checksums (ID 1)
     for sec in sections:
         if sec['id'] == party_mod.TRAINER_SECTION_ID:
             off = sec['off']
-            valid_len = 0xFF0
+            valid_len = party_mod.CHECKSUM_LENGTH
 
             payload = data[off: off + valid_len]
             new_chk = bag_mod.gba_checksum(payload)
@@ -2027,7 +2041,7 @@ def _finalize_save_bytes(data, ctx):
         if sec_id in OPAQUE_SECTION_IDS:
             continue
         if sec_id == 0:
-            chk_data = data[sec_off: sec_off + 0xF24]
+            chk_data = data[sec_off: sec_off + box_mod.section_checksum_length(0)]
             new_chk = bag_mod.gba_checksum(chk_data)
             party_mod.wu16(data, sec_off + 0xFF6, new_chk)
         else:

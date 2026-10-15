@@ -1,3 +1,4 @@
+#include <puse/core/GameProfile.hpp>
 #include <puse/core/Bag.hpp>
 
 #include <algorithm>
@@ -23,13 +24,13 @@ namespace puse::core {
 namespace {
 
 // --- Constants (mirrors bag.py) ---
-constexpr uint32_t kBagSectionSize        = 0x1000;
-constexpr uint32_t kBagOffValidLen        = 0xFF0;
-constexpr uint32_t kBagOffId             = 0xFF4;
-constexpr uint32_t kBagOffChk            = 0xFF6;
-constexpr uint32_t kBagOffSaveIdx        = 0xFFC;
-constexpr uint16_t kUnboundItemSectorId  = 13;
-constexpr uint32_t kUnboundItemFixedLen  = 0x450;
+constexpr uint32_t kBagSectionSize        = profile::kContainerSectionSize;
+constexpr uint32_t kBagOffValidLen        = profile::kContainerFooterPayloadEnd;
+constexpr uint32_t kBagOffId             = profile::kContainerFooterId;
+constexpr uint32_t kBagOffChk            = profile::kContainerFooterChecksum;
+constexpr uint32_t kBagOffSaveIdx        = profile::kContainerFooterCounter;
+constexpr uint16_t kUnboundItemSectorId  = profile::kStorageBagItemSectionId;
+constexpr uint32_t kUnboundItemFixedLen  = profile::kContainerChecksumLengths13;
 constexpr int      kMaxPlausibleItemId   = 4095;
 constexpr int      kMaxPlausibleItemQty  = 2000;
 constexpr int      kMaxSectorPocketSlots = static_cast<int>(kBagOffValidLen / 4);  // 1020
@@ -38,17 +39,17 @@ constexpr double   kMaxStrictDupRatio    = 0.35;
 constexpr double   kMaxMediumDupRatio    = 0.60;
 constexpr uint32_t kMinTrailerHeadroom   = 0x80;
 constexpr uint32_t kEmptyBootstrapSlots  = 8;
-constexpr uint32_t kKnownAnchorBall      = 0x1E31C;
-constexpr uint32_t kKnownAnchorTm        = 0x1E3E4;
-constexpr uint32_t kKnownAnchorBerry     = 0x1E5E4;
-constexpr uint32_t kRelOffMain           = 0xAD8;
-constexpr uint32_t kRelOffBall           = 0x31C;
-constexpr uint32_t kRelOffTm             = 0x3E4;
-constexpr uint32_t kRelOffBerry          = 0x5E4;
+constexpr uint32_t kKnownAnchorBall      = profile::kStorageBagKnownAnchorsBall;
+constexpr uint32_t kKnownAnchorTm        = profile::kStorageBagKnownAnchorsTm;
+constexpr uint32_t kKnownAnchorBerry     = profile::kStorageBagKnownAnchorsBerry;
+constexpr uint32_t kRelOffMain           = profile::kStorageBagRelativeOffsetsMain;
+constexpr uint32_t kRelOffBall           = profile::kStorageBagRelativeOffsetsBall;
+constexpr uint32_t kRelOffTm             = profile::kStorageBagRelativeOffsetsTm;
+constexpr uint32_t kRelOffBerry          = profile::kStorageBagRelativeOffsetsBerry;
 constexpr uint16_t kTmCaseItemId         = 364;
 constexpr uint16_t kBerryPouchItemId     = 365;
 
-const std::unordered_set<uint16_t> kBagSectorIds = {13, 14, 15, 16};
+const std::unordered_set<uint16_t> kBagSectorIds(profile::kStorageBagSectorIds.begin(), profile::kStorageBagSectorIds.end());
 
 const std::vector<int> kMainProbeIds = {13, 84, 197, 94, 24, 26, 16, 493, 603, 606, 72};
 
@@ -705,7 +706,7 @@ BagPocket GateUnlockablePocket(const std::vector<uint8_t> &buf,
 bool EnsureBagDataLoaded(std::string *error) {
     if (g_bag_data_loaded) { return true; }
 
-    const std::string path = io::ResolveAssetPath("data/item_pocket_map.json");
+    const std::string path = io::ResolveAssetPath(profile::CatalogAsset("item_pocket_map.json"));
     bool loaded = false;
     if (!path.empty()) {
         std::ifstream in(path);

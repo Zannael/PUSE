@@ -1,13 +1,14 @@
+import { PROFILE } from './profile.js';
 import { ru16, ru32, wu16, wu32 } from './binary.js';
 import { recalculateTrainerChecksum } from './checksum.js';
 import { findActiveSectionById, activeSections } from './sections.js';
 
-const TRAINER_SECTION_ID = 1;
-const FALLBACK_OFF_MONEY = 0x290;
-const BP_SECTION_ID = 4;
-const BP_OFFSET_IN_SECTION = 0xF34;
-const MAX_MONEY = 999999999;
-const MAX_BP = 65535;
+const TRAINER_SECTION_ID = PROFILE.storage.resources.trainer_section_id;
+const FALLBACK_OFF_MONEY = PROFILE.storage.resources.money_offset;
+const BP_SECTION_ID = PROFILE.storage.resources.bp_section_id;
+const BP_OFFSET_IN_SECTION = PROFILE.storage.resources.bp_offset;
+const MAX_MONEY = PROFILE.rules.money_max;
+const MAX_BP = PROFILE.rules.bp_max;
 
 function toBcd3(value) {
     if (value > 999999) {

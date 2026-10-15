@@ -1,5 +1,7 @@
-from core.sections import active_unbound_slot, refresh_checksum
 #!/usr/bin/env python3
+from core.data_loader import catalog_path
+from core.profile import PROFILE
+from core.sections import active_unbound_slot, refresh_checksum
 # bag.py — Editor Definitivo per Pokemon Unbound
 # Include: Smart Search, Save Index Check e Unbound Fixed Length Checksum
 
@@ -8,22 +10,22 @@ import sys
 import shutil
 import json
 
-from core.data_loader import load_id_name_file, data_path
+from core.data_loader import load_id_name_file
 
 # --- CONFIGURAZIONE ---
-SECTION_SIZE = 0x1000
-OFF_VALID_LEN = 0xFF0
-OFF_ID = 0xFF4
-OFF_CHK = 0xFF6
-OFF_SAVE_IDX = 0xFFC
+SECTION_SIZE = PROFILE["container"]["section_size"]
+OFF_VALID_LEN = PROFILE["container"]["footer"]["payload_end"]
+OFF_ID = PROFILE["container"]["footer"]["id"]
+OFF_CHK = PROFILE["container"]["footer"]["checksum"]
+OFF_SAVE_IDX = PROFILE["container"]["footer"]["counter"]
 
 # ID Interno del settore Items in Unbound (trovato con la diagnostica)
-UNBOUND_ITEM_SECTOR_ID = 13
+UNBOUND_ITEM_SECTOR_ID = PROFILE["storage"]["bag"]["item_section_id"]
 # Settori borsa noti (Unbound/CFRU): item, key, balls, berries/tm (varia per build)
-BAG_SECTOR_IDS = {13, 14, 15, 16}
+BAG_SECTOR_IDS = frozenset(PROFILE["storage"]["bag"]["sector_ids"])
 # Correct checksum length for item sector (id=13) is 0x450
 # Using 0x454 includes 4 extra bytes that can be non-zero, producing invalid checksums
-UNBOUND_ITEM_FIXED_LEN = 0x450
+UNBOUND_ITEM_FIXED_LEN = PROFILE["container"]["checksum"]["lengths"]["13"]
 
 # Limiti conservativi per filtro slot borsa
 MAX_PLAUSIBLE_ITEM_ID = 4095
@@ -64,7 +66,7 @@ def _set_from_json_list(value):
 
 
 def _load_pocket_sets_from_map():
-    map_path = data_path("item_pocket_map.json")
+    map_path = catalog_path("pockets")
     if not map_path.exists():
         return _fallback_pocket_sets()
 
@@ -90,18 +92,9 @@ def _load_pocket_sets_from_map():
 
 BALL_ITEM_IDS, BERRY_ITEM_IDS, TM_ITEM_IDS, HM_ITEM_IDS, TMHM_ITEM_IDS, KEY_ITEM_IDS = _load_pocket_sets_from_map()
 
-KNOWN_POCKET_ANCHORS = {
-    "ball": 0x1E31C,
-    "tm": 0x1E3E4,
-    "berry": 0x1E5E4,
-}
+KNOWN_POCKET_ANCHORS = PROFILE["storage"]["bag"]["known_anchors"]
 
-KNOWN_POCKET_REL_OFFSETS = {
-    "main": 0xAD8,
-    "ball": 0x31C,
-    "tm": 0x3E4,
-    "berry": 0x5E4,
-}
+KNOWN_POCKET_REL_OFFSETS = PROFILE["storage"]["bag"]["relative_offsets"]
 
 TM_CASE_ITEM_ID = 364
 BERRY_POUCH_ITEM_ID = 365
@@ -591,7 +584,7 @@ def wu16(b, o, v): struct.pack_into("<H", b, o, v)
 
 
 def load_item_names_from_file():
-    items = load_id_name_file("items.txt")
+    items = load_id_name_file(PROFILE["catalogs"]["items"]["file"])
     if not items:
         return
     DB_ITEMS.clear()
@@ -606,7 +599,7 @@ def load_names_from_ct():
 
 
 def load_tm_names_from_file():
-    tm_path = data_path("tms.txt")
+    tm_path = catalog_path("tms")
     if not tm_path.exists():
         return
 

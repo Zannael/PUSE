@@ -1,0 +1,541 @@
+{
+  "schema_version": 1,
+  "id": "unbound-2.1.1.1",
+  "identity": {
+    "game": "Pokemon Unbound",
+    "versions": [
+      "2.1.1.1"
+    ],
+    "language": "English",
+    "rom_sha256": [
+      "7aa25bbf568f7cfcf6ee1cf2e9e6ff637350b3d0705c2375cabb6baa7d9739f7"
+    ],
+    "selection": "explicit-built-in-default",
+    "save_version_detection": false
+  },
+  "container": {
+    "section_size": 4096,
+    "sections_per_slot": 14,
+    "slot_count": 2,
+    "flash_size": 131072,
+    "rtc_trailer_sizes": [
+      0,
+      16
+    ],
+    "length_policy": "existing-reader-validation",
+    "footer": {
+      "payload_end": 4080,
+      "id": 4084,
+      "checksum": 4086,
+      "signature": 4088,
+      "counter": 4092
+    },
+    "signatures": [
+      17963417,
+      17963416
+    ],
+    "counter_bits": 32,
+    "counter_order": "modulo-half-range-first-slot-on-tie",
+    "checksum": {
+      "algorithm": "gba-u32-fold16",
+      "default_length": 4080,
+      "lengths": {
+        "0": 3876,
+        "4": 3480,
+        "13": 1104
+      },
+      "opaque_ids": [
+        4
+      ]
+    },
+    "auxiliary": {
+      "physical_sectors": [
+        30,
+        31
+      ],
+      "shared_between_generations": true,
+      "checksum": "unverified-no-reconciliation"
+    }
+  },
+  "storage": {
+    "pc": {
+      "box_count": 24,
+      "slots_per_box": 30,
+      "record_size": 58,
+      "regions": [
+        [
+          5,
+          4,
+          4080
+        ],
+        [
+          6,
+          0,
+          4080
+        ],
+        [
+          7,
+          0,
+          4080
+        ],
+        [
+          8,
+          0,
+          4080
+        ],
+        [
+          9,
+          0,
+          4080
+        ],
+        [
+          10,
+          0,
+          4080
+        ],
+        [
+          11,
+          0,
+          4080
+        ],
+        [
+          12,
+          0,
+          4080
+        ],
+        [
+          13,
+          0,
+          424
+        ],
+        [
+          30,
+          2828,
+          4080
+        ],
+        [
+          31,
+          0,
+          3968
+        ],
+        [
+          2,
+          3864,
+          4080
+        ],
+        [
+          3,
+          0,
+          3264
+        ]
+      ],
+      "region_addressing": "logical-id-below-sections-per-slot-otherwise-physical-sector",
+      "preset": {
+        "section_id": 0,
+        "start": 176,
+        "count": 30,
+        "api_box": 26,
+        "hidden_api_box": 25,
+        "team_count": 5
+      }
+    },
+    "party": {
+      "section_id": 1,
+      "count_offset": 52,
+      "start": 56,
+      "record_size": 100,
+      "capacity": 6
+    },
+    "resources": {
+      "trainer_section_id": 1,
+      "money_offset": 656,
+      "money_bcd_offset": 653,
+      "bp_section_id": 4,
+      "bp_offset": 3892
+    },
+    "bag": {
+      "item_section_id": 13,
+      "sector_ids": [
+        13,
+        14,
+        15,
+        16
+      ],
+      "known_anchors": {
+        "ball": 123676,
+        "tm": 123876,
+        "berry": 124388
+      },
+      "relative_offsets": {
+        "main": 2776,
+        "ball": 796,
+        "tm": 996,
+        "berry": 1508
+      },
+      "encryption": "none",
+      "slot_size": 4,
+      "slot_orders": [
+        "id_qty",
+        "qty_id"
+      ]
+    },
+    "pokedex": {
+      "section_id": 1,
+      "seen_offset": 784,
+      "caught_offset": 909,
+      "byte_count": 125,
+      "max_dex_id": 809
+    }
+  },
+  "codecs": {
+    "pc": {
+      "id": "unbound-cfru-compact-v1",
+      "record_size": 58,
+      "fields": {
+        "pid": 0,
+        "otid": 4,
+        "nickname": 8,
+        "ot_misc_1": 18,
+        "ot_misc_2": 19,
+        "ot_name": 20,
+        "species": 28,
+        "item": 30,
+        "exp": 32,
+        "pp_ups": 36,
+        "happiness": 37,
+        "ball": 38,
+        "evs": 44,
+        "ivs": 54,
+        "move_ids": 39,
+        "legacy_moves_anchor": 36
+      },
+      "moves": "four-10-bit-ids-in-40-bits-with-existing-cfru-overlays",
+      "current_pp": false,
+      "checksum": "none",
+      "empty_species_id": 0,
+      "legacy_validation": {
+        "max_species_id": 2500,
+        "min_exp": 1,
+        "max_exp": 2000000
+      }
+    },
+    "party": {
+      "id": "unbound-party-v1",
+      "record_size": 100,
+      "fields": {
+        "pid": 0,
+        "otid": 4,
+        "nickname": 8,
+        "ot_name": 20,
+        "checksum": 28,
+        "data_start": 32,
+        "level_visual": 84,
+        "curr_hp": 86,
+        "max_hp": 88,
+        "atk": 90,
+        "def": 92,
+        "spe": 94,
+        "spa": 96,
+        "spd": 98
+      },
+      "encryption": "existing-unbound-party-codec",
+      "checksum_policy": "zero-runtime-species-substitution-field"
+    },
+    "text": {
+      "id": "puse-unbound-gen3-text-v1",
+      "terminator": 255,
+      "nickname_length": 10,
+      "ot_name_length": 7
+    },
+    "unknown_values": "preserve-native-id-and-raw-bytes; reserve-nonzero-species-slots-even-if-legacy-validation-fails"
+  },
+  "rules": {
+    "shiny_threshold": 16,
+    "nature_count": 25,
+    "ability_encoding": "pid-parity-standard-and-hidden-flag",
+    "identity_solver": "preserve-nature-and-standard-slot",
+    "level_min": 1,
+    "level_max": 100,
+    "iv_max": 31,
+    "ev_stat_max": 252,
+    "ev_total_legit_max": 510,
+    "happiness_max": 255,
+    "insert_happiness": 70,
+    "money_max": 999999999,
+    "bcd_money_max": 999999,
+    "bp_max": 65535,
+    "pp_up_max": 3,
+    "growth_codec": "gen3-six-growth-curves",
+    "pp_codec": "base-plus-floor-base-times-ppups-over-five"
+  },
+  "catalogs": {
+    "species": {
+      "file": "pokemon.txt",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": true
+    },
+    "items": {
+      "file": "items.txt",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": true
+    },
+    "moves": {
+      "file": "moves.txt",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": true
+    },
+    "abilities": {
+      "file": "abilities.txt",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": true
+    },
+    "tms": {
+      "file": "tms.txt",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": false
+    },
+    "move_pp": {
+      "file": "move_table_from_rom.json",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": true
+    },
+    "base_stats": {
+      "file": "species_base_stats.json",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": true
+    },
+    "identity": {
+      "file": "species_identity_meta.json",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": true
+    },
+    "growth": {
+      "file": "species_growth_rates.json",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": true
+    },
+    "species_abilities": {
+      "file": "species_abilities_meta.json",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": true
+    },
+    "forms": {
+      "file": "species_form_aliases.json",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": false
+    },
+    "pockets": {
+      "file": "item_pocket_map.json",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": true
+    },
+    "national_dex": {
+      "file": "pokedex_species_map.json",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": true,
+      "required": false
+    },
+    "national_dex_text": {
+      "file": "pokedex_species_map.txt",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": true,
+      "required": false
+    },
+    "level_caps": {
+      "file": "unbound_level_caps.json",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": false
+    },
+    "expert_rules": {
+      "file": "expert_mode_rules.json",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": false
+    },
+    "rtc": {
+      "file": "rtc_manifest_unbound_v1.json",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": false
+    },
+    "types": {
+      "file": "species_types.json",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": false
+    },
+    "constants": {
+      "file": "species_constants.json",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": false
+    },
+    "learnsets": {
+      "file": "species_learnsets.json",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": false
+    },
+    "evolutions": {
+      "file": "species_evolution_meta.json",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": false
+    },
+    "speed_tiers": {
+      "file": "unbound_speed_tiers.json",
+      "id_space": "unbound-2.1.1.1",
+      "national_mapping": false,
+      "required": false
+    }
+  },
+  "capabilities": {
+    "party": {
+      "backend": "read-write",
+      "browser": "read-write",
+      "switch": "read-write",
+      "3ds": "read-write"
+    },
+    "pc": {
+      "backend": "read-write-insert-release",
+      "browser": "read-write-insert-release",
+      "switch": "read-write-insert-release",
+      "3ds": "read-write-insert-release"
+    },
+    "preset": {
+      "backend": "read-write-insert-release",
+      "browser": "read-write-insert-release",
+      "switch": "preserve-only",
+      "3ds": "preserve-only"
+    },
+    "bag": {
+      "backend": "read-write",
+      "browser": "read-write",
+      "switch": "read-write",
+      "3ds": "read-write"
+    },
+    "resources": {
+      "backend": "read-write",
+      "browser": "read-write",
+      "switch": "read-write",
+      "3ds": "read-write"
+    },
+    "pokedex": {
+      "backend": "read-write",
+      "browser": "read-write",
+      "switch": "read-write",
+      "3ds": "read-write"
+    },
+    "game_progress": {
+      "backend": "read-only",
+      "browser": "read-only",
+      "switch": "read-only",
+      "3ds": "read-only"
+    },
+    "save_health": {
+      "backend": "core-and-review",
+      "browser": "core-and-review",
+      "switch": "core-only",
+      "3ds": "core-only"
+    },
+    "roster_export": {
+      "backend": "projection",
+      "browser": "selection-and-export",
+      "switch": "unavailable",
+      "3ds": "unavailable"
+    },
+    "rtc": {
+      "backend": "time-fixer-and-repair-candidates",
+      "browser": "time-fixer-and-repair-candidates",
+      "switch": "time-fixer-and-repair-candidates",
+      "3ds": "time-fixer-and-repair-candidates"
+    },
+    "battle_preview": {
+      "backend": "read-only",
+      "browser": "read-only",
+      "switch": "read-only",
+      "3ds": "read-only"
+    },
+    "save_conversion": {
+      "backend": "sav-srm",
+      "browser": "sav-srm",
+      "switch": "unavailable",
+      "3ds": "unavailable"
+    }
+  },
+  "evidence": {
+    "revision": "unbound-storage-audit-2026-10-07",
+    "document": "romre/CFRU_IMPLEMENTATION_PLAN.md",
+    "storage_confidence": "verified-ROM-and-game-roundtrip",
+    "save_table_candidates": [
+      4189332,
+      8541008,
+      10931592
+    ],
+    "live_save_table": 10931592,
+    "box_pointer_table": 10930988,
+    "conflicts": [
+      "section-4-checksum-remains-opaque",
+      "shared-auxiliary-has-no-verified-previous-snapshot"
+    ],
+    "completeness": "verified-Unbound-only; extraction-does-not-yet-build-a-complete-profile",
+    "runtime_version_detection": false,
+    "artifacts": {
+      "storage": {
+        "confidence": "verified-ROM-and-game-roundtrip",
+        "revision": "milestone-1-2026-10-07",
+        "complete": true
+      },
+      "codecs_rules_catalogs": {
+        "confidence": "retained-existing-Unbound-implementations-and-canonical-assets-with-parity",
+        "revision": "pre-profile-d81840f",
+        "complete": "existing-editor-features; not-a-complete-ROM-extraction-profile"
+      }
+    }
+  },
+  "requirements": {
+    "party": [
+      "base_stats",
+      "identity",
+      "growth",
+      "species_abilities",
+      "move_pp"
+    ],
+    "pc": [
+      "identity",
+      "growth",
+      "species_abilities",
+      "move_pp"
+    ],
+    "bag": [
+      "items",
+      "pockets"
+    ],
+    "pokedex": [
+      "national_dex"
+    ],
+    "game_progress": [
+      "level_caps",
+      "expert_rules"
+    ],
+    "rtc": [
+      "rtc"
+    ],
+    "battle_preview": [
+      "base_stats"
+    ]
+  }
+}

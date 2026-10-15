@@ -1,16 +1,18 @@
 #pragma once
 
+#include <puse/core/GameProfile.hpp>
+
 #include <cstddef>
 #include <cstdint>
 #include <vector>
 
 namespace puse::core {
 
-constexpr size_t kSectionSize = 0x1000;
-constexpr size_t kFooterValidLenOffset = 0xFF0;
-constexpr size_t kFooterIdOffset = 0xFF4;
-constexpr size_t kFooterChecksumOffset = 0xFF6;
-constexpr size_t kFooterSaveIndexOffset = 0xFFC;
+constexpr size_t kSectionSize = profile::kContainerSectionSize;
+constexpr size_t kFooterValidLenOffset = profile::kContainerFooterPayloadEnd;
+constexpr size_t kFooterIdOffset = profile::kContainerFooterId;
+constexpr size_t kFooterChecksumOffset = profile::kContainerFooterChecksum;
+constexpr size_t kFooterSaveIndexOffset = profile::kContainerFooterCounter;
 
 struct SaveSection {
     size_t index;

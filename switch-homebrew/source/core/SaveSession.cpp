@@ -32,6 +32,7 @@ bool SaveSession::LoadFromFile(const std::string &path, std::string *error) {
         return false;
     }
 
+    profile_ = &profile::kBuiltin;
     buffer_ = std::move(next);
     original_buffer_ = buffer_;
     source_path_ = path;
@@ -65,6 +66,7 @@ bool SaveSession::ExportToFile(const std::string &path, std::string *error) cons
 }
 
 void SaveSession::Clear() {
+    profile_ = nullptr;
     buffer_.clear();
     original_buffer_.clear();
     source_path_.clear();
@@ -106,3 +108,7 @@ std::vector<SaveSection> SaveSession::Sections() const {
 }
 
 } // namespace puse::core
+
+namespace puse::core {
+const profile::GameProfile* SaveSession::Profile() const { return profile_; }
+}

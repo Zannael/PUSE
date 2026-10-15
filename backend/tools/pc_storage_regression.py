@@ -119,6 +119,17 @@ def main():
             edits[index * 58:(index + 1) * 58] = bytes(58)
         edits[0:58] = stream[58:116]  # Insert into an explicitly empty slot.
         cases = [('noop', source, None, offsets[1]), ('boundaries', source, edits, offsets[1])]
+        # Unknown native species must survive a neighboring release in every runtime.
+        unknown_stream = bytearray(stream)
+        struct.pack_into('<H', unknown_stream, 58 + 28, 65535)
+        unknown_save = bytearray(source)
+        for offmap in offsets:
+            scatter(unknown_save, offmap, unknown_stream)
+            refresh(unknown_save, offmap)
+        unknown_edit = bytearray(unknown_stream)
+        unknown_edit[116:174] = bytes(58)
+        cases.append(('unknown-native-id', unknown_save, unknown_edit, offsets[1]))
+
         rollover, _, roll_offsets = fixture((0xFFFFFFFF, 0))
         cases.append(('rollover', rollover, edits, roll_offsets[1]))
         wrapped, _, wrapped_offsets = fixture((0xFFFFFFFE, 1), (0, 13))
@@ -146,7 +157,7 @@ def main():
             expected, gathered = backend_result(data, changed)
             if chosen is None: assert expected is None
             else:
-                assert gathered == stream, name
+                assert gathered == (unknown_stream if name == 'unknown-native-id' else stream), name
                 oracle = bytearray(data)
                 if changed is not None:
                     scatter(oracle, chosen, changed)

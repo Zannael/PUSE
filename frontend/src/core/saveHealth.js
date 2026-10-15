@@ -1,8 +1,9 @@
+import { PROFILE } from './profile.js';
 import { gbaChecksum } from './checksum.js';
-import { listSections, SECTION_SIZE, activeUnboundSlot } from './sections.js';
+import { listSections, SECTION_SIZE, activeUnboundSlot, unboundChecksumLength } from './sections.js';
 
-const IDS = Array.from({ length: 14 }, (_, index) => index);
-const PC_MON_SIZE = 58;
+const IDS = Array.from({ length: PROFILE.container.sections_per_slot }, (_, index) => index);
+const PC_MON_SIZE = PROFILE.storage.pc.record_size;
 
 function pcField(prefix, inside) {
     const fields = [
@@ -57,11 +58,11 @@ export function buildSaveReport(original, current, includeSource = true) {
     for (const id of IDS) {
         const section = active.get(id);
         if (!section) continue;
-        if (id === 4) {
+        if (PROFILE.container.checksum.opaque_ids.includes(id)) {
             checksums.push({ id, index: section.index, status: 'opaque', stored: section.checksum, computed: null });
             continue;
         }
-        const length = id === 0 ? 0xF24 : id === 13 ? 0x450 : 0xFF0;
+        const length = unboundChecksumLength(id);
         const computed = gbaChecksum(current, section.off, length);
         const status = computed === section.checksum ? 'ok' : 'mismatch';
         checksums.push({ id, index: section.index, status, stored: section.checksum, computed });

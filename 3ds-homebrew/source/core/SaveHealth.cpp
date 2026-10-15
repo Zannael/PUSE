@@ -80,11 +80,11 @@ SaveHealthReport BuildSaveHealthReportImpl(const std::vector<uint8_t> &original,
         if (active_index < 0) continue;
         const auto &sec = sections[static_cast<size_t>(active_index)];
         report.active_save_index = std::max(report.active_save_index, sec.save_index);
-        if (id == 4) {
+        if (profile::Opaque(id)) {
             report.checksums.push_back({id, sec.index, "opaque", sec.stored_checksum, 0, false});
             continue;
         }
-        const uint32_t length = id == 0 ? 0xF24 : id == 13 ? 0x450 : 0xFF0;
+        const uint32_t length = profile::ChecksumLength(id);
         const uint16_t computed = ComputeSectionChecksum(current.data() + sec.offset, 0xFF4, length);
         const bool ok = computed == sec.stored_checksum;
         report.checksums.push_back({id, sec.index, ok ? "ok" : "mismatch", sec.stored_checksum, computed, true});

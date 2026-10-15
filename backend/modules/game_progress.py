@@ -1,6 +1,7 @@
+from core.data_loader import catalog_path
+from core.profile import PROFILE
 from core.sections import active_sections
 import json
-from pathlib import Path
 
 from modules import bag as bag_mod
 from modules import money as money_mod
@@ -37,7 +38,7 @@ CAP_PROFILES = {
 }
 NORMAL_LEVEL_CAP_BY_BADGES = [20, 26, 32, 36, 40, 52, 57, 61, 75]
 
-_LEVEL_CAPS_PATH = Path(__file__).resolve().parents[1] / "data" / "unbound_level_caps.json"
+_LEVEL_CAPS_PATH = catalog_path("level_caps")
 _LEVEL_CAPS_PAYLOAD = json.loads(_LEVEL_CAPS_PATH.read_text(encoding="utf-8"))
 
 

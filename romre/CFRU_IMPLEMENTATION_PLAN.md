@@ -94,7 +94,7 @@ Game validation and remaining limits:
 - The optional game test expects the private overworld fixture used here, with Pokedex initially selected in the Start menu. Its fixed button sequence is fixture-specific; it asserts a changed counter to prevent a false save-round-trip pass. Hardware/controller UX was not exercised. Existing 3DS compiler deprecation/linker warnings did not prevent the build.
 - Homebrew editing now covers all 24 ordinary boxes. Preset editing has no existing homebrew API/UI and remains unavailable there; its bytes are preserved. Adding that feature is outside this corrective milestone.
 - Sectors 30/31 are shared between generations with no independently verified integrity marker or older snapshot. Choosing an older ordinary slot cannot recover an older auxiliary snapshot; the game uses the same shared contents. Auxiliary sectors are explicitly excluded from generic checksum reconciliation too. Section 4 remains opaque and protected from reconciliation as required by repository guidance. Do not infer full-container integrity or historical auxiliary recovery from ordinary-slot validation.
-- Milestone 2 and all later milestones remain pending. No profile abstraction, new-game support, generated catalogs or extraction heuristics were introduced.
+- At milestone 1 completion, milestone 2 and all later milestones remained pending. That milestone introduced no profile abstraction, new-game support, generated catalogs or extraction heuristics; subsequent progress is recorded below.
 
 Reproduce optional game validation after building mGBA as a headless library (`BUILD_QT=OFF`, `BUILD_SDL=OFF`, `M_CORE_GB=OFF`; see the pinned version above):
 
@@ -111,7 +111,7 @@ Inputs are read only. Default temporary outputs are deleted; `--keep-tmp` explic
 
 ## Milestone 2 — introduce the profile contract
 
-**Status:** pending; follows milestone 1.
+**Status:** completed on 2026-10-15. The built-in Unbound profile is shared by all four runtimes; pre-refactor byte equivalence, contract/session/preservation regressions, required parity and target builds passed.
 
 Represent verified Unbound behavior as a built-in profile, then make runtime operations consume that profile without changing output bytes. Keep the loaded save paired with its profile and remove hardcoded/global lookup assumptions incrementally.
 
@@ -133,6 +133,26 @@ The contract should include:
 Keep native IDs as primary identity, scoped by profile. Unknown values must remain distinct from empty slots and retain their original bytes. Optional national mappings help display/interoperability without replacing native IDs. Use the same serialized contract in Python, JavaScript and both portable C++ cores.
 
 Gate completion on Unbound byte equivalence and existing cross-runtime regressions.
+
+### Milestone 2 implementation — 2026-10-15
+
+- Added canonical schema-1 `backend/data/profiles/unbound-2.1.1.1.json`, with identity/version/hash provenance, container/slot/checksum definitions, storage regions, codec identifiers and offsets, editing rules, catalog namespaces/prerequisites, per-runtime capabilities and audit evidence. Only this verified built-in is registered; no runtime version detector or new-game support was introduced.
+- Added immutable Python/browser accessors and generated native constexpr traits plus the identical serialized JSON. `backend/tools/sync_game_profiles.py` generates/checks browser and both C++ bindings. Both ROMFS data mirrors were synchronized from canonical backend data. Contract validation rejects unsupported schemas/codecs/profile IDs, invalid widths/capacities/domains, unsafe catalog paths and incomplete runtime matrices.
+- Migrated ordinary generation selection, checksum domains, PC gather/scatter, party/PC record offsets, resource offsets/limits, bag anchors, Pokédex offsets, key rules and catalog bindings to profile values across applicable runtimes. Backend uploads, browser sessions and native SaveSession objects retain the selected built-in profile. Public endpoint/client payloads remain unchanged. Remaining algorithmic constants belong to named Unbound codecs; registering another game requires verified dispatch, not a descriptor-only change.
+- Native IDs remain scoped by profile; optional National Dex mappings do not replace them. Lossless record inspection distinguishes unknown from empty. Found and closed an insertion preservation gap: nonzero species records rejected by legacy validity filters could previously be overwritten as empty. All four insertion paths now reserve them with the existing occupied-slot error, including backend/browser Preset slots. Existing reader presentation filters remain unchanged.
+- Added `backend/tools/profile_regression.py`, browser and both native profile tests, and a new frontend `profile:regression` gate at the beginning of `parity:all`. Tests compare canonical contracts across all four implementations, validate immutable selection/session lifecycle, reject unsupported profiles, preserve unknown records during neighboring mutations and verify upload response compatibility. Nine synthetic whole-save fingerprints were captured before refactoring and remain exact after it; no private data is embedded.
+- The contract, generation/sync workflow, migration boundaries, support limits and deliberate unknown-insertion guard are documented in `GAME_PROFILES.md`. Milestone 3 and later work remain pending.
+
+Verification and remaining boundaries:
+
+- `python3 backend/tools/profile_regression.py` passed, including identical canonical JSON in Python/browser/both compiled native cores, native session clear/failed-load behavior, browser buffer replacement, rejected unsupported profiles, unknown ordinary/preset insertion refusal, neighboring-record preservation, unchanged upload response and all nine pre-refactor synthetic fingerprints.
+- `python3 backend/tools/pc_storage_regression.py` passed whole-save and gathered-stream byte parity across all four runtimes, including the added unknown-native-ID neighbor-edit/finalization case. Frontend `npm run parity:all` passed, including storage, RTC, PC, identity, progress, Pokédex, battle preview, roster, save-health, happiness, bag guards and Original Trainer names.
+- Both homebrew phase 1–4 suites and save-health parity passed with ignored `Unbound.sav`; native RTC Time Fixer parity also passed. Python compilation, frontend lint/build, generator/mirror synchronization checks and `git diff --check` passed.
+- Clean Switch standard/lite and 3DS Docker builds passed; final metadata/core changes were rebuilt into the packages. Fresh Switch ROMFS images include the canonical profile. The SD bundle was refreshed with both final NROs and profile data, after checking its replaceable asset folders contained no private fixtures. Existing 3DS vendored/toolchain deprecation and GNU-stack warnings remain non-fatal.
+- Original private-save, ROM and pre-existing edited-save hashes were checked unchanged. Test server outputs were confined to temporary directories; no private fixtures or generated binaries enter the patch. The pre-existing Original Trainer feature commit was preserved.
+- No new physical-console or game-emulator validation is claimed for this refactor. Milestone 1's game/ROM evidence remains the supported-layout foundation; milestone 2's gate is unchanged verified mutation bytes plus the deliberate unknown-insertion rejection. Homebrew Preset editing and save-review UI remain absent, opaque section 4 and shared-auxiliary limits remain, and algorithmic codec internals/catalog-completeness work is not generalized to other games yet.
+
+
 
 ## Milestone 3 — add Radical Red as a second explicit profile
 

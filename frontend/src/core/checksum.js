@@ -1,3 +1,4 @@
+import { PROFILE } from './profile.js';
 import { ru32, wu16 } from './binary.js';
 import {
     OFF_CHECKSUM,
@@ -41,9 +42,9 @@ export function normalizedValidLen(validLen) {
 }
 
 export function recalculateSectionChecksum(buffer, sectionOffset) {
-    if (sectionOffset >= 28 * SECTION_SIZE) return null;
+    if (sectionOffset >= PROFILE.container.slot_count * PROFILE.container.sections_per_slot * SECTION_SIZE) return null;
     const sectionId = buffer[sectionOffset + OFF_ID] | (buffer[sectionOffset + OFF_ID + 1] << 8);
-    if (sectionId === 4) return null;
+    if (PROFILE.container.checksum.opaque_ids.includes(sectionId)) return null;
     const validLen = unboundChecksumLength(sectionId);
 
     const checksum = gbaChecksum(buffer, sectionOffset, validLen);
@@ -52,7 +53,7 @@ export function recalculateSectionChecksum(buffer, sectionOffset) {
 }
 
 export function recalculateTrainerChecksum(buffer, sectionOffset) {
-    const validLen = 0xFF0;
+    const validLen = PROFILE.container.checksum.default_length;
     const checksum = gbaChecksum(buffer, sectionOffset, validLen);
     wu16(buffer, sectionOffset + OFF_CHECKSUM, checksum);
     return checksum;

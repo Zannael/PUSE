@@ -15,6 +15,7 @@ class SaveSession {
     void Clear();
 
     bool IsLoaded() const;
+    const profile::GameProfile* Profile() const;
     const std::string &SourcePath() const;
     std::string FileName() const;
 
@@ -24,6 +25,7 @@ class SaveSession {
     std::vector<SaveSection> Sections() const;
 
   private:
+    const profile::GameProfile* profile_ = nullptr;
     std::vector<uint8_t> buffer_;
     std::vector<uint8_t> original_buffer_;
     std::string source_path_;

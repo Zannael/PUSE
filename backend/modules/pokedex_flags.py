@@ -1,21 +1,22 @@
+from core.data_loader import catalog_path
+from core.profile import PROFILE
 from core.sections import active_sections
 import json
-from pathlib import Path
 
 from modules import bag as bag_mod
 
 
-TRAINER_SECTION_ID = 1
-DEX_SEEN_OFFSET = 0x0310
-DEX_CAUGHT_OFFSET = 0x038D
-DEX_FLAG_BYTE_COUNT = 125
-MAX_TRACKED_DEX_ID = 809
+TRAINER_SECTION_ID = PROFILE["storage"]["pokedex"]["section_id"]
+DEX_SEEN_OFFSET = PROFILE["storage"]["pokedex"]["seen_offset"]
+DEX_CAUGHT_OFFSET = PROFILE["storage"]["pokedex"]["caught_offset"]
+DEX_FLAG_BYTE_COUNT = PROFILE["storage"]["pokedex"]["byte_count"]
+MAX_TRACKED_DEX_ID = PROFILE["storage"]["pokedex"]["max_dex_id"]
 
 POKEDEX_FLAG_SEEN = "seen"
 POKEDEX_FLAG_CAUGHT = "caught"
 
 SPECIES_TO_DEX = json.loads(
-    (Path(__file__).resolve().parents[1] / "data" / "pokedex_species_map.json").read_text(encoding="utf-8")
+    catalog_path("national_dex").read_text(encoding="utf-8")
 )["species_to_dex"]
 
 

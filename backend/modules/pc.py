@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from core.data_loader import catalog_path
+from core.profile import PROFILE
 import struct
 import sys
 import shutil
@@ -12,29 +14,27 @@ from core.data_loader import load_id_name_file, load_move_base_pp_map
 
 # Verified Unbound 2.1.1.1 storage regions, end exclusive.
 # The existing API calls the final section-0 box "Preset" (box 26).
-POKEMON_STREAM_SECTORS = list(range(5, 13))
-PRESET_SECTOR_ID = 0
+_PC = PROFILE['storage']['pc']
+POKEMON_STREAM_SECTORS = list(range(5, 13))  # Legacy public compatibility metadata.
+PRESET_SECTOR_ID = _PC['preset']['section_id']
 OTHER_SECTORS = [2, 3, 13]
-ALL_PC_SECTORS = POKEMON_STREAM_SECTORS + OTHER_SECTORS + [0]
-SECTION_SIZE = 0x1000
-SECTOR_HEADER_SIZE = 4
-SECTOR_PAYLOAD_SIZE = 0xFF0
-MON_SIZE_PC = 58
-OFFSET_PRESET_START = 0xB0
-PRESET_CAPACITY = 30
-BOX_SLOT_COUNT = 30
-PC_REGIONS = [(5, 4, 0xFF0)] + [(sid, 0, 0xFF0) for sid in range(6, 13)] + [
-    (13, 0, 0x1A8), (30, 0xB0C, 0xFF0), (31, 0, 0xF80),
-    (2, 0xF18, 0xFF0), (3, 0, 0xCC0),
-]
-CHECKSUM_LENGTHS = {0: 0xF24, 4: 0xD98, 13: 0x450}
-UNBOUND_SIGNATURES = {0x01121999, 0x01121998}
+ALL_PC_SECTORS = POKEMON_STREAM_SECTORS + OTHER_SECTORS + [PRESET_SECTOR_ID]
+SECTION_SIZE = PROFILE['container']['section_size']
+SECTOR_HEADER_SIZE = _PC['regions'][0][1]
+SECTOR_PAYLOAD_SIZE = PROFILE['container']['footer']['payload_end']
+MON_SIZE_PC = _PC['record_size']
+OFFSET_PRESET_START = _PC['preset']['start']
+PRESET_CAPACITY = _PC['preset']['count']
+BOX_SLOT_COUNT = _PC['slots_per_box']
+PC_REGIONS = _PC['regions']
+CHECKSUM_LENGTHS = {int(key): value for key, value in PROFILE['container']['checksum']['lengths'].items()}
+UNBOUND_SIGNATURES = frozenset(PROFILE['container']['signatures'])
 # Fragmented records are now gathered in PC_REGIONS, never guessed from occupancy.
 FALLBACK_BOX_LAYOUTS = {}
 
 
 def section_checksum_length(section_id):
-    return CHECKSUM_LENGTHS.get(section_id, 0xFF0)
+    return CHECKSUM_LENGTHS.get(section_id, PROFILE["container"]["checksum"]["default_length"])
 
 
 def active_pc_slot(data):
@@ -43,24 +43,24 @@ def active_pc_slot(data):
 
 def pc_regions(sectors):
     offsets = {sec['id']: sec['offset'] for sec in sectors}
-    return [(offsets[sid] + start if sid < 14 else sid * SECTION_SIZE + start,
+    return [(offsets[sid] + start if sid < PROFILE["container"]["sections_per_slot"] else sid * SECTION_SIZE + start,
              end - start, sid) for sid, start, end in PC_REGIONS]
 
 # --- OFFSET (CFRU COMPACT) ---
-OFF_PID = 0x00
-OFF_NICK = 0x08
-OFF_OT_MISC_1 = 0x12
-OFF_OT_MISC_2 = 0x13
-OFF_OT_NAME = 0x14
-OT_NAME_LEN = 7
-OFF_SPECIES = 0x1C
-OFF_ITEM = 0x1E  # Offset Strumento
-OFF_EXP = 0x20
-OFF_BALL = 0x26
-OFF_HAPPINESS = 0x25
-OFF_MOVES = 0x24
-OFF_EVS = 0x2C
-OFF_IVS = 0x36
+OFF_PID = PROFILE["codecs"]["pc"]["fields"]["pid"]
+OFF_NICK = PROFILE["codecs"]["pc"]["fields"]["nickname"]
+OFF_OT_MISC_1 = PROFILE["codecs"]["pc"]["fields"]["ot_misc_1"]
+OFF_OT_MISC_2 = PROFILE["codecs"]["pc"]["fields"]["ot_misc_2"]
+OFF_OT_NAME = PROFILE["codecs"]["pc"]["fields"]["ot_name"]
+OT_NAME_LEN = PROFILE["codecs"]["text"]["ot_name_length"]
+OFF_SPECIES = PROFILE["codecs"]["pc"]["fields"]["species"]
+OFF_ITEM = PROFILE["codecs"]["pc"]["fields"]["item"]  # Offset Strumento
+OFF_EXP = PROFILE["codecs"]["pc"]["fields"]["exp"]
+OFF_BALL = PROFILE["codecs"]["pc"]["fields"]["ball"]
+OFF_HAPPINESS = PROFILE["codecs"]["pc"]["fields"]["happiness"]
+OFF_MOVES = PROFILE["codecs"]["pc"]["fields"]["legacy_moves_anchor"]  # Legacy compatibility alias; move IDs start at move_ids.
+OFF_EVS = PROFILE["codecs"]["pc"]["fields"]["evs"]
+OFF_IVS = PROFILE["codecs"]["pc"]["fields"]["ivs"]
 
 # --- DATABASE GLOBALE ---
 DB_ITEMS = {}
@@ -76,7 +76,7 @@ GENDER_THRESHOLD_MALE_ONLY = 0
 GENDER_THRESHOLD_FEMALE_ONLY = 254
 GENDER_THRESHOLD_GENDERLESS = 255
 INV_11_MOD_25 = 16
-SHINY_THRESHOLD = 16
+SHINY_THRESHOLD = PROFILE["rules"]["shiny_threshold"]
 
 GROWTH_NAMES = {
     0: "Medium Fast (Cubic)", 1: "Erratic", 2: "Fluctuating",
@@ -94,13 +94,13 @@ def load_static_data():
     DB_SPECIES_ABILITIES_META.clear()
     DB_MOVE_BASE_PP.clear()
 
-    DB_SPECIES.update(load_id_name_file("pokemon.txt"))
-    DB_ITEMS.update(load_id_name_file("items.txt"))
-    DB_MOVES.update(load_id_name_file("moves.txt"))
-    DB_ABILITIES.update(load_id_name_file("abilities.txt"))
-    DB_MOVE_BASE_PP.update(load_move_base_pp_map("move_table_from_rom.json"))
+    DB_SPECIES.update(load_id_name_file(PROFILE["catalogs"]["species"]["file"]))
+    DB_ITEMS.update(load_id_name_file(PROFILE["catalogs"]["items"]["file"]))
+    DB_MOVES.update(load_id_name_file(PROFILE["catalogs"]["moves"]["file"]))
+    DB_ABILITIES.update(load_id_name_file(PROFILE["catalogs"]["abilities"]["file"]))
+    DB_MOVE_BASE_PP.update(load_move_base_pp_map(PROFILE["catalogs"]["move_pp"]["file"]))
 
-    identity_meta_path = os.path.join(os.path.dirname(__file__), "..", "data", "species_identity_meta.json")
+    identity_meta_path = catalog_path("identity")
     if os.path.exists(identity_meta_path):
         with open(identity_meta_path, "r", encoding="utf-8") as fh:
             raw_identity = json.loads(fh.read())
@@ -114,7 +114,7 @@ def load_static_data():
                 "gender_threshold": int(threshold) & 0xFF,
             }
 
-    growth_rates_path = os.path.join(os.path.dirname(__file__), "..", "data", "species_growth_rates.json")
+    growth_rates_path = catalog_path("growth")
     if os.path.exists(growth_rates_path):
         with open(growth_rates_path, "r", encoding="utf-8") as fh:
             raw_growth = json.loads(fh.read())
@@ -128,7 +128,7 @@ def load_static_data():
             if 0 <= rate_int <= 5:
                 DB_SPECIES_GROWTH_RATES[int(sid)] = rate_int
 
-    species_abilities_path = os.path.join(os.path.dirname(__file__), "..", "data", "species_abilities_meta.json")
+    species_abilities_path = catalog_path("species_abilities")
     if os.path.exists(species_abilities_path):
         with open(species_abilities_path, "r", encoding="utf-8") as fh:
             raw_abilities = json.loads(fh.read())
@@ -445,9 +445,9 @@ class UnboundPCMon:
 
         # --- FILTRI DI VALIDITÀ ---
         if self.species_id == 0: return
-        if self.species_id > 2500: return
+        if self.species_id > PROFILE["codecs"]["pc"]["legacy_validation"]["max_species_id"]: return
         # Filtro Anti-Spazzatura: Exp Max teorica ~1.6M
-        if self.exp == 0 or self.exp > 2_000_000: return
+        if self.exp == 0 or self.exp > PROFILE["codecs"]["pc"]["legacy_validation"]["max_exp"]: return
 
         self.item_id = ru16(self.raw, OFF_ITEM)  # Lettura Strumento
         self.nickname = decode_text(self.raw[OFF_NICK: OFF_NICK + 10])
@@ -874,7 +874,7 @@ def build_pc_mon_raw(
     evs=None,
     current_ability_index=0,
     ball_id=3,
-    happiness=70,
+    happiness=PROFILE["rules"]["insert_happiness"],
     shiny=None,
     gender=None,
     otid=None,
@@ -891,7 +891,7 @@ def build_pc_mon_raw(
         mon_exp = int(exp)
     else:
         target_level = int(level) if level is not None else 5
-        target_level = max(1, min(100, target_level))
+        target_level = max(1, min(PROFILE["rules"]["level_max"], target_level))
         growth_rate = get_species_growth_rate(sid)
         if growth_rate is None:
             growth_rate = 0
@@ -905,7 +905,7 @@ def build_pc_mon_raw(
     wu16(raw, OFF_ITEM, int(item_id) if item_id is not None else 0)
     wu32(raw, OFF_EXP, mon_exp)
     wu8(raw, OFF_BALL, int(ball_id) if ball_id is not None else 3)
-    happiness_value = int(happiness) if happiness is not None else 70
+    happiness_value = int(happiness) if happiness is not None else PROFILE["rules"]["insert_happiness"]
     if not 0 <= happiness_value <= 255:
         raise ValueError("Invalid happiness (expected 0..255)")
     wu8(raw, OFF_HAPPINESS, happiness_value)
@@ -966,7 +966,7 @@ def write_save_HYBRID(save_data, sectors, buffer, headers, originals, filename, 
         for i in range(length):
             if buffer[cursor + i] != baseline[cursor + i]:
                 save_data[off + i] = buffer[cursor + i]
-                if sid < 14:
+                if sid < PROFILE["container"]["sections_per_slot"]:
                     touched.add(sid)
         cursor += length
     offsets = {sec['id']: sec['offset'] for sec in sectors}

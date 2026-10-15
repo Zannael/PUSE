@@ -1,16 +1,18 @@
 #pragma once
 
+#include <puse/core/GameProfile.hpp>
+
 #include <cstdint>
 #include <string>
 #include <vector>
 
 namespace puse::core {
 
-constexpr uint16_t kPokedexFlagTrainerSectionId = 1;
-constexpr uint32_t kPokedexSeenOffset = 0x0310;
-constexpr uint32_t kPokedexCaughtOffset = 0x038D;
-constexpr uint32_t kPokedexFlagByteCount = 125;
-constexpr uint16_t kMaxTrackedDexId = 809;
+constexpr uint16_t kPokedexFlagTrainerSectionId = profile::kStoragePokedexSectionId;
+constexpr uint32_t kPokedexSeenOffset = profile::kStoragePokedexSeenOffset;
+constexpr uint32_t kPokedexCaughtOffset = profile::kStoragePokedexCaughtOffset;
+constexpr uint32_t kPokedexFlagByteCount = profile::kStoragePokedexByteCount;
+constexpr uint16_t kMaxTrackedDexId = profile::kStoragePokedexMaxDexId;
 
 struct PokedexFlags {
     bool trackable = false;
