@@ -96,8 +96,15 @@ const App = () => {
     };
 
     const handleUpload = async (e) => {
-        const file = e.target.files[0];
-        await uploadSaveFile(file);
+        const input = e.currentTarget;
+        const file = input.files?.[0];
+        try {
+            await uploadSaveFile(file);
+        } finally {
+            // A retry must fire change even when the same file is selected
+            // after correcting the game version or runtime mode.
+            input.value = '';
+        }
     };
 
     const handleDropUpload = async (e) => {

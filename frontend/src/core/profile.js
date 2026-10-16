@@ -23,7 +23,7 @@ export function getProfile(id = selectedId) {
 export function allProfiles() { return Object.values(registry); }
 export async function activateProfile(id) {
     getProfile(id);
-    if (id === radical.id && !radicalData) radicalData = freeze((await import('./radicalRed41Data.json', { with: { type: 'json' } })).default.catalogs);
+    if (id === radical.id && !radicalData) radicalData = freeze((await import('./radicalRedCatalog.js')).default.catalogs);
     selectedId = id;
     return getProfile();
 }
