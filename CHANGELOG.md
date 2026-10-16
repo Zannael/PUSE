@@ -4,6 +4,34 @@
 
 ### Changed
 
+### Planned
+
+The roadmap is ordered by the combination of user value and implementation feasibility. Read-only and narrowly scoped work comes first; save mutations move forward only when their byte layout, safety behavior, and cross-runtime parity can be verified.
+
+| Priority | Proposal | User value | Feasibility | Scope and decision gate |
+|---:|---|---|---|---|
+| 1 | Profile-aware compatibility report and mutation safeguards | Very high | Medium | Extend the existing profile selection and coherent-generation checks with a read-only compatibility report. Distinguish structural evidence from exact ROM-version confirmation; allow inspection but block unsupported mutations on unknown layouts. |
+| 2 | Broader mutation property tests | High safety value | High for incremental coverage | Extend the existing byte-level regressions across supported profiles and synthetic fixture matrices. Verify allowed byte changes, record widths, identity constraints, checksums, rejected-operation immutability, and equivalent outputs in all four runtimes; keep personal fixtures private. |
+| 3 | Change ledger with undo and reset-to-original | High | Medium | Build on immutable upload snapshots and existing change reports. Define operation-level undo, pending PC/bag buffer reconciliation, grouped edits, and reset semantics before exposing the workflow in each runtime. |
+| 4 | Party/PC transfer primitive | Very high | Medium | Design an atomic operation covering source clearing, destination validation, party compaction, full-party/full-box errors, checksums, and all four runtimes. |
+| 5 | Party create/insert workflow | High | Medium | Build on the transfer primitive rather than introducing a second party-packing path; validate ownership, identity, slot count, stats, and checksums. |
+| 6 | Bulk PC release and release UX polish | Medium-high | Medium | Reuse the existing single-release primitive, but require a review step, explicit selection behavior, and all-or-nothing failure handling. Party release remains out of scope until compaction is implemented. |
+| 7 | Trainer Profile identity editing | Medium | Medium-low | Treat player name, gender/style flags, and appearance parameters as separate milestones. Require encoding validation and multi-save offset evidence. Clarify that NPC trainer-team editing would be ROM editing and is outside this scope. |
+| 8 | ROM-truth Pokemon and item sprites | Medium | Medium | Resolve extraction, form mapping, asset size, redistribution, fallback, and ROMFS packaging before runtime integration. |
+| 9 | Difficulty, NG+, Costume Box, and wardrobe flags | Medium | Low until researched | Begin with read-only detection and controlled before/after comparisons. Expose only individually understood flags; do not add a generic flag editor. |
+| 10 | Portable Pokemon files | Medium | Medium-low | Define and ship a versioned, lossless PUSE Pokemon JSON format before considering `.pkm`; document how Unbound-only species, forms, moves, and abilities map to external tools. |
+| 11 | Read-only developer field inspector | Indirect; high research value | Medium-high for verified fields | Extend existing trainer/progress readers with profile-scoped known fields, offsets, raw values, decoded meanings, and confidence. Keep unknown event flags unclassified and all writes unavailable; prioritize fields needed for ROM discovery and controlled save comparisons. |
+| 12 | Linked-save sync | Medium | Low operational reliability | Revisit PR #20 only after browser support, permission loss, emulator write races, dirty/conflict states, atomic writes, and recovery tests are designed. |
+| 13 | Mystery Gift generation | Niche | Low | Continue ROM reconnaissance first. A generator requires proven code validation, payload structure, redemption state, and event-specific behavior. |
+| 14 | Emulator save-state editing | Low | Very low | Defer as generally out of scope: state files are emulator-, platform-, and version-specific memory snapshots rather than stable game saves. |
+| 15 | Assign any ability to any Pokemon | Misleading as save-only work | Very low | Current Pokemon data selects a standard ability slot through PID or enables the hidden-ability flag; it does not store an arbitrary ability ID. Reconsider only if a separate, verified CFRU override field is discovered. |
+
+The Rhyperior `Filter`/`Solid Rock` naming difference remains tracked as [issue #7](https://github.com/Zannael/PUSE/issues/7) and is not part of the active roadmap.
+
+## v1.4.0 - 2026-10-16
+
+### Added
+
 - Added verified English Radical Red 4.1 support (CFRU milestone 3) across backend, browser local mode, Switch and 3DS, with explicit version selection and isolated ROM-derived native catalogs. Existing Pokémon edits, all 25 PC boxes, trainer identity reading, XOR-encoded money and five fixed bag pockets now use the RR profile; main-pocket deletion handles its split storage. Unsupported game-specific features are guarded consistently, and effective ability overrides are labeled as unmodeled. Added full-save byte parity, API and optional real-ROM save/reboot checks. Corrected native PID-solver signed modulo to match canonical shiny edits; Unbound regression fingerprints remain unchanged. Version evidence, runtime coverage and remaining gaps are documented in the CFRU plan and `GAME_PROFILES.md`.
 
 - Introduced the verified Unbound v2.1.1.1 game profile (CFRU milestone 2) as a canonical serialized contract shared by backend, browser local mode, Switch, and 3DS. Save sessions retain their profile; storage/checksum definitions, record offsets, key editing rules and catalog bindings now consume it. Generated bindings, contract validation and pre-refactor byte fingerprints guard synchronization and unchanged valid-save output. Unknown native species records are preserved and reserved against PC insertion rather than treated as empty. The profile documents runtime capabilities and remaining gaps; additional games and automatic recognition remain future milestones.
@@ -29,33 +57,6 @@
 - Added caught-ball preservation and editing for Party and PC Pokemon across backend and local frontend runtimes. The editor now shows the ball each Pokemon was caught in, exposes a dedicated caught-ball selector separate from held items, supports all CFRU/Unbound ball types, and writes the compact ball enum safely without confusing it with item IDs. New PC Pokemon insertions now default to Poke Ball unless another caught ball is selected.
 - Mirrored caught-ball parsing metadata in Switch and 3DS homebrew core structs so native runtimes preserve and expose the same save byte fields used by backend/local mode.
 - Added a live, read-only ROM-truth battle preview across backend, frontend local mode, Switch, and 3DS. Party and PC views now report calculated HP/ATK/DEF/SpA/SpD/Spe plus Hidden Power type from the Pokemon's current species, level, nature, IVs, and EVs without changing save data.
-
-### Planned
-
-The roadmap is ordered by the combination of user value and implementation feasibility. Read-only and narrowly scoped work comes first; save mutations move forward only when their byte layout, safety behavior, and cross-runtime parity can be verified.
-
-| Priority | Proposal | User value | Feasibility | Scope and decision gate |
-|---:|---|---|---|---|
-| 4 | Party/PC transfer primitive | Very high | Medium | Design an atomic operation covering source clearing, destination validation, party compaction, full-party/full-box errors, checksums, and all four runtimes. |
-| 5 | Party create/insert workflow | High | Medium | Build on the transfer primitive rather than introducing a second party-packing path; validate ownership, identity, slot count, stats, and checksums. |
-| 6 | Bulk PC release and release UX polish | Medium-high | Medium | Reuse the existing single-release primitive, but require a review step, explicit selection behavior, and all-or-nothing failure handling. Party release remains out of scope until compaction is implemented. |
-| 7 | Trainer Profile identity editing | Medium | Medium-low | Treat player name, gender/style flags, and appearance parameters as separate milestones. Require encoding validation and multi-save offset evidence. Clarify that NPC trainer-team editing would be ROM editing and is outside this scope. |
-| 8 | ROM-truth Pokemon and item sprites | Medium | Medium | Resolve extraction, form mapping, asset size, redistribution, fallback, and ROMFS packaging before runtime integration. |
-| 9 | Difficulty, NG+, Costume Box, and wardrobe flags | Medium | Low until researched | Begin with read-only detection and controlled before/after comparisons. Expose only individually understood flags; do not add a generic flag editor. |
-| 10 | Portable Pokemon files | Medium | Medium-low | Define and ship a versioned, lossless PUSE Pokemon JSON format before considering `.pkm`; document how Unbound-only species, forms, moves, and abilities map to external tools. |
-| 12 | Linked-save sync | Medium | Low operational reliability | Revisit PR #20 only after browser support, permission loss, emulator write races, dirty/conflict states, atomic writes, and recovery tests are designed. |
-| 13 | Mystery Gift generation | Niche | Low | Continue ROM reconnaissance first. A generator requires proven code validation, payload structure, redemption state, and event-specific behavior. |
-| 14 | Emulator save-state editing | Low | Very low | Defer as generally out of scope: state files are emulator-, platform-, and version-specific memory snapshots rather than stable game saves. |
-| 15 | Assign any ability to any Pokemon | Misleading as save-only work | Very low | Current Pokemon data selects a standard ability slot through PID or enables the hidden-ability flag; it does not store an arbitrary ability ID. Reconsider only if a separate, verified CFRU override field is discovered. |
-
-### Supporting engineering proposals
-
-- Add a user-level change ledger with undo/reset-to-original before download.
-- Add an Unbound version and save-layout compatibility fingerprint that allows read-only inspection but blocks risky mutations on unknown layouts.
-- Add mutation property tests that prove a field edit preserves unrelated bytes, slot width, identity constraints, and checksums across a fixture matrix.
-- Add a read-only developer inspector for known trainer fields and event flags to support reverse engineering without prematurely exposing writes.
-
-The Rhyperior `Filter`/`Solid Rock` naming difference remains tracked as [issue #7](https://github.com/Zannael/PUSE/issues/7) and is not part of the active roadmap.
 
 ## v1.3.0 - 2026-05-23
 
