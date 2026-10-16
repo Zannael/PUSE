@@ -17,7 +17,7 @@ echo "[3/5] Preparing SD bundle under artifacts/sdmc"
 docker run --rm -v "$SWITCH_ROOT":/work -w /work "$IMAGE_NAME" ./scripts/prepare_sd_bundle.sh
 
 echo "[4/5] Fixing host ownership for build outputs"
-docker run --rm -v "$SWITCH_ROOT":/work "$IMAGE_NAME" sh -lc "chown -R $(id -u):$(id -g) /work/puse-switch.nro /work/puse-switch.elf /work/build /work/artifacts/sdmc"
+docker run --rm -v "$SWITCH_ROOT":/work "$IMAGE_NAME" sh -lc "chown -R $(id -u):$(id -g) /work/puse-switch.nro /work/puse-switch.elf /work/puse-switch.nacp /work/build /work/artifacts/sdmc"
 
 echo "[5/5] Done"
 echo "NRO: $SWITCH_ROOT/puse-switch.nro"

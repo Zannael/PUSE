@@ -7,7 +7,7 @@ ROMFS_IMAGE  = $(TOPDIR)/$(BUILD)/romfs.bin
 
 APP_TITLE   := PUSE Switch
 APP_AUTHOR  := zappaganini
-APP_VERSION := 0.1.0
+APP_VERSION := 1.4.0
 APP_ICON    := $(CURDIR)/icon.jpg
 
 ARCH        := -march=armv8-a+crc+crypto -mtune=cortex-a57 -fPIE
@@ -28,7 +28,7 @@ export TOPDIR := $(CURDIR)
 export VPATH  := $(foreach dir,$(SOURCES),$(CURDIR)/$(dir))
 export DEPSDIR := $(CURDIR)/$(BUILD)
 export LD
-export NROFLAGS += --romfs=$(ROMFS_IMAGE)
+export NROFLAGS += --romfs=$(ROMFS_IMAGE) --nacp=$(OUTPUT).nacp --icon=$(TOPDIR)/icon.jpg
 
 CFILES   := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
@@ -59,11 +59,11 @@ lite:
 
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).nro $(TARGET).elf
+	@rm -fr $(BUILD) $(TARGET).nro $(TARGET).elf $(TARGET).nacp
 
 clean-lite:
 	@echo clean-lite ...
-	@rm -fr build-lite puse-switch-lite.nro puse-switch-lite.elf romfs-lite
+	@rm -fr build-lite puse-switch-lite.nro puse-switch-lite.elf puse-switch-lite.nacp romfs-lite
 
 sync-romfs:
 	@"$(CURDIR)/scripts/sync_romfs_data.sh"
@@ -100,7 +100,7 @@ all: $(ROMFS_IMAGE) $(OUTPUT).nro
 
 $(OUTPUT).elf: $(OFILES)
 
-$(OUTPUT).nro: $(OUTPUT).elf $(ROMFS_IMAGE)
+$(OUTPUT).nro: $(OUTPUT).elf $(OUTPUT).nacp $(ROMFS_IMAGE)
 
 endif
 

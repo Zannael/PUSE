@@ -17,7 +17,7 @@ docker run --rm -v "$SWITCH_ROOT":/work -w /work "$IMAGE_NAME" make lite
 
 echo "[3/4] Fixing host ownership for lite build outputs"
 docker run --rm -v "$SWITCH_ROOT":/work "$IMAGE_NAME" sh -lc \
-    "chown -R $(id -u):$(id -g) /work/puse-switch-lite.nro /work/puse-switch-lite.elf /work/build-lite 2>/dev/null || true"
+    "chown -R $(id -u):$(id -g) /work/puse-switch-lite.nro /work/puse-switch-lite.elf /work/puse-switch-lite.nacp /work/build-lite 2>/dev/null || true"
 
 echo "[4/4] Done"
 echo "Lite NRO: $SWITCH_ROOT/puse-switch-lite.nro"
