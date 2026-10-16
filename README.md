@@ -1,79 +1,149 @@
 # PUSE - Pokémon Unbound Save Editor
 
-> Live app: **[https://zannael.github.io/PUSE/](https://zannael.github.io/PUSE/)**
+**[Open the web editor](https://zannael.github.io/PUSE/)** · **[Releases](https://github.com/Zannael/PUSE/releases)** · **[Changelog](CHANGELOG.md)**
 
-Web-based save editor for Pokemon Unbound (v 2.1.1.1) built with a frontend-first architecture.
-The project **now also includes a Nintendo Switch Homebrew version!**
-The app supports local in-browser save editing (recommended) and backend mode (FastAPI) with parity-focused behavior.
+PUSE edits Pokémon Unbound saves in your browser, through a local FastAPI backend, or on Nintendo Switch and Nintendo 3DS. It also includes experimental support for the verified English Radical Red 4.1 version.
 
-## Features
+The browser's **Local mode** runs save parsing, editing, checksum updates and export on your device. No local server is required. Optional icons may load from external sources.
 
-- Party editing (species, nickname, IV/EV, moves, PP/PP Ups, nature, item, ability, level)
-- PC editing (including insert workflows for writable empty slots)
-- Bag editing with quick pocket discovery + search fallback (main, balls, berries, TM case, key items)
-- Money editing (safe clamping)
-- Identity controls (shiny/gender) with PID-aware safety checks
-- RTC metadata recovery tools (pair repair and quick fix)
-- Checksum recalculation and save export
+> **Nintendo 3DS beta:** the port includes the shared save-logic improvements and passes host parity checks and target builds, but it still needs thorough testing on real hardware. Controller/touch navigation, SD-card writes, backups and suspend/resume behavior need independent device validation before the port can be considered stable.
 
-## Runtime Modes
+## Start here
 
-- **Local mode (`VITE_RUNTIME_MODE=local`)**: parsing/editing/checksum/export run completely in the browser.
-- **Backend mode (`VITE_RUNTIME_MODE=backend`)**: uses FastAPI local endpoints.
+1. Keep a backup of your original in-game `.sav` or `.srm` file. Emulator save states are different files and are not supported.
+2. [Open PUSE](https://zannael.github.io/PUSE/) and select **Local mode**.
+3. Select the game/version and load a copy of your save. Radical Red requires explicit **4.1** selection.
+4. Edit the supported Party, PC, Bag or resource fields, then review and download the updated save.
+5. Load the edited copy in your game and verify the result before replacing your backup.
 
-## End-User UX (Website)
+For homebrew, use the [Switch](#nintendo-switch-homebrew) or [3DS](#nintendo-3ds-homebrew-beta) instructions below. The native apps write to the selected save on the SD card, so keep a separate original copy.
 
-The live app home page now contains the UX onboarding flow and static workflow previews.
-If you want to use PUSE as an end user, start directly from the website:
+## Supported games and features
 
-- **[https://zannael.github.io/PUSE/](https://zannael.github.io/PUSE/)**
+| Game | Supported version | PC storage | Coverage |
+|---|---|---|---|
+| Pokémon Unbound | English 2.1.1.1 | 24 ordinary boxes; separate Preset region | Main supported game. Preset editing is available in the web editor; native ports preserve it. |
+| Pokémon Radical Red | English 4.1, verified ROM revision | 25 ordinary boxes | Experimental coverage for existing Pokémon edits, PC release, five bag pockets, trainer identity reading and money. |
 
-Website flow (recommended):
+Shared Pokémon editing includes species, nickname, Original Trainer name, level/EXP, IVs/EVs, nature, held item, moves, PP/PP Ups where stored, happiness, shiny/gender identity and native ability-slot selection. Supported operations update the relevant checksums; PID-aware identity edits preserve the applicable nature and ability-slot constraints.
 
-1. Load a `.sav` or `.srm` file.
-2. Edit Party / PC / Bag / Money.
-3. Download updated save (checksum-safe).
+Unbound also provides PC insertion, Money + Battle Points editing and native-assisted RTC recovery. The web editor includes caught-ball editing, Pokédex Seen/Caught controls, an All Pokémon view, focused roster export and save-health/change review. Some native features are core-only or have no corresponding UI; the detailed matrix is in [GAME_PROFILES.md](GAME_PROFILES.md).
 
-For advanced recovery scenarios, use the RTC metadata tools section from the home page.
+**Radical Red limits:** new Pokémon construction, caught-ball editing, BP, RTC recovery, Pokédex/progress flags and aggregate roster export are unavailable. Effective ability overrides and difficulty/randomizer-specific battle rules are not fully modeled; ability controls identify native slots rather than predicting every in-game override. Unbound-only icons are not reused for Radical Red IDs.
 
-## Technical Notes
+A familiar save signature does not prove the ROM version or establish support for another CFRU hack. See the [profile documentation](GAME_PROFILES.md) and [CFRU implementation plan](romre/CFRU_IMPLEMENTATION_PLAN.md) for verified ROM hashes, evidence and coverage limits.
 
-- Frontend local mode and backend mode are designed to remain behaviorally aligned.
-- API contracts are intentionally stable (`nature_id`, `item_id`, `ability_index`, etc.).
-- Catalog data is ROM-truth synchronized across backend and frontend local runtime.
-- Optional icon systems degrade safely with placeholders when mappings/assets are unavailable.
+## Nintendo Switch homebrew
 
-## Project Structure
+The Switch port uses Plutonium + libnx and supports Party, PC, bag and supported resource edits, PC release and Unbound RTC recovery. PC navigation covers all **24 Unbound ordinary boxes** or **25 Radical Red boxes**. Homebrew Preset editing remains unavailable.
 
-- `frontend/` React + Vite UI
-- `backend/` FastAPI API and save editing modules
-- `backend/data/` static lookup tables (`items.txt`, `pokemon.txt`, `moves.txt`, `tms.txt`)
+### Install and use
 
-## Requirements
+1. Use a packaged SD bundle from the relevant [release](https://github.com/Zannael/PUSE/releases), or build one below.
+2. Copy the bundle's `switch/puse/` folder to `/switch/puse/` on your SD card.
+3. Put a copy of your save on the SD card, for example `sdmc:/switch/puse/Unbound.sav` or `radicalred.sav`.
+4. Launch PUSE through hbmenu and select the save using its file browser. Confirm the exact version when loading Radical Red.
 
-- Node.js 20+
-- Python 3.10+
+| Button | Action |
+|---|---|
+| A | Select / confirm edit |
+| B | Back / cancel |
+| X | Save changes to the selected SD-card save |
+| + | Exit to hbmenu |
 
-## Local Run
+### Build
+
+Docker provides the devkitPro + Plutonium environment; no host C++ toolchain is needed for the NRO build.
+
+```bash
+# From the repository root: synchronize canonical data before building.
+switch-homebrew/scripts/sync_romfs_data.sh
+switch-homebrew/scripts/build_docker.sh
+
+# Optional smaller variant with data-only ROMFS and no embedded icons.
+switch-homebrew/scripts/build_docker_lite.sh
+
+# Refresh the bundle after building the lite variant.
+switch-homebrew/scripts/prepare_sd_bundle.sh
+```
+
+Outputs: `switch-homebrew/puse-switch.nro`, optional `puse-switch-lite.nro`, and the SD bundle under `switch-homebrew/artifacts/sdmc/`.
+
+## Nintendo 3DS homebrew (beta)
+
+**The 3DS port is still a beta and needs thorough real-hardware testing.** Its current core includes the same storage/checksum repairs, profile selection, ordinary PC coverage and applicable editing improvements as the other runtimes. Successful portable-core tests and `.3dsx` builds do not establish on-device reliability.
+
+### Install and use
+
+1. Build the `.3dsx` below or use an available beta binary from the relevant release.
+2. Copy it to `sdmc:/3ds/puse-3ds/puse-3ds.3dsx` and launch through Homebrew Launcher.
+3. Put a copy of your save at `sdmc:/3ds/puse/Unbound.sav` or `sdmc:/3ds/puse/radicalred.sav`.
+4. Choose **Unbound 2.1.1.1** or **Radical Red 4.1** at startup. The app also searches selected common save directories.
+
+| Button | Action |
+|---|---|
+| A | Select / confirm |
+| B | Back |
+| L | PC boxes |
+| R | Bag |
+| Select | Money / supported resources |
+| Y | Toggle Legit Mode (510 total EV cap) |
+| X | Save; a `.bak` copy is created |
+| Start | Exit |
+
+### Build
+
+Docker builds the devkitARM + libstarlight environment when needed.
+
+```bash
+# From the repository root.
+3ds-homebrew/scripts/sync_romfs_data.sh
+3ds-homebrew/scripts/build_docker.sh
+```
+
+Output: `3ds-homebrew/puse-3ds.3dsx`.
+
+Optional CIA packaging, after the Docker image/tooling and 3DS build are available:
+
+```bash
+3ds-homebrew/scripts/build_cia.sh
+```
+
+Output: `3ds-homebrew/puse-3ds.cia`, installable through FBI. CIA packaging is a separate step from `.3dsx` build validation.
+
+More port-specific development notes are in [3ds-homebrew/README.md](3ds-homebrew/README.md).
+
+## Unbound RTC recovery
+
+The recommended recovery action re-enables Unbound's one-use **Frozen Heights Time Fixer** after validating the save. Correct the device/emulator clock first, run the recovery on a copy, visit the in-game NPC, save in-game and restart. The broad manifest-based repair options remain advanced fallbacks.
+
+In the web editor, RTC tools are on the load screen. Switch has an RTC Recovery menu; on 3DS, open **Select → Money → RTC Recovery**. These operations are unavailable for Radical Red.
+
+The native-assisted recovery method was discovered, reproduced and documented by [@caesarium25](https://github.com/caesarium25) in [Pokémon Unbound NPC Time Fixer Reset](https://github.com/caesarium25/pokemon-unbound-npc-time-fixer-reset), then contributed through [issue #22](https://github.com/Zannael/PUSE/issues/22). His finding identified the section-4 Time Fixer-used flag that made this recovery path possible.
+
+## Run locally
+
+The web editor has two runtime modes: **Local** executes the save logic in the browser; **Backend** uses local FastAPI endpoints. Both use the same client contract and are checked for equivalent save mutations.
+
+Requirements: Node.js 20+ for the frontend; Python 3.10+ only for backend mode. Docker Compose is an alternative for running the full stack.
 
 ### Frontend
 
 ```bash
 cd frontend
-npm install
+npm ci
 cp .env.example .env
+```
+
+Set `VITE_RUNTIME_MODE=local` in `frontend/.env` for browser-only editing, then run:
+
+```bash
 npm run dev
 ```
 
-Frontend default URL: `http://localhost:5173`
+Open `http://localhost:5173`.
 
-- For **frontend-only mode** (recommended), set in `frontend/.env`:
-  - `VITE_RUNTIME_MODE=local`
-- For **backend mode**, set in `frontend/.env`:
-  - `VITE_RUNTIME_MODE=backend`
-  - `VITE_API_BASE_URL=http://localhost:8000`
-
-### Backend (only if using backend mode)
+For backend mode, set `VITE_RUNTIME_MODE=backend` and `VITE_API_BASE_URL=http://localhost:8000`, and start the backend separately:
 
 ```bash
 cd backend
@@ -81,202 +151,68 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-uvicorn main:app --reload --host ${BACKEND_HOST:-0.0.0.0} --port ${BACKEND_PORT:-8000}
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-## Docker
+### Docker Compose
+
+From the repository root:
 
 ```bash
 docker compose up --build
 ```
 
-## 3DS Homebrew (3DSX / CIA)
-EXPERIMENTAL, USE AT YOUR OWN RISK!
-Any help in developing it will be appreciated.
+The frontend is available at `http://localhost:5173` and the backend at `http://localhost:8000`. Select Backend mode to use FastAPI.
 
-A Nintendo 3DS port of PUSE is available under `3ds-homebrew/`. Requires Docker — no host C++ toolchain needed.
+### Environment variables
 
-### Prerequisites
+| File | Key | Purpose |
+|---|---|---|
+| `frontend/.env` | `VITE_RUNTIME_MODE` | `local` or `backend`; persisted browser selection takes precedence |
+| `frontend/.env` | `VITE_API_BASE_URL` | Backend URL |
+| `frontend/.env` | `VITE_BASE_PATH` | `/` for local development; `/<repo>/` for project Pages |
+| `backend/.env` | `BACKEND_HOST`, `BACKEND_PORT` | Server settings; pass corresponding arguments when launching uvicorn directly |
+| `backend/.env` | `CORS_ORIGINS` | Comma-separated allowed origins |
 
-- Docker Desktop (or Docker Engine on Linux)
-- `3ds-homebrew/tools/Dockerfile` builds the full devkitARM + libstarlight environment automatically
-- Place your save at `sdmc:/3ds/puse/Unbound.sav` before launching
+## Optional icons
 
-### Build .3dsx (Homebrew Launcher)
+Icons are optional; missing assets use placeholders or are omitted. Radical Red currently avoids Unbound-only icon mappings.
 
-```bash
-# First build or after any source change
-3ds-homebrew/scripts/build_docker.sh
-```
+- **Browser Local mode:** generated manifests resolve Unbound Pokémon and item icons from pinned external sources. No backend icon folders are needed. Manifests live in `frontend/src/data/`; run `npm run icons:check` in `frontend/` to verify them, or `npm run icons:manifest` when intentionally regenerating mappings.
+- **Backend:** Pokémon assets belong in `backend/icons/pokemon/`. PokeAPI item files belong in `backend/icons/items/Base Items/`; additional item packs may use `backend/icons/items/`. The resolver checks `Base Items/` first.
+- **Switch:** standard builds can include ROMFS icons. Optional SD assets use `sdmc:/switch/puse/icons/pokemon/` and `sdmc:/switch/puse/icons/items/`; the lite build omits embedded icons.
+- **3DS:** optional 48×48 Pokémon PNGs use `sdmc:/3ds/puse/icons/pokemon/{id:04d}.png`.
 
-Output: `3ds-homebrew/puse-3ds.3dsx`
+Asset references: [original DPE front sprites](https://github.com/Skeli789/Dynamic-Pokemon-Expansion/tree/master/graphics/frontspr), [extended Gen 9 DPE front sprites](https://github.com/Shiny-Miner/Dynamic-Pokemon-Expansion-Gen-9/tree/master/graphics/frontspr), [PokeAPI sprites](https://github.com/PokeAPI/sprites), and Leon's ROM Base item icon pack. Native-ID/form mappings must match the selected game.
 
-Copy to `sdmc:/3ds/puse-3ds/puse-3ds.3dsx` and launch via Homebrew Launcher.
+## Development and project layout
 
-### Build .cia (FBI install — Home Menu title)
+| Path | Purpose |
+|---|---|
+| `frontend/` | React/Vite UI and independent browser save core |
+| `backend/` | FastAPI API and canonical Python save behavior |
+| `backend/data/` | Canonical profiles and ROM-derived catalogs |
+| `switch-homebrew/` | Switch application, portable C++ core and ROMFS assets |
+| `3ds-homebrew/` | 3DS application, portable C++ core and ROMFS assets |
+| `romre/` | ROM research/extraction workspace and CFRU implementation plan |
 
-```bash
-# Rebuild Docker image first (only needed once, or after Dockerfile changes)
-docker build -t puse-3ds-dev -f 3ds-homebrew/tools/Dockerfile 3ds-homebrew/tools/
+Read [CONTRIBUTING.md](CONTRIBUTING.md), [RULES.md](RULES.md) and [GAME_PROFILES.md](GAME_PROFILES.md) before changing shared save behavior. Python is the canonical reference; applicable readers, writers, validation and checksum rules must be ported to all four runtimes.
 
-# Then build the .3dsx + .cia
-3ds-homebrew/scripts/build_docker.sh
-3ds-homebrew/scripts/build_cia.sh
-```
-
-Output: `3ds-homebrew/puse-3ds.cia`
-
-Install via FBI from SD card. The CIA uses test/false keys and is compatible with Luma3DS.
-
-### Controls
-
-| Button | Action |
-|--------|--------|
-| A | Select / confirm |
-| B | Back |
-| L | PC boxes |
-| R | Bag |
-| Select | Money & BP |
-| Y | Toggle legit mode (510 EV cap) |
-| X | Save (backup created automatically) |
-| Start | Exit |
-
-### RTC Recovery
-
-For saves broken by the RTC bug: go to **Select → Money screen → RTC Recovery**. The recommended action validates the save and re-enables Unbound's one-use Frozen Heights Time Fixer with a one-byte edit while retaining a `.bak` copy. Correct the console RTC first, use the NPC, save in-game, and restart. Legacy manifest profiles remain available as an advanced fallback.
-
-This native-assisted recovery method was discovered, reproduced, and documented by [@caesarium25](https://github.com/caesarium25) in [Pokémon Unbound NPC Time Fixer Reset](https://github.com/caesarium25/pokemon-unbound-npc-time-fixer-reset), then contributed to PUSE through [issue #22](https://github.com/Zannael/PUSE/issues/22). His finding identified the section-4 Time Fixer-used flag that made this safer recovery path possible.
-
-### Optional: Pokémon Icons
-
-Place 48×48 PNG icons at `sdmc:/3ds/puse/icons/pokemon/{id:04d}.png`. Missing icons are silently skipped.
-
----
-
-## Switch Homebrew (NRO)
-
-A Nintendo Switch `.nro` port of PUSE is available under `switch-homebrew/`. Build requires Docker and devkitPro — no host C++ toolchain needed.
-
-### Prerequisites
-
-- Docker Desktop (or Docker Engine on Linux)
-- The `switch-homebrew/tools/Dockerfile` provides the full devkitPro + Plutonium build environment automatically
-
-### Build
+Common checks:
 
 ```bash
-# Full build: Docker image + compile + SD card bundle
-switch-homebrew/scripts/build_docker.sh
-
-# If backend/data changed, sync static data into ROMFS first
-switch-homebrew/scripts/sync_romfs_data.sh
+python3 -m py_compile backend/main.py backend/core/*.py backend/modules/*.py
+cd frontend && npm run lint && npm run build && npm run parity:all
 ```
 
-Output: `switch-homebrew/artifacts/sdmc/switch/puse/` ready to copy to an SD card.
+Run native phase 1–4 parity checks from each homebrew directory. Version-specific Radical Red and optional real-ROM validation commands are documented in the [CFRU plan](romre/CFRU_IMPLEMENTATION_PLAN.md).
 
-### SD Card Setup
+Personal saves, ROMs and research dumps belong in ignored `backend/local_artifacts/` or native `artifacts/` directories. Do not commit them. Bug reports should include the game/version, platform, reproduction steps and the operation attempted; share personal saves privately if needed.
 
-1. Copy `switch-homebrew/artifacts/sdmc/switch/puse/` to the root of your Switch SD card.
-2. Place your save file at `sdmc:/switch/puse/Unbound.sav`.
-3. Launch `hbmenu`, then open PUSE.
+### GitHub Pages deployment
 
-### Controls
-
-| Button | Action |
-|--------|--------|
-| A | Select / confirm edit |
-| B | Back / cancel |
-| X | Save changes to SD card |
-| + | Exit to hbmenu |
-
-### Capabilities
-
-- Browse and edit all 6 party Pokémon (species, nickname, level, nature, item, ability, IVs, EVs, moves + PP/PP-Up, shiny/gender)
-- Browse all 18 PC boxes; edit any stored Pokémon (same fields as party, PP-Up editable)
-- Read and write trainer money (up to 999,999,999)
-- Save written in-place to `Unbound.sav` on SD card; toast confirmation on success
-
-### Optional: Pokémon and Item Icons
-
-Sprites are not required to run the NRO — the app boots and all editing works without them; menu items simply show no icon.
-
-**Pokémon icons** — copy the `gFrontSprite*.png` sprite sheet into:
-```
-sdmc:/switch/puse/icons/pokemon/
-```
-Sources:
-- [Skeli789/Dynamic-Pokemon-Expansion](https://github.com/Skeli789/Dynamic-Pokemon-Expansion/tree/master/graphics/frontspr) (original)
-- [Shiny-Miner/Dynamic-Pokemon-Expansion-Gen-9](https://github.com/Shiny-Miner/Dynamic-Pokemon-Expansion-Gen-9/tree/master/graphics/frontspr) (Gen 9 extended)
-
-**Item icons** — copy item PNG files into:
-```
-sdmc:/switch/puse/icons/items/
-```
-Source: [PokeAPI/sprites](https://github.com/PokeAPI/sprites) item icons or Leon's ROM Base item icon pack.
-
-## Optional Pokemon Sprites
-
-- Pokemon icon sprites are optional and not required to run the app.
-- If missing, the backend logs a warning and returns a tiny fallback image, so UI keeps working.
-- Source for icon assets:
-  - Upstream (original): `https://github.com/Skeli789/Dynamic-Pokemon-Expansion/tree/master/graphics/frontspr`
-  - Extended Gen 9 fork: `https://github.com/Shiny-Miner/Dynamic-Pokemon-Expansion-Gen-9/tree/master/graphics/frontspr`
-- To enable sprites locally, clone/copy that folder into:
-  - `backend/icons/pokemon/`
-
-### Frontend icon delivery (GitHub Pages / local mode)
-
-- In frontend local mode, icons are resolved without backend endpoints:
-  - Pokemon icons: pinned commit from `Shiny-Miner/Dynamic-Pokemon-Expansion-Gen-9` (fork of `Skeli789/Dynamic-Pokemon-Expansion`)
-  - Item icons: `PokeAPI/sprites`
-- Manifests are generated and committed under:
-  - `frontend/src/data/pokemon-icon-manifest.json`
-  - `frontend/src/data/item-icon-manifest.json`
-- To refresh mappings after changing pinned commits or source lists:
-  - Run `npm run icons:manifest` inside `frontend/`
-  - (Optional CI/local guard) run `npm run icons:check`
-- Unmapped IDs gracefully fall back to local placeholders in `frontend/public/icons/`.
-
-## Optional Item Icons
-
-- Item icons are optional and not required to run the app.
-- If missing, backend item-icon lookup simply returns no icon and UI keeps working.
-- Item icon sources are:
-  - `https://github.com/PokeAPI/sprites` (item icons)
-  - Leon's ROM Base item icon pack
-- Place them like this:
-  - Copy the PokeAPI item icon folder contents into `backend/icons/items/Base Items/`
-  - Copy Leon's ROM Base item icon folders/files into `backend/icons/items/`
-- The backend resolver checks `Base Items/` first (including subfolders), then falls back to the other folders in `backend/icons/items/`.
-
-## Environment Variables
-
-### Backend (`backend/.env`)
-
-- `BACKEND_HOST` default `0.0.0.0`
-- `BACKEND_PORT` default `8000`
-- `CORS_ORIGINS` comma-separated origins
-
-### Frontend (`frontend/.env`)
-
-- `VITE_API_BASE_URL` backend base URL
-- `VITE_RUNTIME_MODE` runtime mode (`backend` or `local`)
-- `VITE_BASE_PATH` Vite base path (`/` for local dev, `/<repo>/` for project Pages)
-
-## Deployment (Maintainers)
-
-- Frontend deploy is handled by `.github/workflows/deploy-pages.yml`.
-- One-time setup: in GitHub, go to `Settings -> Pages -> Source` and choose **GitHub Actions**.
-- On push to `main` (or manual run), the workflow builds `frontend/dist` in local mode, sets `VITE_BASE_PATH=/<repo>/`, and copies `index.html` to `404.html` for SPA fallback.
-- Icons in local mode are served from pinned CDN commits via generated manifests, so no backend icon folders are required on GitHub Pages.
-
-## Safety Notes
-
-- Always work on copies of your `.sav` files (even if the code SHOULD never touch you original one).
-- Keep personal `.sav`/ROM files under `backend/local_artifacts/` (ignored by git).
-- Never share personal saves publicly in issue reports.
-- This project is community-maintained and evolving.
+The [deployment workflow](.github/workflows/deploy-pages.yml) runs on pushes to **`master`** or manual dispatch. It builds the frontend in Local mode with `VITE_BASE_PATH=/${repo}/` and copies `index.html` to `404.html` for SPA fallback. In GitHub Pages settings, choose **GitHub Actions** as the source.
 
 ## Disclaimer
 
-This project is an unofficial fan-made utility. Use it only with legally obtained game files and your own save data.
+PUSE is an unofficial fan-made utility. Use your own save data and legally obtained game files. Keep an original backup, especially when testing experimental game support or the 3DS beta.
