@@ -113,6 +113,10 @@ Output: `3ds-homebrew/puse-3ds.cia`, installable through FBI. CIA packaging is a
 
 More port-specific development notes are in [3ds-homebrew/README.md](3ds-homebrew/README.md).
 
+## Community ports
+
+- [PUSE-PSP](https://github.com/caesarium25/PUSE-PSP) by [caesarium25](https://github.com/caesarium25): an independent, experimental native PSP port of PUSE, maintained in its own repository.
+
 ## Unbound RTC recovery
 
 The recommended recovery action re-enables Unbound's one-use **Frozen Heights Time Fixer** after validating the save. Correct the device/emulator clock first, run the recovery on a copy, visit the in-game NPC, save in-game and restart. The broad manifest-based repair options remain advanced fallbacks.
