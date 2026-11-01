@@ -24,6 +24,39 @@ Living notes for structural discoveries while extracting CFRU ROM data.
 
 ## Anchor Reliability Findings
 
+- Unbound item extraction previously picked the first `Master Ball` / `Ultra Ball`
+  pair at `0x3DB054`, a retained vanilla table. The `Costume Box` anchor came from
+  the live table, so the output mixed two generations of records. A plausible
+  pocket byte alone incorrectly counted stale/blank records as successful reads.
+- The CFRU header pointer at `0x1C8` holds `0x08876200`. The live table is continuous:
+  `0x876200 + item_id * 44`, including the former base/extended boundary.
+  The pocket accessor at `0x9A9D8` loads this same base from `0x9A9F8`, multiplies
+  the sanitized item ID by 44, then reads byte `+26` (`ldrb r0, [r0, #26]`).
+  Magma Stone's live row is `0x8771D0`: native ID 92, pocket 2 (Key Items).
+- Reading this live table corrects 17 pocket codes, not just Magma Stone. It also
+  restores pointer-form item names. Some native ID fields are aliases (notably
+  TM/HM), so row indexing must use the table position rather than renumbering IDs.
+  ID 175 has pocket 0 (unused), despite the legacy names file labelling it Starf
+  Berry; the live Starf Berry is 174. The names file remains a separate catalog
+  migration concern; pocket generation uses ROM names when distinguishing TM/HM.
+- Reproduce item metadata and every runtime pocket/fallback set from the root:
+
+  ```bash
+  python3 backend/tools/extract_unbound_item_table.py backend/local_artifacts/Unbound.gba
+  python3 backend/tools/sync_item_pocket_data.py --write
+  switch-homebrew/scripts/sync_romfs_data.sh --data-only
+  3ds-homebrew/scripts/sync_romfs_data.sh
+  python3 backend/tools/item_extraction_regression.py --rom backend/local_artifacts/Unbound.gba
+  ```
+
+  The private-ROM check compares all 728 records and ROM hash with committed
+  output. `cd frontend && npm run items:extraction-regression` needs no ROM and
+  checks legacy-table decoys, invalid pointers/records, aliases, indirect names,
+  and drift in generated maps and source fallback sets. Discovery fails if the
+  header pointer or opening/extended anchors are invalid; it never falls back to
+  an arbitrary name match. Item extraction still depends on `items.txt` for the
+  requested ID range, so it remains outside the ROM-pure pipeline task list.
+
 - Move table anchor (`Pound`/`Karate Chop`) can false-match on other CFRU hacks.
 - Guard added: inferred move count below threshold is treated as anchor failure, not success.
 - Ability table anchor (`Stench`/`Drizzle`/`Speed Boost`) can fail on other hacks (name/table divergence).

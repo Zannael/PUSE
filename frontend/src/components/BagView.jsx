@@ -6,7 +6,7 @@ import { pocketTypeForItemId } from '../core/bag.js';
 
 const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
     const isTmHmItemId = (id) => isRadicalRed() ? ['tm','hm'].includes(pocketTypeForItemId(id)) : ((id >= 289 && id <= 346) || (id >= 375 && id <= 444));
-    const isKeyItemId = (id) => isRadicalRed() ? pocketTypeForItemId(id) === 'key' : ((id >= 259 && id <= 288) || (id >= 348 && id <= 374));
+    const isKeyItemId = (id) => pocketTypeForItemId(id) === 'key';
 
     const [searchId, setSearchId] = useState(44);
     const [query, setQuery] = useState("");

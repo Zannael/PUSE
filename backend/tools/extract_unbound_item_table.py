@@ -2,14 +2,15 @@
 """Extract Pokemon Unbound item metadata from ROM with full ID coverage.
 
 Output always contains all IDs from backend/data/items.txt. Names are canonical
-from items.txt; ROM names are included as diagnostic fields.
+from items.txt; ROM names are included as diagnostic fields. All records come
+from the continuous table addressed by the CFRU header pointer at 0x1C8.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-from dataclasses import dataclass
+import hashlib
 from pathlib import Path
 from statistics import mode
 
@@ -18,7 +19,8 @@ ITEM_STRUCT_SIZE = 44
 OFF_NAME = 0
 OFF_ITEM_ID = 14
 OFF_POCKET = 26
-BASE_SPLIT_ID = 347
+ITEM_TABLE_POINTER_OFFSET = 0x1C8
+ROM_ADDRESS_BASE = 0x08000000
 
 
 def build_charmap() -> tuple[dict[int, str], dict[str, int]]:
@@ -124,40 +126,20 @@ def normalize_name(s: str) -> str:
     return "".join(ch for ch in s.lower() if ch.isalnum())
 
 
-@dataclass
-class Anchor:
-    label: str
-    item_name: str
-    expected_id: int
-    next_name: str
-    next_id: int
-
-
-ANCHORS = [
-    Anchor("base", "Master Ball", 1, "Ultra Ball", 2),
-    Anchor("extended", "Costume Box", 348, "Parcel", 349),
-]
-
-
-def find_anchor_base(rom: bytes, anchor: Anchor) -> int | None:
-    n1 = encode_name(anchor.item_name)
-    n2 = encode_name(anchor.next_name)
-    if not n1 or not n2:
-        return None
-
-    cursor = 0
-    while True:
-        pos = rom.find(n1, cursor)
-        if pos < 0:
-            return None
-
-        iid = int.from_bytes(rom[pos + OFF_ITEM_ID: pos + OFF_ITEM_ID + 2], "little")
-        n2_pos = pos + ITEM_STRUCT_SIZE
-        iid2 = int.from_bytes(rom[n2_pos + OFF_ITEM_ID: n2_pos + OFF_ITEM_ID + 2], "little")
-        if iid == anchor.expected_id and iid2 == anchor.next_id and rom[n2_pos: n2_pos + len(n2)] == n2:
-            return pos
-
-        cursor = pos + 1
+def find_live_item_base(rom: bytes, max_item_id: int) -> int:
+    """Use the CFRU header pointer, never the first matching legacy table."""
+    if len(rom) < ITEM_TABLE_POINTER_OFFSET + 4:
+        raise ValueError("ROM is too short for the CFRU item-table pointer")
+    pointer = int.from_bytes(rom[ITEM_TABLE_POINTER_OFFSET:ITEM_TABLE_POINTER_OFFSET + 4], "little")
+    base = pointer - ROM_ADDRESS_BASE
+    if base < 0 or base % 4 or base + (max_item_id + 1) * ITEM_STRUCT_SIZE > len(rom):
+        raise ValueError("CFRU item-table pointer is outside the ROM or table is truncated")
+    # Validate both ends of the old split: a vanilla-table match is insufficient.
+    for item_id, name in [(1, "Master Ball"), (2, "Ultra Ball"), (348, "Costume Box"), (349, "Parcel")]:
+        row = read_row(rom, base + item_id * ITEM_STRUCT_SIZE)
+        if row is None or row["item_id_field"] != item_id or row["rom_name"] != name:
+            raise ValueError(f"CFRU item-table pointer failed anchor validation for item {item_id}")
+    return base
 
 
 def read_row(rom: bytes, offset: int) -> dict | None:
@@ -165,7 +147,17 @@ def read_row(rom: bytes, offset: int) -> dict | None:
         return None
 
     raw_name = rom[offset + OFF_NAME: offset + OFF_NAME + 14]
-    rom_name, unknown = decode_name(raw_name)
+    name_pointer = int.from_bytes(raw_name[:4], "little")
+    if raw_name[3] in (0x08, 0x09):
+        if not ROM_ADDRESS_BASE <= name_pointer < ROM_ADDRESS_BASE + len(rom):
+            raise ValueError(f"Item name pointer outside ROM at 0x{offset:X}")
+        name_offset = name_pointer - ROM_ADDRESS_BASE
+        pointed_name = rom[name_offset:name_offset + 128]
+        if b"\xff" not in pointed_name:
+            raise ValueError(f"Unterminated item name pointer at 0x{offset:X}")
+        rom_name, unknown = decode_name(pointed_name)
+    else:
+        rom_name, unknown = decode_name(raw_name)
     item_id_field = int.from_bytes(rom[offset + OFF_ITEM_ID: offset + OFF_ITEM_ID + 2], "little")
     pocket_code = rom[offset + OFF_POCKET]
     return {
@@ -226,69 +218,51 @@ def summarize_ids(entries: list[dict]) -> dict[str, list[int]]:
     return groups
 
 
-def extract_all_ids(rom: bytes, items_by_id: dict[int, str], bases: dict[str, int]) -> dict[int, dict]:
+def extract_all_ids(rom: bytes, items_by_id: dict[int, str], base: int) -> dict[int, dict]:
     out: dict[int, dict] = {}
-    for item_id in sorted(items_by_id.keys()):
-        canonical_name = items_by_id[item_id]
-        table = "base" if item_id <= BASE_SPLIT_ID else "extended"
-        base = bases.get(table)
-        if base is None:
-            out[item_id] = {
-                "item_id": item_id,
-                "name": canonical_name,
-                "canonical_name": canonical_name,
-                "table": table,
-                "found_in_rom": False,
-                "offset": None,
-                "rom_name": None,
-                "rom_name_unknown_chars": None,
-                "name_match": None,
-                "item_id_field": None,
-                "pocket_code": None,
-                "raw_name_hex": None,
-            }
-            continue
-
-        start_id = 1 if table == "base" else 348
-        offset = base + (item_id - start_id) * ITEM_STRUCT_SIZE
+    for item_id, canonical_name in sorted(items_by_id.items()):
+        offset = base + item_id * ITEM_STRUCT_SIZE
         row = read_row(rom, offset)
-        if not row:
-            out[item_id] = {
-                "item_id": item_id,
-                "name": canonical_name,
-                "canonical_name": canonical_name,
-                "table": table,
-                "found_in_rom": False,
-                "offset": offset,
-                "rom_name": None,
-                "rom_name_unknown_chars": None,
-                "name_match": None,
-                "item_id_field": None,
-                "pocket_code": None,
-                "raw_name_hex": None,
-            }
-            continue
-
-        rom_name = row["rom_name"]
-        found = row["pocket_code"] <= 12
-        name_match = normalize_name(rom_name) == normalize_name(canonical_name) if rom_name else False
-
+        if row is None or row["pocket_code"] not in range(6):
+            raise ValueError(f"Invalid live item record {item_id} at 0x{offset:X}")
         out[item_id] = {
             "item_id": item_id,
             "name": canonical_name,
             "canonical_name": canonical_name,
-            "table": table,
-            "found_in_rom": found,
+            "table": "live",
+            "found_in_rom": True,
             "offset": row["offset"],
-            "rom_name": rom_name,
+            "rom_name": row["rom_name"],
             "rom_name_unknown_chars": row["rom_name_unknown_chars"],
-            "name_match": name_match,
+            "name_match": normalize_name(row["rom_name"]) == normalize_name(canonical_name),
             "item_id_field": row["item_id_field"],
             "id_field_matches_item_id": row["item_id_field"] == item_id,
-            "pocket_code": row["pocket_code"] if found else None,
+            "pocket_code": row["pocket_code"],
             "raw_name_hex": row["raw_name_hex"],
         }
     return out
+
+
+def runtime_pocket_map(entries: list[dict]) -> dict:
+    """Derive runtime families without per-item pocket corrections."""
+    pockets = {key: {"ids": []} for key in ("ball", "berry", "tm", "hm", "key")}
+    for entry in entries:
+        family = entry["pocket_type"]
+        if family == "tmhm":
+            name = entry["rom_name"]
+            if not (name.startswith("TM") or name.startswith("HM")):
+                raise ValueError(f"Cannot distinguish TM/HM for item {entry['item_id']}")
+            family = "hm" if name.startswith("HM") else "tm"
+        if family in pockets:
+            pockets[family]["ids"].append(entry["item_id"])
+        elif family not in ("main", "unused"):
+            raise ValueError(f"Unresolved pocket for item {entry['item_id']}")
+    pockets["key"].update({
+        "dangerous": True, "quantity_forced": 1,
+        "notes": "Editing key items can bypass progression and may require story/event flags.",
+    })
+    pockets["main"] = {"fallback": True}
+    return {"version": 3, "source": "Live CFRU item table (item_table_from_rom.json)", "pockets": pockets}
 
 
 def main() -> int:
@@ -306,17 +280,13 @@ def main() -> int:
     items_path = Path(__file__).resolve().parents[1] / "data" / "items.txt"
     items_by_id = load_items_txt(items_path)
 
-    bases: dict[str, int] = {}
-    for anchor in ANCHORS:
-        base = find_anchor_base(rom, anchor)
-        if base is None:
-            print(f"[WARN] Could not find anchor {anchor.label}: {anchor.item_name}")
-            continue
-        bases[anchor.label] = base
-        print(f"[INFO] {anchor.label} table base: 0x{base:X}")
-
-    entries_by_id = extract_all_ids(rom, items_by_id, bases)
+    base = find_live_item_base(rom, max(items_by_id))
+    print(f"[INFO] Live item table from header 0x{ITEM_TABLE_POINTER_OFFSET:X}: 0x{base:X}")
+    entries_by_id = extract_all_ids(rom, items_by_id, base)
     code_to_label, inferred_codes = build_pocket_map(entries_by_id)
+    if any(code is None for code in inferred_codes.values()) or len(set(inferred_codes.values())) != 5:
+        raise ValueError("Cannot infer distinct pocket codes from the live table")
+    code_to_label[0] = "unused"
 
     entries = []
     for item_id in sorted(entries_by_id.keys()):
@@ -337,7 +307,9 @@ def main() -> int:
 
     payload = {
         "rom": str(args.rom),
-        "bases": {k: f"0x{v:X}" for k, v in bases.items()},
+        "rom_sha256": hashlib.sha256(rom).hexdigest(),
+        "bases": {"live": f"0x{base:X}"},
+        "table_pointer_offset": ITEM_TABLE_POINTER_OFFSET,
         "struct_size": ITEM_STRUCT_SIZE,
         "coverage": {
             "items_txt_total": total,
