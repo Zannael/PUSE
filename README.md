@@ -1,3 +1,5 @@
+<p align="center"><img src="frontend/public/icon.webp" alt="PUSE logo" width="160"></p>
+
 # PUSE - Pokémon Unbound Save Editor
 
 **[Open the web editor](https://zannael.github.io/PUSE/)** · **[Releases](https://github.com/Zannael/PUSE/releases)** · **[Changelog](CHANGELOG.md)**
