@@ -496,41 +496,44 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
             {items.length > 0 && selectedCand && (
                 <div className="space-y-4">
                     <div className="bg-[#1e293b] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl animate-in zoom-in-95">
-                        <div className="p-6 border-b border-white/5 bg-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-                            <div className="flex items-center gap-4">
+                        <div className="space-y-4 border-b border-white/5 bg-white/5 p-4 sm:p-6" aria-label="Pocket contents toolbar">
+                            <div className="flex items-center gap-3">
                                 <button
+                                    type="button"
+                                    aria-label="Back to pockets"
                                     onClick={() => {
                                         if (!confirmNavigateWithUnsaved()) return;
                                         setSelectedCand(null);
                                     }}
-                                    className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-400 transition-colors"
+                                    className="flex h-11 w-11 shrink-0 items-center justify-center bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-400 transition-colors"
                                 >
                                     <ArrowLeft size={20} />
                                 </button>
-                                <div>
-                                    <h3 className="font-bold uppercase tracking-tight flex items-center gap-2">
-                                        <Package size={18} className="text-blue-400" /> Pocket Contents
+                                <div className="min-w-0">
+                                    <h3 className="font-bold tracking-tight flex items-center gap-2">
+                                        <Package size={18} className="shrink-0 text-blue-400" /> Pocket contents
                                     </h3>
-                                    <p className="text-[10px] text-slate-500 font-mono">{selectedCand.anchor_offset}</p>
-                                    {selectedCand.pocket_type && (
-                                        <p className="text-[10px] text-slate-500 font-mono">type: {selectedCand.pocket_type}</p>
-                                    )}
+                                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-slate-400 font-mono">
+                                        <span>Offset: {selectedCand.anchor_offset}</span>
+                                        {selectedCand.pocket_type && <span>Type: {selectedCand.pocket_type}</span>}
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2 w-full md:w-auto">
+                            <div className="grid grid-cols-1 min-[480px]:grid-cols-[minmax(0,1fr)_auto] gap-3">
                                 <input
-                                    type="text"
+                                    type="search"
+                                    aria-label="Filter pocket items"
                                     placeholder="Filter items..."
                                     value={itemFilter}
                                     onChange={(e) => setItemFilter(e.target.value)}
-                                    className="bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-xs outline-none focus:border-blue-500/50 w-full md:w-auto"
+                                    className="h-11 min-w-0 w-full bg-slate-900 border border-white/10 rounded-xl px-4 text-sm outline-none focus:border-blue-500/50"
                                 />
                                 <button
                                     onClick={handleFinalSave}
                                     disabled={!hasUnsavedBagChanges || loading}
-                                    className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-4 py-2 rounded-xl flex items-center gap-2 shadow-lg transition-all active:scale-95"
+                                    className="h-11 whitespace-nowrap bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all active:scale-95"
                                 >
-                                    <Save size={16} /> SAVE BAG CHANGES
+                                    <Save size={16} className="shrink-0" /> SAVE BAG CHANGES
                                 </button>
                             </div>
                         </div>

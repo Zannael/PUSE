@@ -13,10 +13,12 @@ The browser's **Local mode** runs save parsing, editing, checksum updates and ex
 ## Start here
 
 1. Keep a backup of your original in-game `.sav` or `.srm` file. Emulator save states are different files and are not supported.
-2. [Open PUSE](https://zannael.github.io/PUSE/) and select **Local mode**.
-3. Select the game/version and load a copy of your save. Radical Red requires explicit **4.1** selection.
-4. Edit the supported Party, PC, Bag or resource fields, then review and download the updated save.
+2. [Open PUSE](https://zannael.github.io/PUSE/). To change runtime, use **Settings** in the header (**Menu → Settings** on mobile), or **Change runtime** beside the upload area and select **Local mode**.
+3. Load a copy of your save. PUSE checks its structure first and asks you to confirm the game/version only when needed; Radical Red requires explicit **4.1** confirmation. The selected file is retained during confirmation.
+4. Edit the supported Party, PC, Bag, Pokédex or **Trainer** fields. Trainer contains Money and supported Battle Points; **All Pokémon** in the bottom bar contains the aggregate roster view (also accessible from PC). Apply your changes, then review and download the updated save.
 5. Load the edited copy in your game and verify the result before replacing your backup.
+
+Use **Graphics** in the header (**Menu → Graphics** on mobile), or the visible graphics status above the editor, to import ROM graphics and manage packs. **Tools** in the header (**Menu → Save tools** on mobile) provides Unbound time-tampering recovery, save conversion and advanced field inspection without closing the editor; recovery and conversion process the separate files selected in those tools. The same recovery/conversion tools remain on the initial page. Editor sections stay in the floating bottom bar on every screen size. On larger screens, graphics, save tools and settings are visible header actions.
 
 For homebrew, use the [Switch](#nintendo-switch-homebrew) or [3DS](#nintendo-3ds-homebrew-beta) instructions below. The native apps write to the selected save on the SD card, so keep a separate original copy.
 

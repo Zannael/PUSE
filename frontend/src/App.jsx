@@ -1,5 +1,5 @@
-import { supports, PROFILE } from './core/profile.js';
-import React, { lazy, Suspense, useMemo, useState, useEffect } from 'react';
+import { allProfiles, supports, PROFILE } from './core/profile.js';
+import React, { lazy, Suspense, useMemo, useState, useEffect, useRef } from 'react';
 import {
     Upload,
     LayoutGrid,
@@ -9,21 +9,22 @@ import {
     Save,
     Edit3,
     X,
-    RotateCcw,
     Sparkles,
-    ShieldAlert,
-    CircleHelp,
     Github,
     CheckCircle2,
     ArrowRight,
     Shield,
     Cpu,
     Database,
+    Menu,
+    UserRound,
     ListFilter,
 } from 'lucide-react';
 import { createApiClient, getInitialRuntimeMode, persistRuntimeMode, RUNTIME_MODES } from './services/apiClient.js';
 import { getExpAtLevel, getSpeciesGrowthRate } from './core/growth.js';
 import GraphicsResources from './components/GraphicsResources.jsx';
+import SaveTools from './components/SaveTools.jsx';
+import Dialog from './components/Dialog.jsx';
 
 const PartyGrid = lazy(() => import('./components/PartyGrid'));
 const PCGrid = lazy(() => import('./components/PCGrid'));
@@ -47,8 +48,13 @@ const getInitialLegitMode = () => {
 };
 
 const App = () => {
+    const mainContent = useRef(null);
     const [compatibility, setCompatibility] = useState(null);
-    const [profileChoice, setProfileChoice] = useState('');
+    const [pendingUpload, setPendingUpload] = useState(null);
+    const [uploadBusy, setUploadBusy] = useState(false);
+    const [uploadError, setUploadError] = useState('');
+    const [showMenu, setShowMenu] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
     const [runtimeMode, setRuntimeMode] = useState(getInitialRuntimeMode);
     const [legitMode, setLegitMode] = useState(getInitialLegitMode);
     const [activeTab, setActiveTab] = useState('party');
@@ -57,7 +63,6 @@ const App = () => {
     const [trainer, setTrainer] = useState(null);
     const [money, setMoney] = useState(0);
     const [bp, setBp] = useState(0);
-    const [showResourcesModal, setShowResourcesModal] = useState(false);
     const [saveReport, setSaveReport] = useState(null);
     const [saveReportLoading, setSaveReportLoading] = useState(false);
     const [saveReportError, setSaveReportError] = useState('');
@@ -78,14 +83,23 @@ const App = () => {
         }
     }, [legitMode]);
 
-    const uploadSaveFile = async (file) => {
-        if (!file) return;
-
+    const uploadSaveFile = async (file, requestedProfile = null) => {
+        if (!file || uploadBusy) return;
+        setUploadBusy(true);
+        setUploadError('');
         try {
-            const report = await client.inspectCompatibility(file, profileChoice || null);
+            const report = await client.inspectCompatibility(file, requestedProfile);
             setCompatibility({ report, filename: file.name });
-            if (!report.mutations_allowed) return;
-            await client.uploadSave(file, profileChoice || null);
+            if (!report.mutations_allowed) {
+                if (!requestedProfile && report.candidates.length &&
+                    (report.candidates.length > 1 || (report.blockers.length === 1 && report.blockers[0] === 'explicit_selection_required'))) {
+                    setPendingUpload({ file, candidates: report.candidates });
+                }
+                if (requestedProfile) setUploadError(`This file cannot be opened for editing: ${report.blockers.join(', ')}. Choose another supported save.`);
+                return;
+            }
+            await client.uploadSave(file, requestedProfile);
+            setPendingUpload(null);
             setTrainer(await client.getTrainer());
             setActiveTab('party');
             setPcBoxId(1);
@@ -97,7 +111,9 @@ const App = () => {
             setSaveExt(file.name.toLowerCase().endsWith('.srm') ? '.srm' : '.sav');
             setIsLoaded(true);
         } catch (err) {
-            alert(err.message || "Upload failed for current runtime mode.");
+            setUploadError(err.message || 'Upload failed for current runtime mode.');
+        } finally {
+            setUploadBusy(false);
         }
     };
 
@@ -124,69 +140,6 @@ const App = () => {
     const [refreshKey, setRefreshKey] = useState(0);
     const [pcBoxId, setPcBoxId] = useState(1);
     const [bagHasUnsavedChanges, setBagHasUnsavedChanges] = useState(false);
-    const [rtcBrokenFile, setRtcBrokenFile] = useState(null);
-    const [rtcFixedFile, setRtcFixedFile] = useState(null);
-    const [rtcTimeFixerFile, setRtcTimeFixerFile] = useState(null);
-    const [rtcTab, setRtcTab] = useState('quick');
-    const [rtcBusy, setRtcBusy] = useState(false);
-    const [convertFile, setConvertFile] = useState(null);
-    const [convertTarget, setConvertTarget] = useState('.sav');
-    const [convertBusy, setConvertBusy] = useState(false);
-    const [showLegitHelp, setShowLegitHelp] = useState(false);
-
-    const handleRtcFixPack = async () => {
-        if (!rtcBrokenFile || !rtcFixedFile) {
-            alert('Please select both files: tampered save and NPC-fixed save.');
-            return;
-        }
-
-        try {
-            setRtcBusy(true);
-            await client.generateRtcRepairPack(rtcBrokenFile, rtcFixedFile);
-            alert('RTC repair pack downloaded. Test candidates in the provided order JSON.');
-        } catch {
-            alert('Failed to generate RTC repair pack.');
-        } finally {
-            setRtcBusy(false);
-        }
-    };
-
-    const handleRtcTimeFixerReset = async () => {
-        if (!rtcTimeFixerFile) {
-            alert('Please select one Pokemon Unbound save file.');
-            return;
-        }
-
-        try {
-            setRtcBusy(true);
-            const result = await client.reenableRtcTimeFixer(rtcTimeFixerFile);
-            alert(
-                `Time Fixer reset downloaded (save index ${result.save_idx}, byte ${result.absolute_offset}).\n\n` +
-                'Correct the emulator/device RTC before loading it. Then use the Frozen Heights Time Fixer, save in-game, and restart.'
-            );
-        } catch (error) {
-            alert(error?.message || 'Failed to re-enable the in-game Time Fixer.');
-        } finally {
-            setRtcBusy(false);
-        }
-    };
-
-    const handleSaveConvert = async () => {
-        if (!convertFile) {
-            alert('Please select one save file to convert.');
-            return;
-        }
-
-        try {
-            setConvertBusy(true);
-            await client.convertSaveFile(convertFile, convertTarget);
-            alert(`Converted and downloaded as ${convertTarget}.`);
-        } catch {
-            alert('Save conversion failed. Supported sizes are 131072 and 131088 bytes.');
-        } finally {
-            setConvertBusy(false);
-        }
-    };
 
     const handleTabChange = (nextTab) => {
         if (nextTab === activeTab) return;
@@ -436,12 +389,6 @@ const App = () => {
         }
     };
 
-    const openResourcesModal = () => {
-        setMoneyInput(String(money ?? 0));
-        setBpInput(String(bp ?? 0));
-        setShowResourcesModal(true);
-    };
-
     const handleUpdateResources = async () => {
         const amount = Math.max(0, Math.min(999999999, parseInt(moneyInput, 10) || 0));
         const bpAmount = Math.max(0, Math.min(65535, parseInt(bpInput, 10) || 0));
@@ -450,11 +397,12 @@ const App = () => {
             const [mData, bpData] = await Promise.all([client.getMoney(), supports('bp') ? client.getBp() : Promise.resolve({bp: 0})]);
             setMoney(Number(mData.money ?? amount));
             setBp(Number(bpData.bp ?? bpAmount));
-            setShowResourcesModal(false);
-            alert('Resources updated successfully!');
+            setMoneyInput(String(mData.money ?? amount));
+            setBpInput(String(bpData.bp ?? bpAmount));
+            alert('Trainer currencies updated successfully!');
         } catch (err) {
             console.error(err);
-            alert('Failed to update resources.');
+            alert('Failed to update trainer currencies.');
         }
     };
 
@@ -497,101 +445,117 @@ const App = () => {
         return () => window.removeEventListener('keydown', onKeyDown);
     }, [showSaveReport]);
 
+
+    const trainerPanel = <section className="max-w-xl space-y-6">
+        <div><h2 className="text-2xl font-bold">Trainer</h2><p className="mt-1 text-sm text-slate-400">Trainer identity is read-only. Apply currency changes before downloading your save.</p></div>
+        <dl className="grid grid-cols-2 gap-4 rounded-xl bg-slate-800 p-5">
+            {[['Name', trainer?.name], ['Game', PROFILE.identity.game], ['Trainer ID', trainer?.tid], ['Secret ID', trainer?.sid]].map(([label, value]) => <div key={label}><dt className="text-sm text-slate-400">{label}</dt><dd className="mt-1 font-semibold">{value ?? '—'}</dd></div>)}
+        </dl>
+        <div className="space-y-3">
+            <div>
+                <label htmlFor="trainer-money" className="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Money</label>
+                <input
+                    id="trainer-money"
+                    type="number"
+                    step="1"
+                    min="0"
+                    max="999999999"
+                    value={moneyInput}
+                    onChange={(event) => {
+                        const value = event.target.value;
+                        if (value.length <= 9) setMoneyInput(value);
+                    }}
+                    className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 font-mono text-emerald-400 outline-none focus:border-blue-500"
+                />
+            </div>
+            {supports('bp') && <div>
+                <label htmlFor="trainer-bp" className="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Battle Points</label>
+                <input
+                    id="trainer-bp"
+                    type="number"
+                    step="1"
+                    min="0"
+                    max="65535"
+                    value={bpInput}
+                    onChange={(event) => {
+                        const value = event.target.value;
+                        if (value.length <= 5) setBpInput(value);
+                    }}
+                    className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 font-mono text-amber-300 outline-none focus:border-blue-500"
+                />
+            </div>}
+        </div>
+        <p className="text-[11px] text-slate-400">
+            Money: 0–999,999,999.{supports('bp') && ' Battle Points: 0–65,535.'}
+        </p>
+
+        <div className="flex gap-3">
+            <button type="button" onClick={() => { setMoneyInput(String(money)); setBpInput(String(bp)); }} className="rounded-xl bg-slate-800 px-4 py-2 hover:bg-slate-700">Reset fields</button>
+            <button type="button" onClick={handleUpdateResources} className="rounded-xl bg-blue-600 px-4 py-2 font-semibold hover:bg-blue-500">Apply changes</button>
+        </div>
+    </section>;
+
     useEffect(() => {
-        if (!showResourcesModal) return;
-        const onKeyDown = (e) => {
-            if (e.key === 'Escape') {
-                setShowResourcesModal(false);
-            }
-        };
-        window.addEventListener('keydown', onKeyDown);
-        return () => window.removeEventListener('keydown', onKeyDown);
-    }, [showResourcesModal]);
+        if (isLoaded) {
+            mainContent.current?.focus({ preventScroll: true });
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        }
+    }, [activeTab, isLoaded]);
+
+    const editorNavigation = <>
+        <TabItem icon={<LayoutGrid size={20} />} label="Party" active={activeTab === 'party'} onClick={() => handleTabChange('party')} />
+        <TabItem icon={<Users size={20} />} label="PC" active={activeTab === 'pc'} onClick={() => handleTabChange('pc')} />
+        {supports('roster_export') && <TabItem icon={<ListFilter size={20} />} label="All Pokémon" active={activeTab === 'all'} onClick={() => handleTabChange('all')} />}
+        <TabItem icon={<Briefcase size={20} />} label="Bag" active={activeTab === 'bag'} onClick={() => handleTabChange('bag')} />
+        {supports('pokedex') && <TabItem icon={<BookOpen size={20} />} label="Pokédex" active={activeTab === 'dex'} onClick={() => handleTabChange('dex')} />}
+        <TabItem icon={<UserRound size={20} />} label="Trainer" active={activeTab === 'trainer'} onClick={() => handleTabChange('trainer')} />
+    </>;
+    const openSection = (section) => {
+        setShowMenu(false);
+        handleTabChange(section);
+    };
 
     return (
         <div className="min-h-screen bg-[#0f172a] text-slate-100 flex flex-col items-center">
             <header className="w-full bg-[#1e293b]/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
-                <div className="max-w-6xl mx-auto p-4 flex justify-between items-center gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                        <h1 className="text-xl font-black text-blue-400 tracking-tighter uppercase">
-                            <span className="md:hidden">PUSE</span>
-                            <span className="hidden md:inline">PUSE - Pokemon Unbound Save Editor</span>
-                        </h1>
-                        <select
-                            value={runtimeMode}
-                            onChange={(e) => setRuntimeMode(e.target.value)}
-                            className="bg-slate-900 border border-white/10 rounded-xl px-2 py-1 text-[10px] uppercase tracking-widest text-slate-300 min-w-[116px]"
-                        >
-                            <option value={RUNTIME_MODES.backend}>Backend mode</option>
-                            <option value={RUNTIME_MODES.local}>Local mode</option>
-                        </select>
-                        <button
-                            type="button"
-                            onClick={() => setLegitMode((prev) => !prev)}
-                            className={`px-3 py-1 rounded-xl text-[10px] uppercase tracking-widest font-bold border transition-colors ${
-                                legitMode
-                                    ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
-                                    : 'bg-slate-900 border-white/10 text-slate-300 hover:bg-slate-800'
-                            }`}
-                        >
-                            Legit: {legitMode ? 'ON' : 'OFF'}
+                <div className="max-w-6xl mx-auto px-3 py-3 flex justify-between items-center gap-2 md:px-8">
+                    <h1 className="text-xl font-black text-blue-400 tracking-tighter">PUSE</h1>
+                    <div className="flex items-center gap-2">
+                        <button type="button" aria-pressed={legitMode} onClick={() => setLegitMode(prev => !prev)}
+                            className={`h-10 whitespace-nowrap rounded-lg border px-2 py-2 text-xs font-semibold ${legitMode ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300' : 'border-white/10 text-slate-300'}`}>
+                            Legit {legitMode ? 'ON' : 'OFF'}
                         </button>
-                        <button
-                            type="button"
-                            onClick={() => setShowLegitHelp((prev) => !prev)}
-                            className="p-1.5 rounded-lg bg-slate-900 border border-white/10 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
-                            aria-expanded={showLegitHelp}
-                            aria-label="Show legit mode help"
-                        >
-                            <CircleHelp size={13} />
-                        </button>
-                    </div>
-                    {isLoaded && (
-                        <div className="flex items-center gap-2 md:gap-3 flex-wrap justify-end">
-                            <button
-                                onClick={openResourcesModal}
-                                className="px-3 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold transition-colors"
-                                aria-label="Edit resources"
-                            >
-                                <span className="inline-flex items-center gap-2"><Edit3 size={14} /> RESOURCES</span>
-                            </button>
-                            <button
-                                onClick={handleRestartApp}
-                                className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all"
-                            >
-                                <RotateCcw size={14} /> RESTART / LOAD NEW FILE
-                            </button>
-                            <button
-                                onClick={handleDownload}
-                                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-full text-xs font-bold transition-all"
-                            >
-                                <Save size={14} /> REVIEW / DOWNLOAD {saveExt.toUpperCase()}
-                            </button>
+                        {isLoaded && <button type="button" onClick={handleDownload} className="inline-flex h-10 items-center gap-1 rounded-lg bg-blue-600 px-2 py-2 text-xs font-semibold md:gap-2 md:px-3 md:text-sm hover:bg-blue-500">
+                            <Save size={16} /><span className="lg:hidden">Download</span><span className="hidden lg:inline">Review / download {saveExt}</span>
+                        </button>}
+                        <div className="app-header-actions items-center gap-1" aria-label="App tools">
+                            {isLoaded && <>
+                                <button type="button" onClick={() => openSection('graphics')} aria-current={activeTab === 'graphics' ? 'page' : undefined} className="rounded-lg px-2 py-2 text-xs lg:px-3 lg:text-sm text-slate-300 hover:bg-slate-700">Graphics</button>
+                                <button type="button" onClick={() => openSection('tools')} aria-current={['tools', 'inspector'].includes(activeTab) ? 'page' : undefined} className="rounded-lg px-2 py-2 text-xs lg:px-3 lg:text-sm text-slate-300 hover:bg-slate-700">Tools</button>
+                            </>}
+                            <button type="button" onClick={() => setShowSettings(true)} className="rounded-lg px-2 py-2 text-xs lg:px-3 lg:text-sm text-slate-300 hover:bg-slate-700">Settings</button>
+                            {isLoaded && <button type="button" onClick={handleRestartApp} aria-label="Load another save" className="rounded-lg px-2 py-2 text-xs lg:px-3 lg:text-sm text-slate-300 hover:bg-slate-700">Load save</button>}
                         </div>
-                    )}
-                </div>
-                {showLegitHelp && (
-                    <div className="max-w-6xl mx-auto px-4 pb-3">
-                        <p className="text-[11px] text-slate-300 bg-slate-900/70 border border-white/10 rounded-xl px-3 py-2">
-                            Legit Mode enforces 510 total EV cap and keeps level edits explicit in the 1-100 range.
-                        </p>
+                        <button type="button" onClick={() => setShowMenu(true)} aria-label="Menu" aria-haspopup="dialog" className="app-mobile-menu h-10 items-center gap-1 rounded-lg border border-white/10 px-2 py-2 text-xs hover:bg-slate-700"><Menu size={18} /><span className="hidden min-[360px]:inline">Menu</span></button>
                     </div>
-                )}
+                </div>
             </header>
 
-            <main className="w-full max-w-6xl px-4 pt-4 pb-48 md:px-8 md:pt-8 md:pb-48">
-                {compatibility && <details key={JSON.stringify(compatibility)} open={!compatibility.report.mutations_allowed} className="mb-5 rounded-xl border border-slate-600 bg-slate-900 p-4">
-                    <summary className="cursor-pointer font-semibold">Compatibility: {compatibility.filename} · {compatibility.report.mutations_allowed ? 'Supported declared profile' : 'Editing blocked'}</summary>
+            <main ref={mainContent} tabIndex={-1} className="outline-none w-full max-w-6xl px-4 pt-4 pb-48 md:px-8 md:pt-8 md:pb-48">
+                {compatibility && !pendingUpload && <details key={JSON.stringify(compatibility)} open={!compatibility.report.mutations_allowed || compatibility.report.uses_older_generation} className="mb-5 rounded-xl border border-slate-600 bg-slate-900 p-4">
+                    <summary className="cursor-pointer text-sm font-semibold">Save compatibility · {!compatibility.report.mutations_allowed ? 'Editing blocked' : compatibility.report.uses_older_generation ? 'Using older intact save' : 'Ready to edit'}</summary>
                     <div className="mt-3 space-y-2 text-sm text-slate-300" aria-label="Save compatibility report">
+                        <p className="break-words">File: {compatibility.filename}</p>
                         <p>Profile: {compatibility.report.profile_id || 'Unknown layout'} · {compatibility.report.size} bytes</p>
                         <p>Container candidates: {compatibility.report.candidates.join(', ') || 'None'}. Structural evidence does not confirm the ROM version. Editing assumes the declared game/version.</p>
                         <p>Newest structural generation: {compatibility.report.structural_generation ?? 'None'} · Intact generation: {compatibility.report.editable_generation ?? 'None'}.</p>
                         {compatibility.report.uses_older_generation && <p>Using the older intact generation because the newer generation failed checksum validation.</p>}
                         {!!compatibility.report.opaque_section_ids.length && <p>Unverified checksum sections: {compatibility.report.opaque_section_ids.join(', ')}. Shared auxiliary data has no verified historical snapshot.</p>}
-                        {!compatibility.report.mutations_allowed && <p role="alert">Blocked: {compatibility.report.blockers.join(', ')}. Choose the correct game/version and select the file again. Unknown layouts remain available for this structural inspection only.</p>}
-                        {isLoaded && <GraphicsResources client={client} profileId={PROFILE.id} onChanged={() => setRefreshKey(key => key + 1)} />}
+                        {!compatibility.report.mutations_allowed && <p role="alert">Blocked: {compatibility.report.blockers.join(', ')}. Check that your game/version is supported and choose another file. Unknown layouts remain available for structural inspection only.</p>}
                     </div>
                 </details>}
+                {uploadError && !pendingUpload && <p role="alert" className="mb-4 rounded-xl border border-rose-500/40 p-4 text-rose-200">{uploadError}</p>}
+                {isLoaded && <GraphicsResources client={client} profileId={PROFILE.id} compact={activeTab !== 'graphics'} onManage={() => handleTabChange('graphics')} onChanged={() => setRefreshKey(key => key + 1)} />}
                 {!isLoaded ? (
                     <div className="space-y-10 md:space-y-14 pb-8">
                         <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#1e293b]/95 via-[#16243c]/95 to-[#0f172a] p-5 md:p-8">
@@ -640,188 +604,22 @@ const App = () => {
                                             </div>
                                         </div>
 
-                                        <label className="mt-4 block text-sm">Game / version
-                                            <select aria-label="Game / version" value={profileChoice} onChange={(e) => setProfileChoice(e.target.value)} className="ml-3 rounded bg-slate-900 p-2">
-                                                <option value="">Recognize save</option>
-                                                <option value="unbound-2.1.1.1">Unbound 2.1.1.1</option>
-                                                <option value="radical-red-4.1">Radical Red 4.1</option>
-                                            </select>
-                                        </label>
-                                        <p className="mt-2 text-xs text-slate-400">Radical Red requires explicit version selection. Confirm that your game is version 4.1.</p>
                                         <div className="mt-4 rounded-2xl border border-dashed border-blue-400/40 bg-slate-900/60 px-4 py-6 text-center">
                                             <p className="text-xs text-slate-300">Drag and drop your file here</p>
                                             <p className="mt-1 text-[11px] text-slate-500">Accepted: <span className="font-mono">.sav</span> and <span className="font-mono">.srm</span></p>
-                                            <label className="mt-4 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-xl cursor-pointer font-bold transition-all shadow-lg active:scale-95 text-xs md:text-sm">
-                                                SELECT SAVE FILE <ArrowRight size={14} />
-                                                <input type="file" className="hidden" onChange={handleUpload} accept=".sav,.srm" />
+                                            <label className="mt-4 inline-flex items-center gap-2 focus-within:ring-2 focus-within:ring-blue-300 bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-xl cursor-pointer font-bold transition-all shadow-lg active:scale-95 text-xs md:text-sm">
+                                                {uploadBusy ? 'Checking save…' : 'Select save file'} <ArrowRight size={14} />
+                                                <input type="file" className="sr-only" disabled={uploadBusy} aria-label="Select save file" onChange={handleUpload} accept=".sav,.srm" />
                                             </label>
                                         </div>
 
-                                        <p className="mt-4 text-[11px] text-slate-400 leading-relaxed">
-                                            Tip: Local mode runs entirely in your browser. Backend mode uses FastAPI endpoints.
-                                        </p>
+                                        <div className="mt-4 flex items-center justify-between gap-3 text-xs text-slate-400">
+                                            <span>{runtimeMode === RUNTIME_MODES.local ? 'Local mode · In your browser' : 'Backend mode · FastAPI'}</span>
+                                            <button type="button" onClick={() => setShowSettings(true)} className="rounded-lg px-2 py-1 text-blue-300 hover:bg-slate-800">Change runtime</button>
+                                        </div>
                                     </div>
 
-                                    <details className="group rounded-[1.75rem] border border-amber-500/30 bg-amber-500/5 p-5 md:p-6">
-                                        <summary className="list-none cursor-pointer flex items-start justify-between gap-3">
-                                            <div>
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-amber-300">Recovery tools</p>
-                                                <h3 className="mt-1 text-lg font-bold text-slate-100">RTC Metadata Recovery</h3>
-                                                <p className="mt-1 text-xs text-slate-300">Prefer Unbound's own Time Fixer; use pair repair as an advanced fallback.</p>
-                                            </div>
-                                            <div className="text-[10px] text-amber-200 uppercase tracking-widest group-open:hidden">Open</div>
-                                            <div className="text-[10px] text-amber-200 uppercase tracking-widest hidden group-open:block">Close</div>
-                                        </summary>
-
-                                        <div className="mt-5 border-t border-amber-500/20 pt-5">
-                                            <div className="inline-flex rounded-xl border border-white/10 bg-slate-900/60 p-1 text-[10px] uppercase tracking-widest font-bold">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setRtcTab('pair')}
-                                                    className={`px-3 py-1 rounded-lg transition-colors ${
-                                                        rtcTab === 'pair' ? 'bg-amber-600 text-white' : 'text-slate-300 hover:bg-white/5'
-                                                    }`}
-                                                >
-                                                    Pair Repair (Advanced)
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setRtcTab('quick')}
-                                                    className={`px-3 py-1 rounded-lg transition-colors ${
-                                                        rtcTab === 'quick' ? 'bg-amber-600 text-white' : 'text-slate-300 hover:bg-white/5'
-                                                    }`}
-                                                >
-                                                    Re-enable Time Fixer
-                                                </button>
-                                            </div>
-
-                                            {rtcTab === 'pair' ? (
-                                                <>
-                                                    <p className="mt-3 text-sm text-slate-200">
-                                                        Build a repair pack using a tampered save and one NPC-fixed save.
-                                                    </p>
-                                                    <div className="mt-4 grid grid-cols-1 gap-3 text-xs text-slate-300">
-                                                        <label className="block">
-                                                            <span className="block mb-1 text-slate-400">Tampered save (.sav)</span>
-                                                            <input
-                                                                type="file"
-                                                                accept=".sav"
-                                                                onChange={(e) => setRtcBrokenFile(e.target.files?.[0] || null)}
-                                                                className="w-full text-xs"
-                                                            />
-                                                        </label>
-                                                        <label className="block">
-                                                            <span className="block mb-1 text-slate-400">NPC-fixed save (.sav)</span>
-                                                            <input
-                                                                type="file"
-                                                                accept=".sav"
-                                                                onChange={(e) => setRtcFixedFile(e.target.files?.[0] || null)}
-                                                                className="w-full text-xs"
-                                                            />
-                                                        </label>
-                                                    </div>
-                                                    <button
-                                                        onClick={handleRtcFixPack}
-                                                        disabled={rtcBusy}
-                                                        className="mt-4 inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-500 disabled:bg-amber-900/60 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all"
-                                                    >
-                                                        <ShieldAlert size={14} /> {rtcBusy ? 'GENERATING...' : 'GENERATE PAIR REPAIR PACK'}
-                                                    </button>
-                                                    <p className="mt-2 text-[11px] text-slate-400">
-                                                        Downloads manifest and fallback candidates in recommended order.
-                                                    </p>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <p className="mt-3 text-sm text-slate-200">
-                                                        Safely re-enable the one-use Frozen Heights Time Fixer by clearing only its used flag.
-                                                    </p>
-                                                    <p className="mt-2 text-[11px] text-amber-300">
-                                                        First correct the emulator or device RTC. This download does not repair RTC metadata by itself.
-                                                    </p>
-                                                    <div className="mt-3 text-xs text-slate-300">
-                                                        <label className="block">
-                                                            <span className="block mb-1 text-slate-400">Pokemon Unbound save (.sav or .srm)</span>
-                                                            <input
-                                                                type="file"
-                                                                accept=".sav,.srm"
-                                                                onChange={(e) => setRtcTimeFixerFile(e.target.files?.[0] || null)}
-                                                                className="w-full text-xs"
-                                                            />
-                                                        </label>
-                                                    </div>
-                                                    <button
-                                                        onClick={handleRtcTimeFixerReset}
-                                                        disabled={rtcBusy}
-                                                        className="mt-4 inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-500 disabled:bg-amber-900/60 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all"
-                                                    >
-                                                        <ShieldAlert size={14} /> {rtcBusy ? 'VALIDATING...' : 'RE-ENABLE TIME FIXER'}
-                                                    </button>
-                                                    <p className="mt-2 text-[11px] text-slate-400">
-                                                        Validates the save, changes exactly one byte in the active generation, and preserves the older fallback copy and RTC trailer.
-                                                    </p>
-                                                </>
-                                            )}
-                                        </div>
-                                    </details>
-
-                                    <details className="group rounded-[1.75rem] border border-cyan-500/30 bg-cyan-500/5 p-5 md:p-6">
-                                        <summary className="list-none cursor-pointer flex items-start justify-between gap-3">
-                                            <div>
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-cyan-300">Utility</p>
-                                                <h3 className="mt-1 text-lg font-bold text-slate-100">SRM / SAV Converter</h3>
-                                                <p className="mt-1 text-xs text-slate-300">Convert emulator save container format without opening the main editor.</p>
-                                            </div>
-                                            <div className="text-[10px] text-cyan-200 uppercase tracking-widest group-open:hidden">Open</div>
-                                            <div className="text-[10px] text-cyan-200 uppercase tracking-widest hidden group-open:block">Close</div>
-                                        </summary>
-
-                                        <div className="mt-5 border-t border-cyan-500/20 pt-5">
-                                            <div className="text-xs text-slate-300">
-                                                <label className="block">
-                                                    <span className="block mb-1 text-slate-400">Input file (.sav or .srm)</span>
-                                                    <input
-                                                        type="file"
-                                                        accept=".sav,.srm"
-                                                        onChange={(e) => setConvertFile(e.target.files?.[0] || null)}
-                                                        className="w-full text-xs"
-                                                    />
-                                                </label>
-                                            </div>
-
-                                            <div className="mt-4 inline-flex rounded-xl border border-white/10 bg-slate-900/60 p-1 text-[10px] uppercase tracking-widest font-bold">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setConvertTarget('.sav')}
-                                                    className={`px-3 py-1 rounded-lg transition-colors ${
-                                                        convertTarget === '.sav' ? 'bg-cyan-600 text-white' : 'text-slate-300 hover:bg-white/5'
-                                                    }`}
-                                                >
-                                                    To .sav
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setConvertTarget('.srm')}
-                                                    className={`px-3 py-1 rounded-lg transition-colors ${
-                                                        convertTarget === '.srm' ? 'bg-cyan-600 text-white' : 'text-slate-300 hover:bg-white/5'
-                                                    }`}
-                                                >
-                                                    To .srm
-                                                </button>
-                                            </div>
-
-                                            <button
-                                                onClick={handleSaveConvert}
-                                                disabled={convertBusy}
-                                                className="mt-4 inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-cyan-900/60 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all"
-                                            >
-                                                <Save size={14} /> {convertBusy ? 'CONVERTING...' : `CONVERT TO ${convertTarget.toUpperCase()}`}
-                                            </button>
-                                            <p className="mt-2 text-[11px] text-slate-400">
-                                                Supports 128 KiB and 128 KiB + 16 byte layouts. The original file is never modified.
-                                            </p>
-                                        </div>
-                                    </details>
+                                    <SaveTools client={client} />
                                 </div>
                             </div>
                         </section>
@@ -930,7 +728,11 @@ const App = () => {
                                     onEditPokemon={(pk) => setSelectedPokemon(pk)}
                                 />
                             )}
-                            {activeTab === 'pc' && <PCGrid
+                            {['pc', 'all'].includes(activeTab) && <div className="space-y-5">
+                                {supports('roster_export') && <div role="group" aria-label="PC view" className="inline-flex gap-1 rounded-xl bg-slate-800 p-1">
+                                    {[['boxes', 'Boxes'], ['all', 'All Pokémon']].map(([value, label]) => <button key={value} type="button" aria-pressed={activeTab === (value === 'boxes' ? 'pc' : 'all')} onClick={() => handleTabChange(value === 'boxes' ? 'pc' : 'all')} className={`rounded-lg px-4 py-2 text-sm ${activeTab === (value === 'boxes' ? 'pc' : 'all') ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-700'}`}>{label}</button>)}
+                                </div>}
+                                {activeTab === 'pc' ? <PCGrid
                                 key={`pc-${refreshKey}`}
                                 client={client}
                                 boxId={pcBoxId}
@@ -940,9 +742,11 @@ const App = () => {
                                 }}
                                 onAddPokemon={(target) => setPcInsertTarget(target)}
                                 onReleasePokemon={handleReleasePC}
-                            />}
-                            {supports('roster_export') && activeTab === 'all' && <AllPokemonTable key={`all-${refreshKey}`} client={client} />}
+                            /> : <AllPokemonTable key={`all-${refreshKey}`} client={client} />}
+                            </div>}
                             {activeTab === 'bag' && <BagView client={client} initialUnsaved={bagHasUnsavedChanges} onDirtyChange={setBagHasUnsavedChanges} />}
+                            {activeTab === 'tools' && <section className="space-y-5"><h2 className="text-2xl font-bold">Save tools</h2><SaveTools client={client} /><button type="button" onClick={() => handleTabChange('inspector')} className="rounded-xl border border-slate-600 px-4 py-3 hover:bg-slate-800">Inspect save fields · Advanced</button></section>}
+                            {activeTab === 'trainer' && trainerPanel}
                             {activeTab === 'inspector' && <FieldInspector key={runtimeMode} client={client} />}
                             {supports('pokedex') && activeTab === 'dex' && <LivingDexPanel key={`dex-${refreshKey}`} client={client} />}
                         </Suspense>
@@ -1000,74 +804,6 @@ const App = () => {
                 </div>
             )}
 
-            {showResourcesModal && (
-                <div
-                    className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
-                    onClick={() => setShowResourcesModal(false)}
-                >
-                    <div
-                        className="w-full max-w-sm bg-[#0f172a] border border-white/10 rounded-[2rem] p-6 space-y-5"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-bold">Edit Resources</h3>
-                            <button onClick={() => setShowResourcesModal(false)} className="text-slate-500 hover:text-white">
-                                <X size={18} />
-                            </button>
-                        </div>
-                        <div className="space-y-3">
-                            <div>
-                                <p className="text-xs text-slate-400 mb-2">{PROFILE.identity.game} · {trainer?.name} · TID {trainer?.tid} / SID {trainer?.sid}</p>
-                                <label className="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Money</label>
-                                <input
-                                    type="number"
-                                    step="1"
-                                    min="0"
-                                    max="999999999"
-                                    value={moneyInput}
-                                    onChange={(event) => {
-                                        const value = event.target.value;
-                                        if (value.length <= 9) setMoneyInput(value);
-                                    }}
-                                    className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 font-mono text-emerald-400 outline-none focus:border-blue-500"
-                                />
-                            </div>
-                            {supports('bp') && <div>
-                                <label className="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Battle Points</label>
-                                <input
-                                    type="number"
-                                    step="1"
-                                    min="0"
-                                    max="65535"
-                                    value={bpInput}
-                                    onChange={(event) => {
-                                        const value = event.target.value;
-                                        if (value.length <= 5) setBpInput(value);
-                                    }}
-                                    className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 font-mono text-amber-300 outline-none focus:border-blue-500"
-                                />
-                            </div>}
-                        </div>
-                        <p className="text-[11px] text-slate-400">
-                            {PROFILE.identity.game}: money clamps to 0..999999999 and BP clamps to 0..65535.
-                        </p>
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setShowResourcesModal(false)}
-                                className="flex-1 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleUpdateResources}
-                                className="flex-1 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 font-bold"
-                            >
-                                Apply
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {selectedPokemon && (
                 <Suspense fallback={null}>
@@ -1093,16 +829,38 @@ const App = () => {
                 </Suspense>
             )}
 
-            {isLoaded && (
-                <nav aria-label="Editor sections" className="fixed bottom-6 w-[92%] max-w-xl bg-[#1e293b]/95 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-2 shadow-2xl flex justify-around z-50">
-                    <TabItem icon={<LayoutGrid size={20}/>} label="Party" active={activeTab === 'party'} onClick={() => handleTabChange('party')} />
-                    <TabItem icon={<Users size={20}/>} label="PC Box" active={activeTab === 'pc'} onClick={() => handleTabChange('pc')} />
-                    {supports('roster_export') && <TabItem icon={<ListFilter size={20}/>} label="All Pokémon" active={activeTab === 'all'} onClick={() => handleTabChange('all')} />}
-                    <TabItem icon={<Briefcase size={20}/>} label="Bag" active={activeTab === 'bag'} onClick={() => handleTabChange('bag')} />
-                    <TabItem icon={<Database size={20}/>} label="Inspect" active={activeTab === 'inspector'} onClick={() => handleTabChange('inspector')} />
-                    {supports('pokedex') && <TabItem icon={<BookOpen size={20}/>} label="Dex" active={activeTab === 'dex'} onClick={() => handleTabChange('dex')} />}
-                </nav>
-            )}
+            {isLoaded && <nav aria-label="Editor sections" className="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] w-[92%] max-w-xl z-50 flex justify-around rounded-[2.5rem] border border-white/10 bg-[#1e293b]/95 p-2 shadow-2xl backdrop-blur-xl">{editorNavigation}</nav>}
+
+            {showMenu && <Dialog title="Menu" onClose={() => setShowMenu(false)}>
+                <div className="grid gap-2">
+                    {isLoaded && <>
+                        <button type="button" onClick={() => openSection('graphics')} className="rounded-xl bg-slate-800 p-4 text-left hover:bg-slate-700">Graphics<span className="block text-sm text-slate-400">Import images from your ROM or manage your pack</span></button>
+                        <button type="button" onClick={() => openSection('tools')} className="rounded-xl bg-slate-800 p-4 text-left hover:bg-slate-700">Save tools<span className="block text-sm text-slate-400">Time tampering / Time Fixer, conversion, advanced inspection</span></button>
+                    </>}
+                    <button type="button" onClick={() => { setShowMenu(false); setShowSettings(true); }} className="rounded-xl bg-slate-800 p-4 text-left hover:bg-slate-700">Settings<span className="block text-sm text-slate-400">Runtime and Legit mode help</span></button>
+                    {isLoaded && <button type="button" onClick={handleRestartApp} className="rounded-xl border border-slate-600 p-4 text-left hover:bg-slate-800">Load another save</button>}
+                </div>
+            </Dialog>}
+            {showSettings && <Dialog title="Settings" onClose={() => setShowSettings(false)}>
+                <label className="block text-sm">Runtime
+                    <select value={runtimeMode} disabled={isLoaded || uploadBusy || !!pendingUpload} onChange={e => { setRuntimeMode(e.target.value); setCompatibility(null); setUploadError(''); }} className="mt-2 block w-full rounded-xl border border-slate-600 bg-slate-800 p-3">
+                        <option value={RUNTIME_MODES.backend}>Backend mode</option><option value={RUNTIME_MODES.local}>Local mode</option>
+                    </select>
+                </label>
+                <p className="mt-2 text-sm text-slate-400">Local mode runs in your browser. Backend mode uses FastAPI. Choose your runtime before loading a save.</p>
+                {isLoaded && <p className="mt-2 text-sm text-slate-300">To switch runtime, use “Load another save” after downloading your edits.</p>}
+                <h3 className="mt-6 font-semibold">Legit mode {legitMode ? 'ON' : 'OFF'}</h3>
+                <p className="mt-2 text-sm text-slate-300">Legit mode enforces the 510 total EV limit and explicit level edits within 1–100. Toggle it in the header.</p>
+            </Dialog>}
+            {pendingUpload && <Dialog title="Confirm game / version" onClose={() => { setPendingUpload(null); setCompatibility(null); setUploadError(''); }} closeDisabled={uploadBusy}>
+                <p className="break-words font-semibold">{pendingUpload.file.name}</p>
+                <p className="mt-3 text-sm text-slate-300">The save structure is compatible with the following {pendingUpload.candidates.length === 1 ? 'profile' : 'profiles'}. It does not confirm the exact ROM version. Select the game/version you used.</p>
+                <div className="mt-4 grid gap-2">
+                    {allProfiles().filter(profile => pendingUpload.candidates.includes(profile.id)).map(profile => <button key={profile.id} type="button" disabled={uploadBusy} onClick={() => uploadSaveFile(pendingUpload.file, profile.id)} className="rounded-xl bg-blue-600 p-3 text-left font-semibold hover:bg-blue-500 disabled:opacity-50">{uploadBusy ? 'Checking…' : `Confirm ${profile.identity.game} ${profile.identity.versions.join(' / ')}`}</button>)}
+                </div>
+                {uploadError && <p role="alert" className="mt-3 text-rose-300">{uploadError}</p>}
+                <p className="mt-3 text-xs text-slate-400">If your version is different, cancel and choose a supported save. You do not need to select this file again to confirm.</p>
+            </Dialog>}
 
         </div>
     );
@@ -1223,12 +981,12 @@ const TabItem = ({ icon, label, active, onClick }) => (
         onClick={onClick}
         aria-label={label}
         aria-current={active ? 'page' : undefined}
-        className={`flex flex-col items-center justify-center flex-1 py-3 rounded-[2rem] transition-all duration-300 ${
+        className={`flex flex-col items-center justify-center min-w-0 flex-1 gap-1 py-2 rounded-[2rem] sm:py-3 transition-all duration-300 ${
             active ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/40' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
         }`}
     >
         {icon}
-        <span className="text-[10px] font-bold uppercase mt-1.5 tracking-tighter sm:block hidden">{label}</span>
+        <span className="flex min-h-6 items-center justify-center text-center text-[10px] font-semibold leading-tight">{label}</span>
     </button>
 );
 

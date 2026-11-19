@@ -5,3 +5,11 @@ body {
   background-color: #0f172a; /* Colore scuro di base */
   color: #f1f5f9;
 }
+
+/* Keep secondary actions visible when there is room, including landscape phones. */
+.app-header-actions { display: none; }
+.app-mobile-menu { display: inline-flex; }
+@media (min-width: 768px), (orientation: landscape) and (min-width: 568px) {
+  .app-header-actions { display: flex; }
+  .app-mobile-menu { display: none; }
+}
