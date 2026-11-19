@@ -1,5 +1,5 @@
+import { selectActiveSlot } from './saveLayout.js';
 import { PROFILE } from './profile.js';
-import { gbaChecksum } from './checksum.js';
 import { ru16, ru32 } from './binary.js';
 
 export const SECTION_SIZE = PROFILE.container.section_size;
@@ -35,32 +35,6 @@ export function unboundChecksumLength(id) {
     return PROFILE.container.checksum.lengths[id] ?? PROFILE.container.checksum.default_length;
 }
 
-
-
-export function activeUnboundSlot(buffer, verifyChecksums = true) {
-    const slots = [];
-    const count = PROFILE.container.sections_per_slot;
-    for (let slot = 0; slot < PROFILE.container.slot_count; slot += 1) {
-        const base = slot * count * SECTION_SIZE;
-        if (base + count * SECTION_SIZE > buffer.length) continue;
-        const sections = new Map();
-        for (let i = 0; i < count; i += 1) {
-            const off = base + i * SECTION_SIZE;
-            const id = ru16(buffer, off + OFF_ID);
-            if (id >= count || sections.has(id) || !PROFILE.container.signatures.includes(ru32(buffer, off + PROFILE.container.footer.signature))) break;
-            // Section 4 is opaque; auxiliary sectors and RTC trailers are excluded.
-            if (verifyChecksums && !PROFILE.container.checksum.opaque_ids.includes(id) && gbaChecksum(buffer, off, unboundChecksumLength(id)) !== ru16(buffer, off + OFF_CHECKSUM)) break;
-            sections.set(id, { id, idx: ru32(buffer, off + OFF_SAVE_IDX), offset: off });
-        }
-        if (sections.size === count && new Set([...sections.values()].map((sec) => sec.idx)).size === 1) slots.push(sections);
-    }
-    if (slots.length === 2) {
-        const delta = (slots[1].get(0).idx - slots[0].get(0).idx) >>> 0;
-        if (delta > 0 && delta < 0x80000000) return slots[1];
-    }
-    return slots[0] || new Map();
-}
-
 export function activeSections(buffer) {
     return [...activeUnboundSlot(buffer).values()].map((sec) => ({
         id: sec.id, off: sec.offset, saveIdx: sec.idx,
@@ -70,4 +44,8 @@ export function activeSections(buffer) {
 
 export function findActiveSectionById(buffer, sectionId) {
     return activeSections(buffer).find((sec) => sec.id === sectionId) || null;
+}
+
+export function activeUnboundSlot(buffer, verifyChecksums = true) {
+    return selectActiveSlot(buffer, PROFILE, verifyChecksums);
 }

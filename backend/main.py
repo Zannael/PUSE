@@ -1,4 +1,4 @@
-from core.profile import DEFAULT_PROFILE_ID, PROFILE, get_profile, select_profile, recognize_save, choose_profile, supports, require_capability, all_profiles
+from core.profile import build_compatibility_report, DEFAULT_PROFILE_ID, PROFILE, get_profile, select_profile, recognize_save, choose_profile, supports, require_capability, all_profiles
 from core.sections import active_sections, refresh_checksum
 import glob
 import json
@@ -512,6 +512,11 @@ async def recognize_profile(file: UploadFile = File(...)):
     return recognize_save(await file.read())
 
 
+@app.post('/profiles/compatibility')
+async def inspect_compatibility(file: UploadFile = File(...), profile_id: str | None = None):
+    return build_compatibility_report(await file.read(), profile_id)
+
+
 @app.get('/profile')
 async def loaded_profile():
     p=get_profile(current_save['profile_id'])
@@ -549,7 +554,7 @@ async def upload_save(file: UploadFile = File(...), profile_id: str | None = Non
     try:
         selected = choose_profile(content, profile_id)
     except ValueError as error:
-        raise HTTPException(status_code=409, detail={'message':str(error), **recognize_save(content)}) from error
+        raise HTTPException(status_code=409, detail={'message':str(error), **recognize_save(content), 'compatibility': build_compatibility_report(content, profile_id)}) from error
     select_profile(selected)
     load_databases()
     current_save["profile_id"] = selected

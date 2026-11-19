@@ -46,6 +46,7 @@ const getInitialLegitMode = () => {
 };
 
 const App = () => {
+    const [compatibility, setCompatibility] = useState(null);
     const [profileChoice, setProfileChoice] = useState('');
     const [runtimeMode, setRuntimeMode] = useState(getInitialRuntimeMode);
     const [legitMode, setLegitMode] = useState(getInitialLegitMode);
@@ -80,6 +81,9 @@ const App = () => {
         if (!file) return;
 
         try {
+            const report = await client.inspectCompatibility(file, profileChoice || null);
+            setCompatibility({ report, filename: file.name });
+            if (!report.mutations_allowed) return;
             await client.uploadSave(file, profileChoice || null);
             setTrainer(await client.getTrainer());
             setActiveTab('party');
@@ -575,6 +579,17 @@ const App = () => {
             </header>
 
             <main className="w-full max-w-6xl px-4 pt-4 pb-48 md:px-8 md:pt-8 md:pb-48">
+                {compatibility && <details key={JSON.stringify(compatibility)} open={!compatibility.report.mutations_allowed} className="mb-5 rounded-xl border border-slate-600 bg-slate-900 p-4">
+                    <summary className="cursor-pointer font-semibold">Compatibility: {compatibility.filename} · {compatibility.report.mutations_allowed ? 'Supported declared profile' : 'Editing blocked'}</summary>
+                    <div className="mt-3 space-y-2 text-sm text-slate-300" aria-label="Save compatibility report">
+                        <p>Profile: {compatibility.report.profile_id || 'Unknown layout'} · {compatibility.report.size} bytes</p>
+                        <p>Container candidates: {compatibility.report.candidates.join(', ') || 'None'}. Structural evidence does not confirm the ROM version. Editing assumes the declared game/version.</p>
+                        <p>Newest structural generation: {compatibility.report.structural_generation ?? 'None'} · Intact generation: {compatibility.report.editable_generation ?? 'None'}.</p>
+                        {compatibility.report.uses_older_generation && <p>Using the older intact generation because the newer generation failed checksum validation.</p>}
+                        {!!compatibility.report.opaque_section_ids.length && <p>Unverified checksum sections: {compatibility.report.opaque_section_ids.join(', ')}. Shared auxiliary data has no verified historical snapshot.</p>}
+                        {!compatibility.report.mutations_allowed && <p role="alert">Blocked: {compatibility.report.blockers.join(', ')}. Choose the correct game/version and select the file again. Unknown layouts remain available for this structural inspection only.</p>}
+                    </div>
+                </details>}
                 {!isLoaded ? (
                     <div className="space-y-10 md:space-y-14 pb-8">
                         <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#1e293b]/95 via-[#16243c]/95 to-[#0f172a] p-5 md:p-8">

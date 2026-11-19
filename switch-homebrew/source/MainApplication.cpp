@@ -1265,6 +1265,15 @@ void MainApplication::OpenFieldInspector() {
     const auto menu = this->inspector_layout_->GetMenu();
     menu->ClearItems();
     this->inspector_layout_->SetSubtitle(report.profile_id + " | Known layout; ROM version unconfirmed");
+    auto compatibility_item = pu::ui::elm::MenuItem::New("Save compatibility report");
+    compatibility_item->SetColor(this->theme_.text_primary);
+    compatibility_item->AddOnKey([this]() {
+        const auto compatibility = puse::core::BuildCompatibilityReport(this->save_session_.Buffer(), this->save_session_.Profile()->id);
+        this->inspector_detail_layout_->SetSubtitle("Read only | ROM version unconfirmed");
+        this->inspector_detail_layout_->SetLines(puse::core::CompatibilityDetails(compatibility));
+        this->ShowLayoutScreen(this->inspector_detail_layout_);
+    }, HidNpadButton_A);
+    menu->AddItem(compatibility_item);
     for (const auto& field: report.fields) {
         auto item = pu::ui::elm::MenuItem::New(field.label + "   " + field.decoded);
         item->SetColor(this->theme_.text_primary);

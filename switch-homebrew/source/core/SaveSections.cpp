@@ -27,26 +27,82 @@ std::vector<const profile::GameProfile*> RecognizeProfiles(const std::vector<uin
     return result;
 }
 
-bool ChooseProfile(const std::vector<uint8_t>& buffer,const std::string& requested,const profile::GameProfile** out,std::string* error) {
-    const auto candidates=RecognizeProfiles(buffer);
-    if(!requested.empty()) {
-        const auto* chosen=profile::FindProfile(requested);
-        if(!chosen || std::find(candidates.begin(),candidates.end(),chosen)==candidates.end()) {
-            if(error)*error="Save does not match the selected profile container";return false;
+CompatibilityReport BuildCompatibilityReport(const std::vector<uint8_t>& buffer, const std::string& requested) {
+    CompatibilityReport report;
+    report.size = buffer.size();
+    const auto candidates = RecognizeProfiles(buffer);
+    for (const auto* p: candidates) report.candidates.push_back(p->id);
+    const auto* selected = profile::FindProfile(requested);
+    if (requested.empty() && candidates.size() == 1) selected = candidates[0];
+    if (!requested.empty() && !selected) report.blockers.push_back("unsupported_profile");
+    else if (!selected || std::find(candidates.begin(), candidates.end(), selected) == candidates.end()) report.blockers.push_back("unknown_layout");
+    if (selected) {
+        report.profile_id = selected->id;
+        if (buffer.size() != profile::kContainerFlashSize && buffer.size() != profile::kContainerFlashSize + 16) report.blockers.push_back("unsupported_size");
+        const auto structural = ActiveUnboundSections(buffer, false, selected);
+        const auto editable = ActiveUnboundSections(buffer, true, selected);
+        if (!structural.empty()) report.structural_generation = structural[0].save_index;
+        if (!editable.empty()) report.editable_generation = editable[0].save_index;
+        report.uses_older_generation = !structural.empty() && !editable.empty() && structural[0].offset != editable[0].offset;
+        if (selected == &profile::kBuiltin) report.opaque_section_ids.push_back(4);
+        if (editable.empty()) report.blockers.push_back("no_coherent_generation");
+        if (requested.empty() && selected != &profile::kBuiltin) report.blockers.push_back("explicit_selection_required");
+    }
+    report.mutations_allowed = report.blockers.empty();
+    return report;
+}
+
+std::string CompatibilityReportJson(const CompatibilityReport& r) {
+    // Profile IDs and blocker codes come only from the built-in registry.
+    std::string out = "{\"schema_version\":1,\"size\":" + std::to_string(r.size) + ",\"profile_id\":" +
+        (r.profile_id.empty() ? "null" : "\"" + r.profile_id + "\"") + ",\"candidates\":[";
+    for (size_t i = 0; i < r.candidates.size(); ++i) out += (i ? "," : "") + std::string("\"") + r.candidates[i] + "\"";
+    out += "],\"exact_rom_version_confirmed\":false,\"structural_generation\":" + (r.structural_generation < 0 ? "null" : std::to_string(r.structural_generation));
+    out += ",\"editable_generation\":" + (r.editable_generation < 0 ? "null" : std::to_string(r.editable_generation));
+    out += ",\"uses_older_generation\":" + std::string(r.uses_older_generation ? "true" : "false") + ",\"opaque_section_ids\":[";
+    for (size_t i = 0; i < r.opaque_section_ids.size(); ++i) out += (i ? "," : "") + std::to_string(r.opaque_section_ids[i]);
+    out += "],\"mutations_allowed\":" + std::string(r.mutations_allowed ? "true" : "false") + ",\"blockers\":[";
+    for (size_t i = 0; i < r.blockers.size(); ++i) out += (i ? "," : "") + std::string("\"") + r.blockers[i] + "\"";
+    return out + "]}";
+}
+
+std::vector<std::string> CompatibilityDetails(const CompatibilityReport& r) {
+    std::vector<std::string> lines = {
+        "Profile: " + (r.profile_id.empty() ? std::string("unknown") : r.profile_id),
+        "Size: " + std::to_string(r.size) + " bytes",
+        "ROM version: user declared, unconfirmed",
+        "Generation: " + (r.editable_generation < 0 ? std::string("none intact") : std::to_string(r.editable_generation)),
+        r.uses_older_generation ? "Fallback: older intact generation" : "Fallback: not used",
+        r.mutations_allowed ? "Editing: permitted for declared game" : "Editing: blocked"
+    };
+    for (const auto& code: r.blockers) lines.push_back(code);
+    if (!r.opaque_section_ids.empty()) lines.push_back("Section 4 checksum: unverified");
+    return lines;
+}
+
+bool ChooseProfile(const std::vector<uint8_t>& buffer, const std::string& requested, const profile::GameProfile** out, std::string* error) {
+    const auto report = BuildCompatibilityReport(buffer, requested);
+    if (!report.mutations_allowed) {
+        if (error) {
+            *error = "Unsupported save layout";
+            for (const auto& code: report.blockers) {
+                if (code == "explicit_selection_required") *error = "Explicit game/version selection required";
+            }
+            for (const auto& line: CompatibilityDetails(report)) *error += "\n" + line;
         }
-        *out=chosen;return true;
+        return false;
     }
-    if(candidates.size()>1 || (candidates.size()==1 && candidates[0]==&profile::kRadicalRed)) {
-        if(error)*error="Explicit game/version selection required";return false;
-    }
-    *out=&profile::kBuiltin;return true;
+    if (out) *out = profile::FindProfile(report.profile_id);
+    return true;
 }
 
 size_t UnboundChecksumLength(uint16_t id) {
     return profile::ChecksumLength(id);
 }
 
-std::vector<SaveSection> ActiveUnboundSections(const std::vector<uint8_t>& buffer, bool verify_checksums) {
+std::vector<SaveSection> ActiveUnboundSections(const std::vector<uint8_t>& buffer, bool verify_checksums, const profile::GameProfile* game) {
+    if (!game) game = &profile::Current();
+    const bool radical = game == &profile::kRadicalRed;
     std::vector<std::vector<SaveSection>> slots;
     const auto sections = ListSections(buffer);
     for (size_t slot_index = 0; slot_index < profile::kContainerSlotCount; ++slot_index) {
@@ -60,11 +116,11 @@ std::vector<SaveSection> ActiveUnboundSections(const std::vector<uint8_t>& buffe
             const auto& sec = sections[i];
             const auto signature = ReadU32Le(buffer.data() + sec.offset, profile::kContainerFooterSignature);
             if (sec.section_id >= profile::kContainerSectionsPerSlot || seen[sec.section_id] || sec.save_index != counter ||
-                !profile::SignatureValid(signature)) {
+                !(radical ? signature == 0x08012025 : signature == 0x01121999 || signature == 0x01121998)) {
                 valid = false; break;
             }
             // Retain section 4's opaque checksum protection.
-            if (verify_checksums && !profile::Opaque(sec.section_id) && ComputeSectionChecksum(buffer.data() + sec.offset,
+            if (verify_checksums && (radical || sec.section_id != 4) && ComputeSectionChecksum(buffer.data() + sec.offset,
                     UnboundChecksumLength(sec.section_id), 0) != sec.stored_checksum) {
                 valid = false; break;
             }

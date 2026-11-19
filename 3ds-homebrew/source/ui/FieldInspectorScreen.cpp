@@ -33,14 +33,22 @@ FieldInspectorScreen::FieldInspectorScreen(int field) : BaseScreen(false) {
     }
     label(topScreen, sl::VRect(8, 40, 384, 180), "Field Inspector\n" + report.profile_id +
         "\nKnown profile layout\nROM version unconfirmed\nUnknown flags unclassified\nSave counter: " + std::to_string(report.save_index));
-    if (field >= 0 && static_cast<size_t>(field) < report.fields.size()) {
+    if (field == -2) {
+        const auto compatibility = puse::core::BuildCompatibilityReport(core->Session().Buffer(), core->Session().Profile()->id);
+        std::string text;
+        for (const auto& line: puse::core::CompatibilityDetails(compatibility)) text += line + "\n";
+        label(touchScreen, sl::VRect(8, 12, 304, 200), text);
+    } else if (field >= 0 && static_cast<size_t>(field) < report.fields.size()) {
         std::string text;
         for (const auto& line: puse::core::FieldDetails(report.fields[field])) text += line + "\n";
         label(touchScreen, sl::VRect(8, 12, 304, 200), text);
     } else {
         auto scroll = touchScreen->AddNew<sl::ui::ScrollField>(sl::VRect(0, 0, 320, 218));
+        auto compatibility = scroll->AddNew<sl::ui::Button>(sl::VRect(2, 2, 316, 34));
+        compatibility->SetText("Save compatibility report");
+        compatibility->eOnTap = [](sl::ui::Button&) { FieldInspectorScreen::Make(-2)->Open(); };
         for (size_t n = 0; n < report.fields.size(); ++n) {
-            auto button = scroll->AddNew<sl::ui::Button>(sl::VRect(2, 2 + n * 36, 316, 34));
+            auto button = scroll->AddNew<sl::ui::Button>(sl::VRect(2, 38 + n * 36, 316, 34));
             button->SetText(report.fields[n].label + ": " + report.fields[n].decoded);
             button->eOnTap = [n](sl::ui::Button&) { FieldInspectorScreen::Make(static_cast<int>(n))->Open(); };
         }

@@ -1,3 +1,4 @@
+import { selectActiveSlot } from './saveLayout.js';
 import unbound from './gameProfile.json' with { type: 'json' };
 import radical from './radicalRed41Profile.json' with { type: 'json' };
 
@@ -86,15 +87,36 @@ export function recognizeSave(bytes) {
     }
     return {candidates,requires_selection:candidates.length>1 || candidates.some((p)=>p.requires_explicit_selection)};
 }
-export function chooseProfile(bytes, requested = null) {
-    const result = recognizeSave(bytes);
-    if(requested) {
-        getProfile(requested);
-        if(!result.candidates.some((c)=>c.profile_id===requested)) throw new Error('Save does not match the selected profile container');
-        return requested;
+export function buildCompatibilityReport(bytes, requested = null) {
+    const candidates = recognizeSave(bytes).candidates.map((c) => c.profile_id);
+    let selected = requested && Object.hasOwn(registry, requested) ? requested : null;
+    if (!requested && candidates.length === 1) selected = candidates[0];
+    const blockers = [];
+    if (requested && !Object.hasOwn(registry, requested)) blockers.push('unsupported_profile');
+    else if (selected === null || !candidates.includes(selected)) blockers.push('unknown_layout');
+    let structural = new Map(), editable = new Map(), opaque = [];
+    if (selected !== null) {
+        const p = getProfile(selected), c = p.container;
+        if (!c.rtc_trailer_sizes.some((n) => bytes.length === c.flash_size + n)) blockers.push('unsupported_size');
+        structural = selectActiveSlot(bytes, p, false);
+        editable = selectActiveSlot(bytes, p);
+        opaque = [...c.checksum.opaque_ids];
+        if (!editable.size) blockers.push('no_coherent_generation');
+        if (!requested && selected !== DEFAULT_PROFILE_ID) blockers.push('explicit_selection_required');
     }
-    if(result.requires_selection) throw new Error('Explicit game/version selection required; a save signature does not prove Radical Red 4.1');
-    return result.candidates[0]?.profile_id ?? DEFAULT_PROFILE_ID;
+    return { schema_version: 1, size: bytes.length, profile_id: selected, candidates,
+        exact_rom_version_confirmed: false, structural_generation: structural.get(0)?.idx ?? null,
+        editable_generation: editable.get(0)?.idx ?? null,
+        uses_older_generation: Boolean(structural.size && editable.size && structural.get(0).offset !== editable.get(0).offset),
+        opaque_section_ids: opaque, mutations_allowed: !blockers.length, blockers };
+}
+export function chooseProfile(bytes, requested = null) {
+    const report = buildCompatibilityReport(bytes, requested);
+    if (!report.mutations_allowed) {
+        if (report.blockers.includes('explicit_selection_required')) throw new Error('Explicit game/version selection required; a save signature does not prove Radical Red 4.1');
+        throw new Error(`Unsupported save layout: ${report.blockers.join(', ')}`);
+    }
+    return report.profile_id;
 }
 export function nativeIdentity(id, profileId = selectedId) { return [getProfile(profileId).id, Number(id)]; }
 export function inspectPcRecord(raw, knownSpecies = new Set(), profileId = selectedId) {

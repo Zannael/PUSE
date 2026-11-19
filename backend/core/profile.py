@@ -127,13 +127,50 @@ def recognize_save(data):
     return {'candidates':candidates,'requires_selection':len(candidates)>1 or any(c['requires_explicit_selection'] for c in candidates)}
 
 
+def build_compatibility_report(data, requested=None):
+    """Preflight without changing the active profile, session or input bytes.
+
+    A matching container is structural evidence only. Mutation permission is
+    conditional on the user's game/version declaration, never ROM detection.
+    Unknown layouts are inspectable here without invoking semantic readers.
+    """
+    from core.sections import active_slot
+    candidates = [c['profile_id'] for c in recognize_save(data)['candidates']]
+    selected = requested if requested in _REGISTRY else None
+    if not requested and len(candidates) == 1:
+        selected = candidates[0]
+    blockers = []
+    if requested and requested not in _REGISTRY:
+        blockers.append('unsupported_profile')
+    elif selected is None or selected not in candidates:
+        blockers.append('unknown_layout')
+    structural = editable = {}
+    opaque = []
+    if selected is not None:
+        profile = get_profile(selected)
+        c = profile['container']
+        if len(data) not in [c['flash_size'] + n for n in c['rtc_trailer_sizes']]:
+            blockers.append('unsupported_size')
+        structural = active_slot(data, profile, verify_checksums=False)
+        editable = active_slot(data, profile)
+        opaque = list(c['checksum']['opaque_ids'])
+        if not editable:
+            blockers.append('no_coherent_generation')
+        if not requested and selected != DEFAULT_PROFILE_ID:
+            blockers.append('explicit_selection_required')
+    structural_index = structural[0]['idx'] if structural else None
+    editable_index = editable[0]['idx'] if editable else None
+    return dict(schema_version=1, size=len(data), profile_id=selected, candidates=candidates,
+                exact_rom_version_confirmed=False, structural_generation=structural_index,
+                editable_generation=editable_index,
+                uses_older_generation=bool(structural and editable and structural[0]['offset'] != editable[0]['offset']),
+                opaque_section_ids=opaque, mutations_allowed=not blockers, blockers=blockers)
+
+
 def choose_profile(data, requested=None):
-    recognition = recognize_save(data)
-    if requested:
-        profile = get_profile(requested)
-        if not any(c['profile_id']==requested for c in recognition['candidates']):
-            raise ValueError('Save does not match the selected profile container')
-        return profile['id']
-    if recognition['requires_selection']:
-        raise ValueError('Explicit game/version selection required; a save signature does not prove Radical Red 4.1')
-    return recognition['candidates'][0]['profile_id'] if recognition['candidates'] else DEFAULT_PROFILE_ID
+    report = build_compatibility_report(data, requested)
+    if not report['mutations_allowed']:
+        if 'explicit_selection_required' in report['blockers']:
+            raise ValueError('Explicit game/version selection required; a save signature does not prove Radical Red 4.1')
+        raise ValueError('Unsupported save layout: ' + ', '.join(report['blockers']))
+    return report['profile_id']

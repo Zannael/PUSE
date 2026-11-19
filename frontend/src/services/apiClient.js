@@ -1,4 +1,4 @@
-import { activateProfile, PROFILE, isRadicalRed, profileSummary, allProfiles, recognizeSave, requireCapability } from '../core/profile.js';
+import { activateProfile, PROFILE, isRadicalRed, profileSummary, allProfiles, recognizeSave, buildCompatibilityReport, requireCapability } from '../core/profile.js';
 import { strToU8, zipSync } from 'fflate';
 import {
     resolveItemIconUrl,
@@ -169,6 +169,12 @@ const backendClient = {
         const profile = await backendJson('/profile');
         await activateProfile(profile.id);
         return result;
+    },
+    async inspectCompatibility(file, profileId = null) {
+        const formData = new FormData(); formData.append('file', file);
+        const res = await fetch(`${API_BASE}/profiles/compatibility${profileId ? `?profile_id=${encodeURIComponent(profileId)}` : ''}`, { method: 'POST', body: formData });
+        if (!res.ok) throw new Error('Compatibility inspection failed');
+        return res.json();
     },
     getSaveProfile() { return backendJson('/profile'); },
     getTrainer() { return backendJson('/trainer'); },
@@ -492,11 +498,13 @@ const localClient = {
         return isRadicalRed() ? null : resolveItemIconUrl(itemId, API_BASE);
     },
     async uploadSave(file, profileId = null) {
-        const { clearPcContext, loadFile, loadCatalog } = await getLocalCoreModules();
+        const { loadFile, loadCatalog } = await getLocalCoreModules();
         itemNameMapCache = null;
-        clearPcContext();
         await loadFile(file, profileId);
         await loadCatalog(PROFILE.id);
+    },
+    async inspectCompatibility(file, profileId = null) {
+        return buildCompatibilityReport(new Uint8Array(await file.arrayBuffer()), profileId);
     },
     async getSaveProfile() { return profileSummary(); },
     async getTrainer() { const {readTrainer,getBuffer} = await getLocalCoreModules(); return readTrainer(getBuffer()); },
