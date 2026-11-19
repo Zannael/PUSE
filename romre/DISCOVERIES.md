@@ -2,6 +2,35 @@
 
 Living notes for structural discoveries while extracting CFRU ROM data.
 
+## Portable Graphics Extraction (2026-11-19)
+
+- `backend/data/graphics/roms.json` registers the exact local Unbound, Radical Red
+  and Sword/Shield hashes, record counts and shared DPE graphics descriptor.
+  `romre/extract_graphics.py` emits portable, private PNG packs. See `GRAPHICS.md`.
+- All three binaries expose front/back sprite tables, normal/shiny palettes,
+  icon pointers, icon palette indices and icon palettes at header offsets
+  `0x128` through `0x140`. Native species IDs index these tables directly.
+- The live item icon table is referenced at `0x9899C`; verify the surrounding
+  accessor instructions before accepting it. Decodable retained vanilla tables
+  also exist and must not be selected by image plausibility alone.
+- Verified graphics record counts (including placeholders): Unbound 1294,
+  Radical Red 1376, Sword/Shield 1268. Item counts examined: 728, 750, 750.
+  Every resource key and decoded PNG pixel was compared between Python and JS.
+- Castform (native ID 385) has four 2048-byte image banks and four 32-byte
+  palettes. Other 128-byte palette blocks in Radical Red contain one effective
+  palette followed by repeated grayscale data or zeros. The live battle loader
+  copies the first 32 bytes except when indexing Castform's battle form.
+- Unbound Iron Plate (item 503) palette at `0x236990` starts with `0x0A`, not
+  `0x10`. Its payload decodes using BIOS LZ semantics without changing the ROM.
+  Sword/Shield also contains an end reference exceeding the logical resource
+  length: bound the output to the declared length rather than rejecting it.
+- Resource extraction and appearance selection are separate. Declared female
+  mappings and Unown letters are supported; Spinda's procedural spots and exact
+  battle-context appearances are not reproduced by a static pack.
+- Modern Emerald Expansion is a different adapter, not just different offsets:
+  SpeciesInfo/ItemInfo carry graphics pointers, palettes may be raw, and Smol
+  compression may be used. This is source-level research, not binary validation.
+
 ## Species Name Table Observations
 
 - In both `Unbound.gba` and `SwordShield.gba`, species entries include a gap block after early IDs:

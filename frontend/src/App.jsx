@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { createApiClient, getInitialRuntimeMode, persistRuntimeMode, RUNTIME_MODES } from './services/apiClient.js';
 import { getExpAtLevel, getSpeciesGrowthRate } from './core/growth.js';
+import GraphicsResources from './components/GraphicsResources.jsx';
 
 const PartyGrid = lazy(() => import('./components/PartyGrid'));
 const PCGrid = lazy(() => import('./components/PCGrid'));
@@ -588,6 +589,7 @@ const App = () => {
                         {compatibility.report.uses_older_generation && <p>Using the older intact generation because the newer generation failed checksum validation.</p>}
                         {!!compatibility.report.opaque_section_ids.length && <p>Unverified checksum sections: {compatibility.report.opaque_section_ids.join(', ')}. Shared auxiliary data has no verified historical snapshot.</p>}
                         {!compatibility.report.mutations_allowed && <p role="alert">Blocked: {compatibility.report.blockers.join(', ')}. Choose the correct game/version and select the file again. Unknown layouts remain available for this structural inspection only.</p>}
+                        {isLoaded && <GraphicsResources client={client} profileId={PROFILE.id} onChanged={() => setRefreshKey(key => key + 1)} />}
                     </div>
                 </details>}
                 {!isLoaded ? (

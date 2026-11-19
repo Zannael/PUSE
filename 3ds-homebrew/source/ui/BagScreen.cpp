@@ -1,5 +1,7 @@
 #include "ui/BagScreen.h"
 #include "Core.h"
+#include "io/IconLoader.h"
+#include "starlight/ui/Image.h"
 
 #include "starlight/InputManager.h"
 #include "starlight/datatypes/Color.h"
@@ -109,7 +111,9 @@ void BagScreen::RebuildSlotButtons() {
     for (size_t i = 0; i < slots_.size(); ++i) {
         if (slots_[i].item_id == 0) continue;  // skip empty slots
 
-        auto btn = scroll_->AddNew<sl::ui::Button>(VRect(2, y, 316, kRowH - 2));
+        const auto icon_path = puse::io::ResolveItemIconPath(slots_[i].item_id);
+        if (!icon_path.empty()) scroll_->AddNew<sl::ui::Image>(VRect(4, y + 3, 24, 24), icon_path);
+        auto btn = scroll_->AddNew<sl::ui::Button>(VRect(32, y, 286, kRowH - 2));
         btn->SetText(SlotLabel(slots_[i]));
 
         // Capture slot index; qty edit on tap (Key items and TMs are not qty-editable by convention)

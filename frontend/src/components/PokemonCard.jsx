@@ -33,7 +33,7 @@ const PokemonCard = ({ pokemon, onEdit, getPokemonIconUrl }) => {
                         className="relative w-20 h-20 bg-slate-800/80 rounded-3xl flex items-center justify-center border border-white/10 overflow-hidden ring-1 ring-white/5">
                         <img
                             // Interroga il backend passando solo l'ID numerico
-                            src={getPokemonIconUrl(pokemon.species_id)}
+                            src={getPokemonIconUrl(pokemon)}
                             alt={pokemon.species_name}
                             className="w-16 h-16 object-contain pixelated"
                             onError={(e) => {

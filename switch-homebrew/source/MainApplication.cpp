@@ -1,3 +1,4 @@
+#include <puse/core/GraphicsPack.hpp>
 #include <MainApplication.hpp>
 
 #include <algorithm>
@@ -748,9 +749,23 @@ pu::sdl2::TextureHandle::Ref MainApplication::LoadTextureHandle(const std::strin
     return tex ? pu::sdl2::TextureHandle::New(tex) : nullptr;
 }
 
-pu::sdl2::TextureHandle::Ref MainApplication::GetPokemonIcon(const uint16_t species_id) {
-    if (puse::core::profile::IsRadicalRed()) return nullptr;
-    auto cache_it = this->pokemon_icon_cache_.find(species_id);
+pu::sdl2::TextureHandle::Ref MainApplication::GetPokemonIcon(const uint16_t species_id, bool shiny, const std::string& gender, uint32_t pid, bool has_pid) {
+    const std::string profile_id = puse::core::profile::Current().id;
+    const std::string cache_key = profile_id + ":" + std::to_string(species_id) + ":" + std::to_string(shiny) + ":" + gender + ":" + std::to_string(species_id == 201 ? pid : 0);
+    const std::vector<std::string> pack_roots = {"sdmc:/switch/puse/graphics", "romfs:/graphics"};
+    const auto pack_path = puse::core::graphics::FindPokemon(pack_roots, profile_id, species_id, shiny, gender, pid, has_pid);
+    if (!pack_path.empty()) {
+        auto cached = this->pokemon_icon_cache_.find(cache_key);
+        if (cached != this->pokemon_icon_cache_.end()) return cached->second;
+        auto icon = LoadTextureHandle(pack_path);
+        if (icon && icon->Get()) { this->pokemon_icon_cache_[cache_key] = icon; return icon; }
+    }
+    {
+        const auto name = puse::core::graphics::SharedName(io::ResolveAssetPath("data/graphics/fallbacks.tsv"), profile_id, "pokemon", species_id);
+        for (const auto& root : PokemonIconSearchRoots()) { const auto path = puse::core::graphics::FindFile(root, name); if (!path.empty()) return LoadTextureHandle(path); }
+        if (profile_id != puse::core::profile::kId) return nullptr;
+    }
+    auto cache_it = this->pokemon_icon_cache_.find(cache_key);
     if (cache_it != this->pokemon_icon_cache_.end()) {
         return cache_it->second;
     }
@@ -825,12 +840,19 @@ pu::sdl2::TextureHandle::Ref MainApplication::GetPokemonIcon(const uint16_t spec
         icon = LoadTextureHandle(found_path);
     }
 
-    this->pokemon_icon_cache_[species_id] = icon;
+    this->pokemon_icon_cache_[cache_key] = icon;
     return icon;
 }
 
 pu::sdl2::TextureHandle::Ref MainApplication::GetItemIcon(const uint16_t item_id) {
-    if (puse::core::profile::IsRadicalRed()) return nullptr;
+    const std::string profile_id = puse::core::profile::Current().id;
+    const auto pack_path = puse::core::graphics::FindItem({"sdmc:/switch/puse/graphics", "romfs:/graphics"}, profile_id, item_id);
+    if (!pack_path.empty()) { auto icon = LoadTextureHandle(pack_path); if (icon && icon->Get()) return icon; }
+    {
+        const auto name = puse::core::graphics::SharedName(io::ResolveAssetPath("data/graphics/fallbacks.tsv"), profile_id, "items", item_id);
+        for (const auto& root : ItemIconSearchRoots()) { const auto path = puse::core::graphics::FindFile(root, name); if (!path.empty()) return LoadTextureHandle(path); }
+        if (profile_id != puse::core::profile::kId) return nullptr;
+    }
     if (item_id == 0) {
         return nullptr;
     }
@@ -1413,7 +1435,7 @@ void MainApplication::RebuildPcBoxMenu() {
         auto item = pu::ui::elm::MenuItem::New(label.str());
         item->SetColor({255, 255, 255, 255});
         if (sit != slot_map.end()) {
-            item->SetIcon(GetPokemonIcon(sit->second->species_id));
+            item->SetIcon(GetPokemonIcon(sit->second->species_id, sit->second->is_shiny, sit->second->gender, sit->second->pid, true));
         }
         if (sit != slot_map.end()) {
             const int s = slot;
@@ -1481,7 +1503,7 @@ void MainApplication::OpenPcMonPage(const int box, const int slot) {
         sub += "   " + m.gender;
     }
     this->pokemon_sections_layout_->SetSubtitle(sub);
-    this->pokemon_sections_layout_->SetMonIcon(GetPokemonIcon(m.species_id));
+    this->pokemon_sections_layout_->SetMonIcon(GetPokemonIcon(m.species_id, m.is_shiny, m.gender, m.pid, true));
 
     this->RebuildPokemonSectionsMenu();
     this->ShowLayoutScreen(this->pokemon_sections_layout_);
@@ -1682,7 +1704,7 @@ void MainApplication::HandlePcFieldEdit(const int section_index, const std::stri
     std::string name = nm.nickname.empty() ? nm.species_name : nm.nickname;
     if (this->dirty_) { name += "  [Unsaved]"; }
     this->pokemon_sections_layout_->SetTitle(name);
-    this->pokemon_sections_layout_->SetMonIcon(GetPokemonIcon(nm.species_id));
+    this->pokemon_sections_layout_->SetMonIcon(GetPokemonIcon(nm.species_id, nm.is_shiny, nm.gender, nm.pid, true));
 }
 
 void MainApplication::HandleFieldEdit(const int section_index, const std::string &field_key) {
@@ -1922,7 +1944,7 @@ void MainApplication::RebuildPartyMenu() {
 
         auto item = pu::ui::elm::MenuItem::New(label.str());
         item->SetColor({255, 255, 255, 255});
-        item->SetIcon(GetPokemonIcon(entry.species_id));
+        item->SetIcon(GetPokemonIcon(entry.species_id, entry.is_shiny, entry.gender, entry.pid, true));
 
         const int idx = static_cast<int>(i);
         item->AddOnKey([this, idx]() {
@@ -2078,7 +2100,7 @@ void MainApplication::OpenSelectedPartyPage() {
 
     this->edit_context_ = EditContext::Party;
     const auto &entry = this->party_[static_cast<size_t>(this->selected_party_index_)];
-    this->pokemon_sections_layout_->SetPokemonHeader(entry, GetPokemonIcon(entry.species_id), this->dirty_);
+    this->pokemon_sections_layout_->SetPokemonHeader(entry, GetPokemonIcon(entry.species_id, entry.is_shiny, entry.gender, entry.pid, true), this->dirty_);
     this->RebuildPokemonSectionsMenu();
     this->ShowLayoutScreen(this->pokemon_sections_layout_);
 }

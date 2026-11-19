@@ -1,10 +1,12 @@
-import { activateProfile, PROFILE, isRadicalRed, profileSummary, allProfiles, recognizeSave, buildCompatibilityReport, requireCapability } from '../core/profile.js';
+import { activateProfile, PROFILE, profileSummary, allProfiles, recognizeSave, buildCompatibilityReport, requireCapability } from '../core/profile.js';
 import { strToU8, zipSync } from 'fflate';
 import {
     resolveItemIconUrl,
     resolvePokemonIconUrl,
 } from '../core/iconResolver.js';
 import { collectAllPokemon } from './allPokemon.js';
+import { restoreGraphics, importGraphics, clearGraphics, graphicsManifest, graphicsPack } from '../core/graphicsStore.js';
+import { graphicsFallbacks } from '../core/graphicsData.js';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const MODE_STORAGE_KEY = "runtime_mode";
@@ -149,12 +151,40 @@ async function ensureValidSpeciesId(speciesId) {
     return nextId;
 }
 
+const graphicsMethods = {
+    async getGraphicsStatus() {
+        const profileId = PROFILE.id;
+        await restoreGraphics(profileId);
+        const manifest = graphicsManifest(profileId);
+        return { profile_id: profileId, source: manifest ? 'rom' : 'shared', storage: 'browser', canExport: Boolean(manifest), manifest,
+            coverage: { pokemon: Object.keys(graphicsFallbacks[profileId]?.pokemon || {}).length, items: Object.keys(graphicsFallbacks[profileId]?.items || {}).length } };
+    },
+    async importGraphicsRom(file, onProgress) { return importGraphics(file, PROFILE.id, onProgress); },
+    async clearGraphics() { return clearGraphics(PROFILE.id); },
+    async exportGraphicsPack() {
+        const pack = graphicsPack(PROFILE.id);
+        if (!pack) throw new Error('Import a ROM in this browser before exporting its resources');
+        downloadBlob(new Blob([zipSync(pack.files, { level: 0 })], { type: 'application/zip' }), `${PROFILE.id}-graphics.zip`);
+    },
+};
+
 const backendClient = {
-    getPokemonIconUrl(speciesId) {
-        return isRadicalRed() ? null : resolvePokemonIconUrl(speciesId, API_BASE);
+    ...graphicsMethods,
+    async getGraphicsStatus() {
+        const local = await graphicsMethods.getGraphicsStatus();
+        if (local.source === 'rom') return local;
+        try {
+            const remote = await backendJson(`/graphics/status?profile_id=${encodeURIComponent(PROFILE.id)}`);
+            if (remote.source === 'rom') return { ...remote, storage: 'server', canExport: false };
+        } catch { /* Keep shared fallback status when optional server resources are unavailable. */ }
+        return local;
+    },
+    getPokemonIconUrl(species) {
+        const context = typeof species === 'object' && species ? species : {};
+        return resolvePokemonIconUrl(context.species_id ?? species, API_BASE, context);
     },
     getItemIconUrl(itemId) {
-        return isRadicalRed() ? null : resolveItemIconUrl(itemId, API_BASE);
+        return resolveItemIconUrl(itemId, API_BASE);
     },
     async uploadSave(file, profileId = null) {
         const formData = new FormData();
@@ -168,6 +198,7 @@ const backendClient = {
         const result = await res.json();
         const profile = await backendJson('/profile');
         await activateProfile(profile.id);
+        await restoreGraphics(profile.id);
         return result;
     },
     async inspectCompatibility(file, profileId = null) {
@@ -491,17 +522,20 @@ const backendClient = {
 };
 
 const localClient = {
-    getPokemonIconUrl(speciesId) {
-        return isRadicalRed() ? null : resolvePokemonIconUrl(speciesId, API_BASE);
+    ...graphicsMethods,
+    getPokemonIconUrl(species) {
+        const context = typeof species === 'object' && species ? species : {};
+        return resolvePokemonIconUrl(context.species_id ?? species, undefined, context);
     },
     getItemIconUrl(itemId) {
-        return isRadicalRed() ? null : resolveItemIconUrl(itemId, API_BASE);
+        return resolveItemIconUrl(itemId);
     },
     async uploadSave(file, profileId = null) {
         const { loadFile, loadCatalog } = await getLocalCoreModules();
         itemNameMapCache = null;
         await loadFile(file, profileId);
         await loadCatalog(PROFILE.id);
+        await restoreGraphics(PROFILE.id);
     },
     async inspectCompatibility(file, profileId = null) {
         return buildCompatibilityReport(new Uint8Array(await file.arrayBuffer()), profileId);

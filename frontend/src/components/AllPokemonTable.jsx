@@ -79,7 +79,7 @@ function PokemonRow({ pokemon, expanded, onToggle, getPokemonIconUrl, itemNames,
             >
                 <span className="flex min-w-0 items-center gap-3">
                     <span className="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-slate-800">
-                        <img src={getPokemonIconUrl(pokemon.species_id)} alt="" className="h-8 w-8 object-contain pixelated"
+                        <img src={getPokemonIconUrl(pokemon)} alt="" className="h-8 w-8 object-contain pixelated"
                             onError={(event) => {
                                 if (event.currentTarget.src !== POKEMON_ICON_FALLBACK_URL) {
                                     event.currentTarget.src = POKEMON_ICON_FALLBACK_URL;

@@ -39,6 +39,8 @@ class ExtractTask:
     script: str
 
     def command(self, rom_path: Path, out_root: Path, context: dict[str, int]) -> list[str]:
+        if self.key == 'graphics':
+            return [sys.executable, str(REPO_ROOT / 'romre/extract_graphics.py'), '--rom', str(rom_path), '--out', str(out_root / 'icons')]
         json_dir = out_root / "json"
         txt_dir = out_root / "txt"
 
@@ -80,6 +82,7 @@ class ExtractTask:
         txt_dir = out_root / "txt"
 
         mapping = {
+            'graphics': [out_root / 'icons/manifest.json', out_root / 'icons/resources.tsv'],
             "species_table": [json_dir / "species_table_from_rom.json", txt_dir / "pokemon.txt"],
             "abilities_table": [json_dir / "ability_table_from_rom.json", txt_dir / "abilities.txt"],
             "moves_table": [json_dir / "move_table_from_rom.json", txt_dir / "moves.txt"],
@@ -93,6 +96,7 @@ class ExtractTask:
 
 
 TASKS: list[ExtractTask] = [
+    ExtractTask('graphics', 'graphics', 'extract_graphics.py'),
     ExtractTask("species_table", "species", "extract_unbound_species_table.py"),
     ExtractTask("abilities_table", "abilities", "extract_unbound_abilities_table.py"),
     ExtractTask("moves_table", "moves", "extract_unbound_moves_table.py"),
@@ -140,6 +144,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--slug", type=str, default=None, help="Override output slug (default: ROM filename stem)")
     parser.add_argument("--data-root", type=Path, default=REPO_ROOT / "romre" / "data", help="Base output root")
     parser.add_argument("--only", nargs="*", default=None, help="Optional subset of task keys")
+    parser.add_argument('--graphics', action='store_true', help='Also extract a private portable graphics pack (requires registered ROM hash and empty icons directory)')
     return parser.parse_args()
 
 
@@ -155,7 +160,7 @@ def main() -> int:
     out_root = args.data_root.resolve() / rom_slug
     make_output_dirs(out_root)
 
-    selected = TASKS
+    selected = [t for t in TASKS if t.key != 'graphics' or args.graphics or (args.only and 'graphics' in args.only)]
     if args.only:
         allow = set(args.only)
         selected = [t for t in TASKS if t.key in allow]
@@ -203,7 +208,7 @@ def main() -> int:
         "notes": [
             "Current pipeline reuses backend/tools/extract_unbound_*.py and will be generalized for non-Unbound CFRU hacks.",
             "Pipeline currently contains only ROM-pure extractors.",
-            "icons/ is reserved for future icon extraction/manifests.",
+            "Use --graphics or --only graphics for a private portable graphics pack; output icons/ must be empty.",
         ],
     }
 

@@ -1,3 +1,5 @@
+#include <puse/core/GraphicsPack.hpp>
+#include <puse/io/DataLoader.hpp>
 #include <puse/core/GameProfile.hpp>
 #include "io/IconLoader.h"
 
@@ -48,8 +50,15 @@ static const char* kItemRoots[] = {
 };
 static const int kItemRootCount = 2;
 
-std::string ResolveMonIconPath(uint16_t species_id) {
-    if (puse::core::profile::IsRadicalRed()) return "";
+std::string ResolveMonIconPath(uint16_t species_id, bool shiny, const std::string& gender, uint32_t pid, bool has_pid) {
+    const std::string profile = puse::core::profile::Current().id;
+    const auto packed = puse::core::graphics::FindPokemon({"sdmc:/3ds/puse/graphics", "romfs:/graphics"}, profile, species_id, shiny, gender, pid, has_pid);
+    if (!packed.empty()) return packed;
+    {
+        const auto name = puse::core::graphics::SharedName(ResolveAssetPath("data/graphics/fallbacks.tsv"), profile, "pokemon", species_id);
+        for (const char* root : kMonRoots) { const auto path = puse::core::graphics::FindFile(root, name); if (!path.empty()) return path; }
+        if (profile != puse::core::profile::kId) return "";
+    }
     char buf4[8], buf3[8], prefix[24];
     snprintf(buf4,   sizeof(buf4),   "%04d",           (int)species_id);
     snprintf(buf3,   sizeof(buf3),   "%03d",           (int)species_id);
@@ -72,7 +81,14 @@ std::string ResolveMonIconPath(uint16_t species_id) {
 }
 
 std::string ResolveItemIconPath(uint16_t item_id) {
-    if (puse::core::profile::IsRadicalRed()) return "";
+    const std::string profile = puse::core::profile::Current().id;
+    const auto packed = puse::core::graphics::FindItem({"sdmc:/3ds/puse/graphics", "romfs:/graphics"}, profile, item_id);
+    if (!packed.empty()) return packed;
+    {
+        const auto name = puse::core::graphics::SharedName(ResolveAssetPath("data/graphics/fallbacks.tsv"), profile, "items", item_id);
+        for (const char* root : kItemRoots) { const auto path = puse::core::graphics::FindFile(root, name); if (!path.empty()) return path; }
+        if (profile != puse::core::profile::kId) return "";
+    }
     char buf4[8], buf3[8];
     snprintf(buf4, sizeof(buf4), "%04d", (int)item_id);
     snprintf(buf3, sizeof(buf3), "%03d", (int)item_id);

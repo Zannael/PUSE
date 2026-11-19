@@ -1,5 +1,8 @@
 import pokemonIconManifest from '../data/pokemon-icon-manifest.json';
 import itemIconManifest from '../data/item-icon-manifest.json';
+import { graphicsFallbacks as fallbacks } from './graphicsData.js';
+import { getProfile } from './profile.js';
+import { graphicsUrl } from './graphicsStore.js';
 
 const DPE_GEN9_SHA = '5906aa4d4904e41393fd9184a16951c961e96263';
 const POKEAPI_SPRITES_SHA = 'eb473a5fc7e6ccd1705d5498d4e5945c05815c74';
@@ -18,17 +21,22 @@ function normalizePositiveInt(value) {
     return n;
 }
 
-export function resolvePokemonIconUrl(speciesId, apiBase) {
+export function resolvePokemonIconUrl(speciesId, apiBase, context = {}) {
     const id = normalizePositiveInt(speciesId);
     if (!id) {
         return POKEMON_ICON_FALLBACK_URL;
     }
 
+    const profileId = getProfile().id;
+    const imported = graphicsUrl(profileId, 'pokemon', id, context);
+    if (imported) return imported;
     if (apiBase) {
-        return `${apiBase}/pokemon-icon/${id}`;
+        const query = new URLSearchParams({ profile_id: profileId, shiny: String(Boolean(context.is_shiny)), gender: context.gender || '' });
+        if (context.pid != null) query.set('pid', context.pid);
+        return `${apiBase}/pokemon-icon/${id}?${query}`;
     }
 
-    const filename = pokemonIconManifest[String(id)];
+    const filename = (fallbacks[profileId]?.pokemon ?? (profileId === 'unbound-2.1.1.1' ? pokemonIconManifest : {}))[String(id)];
     if (!filename) {
         return POKEMON_ICON_FALLBACK_URL;
     }
@@ -42,11 +50,14 @@ export function resolveItemIconUrl(itemId, apiBase) {
         return ITEM_ICON_FALLBACK_URL;
     }
 
+    const profileId = getProfile().id;
+    const imported = graphicsUrl(profileId, 'items', id);
+    if (imported) return imported;
     if (apiBase) {
-        return `${apiBase}/item-icon/${id}`;
+        return `${apiBase}/item-icon/${id}?profile_id=${encodeURIComponent(profileId)}`;
     }
 
-    const filename = itemIconManifest[String(id)];
+    const filename = (fallbacks[profileId]?.items ?? (profileId === 'unbound-2.1.1.1' ? itemIconManifest : {}))[String(id)];
     if (!filename) {
         return ITEM_ICON_FALLBACK_URL;
     }

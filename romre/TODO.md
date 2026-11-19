@@ -2,6 +2,11 @@
 
 Goal: make extraction ROM-driven per CFRU hack, so app data is generated from each ROM instead of fixed shared files.
 
+Graphics v1 is now available through `romre/extract_graphics.py` and the pipeline's
+`--graphics` / `--only graphics` options. `romre/GRAPHICS.md` documents the portable
+pack, four runtime consumers, verified hashes and remaining appearance limitations.
+The historical checklist below still describes the broader metadata migration.
+
 ## 0) Workspace bootstrap
 
 - [ ] Keep ROM reverse-engineering assets under `romre/`.

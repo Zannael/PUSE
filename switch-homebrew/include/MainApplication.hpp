@@ -234,7 +234,7 @@ class MainApplication : public pu::ui::Application {
     int selected_move_slot_;
     pu::ui::elm::TextBlock::Ref toast_text_;
     pu::ui::extras::Toast::Ref save_toast_;
-    std::unordered_map<uint16_t, pu::sdl2::TextureHandle::Ref> pokemon_icon_cache_;
+    std::unordered_map<std::string, pu::sdl2::TextureHandle::Ref> pokemon_icon_cache_;
     std::unordered_map<uint16_t, pu::sdl2::TextureHandle::Ref> item_icon_cache_;
     core::SaveSession save_session_;
     bool dirty_;
@@ -304,7 +304,7 @@ class MainApplication : public pu::ui::Application {
 
     std::string GetDbName(const std::unordered_map<int, std::string> &db, int id) const;
     pu::sdl2::TextureHandle::Ref LoadTextureHandle(const std::string &path) const;
-    pu::sdl2::TextureHandle::Ref GetPokemonIcon(uint16_t species_id);
+    pu::sdl2::TextureHandle::Ref GetPokemonIcon(uint16_t species_id, bool shiny = false, const std::string& gender = "", uint32_t pid = 0, bool has_pid = false);
     pu::sdl2::TextureHandle::Ref GetItemIcon(uint16_t item_id);
     std::string ShowKeyboardInput(const std::string &guide_text, const std::string &initial_text, uint32_t max_len, size_t out_len, bool *submitted = nullptr) const;
     bool PromptNumber(const std::string &title, const std::string &initial, int min_value, int max_value, int *out_value) const;

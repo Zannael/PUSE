@@ -1,6 +1,7 @@
 from core.profile import build_compatibility_report, DEFAULT_PROFILE_ID, PROFILE, get_profile, select_profile, recognize_save, choose_profile, supports, require_capability, all_profiles
 from core.sections import active_sections, refresh_checksum
-import glob
+from core.graphics import GraphicsPack, extract_pack, pokemon_key
+from starlette.concurrency import run_in_threadpool
 import json
 from typing import List
 from pathlib import Path
@@ -21,7 +22,6 @@ from modules import pc as box_mod
 import os
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from core.item_icon_resolver import ItemIconResolver
 from tools import rtc_repair_from_pair as rtc_repair
 from tools import rtc_patch
 from tools import save_convert
@@ -236,30 +236,13 @@ async def convert_save(file: UploadFile = File(...), target_ext: str = ".sav"):
 
 # Keep BASE_DIR and icon paths defined before endpoint handlers
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SEARCH_DIRS = [
-    os.path.join(BASE_DIR, "icons", "pokemon"),
-    os.path.join(BASE_DIR, "data", "icons", "pokemon")
-]
-ITEM_ICONS_DIR = os.path.join(BASE_DIR, "icons", "items")
 
 ICON_FALLBACK_PNG = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMBAAZ/q4cAAAAASUVORK5CYII="
 )
 
-icon_cache = {}
-item_icon_cache: dict[int, str | None] = {}
-item_icon_resolver = ItemIconResolver(ITEM_ICONS_DIR)
 species_form_meta: dict[int, dict] = {}
 species_form_aliases: dict[int, dict] = {}
-species_id_tokens: dict[int, str] = {}
-
-SPECIAL_SPRITE_BY_TOKEN = {
-    "FLAPPLE_GIGA": "gFrontSpriteGigaFlappletun.png",
-    "APPLETUN_GIGA": "gFrontSpriteGigaFlappletun.png",
-    "TOXTRICITY_LOW_KEY_GIGA": "gFrontSpriteGigaToxtricity.png",
-}
-
-
 def _load_species_form_aliases() -> dict[int, dict]:
     if PROFILE["id"] == "radical-red-4.1": return {}
     path = os.path.join(BASE_DIR, "data", "species_form_aliases.json")
@@ -278,49 +261,6 @@ def _load_species_form_aliases() -> dict[int, dict]:
                 continue
             out[int(sid)] = meta
     return out
-
-
-def _load_species_id_tokens() -> dict[int, str]:
-    if PROFILE["id"] == "radical-red-4.1": return {}
-    path = os.path.join(BASE_DIR, "data", "species_id.txt")
-    if not os.path.exists(path):
-        return {}
-
-    out: dict[int, str] = {}
-    with open(path, "r", encoding="utf-8", errors="ignore") as fh:
-        for raw in fh:
-            line = raw.strip()
-            if not line.startswith("SPECIES_"):
-                continue
-            parts = line.split()
-            token = parts[0][len("SPECIES_"):]
-            sid = None
-            for part in parts[1:]:
-                if part.lower().startswith("0x"):
-                    try:
-                        sid = int(part, 16)
-                    except ValueError:
-                        sid = None
-                    break
-            if sid is not None:
-                out[int(sid)] = token
-    return out
-
-
-def _to_pascal_from_token(token: str) -> str:
-    pieces = [p for p in str(token).split("_") if p]
-    return "".join(p[:1].upper() + p[1:].lower() for p in pieces)
-
-
-def _sprite_candidates_from_token(token: str | None) -> list[str]:
-    if not token:
-        return []
-    if token in SPECIAL_SPRITE_BY_TOKEN:
-        return [SPECIAL_SPRITE_BY_TOKEN[token]]
-    if token.endswith("_GIGA"):
-        base = token[: -len("_GIGA")]
-        return [f"gFrontSpriteGiga{_to_pascal_from_token(base)}.png"]
-    return []
 
 
 def _build_species_form_meta(species_db: dict[int, str], alias_map: dict[int, dict] | None = None) -> dict[int, dict]:
@@ -378,87 +318,108 @@ def _species_meta(sid: int) -> dict:
     }
 
 
+# Imported resources are separate from save bytes and partitioned by profile.
+_graphics_memory = {}
+_graphics_disk_cache = {}
+
+
+def _graphics_pack(profile_id):
+    root = Path(os.getenv("PUSE_GRAPHICS_ROOT", str(Path(BASE_DIR) / "local_artifacts/graphics"))) / profile_id
+    path = root / "manifest.json"
+    if not path.is_file():
+        return None
+    stamp = path.stat().st_mtime_ns
+    cached = _graphics_disk_cache.get(profile_id)
+    if cached and cached[0] == stamp:
+        return cached[1]
+    try:
+        pack = GraphicsPack(root, profile_id)
+    except (OSError, ValueError, KeyError):
+        return None
+    _graphics_disk_cache[profile_id] = (stamp, pack)
+    return pack
+
+
+def _graphics_response(profile_id, kind, native_id, context=None):
+    get_profile(profile_id)
+    memory = _graphics_memory.get(profile_id)
+    disk = None if memory else _graphics_pack(profile_id)
+    manifest = memory[0] if memory else disk.manifest if disk else None
+    if manifest:
+        key = pokemon_key(native_id, manifest['appearance'], **(context or {})) if kind == 'pokemon' else f'items/{native_id}'
+        if memory:
+            content = memory[1].get(manifest['assets'].get(key))
+            if content:
+                return Response(content=content, media_type='image/png')
+        else:
+            path = disk.resolve(key)
+            if path:
+                return FileResponse(path)
+    fallbacks = json.loads((Path(BASE_DIR) / 'data/graphics/fallbacks.json').read_text())
+    filename = fallbacks.get(profile_id, {}).get(kind, {}).get(str(native_id))
+    if filename:
+        # Only generated filenames, never native IDs from another ROM.
+        folder = 'pokemon' if kind == 'pokemon' else 'items'
+        for base in (Path(BASE_DIR) / 'icons' / folder, Path(BASE_DIR) / 'data/icons' / folder):
+            candidates = [base / filename] if folder == 'pokemon' else base.rglob(filename)
+            for path in candidates:
+                if path.is_file():
+                    return FileResponse(path)
+    return Response(content=ICON_FALLBACK_PNG, media_type='image/png')
+
+
 @app.get("/pokemon-icon/{species_id}")
-async def get_pokemon_icon(species_id: int):
-    if PROFILE["id"] == "radical-red-4.1": raise HTTPException(status_code=404, detail="No profile-specific icon")
-    # 1. Check cache
-    if species_id in icon_cache:
-        return FileResponse(icon_cache[species_id])
-
-    # 2. Configure search parameters
-    id_str = f"{species_id:03}"  # Ensure at least 3 digits (e.g., 1 -> 001)
-    prefix = f"gFrontSprite{id_str}"
-    search_dirs = [
-        os.path.join(BASE_DIR, "icons", "pokemon"),
-        os.path.join(BASE_DIR, "data", "icons", "pokemon")
-    ]
-
-    found_path = None
-
-    # 3. Scan folders with remainder-based filtering
-    for folder in search_dirs:
-        if not os.path.exists(folder):
-            continue
-
-        pattern = os.path.join(folder, f"{prefix}*.png")
-        candidates = glob.glob(pattern)
-
-        for path in candidates:
-            filename = os.path.basename(path)
-            # Compute what remains after the prefix
-            remainder = filename[len(prefix):]
-
-            # Critical filter: if the first character after the ID is a digit,
-            # it is a different ID (e.g., searching 113 but found 1137)
-            if remainder and remainder[0].isdigit():
-                continue
-
-            found_path = path
-            break
-
-        if found_path:
-            break
-
-    if found_path:
-        print(found_path)
-        icon_cache[species_id] = found_path  # Salva in cache
-        return FileResponse(found_path)
-
-    # 4. Token-based fallback (non-numeric sprite naming, e.g. Giga forms)
-    token = species_id_tokens.get(species_id)
-    candidates = _sprite_candidates_from_token(token)
-    if candidates:
-        for folder in search_dirs:
-            if not os.path.exists(folder):
-                continue
-            for filename in candidates:
-                probe = os.path.join(folder, filename)
-                if os.path.exists(probe):
-                    icon_cache[species_id] = probe
-                    return FileResponse(probe)
-
-    return Response(content=ICON_FALLBACK_PNG, media_type="image/png")
+async def get_pokemon_icon(species_id: int, profile_id: str | None = None, shiny: bool = False, gender: str = '', pid: int | None = None):
+    try:
+        return _graphics_response(profile_id or PROFILE['id'], 'pokemon', species_id, {'shiny': shiny, 'gender': gender, 'pid': pid})
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
 
 
 @app.get("/item-icon/{item_id}")
-async def get_item_icon(item_id: int):
-    if PROFILE["id"] == "radical-red-4.1": raise HTTPException(status_code=404, detail="No profile-specific icon")
-    if item_id <= 0:
-        raise HTTPException(status_code=404, detail="Item icon not found")
+async def get_item_icon(item_id: int, profile_id: str | None = None):
+    try:
+        return _graphics_response(profile_id or PROFILE['id'], 'items', item_id)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
 
-    if item_id in item_icon_cache:
-        cached = item_icon_cache[item_id]
-        if cached:
-            return FileResponse(cached)
-        raise HTTPException(status_code=404, detail="Item icon not found")
 
-    item_name = bag_mod.DB_ITEMS.get(item_id)
-    icon_path = item_icon_resolver.resolve(item_name or "")
-    item_icon_cache[item_id] = icon_path
+@app.get('/graphics/status')
+async def graphics_status(profile_id: str | None = None):
+    profile_id = profile_id or PROFILE['id']
+    try:
+        get_profile(profile_id)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    memory = _graphics_memory.get(profile_id)
+    disk = None if memory else _graphics_pack(profile_id)
+    manifest = memory[0] if memory else disk.manifest if disk else None
+    return {'profile_id': profile_id, 'source': 'rom' if manifest else 'shared',
+            'manifest': {k: v for k, v in manifest.items() if k != 'assets'} if manifest else None}
 
-    if icon_path:
-        return FileResponse(icon_path)
-    raise HTTPException(status_code=404, detail="Item icon not found")
+
+@app.post('/graphics/import-rom')
+async def import_graphics_rom(file: UploadFile = File(...), profile_id: str | None = None):
+    profile_id = profile_id or PROFILE['id']
+    try:
+        get_profile(profile_id)
+        rom = await file.read(32 * 1024 * 1024 + 1)
+        manifest, files = await run_in_threadpool(extract_pack, rom, profile_id)
+    except (ValueError, KeyError) as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    _graphics_memory[profile_id] = (manifest, files)
+    return {'profile_id': profile_id, 'source': 'rom', 'warnings': manifest['warnings']}
+
+
+@app.delete('/graphics/resources')
+async def clear_graphics_resources(profile_id: str | None = None):
+    profile_id = profile_id or PROFILE['id']
+    try:
+        get_profile(profile_id)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    _graphics_memory.pop(profile_id, None)
+    return {'status': 'ok'}
 
 
 # --- 2. Unified database initialization ---
@@ -473,28 +434,9 @@ def load_databases():
     species_form_aliases.clear()
     species_form_aliases.update(_load_species_form_aliases())
 
-    species_id_tokens.clear()
-    species_id_tokens.update(_load_species_id_tokens())
-
     species_form_meta.clear()
     species_form_meta.update(_build_species_form_meta(party_mod.DB_SPECIES, species_form_aliases))
 
-    if not any(os.path.isdir(p) for p in SEARCH_DIRS):
-        print(
-            "[WARN] Pokemon icon directory not found. "
-            "UI will still work without sprites. "
-            "To enable them, clone: "
-            "https://github.com/Skeli789/Dynamic-Pokemon-Expansion/tree/master/graphics/pokeicon "
-            f"in '{SEARCH_DIRS[0]}'."
-        )
-
-    if not item_icon_resolver.available:
-        print(
-            "[WARN] Item icon directory not found or empty. "
-            "UI will still work without item icons. "
-            "To enable them, use Leon's ROM Base item pack in "
-            f"'{ITEM_ICONS_DIR}'."
-        )
 
 
 def _require_feature(feature):

@@ -29,6 +29,7 @@ frontend/dist/
 *.analysis_copy
 backend/edited_save.sav
 backend/local_artifacts/
+romre/data/*/icons/
 backend/icons/pokemon/
 backend/icons/items/
 backend/data/*.sav

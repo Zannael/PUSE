@@ -419,7 +419,7 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                 <div className="p-4 sm:p-6 bg-[#1e293b] flex justify-between items-center border-b border-white/5 gap-3">
                     <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                         <img
-                            src={client.getPokemonIconUrl(localPk.species_id)}
+                            src={client.getPokemonIconUrl(localPk)}
                             className="w-12 h-12 pixelated"
                             alt="icon"
                             onError={(e) => {
@@ -886,7 +886,7 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                                             </span>
                                         </div>
                                         <img
-                                            src={client.getPokemonIconUrl(localPk.species_id)}
+                                            src={client.getPokemonIconUrl(localPk)}
                                             alt={currentSpeciesName}
                                             className="w-10 h-10 pixelated"
                                             onError={(e) => {

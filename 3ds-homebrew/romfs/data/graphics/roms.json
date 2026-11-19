@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "engines": {
+    "gen3-dpe-v1": {
+      "tables": {
+        "front": 296,
+        "back": 300,
+        "normal": 304,
+        "shiny": 308,
+        "icons": 312,
+        "icon_indices": 316,
+        "icon_palettes": 320
+      },
+      "item_table_pointer": 625052,
+      "item_accessor_signature_offset": 625012,
+      "item_accessor_signature": "00b50004030c0906090e0648834200d9c046054a8800d90040188018006802bc08470000",
+      "female_species": {
+        "502": 744,
+        "503": 745,
+        "574": 703,
+        "645": 704,
+        "646": 705,
+        "776": 831
+      },
+      "unown": {
+        "species": 201,
+        "first_alternate": 413
+      },
+      "multi_frame_species": [
+        385
+      ]
+    }
+  },
+  "roms": [
+    {
+      "sha256": "7aa25bbf568f7cfcf6ee1cf2e9e6ff637350b3d0705c2375cabb6baa7d9739f7",
+      "profile_id": "unbound-2.1.1.1",
+      "engine": "gen3-dpe-v1",
+      "species_count": 1294,
+      "item_count": 728
+    },
+    {
+      "sha256": "679d112cdfe699c2793d82c7e7999ac9dfca9e222ad5a85d4f8f1e457cd0283f",
+      "profile_id": "radical-red-4.1",
+      "engine": "gen3-dpe-v1",
+      "species_count": 1376,
+      "item_count": 750
+    },
+    {
+      "sha256": "f6d2e7092831b983318b685132a19567ff5e6428665255738c4e5a63371bcce3",
+      "profile_id": "sword-shield-local",
+      "engine": "gen3-dpe-v1",
+      "species_count": 1268,
+      "item_count": 750
+    }
+  ]
+}

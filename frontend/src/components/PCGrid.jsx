@@ -145,7 +145,7 @@ const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon, onRel
                                 {pk ? (
                                     <>
                                         <img
-                                            src={client.getPokemonIconUrl(pk.species_id)}
+                                            src={client.getPokemonIconUrl(pk)}
                                             alt={pk.nickname}
                                             className="w-14 h-14 object-contain pixelated group-hover:scale-110 transition-transform"
                                             onError={(e) => {

@@ -30,7 +30,8 @@
     "ot-name:regression": "node scripts/ot-name-regression.mjs",
     "mutation:property-regression": "python3 ../backend/tools/mutation_property_regression.py",
     "inspector:regression": "python3 ../backend/tools/field_inspector_regression.py",
-    "compatibility:regression": "python3 ../backend/tools/compatibility_regression.py"
+    "compatibility:regression": "python3 ../backend/tools/compatibility_regression.py",
+    "graphics:regression": "python3 ../backend/tools/graphics_regression.py && node scripts/graphics-regression.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",

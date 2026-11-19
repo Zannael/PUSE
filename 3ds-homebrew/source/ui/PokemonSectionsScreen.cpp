@@ -82,7 +82,7 @@ void PokemonSectionsScreen::RefreshPreview() {
         icon_img_ = nullptr;
     }
     if (entry_.species_id > 0) {
-        std::string ipath = puse::io::ResolveMonIconPath(entry_.species_id);
+        std::string ipath = puse::io::ResolveMonIconPath(entry_.species_id, entry_.is_shiny, entry_.gender, entry_.pid, true);
         if (!ipath.empty()) {
             // 80×80 icon in top-right area of top screen
             icon_img_ = topScreen->AddNew<sl::ui::Image>(VRect(312, 50, 80, 80), ipath);
