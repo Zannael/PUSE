@@ -4,6 +4,8 @@
 
 ### Changed
 
+- Expanded mutation property regressions across Python, browser JavaScript, Switch, and 3DS using reproducible synthetic Unbound v2.1.1.1 and Radical Red 4.1 fixtures. Party/PC happiness and held-item primitives now have an independent whole-save byte oracle covering 8/16-bit widths, identity preservation, unrelated-byte protection, fragmented storage, checksums, no-op writes, rejected-operation immutability, rotated/older generations, rollover, and optional RTC trailers. The suite is included in `parity:all` and accepts a seed for additional matrices; personal saves and ROMs are not required.
+
 ### Planned
 
 The roadmap is ordered by the combination of user value and implementation feasibility. Read-only and narrowly scoped work comes first; save mutations move forward only when their byte layout, safety behavior, and cross-runtime parity can be verified.
@@ -11,7 +13,6 @@ The roadmap is ordered by the combination of user value and implementation feasi
 | Priority | Proposal | User value | Feasibility | Scope and decision gate |
 |---:|---|---|---|---|
 | 1 | Profile-aware compatibility report and mutation safeguards | Very high | Medium | Extend the existing profile selection and coherent-generation checks with a read-only compatibility report. Distinguish structural evidence from exact ROM-version confirmation; allow inspection but block unsupported mutations on unknown layouts. |
-| 2 | Broader mutation property tests | High safety value | High for incremental coverage | Extend the existing byte-level regressions across supported profiles and synthetic fixture matrices. Verify allowed byte changes, record widths, identity constraints, checksums, rejected-operation immutability, and equivalent outputs in all four runtimes; keep personal fixtures private. |
 | 3 | Change ledger with undo and reset-to-original | High | Medium | Build on immutable upload snapshots and existing change reports. Define operation-level undo, pending PC/bag buffer reconciliation, grouped edits, and reset semantics before exposing the workflow in each runtime. |
 | 4 | Party/PC transfer primitive | Very high | Medium | Design an atomic operation covering source clearing, destination validation, party compaction, full-party/full-box errors, checksums, and all four runtimes. |
 | 5 | Party create/insert workflow | High | Medium | Build on the transfer primitive rather than introducing a second party-packing path; validate ownership, identity, slot count, stats, and checksums. |
