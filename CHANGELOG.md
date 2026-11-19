@@ -4,6 +4,8 @@
 
 ### Changed
 
+- Added a read-only developer field inspector across backend, browser local mode, Switch and 3DS. Known trainer, party-count and money fields now expose profile-scoped physical/relative offsets, raw bytes, decoded values and confidence; Unbound also exposes its existing named badge, Champion and DexNav flags. Unknown flags/enums remain unclassified and layout evidence never claims exact ROM-version confirmation. Browser inspection includes filtering and JSON export; native ports use field/detail pages with the save shortcut disabled. Synthetic four-runtime report parity, invalid-generation rejection, input immutability, API smoke, browser Local/Backend checks, full regressions and native builds were verified. See `FIELD_INSPECTOR.md` for the schema, evidence and access paths.
+
 - Expanded mutation property regressions across Python, browser JavaScript, Switch, and 3DS using reproducible synthetic Unbound v2.1.1.1 and Radical Red 4.1 fixtures. Party/PC happiness and held-item primitives now have an independent whole-save byte oracle covering 8/16-bit widths, identity preservation, unrelated-byte protection, fragmented storage, checksums, no-op writes, rejected-operation immutability, rotated/older generations, rollover, and optional RTC trailers. The suite is included in `parity:all` and accepts a seed for additional matrices; personal saves and ROMs are not required.
 
 ### Planned
@@ -21,7 +23,6 @@ The roadmap is ordered by the combination of user value and implementation feasi
 | 8 | ROM-truth Pokemon and item sprites | Medium | Medium | Resolve extraction, form mapping, asset size, redistribution, fallback, and ROMFS packaging before runtime integration. |
 | 9 | Difficulty, NG+, Costume Box, and wardrobe flags | Medium | Low until researched | Begin with read-only detection and controlled before/after comparisons. Expose only individually understood flags; do not add a generic flag editor. |
 | 10 | Portable Pokemon files | Medium | Medium-low | Define and ship a versioned, lossless PUSE Pokemon JSON format before considering `.pkm`; document how Unbound-only species, forms, moves, and abilities map to external tools. |
-| 11 | Read-only developer field inspector | Indirect; high research value | Medium-high for verified fields | Extend existing trainer/progress readers with profile-scoped known fields, offsets, raw values, decoded meanings, and confidence. Keep unknown event flags unclassified and all writes unavailable; prioritize fields needed for ROM discovery and controlled save comparisons. |
 | 12 | Linked-save sync | Medium | Low operational reliability | Revisit PR #20 only after browser support, permission loss, emulator write races, dirty/conflict states, atomic writes, and recovery tests are designed. |
 | 13 | Mystery Gift generation | Niche | Low | Continue ROM reconnaissance first. A generator requires proven code validation, payload structure, redemption state, and event-specific behavior. |
 | 14 | Emulator save-state editing | Low | Very low | Defer as generally out of scope: state files are emulator-, platform-, and version-specific memory snapshots rather than stable game saves. |

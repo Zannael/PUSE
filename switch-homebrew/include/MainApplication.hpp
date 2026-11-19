@@ -214,6 +214,8 @@ class MainApplication : public pu::ui::Application {
     PokemonMoveEditLayout::Ref pokemon_move_edit_layout_;
     DiagnosticsLayout::Ref diagnostics_layout_;
     MoneyEditLayout::Ref money_edit_layout_;
+    HomeLayout::Ref inspector_layout_;
+    DiagnosticsLayout::Ref inspector_detail_layout_;
     PcBoxListLayout::Ref pc_box_list_layout_;
     PcBoxLayout::Ref pc_box_layout_;
     BagLayout::Ref bag_layout_;
@@ -278,6 +280,7 @@ class MainApplication : public pu::ui::Application {
     void RebuildMoveListMenu();
     void RebuildMoveEditMenu();
     void RebuildMoneyMenu();
+    void OpenFieldInspector();
     void RebuildPcBoxListMenu();
     void RebuildPcBoxMenu();
     void RebuildBagMenu();

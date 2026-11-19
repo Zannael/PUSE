@@ -14,6 +14,7 @@
 #include <switch.h>
 
 #include <puse/core/Bag.hpp>
+#include <puse/core/FieldInspector.hpp>
 #include <puse/core/Money.hpp>
 #include <puse/core/Pc.hpp>
 #include <puse/core/Rtc.hpp>
@@ -1213,6 +1214,7 @@ void MainApplication::RebuildHomeMenu() {
         {puse::core::profile::IsRadicalRed() ? "Money" : "Money & BP", "Edit supported trainer resources"},
         {"RTC Recovery", "Re-enable the in-game Time Fixer or use advanced recovery"},
         {"Load Save",    "Browse SD card for a .sav file"},
+        {"Field Inspector", "Read known fields, offsets and raw bytes"},
     };
 
     for (size_t i = 0; i < items.size(); ++i) {
@@ -1242,6 +1244,8 @@ void MainApplication::RebuildHomeMenu() {
                 this->ShowLayoutScreen(this->rtc_layout_);
             } else if (idx == 5) {
                 this->OpenFileBrowser("sdmc:/switch/");
+            } else if (idx == 6) {
+                this->OpenFieldInspector();
             }
         }, HidNpadButton_A);
         menu->AddItem(item);
@@ -1249,6 +1253,31 @@ void MainApplication::RebuildHomeMenu() {
 
     menu->ForceReloadItems();
     menu->SetSelectedIndex(0);
+}
+
+void MainApplication::OpenFieldInspector() {
+    puse::core::FieldReport report;
+    std::string error;
+    if (!puse::core::BuildFieldReport(this->save_session_.Buffer(), &report, &error)) {
+        this->CreateShowDialog("Inspector unavailable", error, {"OK"}, true);
+        return;
+    }
+    const auto menu = this->inspector_layout_->GetMenu();
+    menu->ClearItems();
+    this->inspector_layout_->SetSubtitle(report.profile_id + " | Known layout; ROM version unconfirmed");
+    for (const auto& field: report.fields) {
+        auto item = pu::ui::elm::MenuItem::New(field.label + "   " + field.decoded);
+        item->SetColor(this->theme_.text_primary);
+        item->AddOnKey([this, field]() {
+            this->inspector_detail_layout_->SetSubtitle("Read only | Unknown flags are not classified");
+            this->inspector_detail_layout_->SetLines(puse::core::FieldDetails(field));
+            this->ShowLayoutScreen(this->inspector_detail_layout_);
+        }, HidNpadButton_A);
+        menu->AddItem(item);
+    }
+    menu->ForceReloadItems();
+    menu->SetSelectedIndex(0);
+    this->ShowLayoutScreen(this->inspector_layout_);
 }
 
 void MainApplication::RebuildMoneyMenu() {
@@ -2221,6 +2250,12 @@ void MainApplication::OnLoad() {
     this->pokemon_move_edit_layout_  = PokemonMoveEditLayout::New(this->theme_, this->app_icon_);
     this->diagnostics_layout_        = DiagnosticsLayout::New(this->theme_, this->app_icon_);
     this->money_edit_layout_         = MoneyEditLayout::New(this->theme_, this->app_icon_);
+    this->inspector_layout_          = HomeLayout::New(this->theme_, this->app_icon_);
+    this->inspector_layout_->SetTitle("Field Inspector");
+    this->inspector_layout_->SetHints("[A] Field details   [B] Back | Read only");
+    this->inspector_detail_layout_   = DiagnosticsLayout::New(this->theme_, this->app_icon_);
+    this->inspector_detail_layout_->SetTitle("Field details");
+    this->inspector_detail_layout_->SetHints("[B] Back | Read only");
     this->pc_box_list_layout_        = PcBoxListLayout::New(this->theme_, this->app_icon_);
     this->pc_box_layout_             = PcBoxLayout::New(this->theme_, this->app_icon_);
     this->bag_layout_                = BagLayout::New(this->theme_, this->app_icon_);
@@ -2238,6 +2273,11 @@ void MainApplication::OnLoad() {
     this->save_toast_ = pu::ui::extras::Toast::New(this->toast_text_, pu::ui::Color(40, 52, 72, 0xE8));
 
     this->SetOnInput([&](const u64 down, const u64, const u64, const pu::ui::TouchPoint) {
+        if ((down & HidNpadButton_X) && !this->layout_stack_.empty() &&
+            (this->layout_stack_.back() == this->inspector_layout_ || this->layout_stack_.back() == this->inspector_detail_layout_)) {
+            this->ShowSaveToast("Field Inspector is read only");
+            return;
+        }
         if (down & HidNpadButton_X) {
             if (!this->dirty_) {
                 this->ShowSaveToast("No pending changes");

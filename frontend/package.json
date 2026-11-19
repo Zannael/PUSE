@@ -24,11 +24,12 @@
     "save-health:regression": "node scripts/save-health-regression.mjs",
     "happiness:regression": "node scripts/happiness-regression.mjs",
     "bag:zero-quantity-regression": "node scripts/bag-zero-quantity-regression.mjs",
-    "parity:all": "npm run items:extraction-regression && npm run profile:regression && npm run pc:storage-regression && npm run rtc:time-fixer-regression && npm run rtc:parity-regression && npm run pc:fallback-regression && npm run pc:release-regression && npm run identity:regression && npm run game-progress:regression && npm run pokedex-flags:regression && npm run battle-preview:regression && npm run all-pokemon:regression && npm run roster-export:regression && npm run save-health:regression && npm run happiness:regression && npm run bag:zero-quantity-regression && npm run ot-name:regression && npm run mutation:property-regression",
+    "parity:all": "npm run items:extraction-regression && npm run profile:regression && npm run pc:storage-regression && npm run rtc:time-fixer-regression && npm run rtc:parity-regression && npm run pc:fallback-regression && npm run pc:release-regression && npm run identity:regression && npm run game-progress:regression && npm run pokedex-flags:regression && npm run battle-preview:regression && npm run all-pokemon:regression && npm run roster-export:regression && npm run save-health:regression && npm run happiness:regression && npm run bag:zero-quantity-regression && npm run ot-name:regression && npm run mutation:property-regression && npm run inspector:regression",
     "icons:manifest": "node scripts/generate-icon-manifests.mjs",
     "icons:check": "node scripts/generate-icon-manifests.mjs --check",
     "ot-name:regression": "node scripts/ot-name-regression.mjs",
-    "mutation:property-regression": "python3 ../backend/tools/mutation_property_regression.py"
+    "mutation:property-regression": "python3 ../backend/tools/mutation_property_regression.py",
+    "inspector:regression": "python3 ../backend/tools/field_inspector_regression.py"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",

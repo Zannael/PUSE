@@ -213,6 +213,8 @@ cd frontend && npm run lint && npm run build && npm run parity:all
 
 Run native phase 1–4 parity checks from each homebrew directory. Version-specific Radical Red and optional real-ROM validation commands are documented in the [CFRU plan](romre/CFRU_IMPLEMENTATION_PLAN.md).
 
+The read-only [developer field inspector](FIELD_INSPECTOR.md) shows known trainer/progress fields, physical offsets, raw bytes and confidence in both browser modes and native ports. It does not classify unknown event flags or confirm the ROM version.
+
 `npm run mutation:property-regression` (from `frontend/`, also included in `parity:all`) generates synthetic Unbound and Radical Red saves and compiles both native cores with host `g++`. It checks Party/PC happiness and held-item writes against an independent whole-file byte oracle: 8/16-bit boundaries, all Party slots, fragmented PC storage, unchanged identity and unrelated bytes, checksums, no-op writes, and rejected happiness values. Layouts cover both active generations, rotated sectors, counter rollover, damaged-newest fallback, and saves with/without RTC trailers. No ROM or personal fixture is needed. Reproduce the default matrix with seed `20261119`, or vary it with `python3 backend/tools/mutation_property_regression.py --seed 42` from the repository root. This is incremental coverage of these primitives, not exhaustive coverage of every editor operation or PID-solving constraint.
 
 Personal saves, ROMs and research dumps belong in ignored `backend/local_artifacts/` or native `artifacts/` directories. Do not commit them. Bug reports should include the game/version, platform, reproduction steps and the operation attempted; share personal saves privately if needed.

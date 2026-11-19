@@ -23,6 +23,7 @@
 
 #include "starlight/dialog/MessageBox.h"
 #include "ui/DiagnosticsScreen.h"
+#include "ui/FieldInspectorScreen.h"
 #include "ui/PartyListScreen.h"
 #include "ui/UiSmokeScreen.h"
 
@@ -219,7 +220,7 @@ void Core::Update() {
         Application::Quit();
     }
 
-    if (InputManager::Pressed(Keys::X)) {
+    if (InputManager::Pressed(Keys::X) && !puse::ui::FieldInspectorScreen::IsOpen()) {
         if (session_.IsLoaded()) {
             std::string err;
             bool ok = SaveWithBackup(&err);

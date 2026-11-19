@@ -27,6 +27,7 @@ import { getExpAtLevel, getSpeciesGrowthRate } from './core/growth.js';
 const PartyGrid = lazy(() => import('./components/PartyGrid'));
 const PCGrid = lazy(() => import('./components/PCGrid'));
 const AllPokemonTable = lazy(() => import('./components/AllPokemonTable.jsx'));
+const FieldInspector = lazy(() => import('./components/FieldInspector.jsx'));
 const BagView = lazy(() => import('./components/BagView.jsx'));
 const LivingDexPanel = lazy(() => import('./components/LivingDexPanel.jsx'));
 const PokemonEditorModal = lazy(() =>
@@ -925,6 +926,7 @@ const App = () => {
                             />}
                             {supports('roster_export') && activeTab === 'all' && <AllPokemonTable key={`all-${refreshKey}`} client={client} />}
                             {activeTab === 'bag' && <BagView client={client} initialUnsaved={bagHasUnsavedChanges} onDirtyChange={setBagHasUnsavedChanges} />}
+                            {activeTab === 'inspector' && <FieldInspector key={runtimeMode} client={client} />}
                             {supports('pokedex') && activeTab === 'dex' && <LivingDexPanel key={`dex-${refreshKey}`} client={client} />}
                         </Suspense>
                     </div>
@@ -1080,6 +1082,7 @@ const App = () => {
                     <TabItem icon={<Users size={20}/>} label="PC Box" active={activeTab === 'pc'} onClick={() => handleTabChange('pc')} />
                     {supports('roster_export') && <TabItem icon={<ListFilter size={20}/>} label="All Pokémon" active={activeTab === 'all'} onClick={() => handleTabChange('all')} />}
                     <TabItem icon={<Briefcase size={20}/>} label="Bag" active={activeTab === 'bag'} onClick={() => handleTabChange('bag')} />
+                    <TabItem icon={<Database size={20}/>} label="Inspect" active={activeTab === 'inspector'} onClick={() => handleTabChange('inspector')} />
                     {supports('pokedex') && <TabItem icon={<BookOpen size={20}/>} label="Dex" active={activeTab === 'dex'} onClick={() => handleTabChange('dex')} />}
                 </nav>
             )}

@@ -172,6 +172,7 @@ const backendClient = {
     },
     getSaveProfile() { return backendJson('/profile'); },
     getTrainer() { return backendJson('/trainer'); },
+    getFieldReport() { return backendJson('/developer/fields'); },
     getProfiles() { return backendJson('/profiles'); },
     async recognizeSave(file) { const formData = new FormData(); formData.append('file', file); const res = await fetch(`${API_BASE}/profiles/recognize`, {method:'POST',body:formData}); if (!res.ok) throw new Error('Recognition failed'); return res.json(); },
     getMoney() {
@@ -499,6 +500,12 @@ const localClient = {
     },
     async getSaveProfile() { return profileSummary(); },
     async getTrainer() { const {readTrainer,getBuffer} = await getLocalCoreModules(); return readTrainer(getBuffer()); },
+    async getFieldReport() {
+        const [{ buildFieldReport }, { getBuffer }] = await Promise.all([
+            import('../core/fieldInspector.js'), getLocalCoreModules(),
+        ]);
+        return buildFieldReport(getBuffer());
+    },
     async getProfiles() { return allProfiles(); },
     async recognizeSave(file) { return recognizeSave(new Uint8Array(await file.arrayBuffer())); },
     async getMoney() {

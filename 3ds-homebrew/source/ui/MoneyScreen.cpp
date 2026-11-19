@@ -1,6 +1,7 @@
 #include <puse/core/GameProfile.hpp>
 #include "ui/MoneyScreen.h"
 #include "ui/RtcScreen.h"
+#include "ui/FieldInspectorScreen.h"
 #include "Core.h"
 
 #include "starlight/InputManager.h"
@@ -25,7 +26,7 @@ namespace puse::ui {
 MoneyScreen::MoneyScreen()
     : BaseScreen(false)
 {
-    InitChrome(puse::core::profile::IsRadicalRed() ? "B: Back   A: Edit   X: Save" : "B: Back   A: Edit   X: Save   RTC: Fix");
+    InitChrome("B: Back   X: Save   L: Inspect");
 
     // Top: show money + BP
     info_label_ = topScreen->AddNew<sl::ui::Label>(VRect(0, 35, 400, 100));
@@ -112,6 +113,7 @@ void MoneyScreen::Refresh() {
 void MoneyScreen::Update(bool focused) {
     BaseScreen::Update(focused);
     if (!focused) { was_focused_ = false; return; }
+    if (InputManager::Pressed(Keys::L)) FieldInspectorScreen::Make()->Open();
     if (!was_focused_) { Refresh(); was_focused_ = true; }
 }
 

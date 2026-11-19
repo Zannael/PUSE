@@ -531,6 +531,17 @@ async def trainer_profile():
             'gender':raw[8],'trainer_id':identity,'tid':identity&65535,'sid':identity>>16}
 
 
+@app.get('/developer/fields')
+async def inspect_known_fields():
+    if current_save['data'] is None:
+        raise HTTPException(status_code=400, detail='Upload a save first')
+    from modules.field_inspector import build_field_report
+    try:
+        return build_field_report(current_save['data'])
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+
+
 @app.post("/upload")
 async def upload_save(file: UploadFile = File(...), profile_id: str | None = None):
     """Load the .sav or .srm file into memory."""
