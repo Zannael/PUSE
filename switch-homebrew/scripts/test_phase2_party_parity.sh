@@ -30,6 +30,8 @@ CPP_COMMON=(
   -std=c++17
   -I"$SWITCH_ROOT/include"
   "$SWITCH_ROOT/source/core/SaveSections.cpp"
+  "$SWITCH_ROOT/source/core/SaveHealth.cpp"
+  "$SWITCH_ROOT/source/core/ChangeLedger.cpp"
   "$SWITCH_ROOT/source/core/SaveSession.cpp"
   "$SWITCH_ROOT/source/core/Party.cpp"
   "$SWITCH_ROOT/source/io/DataLoader.cpp"

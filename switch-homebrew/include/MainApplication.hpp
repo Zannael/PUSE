@@ -216,6 +216,7 @@ class MainApplication : public pu::ui::Application {
     MoneyEditLayout::Ref money_edit_layout_;
     HomeLayout::Ref inspector_layout_;
     DiagnosticsLayout::Ref inspector_detail_layout_;
+    HomeLayout::Ref history_layout_;
     PcBoxListLayout::Ref pc_box_list_layout_;
     PcBoxLayout::Ref pc_box_layout_;
     BagLayout::Ref bag_layout_;
@@ -281,6 +282,11 @@ class MainApplication : public pu::ui::Application {
     void RebuildMoveEditMenu();
     void RebuildMoneyMenu();
     void OpenFieldInspector();
+    void RebuildHistoryMenu();
+    void OpenHistoryPage();
+    void HandleUndoLastChange();
+    void HandleResetToOriginal();
+    void SyncAfterHistoryMutation();
     void RebuildPcBoxListMenu();
     void RebuildPcBoxMenu();
     void RebuildBagMenu();

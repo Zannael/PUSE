@@ -1058,8 +1058,10 @@ bool MainApplication::SaveCurrentSession(std::string *error) {
         return false;
     }
 
-    this->dirty_ = false;
+    this->save_session_.MarkSaved();
+    this->dirty_ = this->save_session_.HasUnsavedChanges();
     this->UpdateDirtyUi();
+    this->RebuildHistoryMenu();
     return true;
 }
 
@@ -1072,6 +1074,7 @@ void MainApplication::UpdateDirtyUi() {
     this->pokemon_move_list_layout_->SetHints("[A] Edit Slot   [B] Back   [X] Save   [+] Exit" + dirty_suffix);
     this->pokemon_move_edit_layout_->SetHints("[A] Edit   [B] Back   [X] Save   [+] Exit" + dirty_suffix);
     this->money_edit_layout_->SetHints("[A] Edit   [B] Back   [X] Save   [+] Exit" + dirty_suffix);
+    this->history_layout_->SetHints("[A] Action   [B] Back   [X] Save   [+] Exit" + dirty_suffix);
     this->pc_box_list_layout_->SetHints("[A] Open Box   [B] Back   [X] Save   [+] Exit" + dirty_suffix);
     this->pc_box_layout_->SetHints("[A] Edit   [B] Back   [X] Save   [+] Exit" + dirty_suffix);
     this->bag_layout_->SetHints("[A] Open   [B] Back   [X] Save   [+] Exit" + dirty_suffix);
@@ -1237,6 +1240,7 @@ void MainApplication::RebuildHomeMenu() {
         {"RTC Recovery", "Re-enable the in-game Time Fixer or use advanced recovery"},
         {"Load Save",    "Browse SD card for a .sav file"},
         {"Field Inspector", "Read known fields, offsets and raw bytes"},
+        {"Change History", "Review edits, undo last change, or reset save"},
     };
 
     for (size_t i = 0; i < items.size(); ++i) {
@@ -1268,6 +1272,8 @@ void MainApplication::RebuildHomeMenu() {
                 this->OpenFileBrowser("sdmc:/switch/");
             } else if (idx == 6) {
                 this->OpenFieldInspector();
+            } else if (idx == 7) {
+                this->OpenHistoryPage();
             }
         }, HidNpadButton_A);
         menu->AddItem(item);
@@ -1275,6 +1281,106 @@ void MainApplication::RebuildHomeMenu() {
 
     menu->ForceReloadItems();
     menu->SetSelectedIndex(0);
+}
+
+void MainApplication::SyncAfterHistoryMutation() {
+    this->party_ = puse::core::ParseParty(this->save_session_.Buffer(), this->species_db_);
+    std::string pc_err;
+    this->pc_stream_loaded_ = this->LoadPcStream(&pc_err);
+    this->bag_pockets_ = puse::core::ResolveQuickPockets(this->save_session_.Buffer());
+    this->dirty_ = this->save_session_.HasUnsavedChanges();
+    this->UpdateDirtyUi();
+    this->RebuildPartyMenu();
+    this->RebuildHomeMenu();
+    this->RebuildHistoryMenu();
+}
+
+void MainApplication::HandleUndoLastChange() {
+    if (!this->save_session_.CanUndo()) {
+        this->ShowSaveToast("Nothing to undo");
+        return;
+    }
+    puse::core::LedgerEntrySummary undone;
+    std::string err;
+    if (!this->save_session_.UndoLastChange(&undone, &err)) {
+        this->CreateShowDialog("Undo failed", err.empty() ? "Could not undo change." : err, {"OK"}, true);
+        return;
+    }
+    this->SyncAfterHistoryMutation();
+    this->ShowSaveToast("Undone: " + undone.label);
+}
+
+void MainApplication::HandleResetToOriginal() {
+    if (!this->save_session_.CanReset()) {
+        this->ShowSaveToast("No changes vs original");
+        return;
+    }
+    const int choice = this->CreateShowDialog(
+        "Reset Save to Original",
+        "Revert all edits back to the original loaded save?\nRemember to press [X] to write the reset save to SD if you already saved.",
+        {"Reset", "Cancel"},
+        true);
+    if (choice != 0) {
+        return;
+    }
+    this->save_session_.ResetToOriginal();
+    this->SyncAfterHistoryMutation();
+    this->ShowSaveToast("Save reset to original");
+}
+
+void MainApplication::RebuildHistoryMenu() {
+    const auto menu = this->history_layout_->GetMenu();
+    menu->ClearItems();
+
+    const auto summary = this->save_session_.History();
+    this->history_layout_->SetSubtitle(
+        std::to_string(summary.entries.size()) + "/" + std::to_string(summary.max_entries) +
+        " edit(s) | " + std::to_string(summary.total_changed_bytes) + " byte(s) vs original");
+
+    const std::string undo_desc = summary.can_undo && !summary.entries.empty()
+        ? ("Revert \"" + summary.entries[0].label + "\"")
+        : "No recorded edits to undo";
+    auto undo_item = pu::ui::elm::MenuItem::New("Undo Last Change   " + undo_desc);
+    undo_item->SetColor(summary.can_undo ? this->theme_.accent : this->theme_.text_secondary);
+    undo_item->AddOnKey([this]() { this->HandleUndoLastChange(); }, HidNpadButton_A);
+    menu->AddItem(undo_item);
+
+    const std::string reset_desc = summary.can_reset
+        ? ("Restore original save (" + std::to_string(summary.total_changed_bytes) + " bytes differ)")
+        : "Loaded save already matches original";
+    auto reset_item = pu::ui::elm::MenuItem::New("Reset to Original   " + reset_desc);
+    reset_item->SetColor(summary.can_reset ? pu::ui::Color(255, 160, 122, 255) : this->theme_.text_secondary);
+    reset_item->AddOnKey([this]() { this->HandleResetToOriginal(); }, HidNpadButton_A);
+    menu->AddItem(reset_item);
+
+    for (const auto& entry : summary.entries) {
+        auto item = pu::ui::elm::MenuItem::New(
+            "#" + std::to_string(entry.id) + " " + entry.label +
+            "   (" + std::to_string(entry.changed_bytes) + " B)");
+        item->SetColor(this->theme_.text_primary);
+        item->AddOnKey([this, entry]() {
+            std::string regions_str;
+            for (size_t i = 0; i < entry.regions.size(); ++i) {
+                if (i > 0) regions_str += ", ";
+                regions_str += entry.regions[i];
+            }
+            this->CreateShowDialog(
+                "Edit #" + std::to_string(entry.id) + ": " + entry.label,
+                "Type: " + entry.kind + "\nChanged bytes: " + std::to_string(entry.changed_bytes) +
+                "\nRegions: " + (regions_str.empty() ? "Unknown" : regions_str),
+                {"OK"},
+                true);
+        }, HidNpadButton_A);
+        menu->AddItem(item);
+    }
+
+    menu->ForceReloadItems();
+    menu->SetSelectedIndex(0);
+}
+
+void MainApplication::OpenHistoryPage() {
+    this->RebuildHistoryMenu();
+    this->ShowLayoutScreen(this->history_layout_);
 }
 
 void MainApplication::OpenFieldInspector() {
@@ -1335,9 +1441,11 @@ void MainApplication::RebuildMoneyMenu() {
     item->AddOnKey([this, money]() {
         int new_money = 0;
         if (this->PromptNumber("Set money (0-999999999)", std::to_string(money), 0, 999999999, &new_money)) {
+            const auto before = this->save_session_.Buffer();
             std::string err;
             if (puse::core::WriteMoney(this->save_session_.MutableBuffer(), static_cast<uint32_t>(new_money), &err)) {
-                this->dirty_ = true;
+                this->save_session_.RecordMutation(before, "money_edit", "Set Money $" + std::to_string(new_money));
+                this->dirty_ = this->save_session_.HasUnsavedChanges();
                 this->UpdateDirtyUi();
                 this->RebuildMoneyMenu();
             } else {
@@ -1359,9 +1467,11 @@ void MainApplication::RebuildMoneyMenu() {
     bp_item->AddOnKey([this, bp]() {
         int new_bp = 0;
         if (this->PromptNumber("Set Battle Points (0-65535)", std::to_string(bp), 0, 65535, &new_bp)) {
+            const auto before = this->save_session_.Buffer();
             std::string err;
             if (puse::core::WriteBp(this->save_session_.MutableBuffer(), static_cast<uint16_t>(new_bp), &err)) {
-                this->dirty_ = true;
+                this->save_session_.RecordMutation(before, "bp_edit", "Set Battle Points " + std::to_string(new_bp));
+                this->dirty_ = this->save_session_.HasUnsavedChanges();
                 this->UpdateDirtyUi();
                 this->RebuildMoneyMenu();
             } else {
@@ -1464,9 +1574,14 @@ void MainApplication::RebuildPcBoxMenu() {
                         this->species_db_, &err))
                 {
                     // Commit the updated stream back to the save buffer
+                    const auto before = this->save_session_.Buffer();
                     if (puse::core::CommitPcStream(this->save_session_.MutableBuffer(),
                                                     this->pc_stream_, &err)) {
-                        this->dirty_ = true;
+                        this->save_session_.RecordMutation(
+                            before,
+                            "pc_insert",
+                            "Insert Box " + std::to_string(this->selected_pc_box_) + " slot " + std::to_string(s));
+                        this->dirty_ = this->save_session_.HasUnsavedChanges();
                         this->UpdateDirtyUi();
                         this->RebuildPcBoxMenu();
                     } else {
@@ -1694,12 +1809,17 @@ void MainApplication::HandlePcFieldEdit(const int section_index, const std::stri
     }
     if (!changed) { return; }
 
+    const auto before = this->save_session_.Buffer();
     if (!puse::core::CommitPcStream(this->save_session_.MutableBuffer(), this->pc_stream_, &error)) {
         this->CreateShowDialog("PC commit failed", error.empty() ? "Unknown error" : error, {"OK"}, true);
         return;
     }
 
-    this->dirty_ = true;
+    this->save_session_.RecordMutation(
+        before,
+        "pc_edit",
+        "Edit Box " + std::to_string(box) + " slot " + std::to_string(slot) + " (" + field_key + ")");
+    this->dirty_ = this->save_session_.HasUnsavedChanges();
     this->UpdateDirtyUi();
     this->RefreshSelectedPcMon();
     this->RebuildPcBoxMenu();
@@ -1718,6 +1838,7 @@ void MainApplication::HandleFieldEdit(const int section_index, const std::string
     }
 
     const auto &entry = this->party_[static_cast<size_t>(this->selected_party_index_)];
+    const auto before = this->save_session_.Buffer();
     std::string error;
     bool changed = false;
 
@@ -1837,7 +1958,11 @@ void MainApplication::HandleFieldEdit(const int section_index, const std::string
         return;
     }
 
-    this->dirty_ = true;
+    this->save_session_.RecordMutation(
+        before,
+        "party_edit",
+        "Edit Party slot " + std::to_string(this->selected_party_index_ + 1) + " (" + field_key + ")");
+    this->dirty_ = this->save_session_.HasUnsavedChanges();
     this->UpdateDirtyUi();
     this->party_ = puse::core::ParseParty(this->save_session_.Buffer(), this->species_db_);
     this->RebuildPartyMenu();
@@ -1876,12 +2001,18 @@ void MainApplication::HandleMoveSlotEdit(const std::string &field_key) {
         }
         if (!changed) { return; }
 
+        const auto before = this->save_session_.Buffer();
         if (!puse::core::CommitPcStream(this->save_session_.MutableBuffer(), this->pc_stream_, &error)) {
             this->CreateShowDialog("PC commit failed", error.empty() ? "Unknown error" : error, {"OK"}, true);
             return;
         }
 
-        this->dirty_ = true;
+        this->save_session_.RecordMutation(
+            before,
+            "pc_edit",
+            "Edit Box " + std::to_string(this->selected_pc_box_) + " slot " +
+                std::to_string(this->selected_pc_slot_) + " (" + field_key + " " + std::to_string(slot + 1) + ")");
+        this->dirty_ = this->save_session_.HasUnsavedChanges();
         this->UpdateDirtyUi();
         this->RefreshSelectedPcMon();
         this->RebuildPcBoxMenu();
@@ -1892,6 +2023,7 @@ void MainApplication::HandleMoveSlotEdit(const std::string &field_key) {
 
     // Party context
     if ((this->selected_party_index_ < 0) || (static_cast<size_t>(this->selected_party_index_) >= this->party_.size())) { return; }
+    const auto before = this->save_session_.Buffer();
     const auto &entry = this->party_[static_cast<size_t>(this->selected_party_index_)];
     auto moves = entry.move_ids;
     auto move_pp = entry.move_pp;
@@ -1924,7 +2056,11 @@ void MainApplication::HandleMoveSlotEdit(const std::string &field_key) {
     }
     if (!changed) { return; }
 
-    this->dirty_ = true;
+    this->save_session_.RecordMutation(
+        before,
+        "party_edit",
+        "Edit Party slot " + std::to_string(this->selected_party_index_ + 1) + " (" + field_key + " " + std::to_string(slot + 1) + ")");
+    this->dirty_ = this->save_session_.HasUnsavedChanges();
     this->UpdateDirtyUi();
     this->party_ = puse::core::ParseParty(this->save_session_.Buffer(), this->species_db_);
     this->RebuildPartyMenu();
@@ -2297,6 +2433,8 @@ void MainApplication::OnLoad() {
     this->inspector_detail_layout_   = DiagnosticsLayout::New(this->theme_, this->app_icon_);
     this->inspector_detail_layout_->SetTitle("Field details");
     this->inspector_detail_layout_->SetHints("[B] Back | Read only");
+    this->history_layout_            = HomeLayout::New(this->theme_, this->app_icon_);
+    this->history_layout_->SetTitle("Change History");
     this->pc_box_list_layout_        = PcBoxListLayout::New(this->theme_, this->app_icon_);
     this->pc_box_layout_             = PcBoxLayout::New(this->theme_, this->app_icon_);
     this->bag_layout_                = BagLayout::New(this->theme_, this->app_icon_);
@@ -2535,6 +2673,7 @@ void MainApplication::HandleBagSlotEdit(const int slot_index) {
         }
     }
 
+    const auto before = this->save_session_.Buffer();
     if (!puse::core::WriteSlot(this->save_session_.MutableBuffer(),
                                slot.offset, new_id, new_qty, slot.encoding_swapped)) {
         this->CreateShowDialog("Invalid bag item",
@@ -2543,9 +2682,13 @@ void MainApplication::HandleBagSlotEdit(const int slot_index) {
         return;
     }
 
+    this->save_session_.RecordMutation(
+        before,
+        "bag_edit",
+        "Edit " + this->selected_bag_pocket_type_ + " bag slot");
     // Re-resolve pockets so slot counts update
     this->bag_pockets_ = puse::core::ResolveQuickPockets(this->save_session_.Buffer());
-    this->dirty_ = true;
+    this->dirty_ = this->save_session_.HasUnsavedChanges();
     this->UpdateDirtyUi();
     this->RebuildBagPocketMenu();
 
