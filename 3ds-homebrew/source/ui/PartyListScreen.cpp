@@ -20,7 +20,7 @@ using sl::VRect;
 using sl::Vector2;
 using starlight::InputManager;
 
-static constexpr int kRowH    = 36;
+static constexpr int kRowH    = 30;
 static constexpr int kNumSlots = 6;
 
 namespace puse::ui {
@@ -30,7 +30,7 @@ PartyListScreen::PartyListScreen()
 {
     InitChrome("A: Edit  L:PC  R:Bag  SEL:$  Y:Legit  X:Save");
 
-    // 6-slot button list on bottom screen (fits without scroll: 6*36=216 < 218)
+    // 6-slot button list + Change History button on bottom screen (6*30 + 34 = 214 < 218)
     scroll_ = touchScreen->AddNew<sl::ui::ScrollField>(VRect(0, 0, 320, 218));
 
     for (int i = 0; i < kNumSlots; ++i) {
@@ -46,7 +46,7 @@ PartyListScreen::PartyListScreen()
         slot_btns_.push_back(btn);
     }
 
-    history_btn_ = scroll_->AddNew<sl::ui::Button>(VRect(2, 2 + kNumSlots * kRowH, 316, kRowH - 2));
+    history_btn_ = scroll_->AddNew<sl::ui::Button>(VRect(2, 2 + kNumSlots * kRowH, 316, 34));
     history_btn_->SetText("Change History");
     history_btn_->eOnTap = [](sl::ui::Button&) {
         HistoryScreen::Make()->Open();

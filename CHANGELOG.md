@@ -9,6 +9,11 @@
   - Hardened party edits into atomic multi-field mutations (`POST /party/{idx}/edit-full`, `editPartyMonFull`), unified immediate PC commits and baseline resynchronization so stale PC/bag buffers never re-apply undone edits, and exposed Change History UI panels/screens with undo and reset across web, Switch, and 3DS.
   - Added cross-runtime `ledger:regression` checks covering Unbound v2.1.1.1 and Radical Red 4.1 across Python, browser JavaScript, Switch C++, and 3DS C++.
 
+### Fixed
+
+- Fixed Unbound money writes (`money.py`, `money.js`, Switch/3DS `Money.cpp`) to target the canonical `0x290` `u32` offset directly and skip writing the legacy `0x28D` BCD3 shadow when `party_count >= 6`, preventing overlapping BCD3 writes in `patch_money_everywhere` from corrupting Money and protecting active Party slot 6 stats across all four runtimes.
+- Synced Pokédex flag edits inside `PokemonEditorModal` (`PokedexFlagsControls`) and `BagView` dirty-status updates with the Change Ledger immediately, and adjusted 3DS `PartyListScreen` row spacing so all 6 party slots and the `Change History` button remain visible without scrolling.
+
 ### Changed
 
 - Reorganized web navigation while preserving the floating bottom bar on mobile and desktop. All Pokémon remains directly accessible there and from PC; Trainer groups read-only identity, money and supported Battle Points. Graphics, save tools and settings are visible header actions on desktop and landscape phones, with a compact menu on narrow portrait screens. ROM graphics status is visible outside the compatibility report; time-tampering recovery and save conversion remain available before loading and are also accessible within the editor.

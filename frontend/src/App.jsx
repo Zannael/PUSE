@@ -960,6 +960,7 @@ const App = () => {
                         legitMode={legitMode}
                         onClose={() => setSelectedPokemon(null)}
                         onSave={selectedPokemon?.isPC ? handleSavePC : handleSavePokemon}
+                        onChanged={refreshHistory}
                     />
                 </Suspense>
             )}

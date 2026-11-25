@@ -98,8 +98,9 @@ bool WriteMoney(std::vector<uint8_t> &buffer, const uint32_t money, std::string 
             WriteU32Le(buffer.data() + s.offset, kMoneyU32Off, clamped);
         }
 
+        const uint32_t party_count = ReadU32Le(buffer.data() + s.offset, profile::kStoragePartyCountOffset);
         const size_t bcd_abs = s.offset + kMoneyBcdOff;
-        if ((bcd_abs + 3U) <= buffer.size()) {
+        if (party_count < profile::kStoragePartyCapacity && (bcd_abs + 3U) <= buffer.size()) {
             WriteBcd3(buffer.data() + s.offset, kMoneyBcdOff, clamped);
         }
 

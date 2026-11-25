@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Check, Eye, EyeOff, X } from 'lucide-react';
 import { MAX_TRACKED_DEX_ID } from '../core/pokedexCatalog.js';
 
-export default function PokedexFlagsControls({ client, speciesId, speciesLabel }) {
+export default function PokedexFlagsControls({ client, speciesId, speciesLabel, onChanged }) {
     const [flags, setFlags] = useState(null);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(null);
@@ -48,6 +48,9 @@ export default function PokedexFlagsControls({ client, speciesId, speciesLabel }
         setError(null);
         try {
             setFlags(await client.updatePokedexFlag(sid, { flag, value }));
+            if (typeof onChanged === 'function') {
+                await onChanged();
+            }
         } catch (err) {
             setError(err?.message || 'Failed to update Pokédex flags.');
         } finally {

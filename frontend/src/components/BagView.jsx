@@ -272,9 +272,14 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange, onChanged }) =
 
             setEditingItem(null);
             setModalSearch("");
-            setHasUnsavedBagChanges(true);
+            const status = typeof client?.getSessionStatus === 'function'
+                ? await client.getSessionStatus().catch(() => null)
+                : null;
+            setHasUnsavedBagChanges(
+                status && typeof status.bag_dirty === 'boolean' ? status.bag_dirty : true
+            );
             if (typeof onChanged === 'function') {
-                onChanged();
+                await onChanged();
             }
             alert("Edit applied in memory. Click SAVE BAG CHANGES to write to file.");
         } catch (err) {
@@ -288,7 +293,7 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange, onChanged }) =
             await client.saveAll();
             setHasUnsavedBagChanges(false);
             if (typeof onChanged === 'function') {
-                onChanged();
+                await onChanged();
             }
             alert("Bag saved and checksum recalculated successfully!");
         } catch (err) {

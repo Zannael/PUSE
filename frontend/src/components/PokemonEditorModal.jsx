@@ -29,7 +29,7 @@ const getTotalEvs = (evs = {}) =>
     Number(evs.SpD ?? 0) +
     getSpeedStatValue(evs);
 
-export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose, onSave }) => {
+export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose, onSave, onChanged }) => {
     const isPcMon = Boolean(pokemon?.isPC);
     const SAFE_IMPORT_NOTE = 'Existing Pokemon import applies item, moves, IVs, EVs, nature, and ability (if valid). Species, level, and identity metadata are preserved.';
     const initialGrowthMode = 'auto';
@@ -917,6 +917,7 @@ export const PokemonEditorModal = ({ client, pokemon, legitMode = false, onClose
                                     client={client}
                                     speciesId={localPk.species_id}
                                     speciesLabel={currentSpeciesName}
+                                    onChanged={onChanged}
                                 />}
                             </div>
 

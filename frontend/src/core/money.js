@@ -4,7 +4,10 @@ import { recalculateTrainerChecksum } from './checksum.js';
 import { findActiveSectionById, activeSections } from './sections.js';
 
 const TRAINER_SECTION_ID = PROFILE.storage.resources.trainer_section_id;
+const PARTY_COUNT_OFFSET = PROFILE.storage.party.count_offset;
+const PARTY_CAPACITY = PROFILE.storage.party.capacity;
 const FALLBACK_OFF_MONEY = PROFILE.storage.resources.money_offset;
+const MONEY_BCD_OFFSET = PROFILE.storage.resources.money_bcd_offset;
 const BP_SECTION_ID = PROFILE.storage.resources.bp_section_id;
 const BP_OFFSET_IN_SECTION = PROFILE.storage.resources.bp_offset;
 const MAX_MONEY = PROFILE.rules.money_max;
@@ -56,10 +59,11 @@ export function updateMoney(buffer, amount) {
 
     trainerSections.forEach((section) => {
         const moneyOffset = section.off + FALLBACK_OFF_MONEY;
-        const bcdOffset = moneyOffset - 3;
+        const partyCount = ru32(buffer, section.off + PARTY_COUNT_OFFSET);
 
         wu32(buffer, moneyOffset, safeAmount);
-        if (bcd) {
+        if (bcd && MONEY_BCD_OFFSET !== null && MONEY_BCD_OFFSET !== undefined && partyCount < PARTY_CAPACITY) {
+            const bcdOffset = section.off + MONEY_BCD_OFFSET;
             buffer[bcdOffset] = bcd[0];
             buffer[bcdOffset + 1] = bcd[1];
             buffer[bcdOffset + 2] = bcd[2];

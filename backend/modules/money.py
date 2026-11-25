@@ -9,8 +9,11 @@ FOOTER_CHK_OFF = PROFILE["container"]["footer"]["checksum"]
 FOOTER_SAVEINDEX_OFF = PROFILE["container"]["footer"]["counter"]
 
 TRAINER_SECTION_ID = PROFILE["storage"]["resources"]["trainer_section_id"]
-# fallback u32 offset we observed; used only if search fails
+PARTY_COUNT_OFF = PROFILE["storage"]["party"]["count_offset"]
+PARTY_CAPACITY = PROFILE["storage"]["party"]["capacity"]
+# Canonical money u32 offset (0x290 on Unbound/CFRU).
 FALLBACK_OFF_MONEY = PROFILE["storage"]["resources"]["money_offset"]
+MONEY_BCD_OFF = PROFILE["storage"]["resources"].get("money_bcd_offset")
 MIN_MONEY = 0
 MAX_MONEY = PROFILE["rules"]["money_max"]
 
@@ -110,58 +113,25 @@ def patch_money_everywhere(buf: bytes, new_money: int, dryrun=False):
 
         # record prior state for logging
         prior_chk = ru16(sec, FOOTER_CHK_OFF)
-        prior_money_u32 = None
-        found_u32_offsets = find_all(bytes(payload), struct.pack("<I", new_money))  # this will find new value if already present
-        # but want old value locations: search for any plausible existing 4-byte number near fallback
-        # We'll attempt to detect existing money u32 by searching backwards from fallback, otherwise search for any 6-digit packed bcd too
-
-        # Try to find current u32 occurrences by searching for any 4-byte little-endian integers that look like money (<= 999999)
-        u32_candidates = []
-        for p in range(0, len(payload)-3):
-            val = struct.unpack_from("<I", payload, p)[0]
-            if 0 <= val <= MAX_MONEY:
-                u32_candidates.append((p,val))
-        # prefer ones near FALLBACK_OFF_MONEY
-        u32_candidates.sort(key=lambda x: abs(x[0]-FALLBACK_OFF_MONEY))
-        u32_offset = u32_candidates[0][0] if u32_candidates else FALLBACK_OFF_MONEY
+        u32_offset = FALLBACK_OFF_MONEY
         prior_money_u32 = struct.unpack_from("<I", payload, u32_offset)[0]
-
-        # find packed BCD3 for prior money by scanning for any 3-byte pattern that's valid BCD for 6 digits
-        def is_valid_bcd3(b):
-            # each nibble 0-9
-            for byte in b:
-                if ((byte>>4) & 0xF) > 9 or (byte & 0xF) > 9:
-                    return False
-            return True
-
-        bcd_offsets = [p for p in range(0, len(payload)-2) if is_valid_bcd3(payload[p:p+3])]
-        bcd_offset = None
-        if bcd_offsets:
-            # choose one nearest to u32 offset - 3
-            target = max(0, u32_offset - 3)
-            bcd_offsets.sort(key=lambda x: abs(x-target))
-            bcd_offset = bcd_offsets[0]
-
-        # For robustness: if no reasonable candidate, use fallback positions
-        if u32_offset is None:
-            u32_offset = FALLBACK_OFF_MONEY
-        if bcd_offset is None:
-            # try u32_offset - 3 as likely
-            cand = max(0, u32_offset - 3)
-            bcd_offset = cand
+        party_count = ru32(payload, PARTY_COUNT_OFF)
+        # Slot 6 (party_count == 6) extends through 0x28F; never overwrite active Party slot 6 stats with BCD3.
+        bcd_offset = MONEY_BCD_OFF if (MONEY_BCD_OFF is not None and party_count < PARTY_CAPACITY) else None
 
         # Logging before change
         calc_before = compute_section_checksum(bytes(payload), valid_len)
         print(f"\nPatching section @ file_off=0x{off:06X} index={s['index']} saveidx={s['saveidx']}")
         print(f" - chosen u32_offset = 0x{u32_offset:X} (prior={prior_money_u32})")
-        print(f" - chosen bcd_offset = 0x{bcd_offset:X}")
+        print(f" - chosen bcd_offset = {f'0x{bcd_offset:X}' if bcd_offset is not None else 'skipped (full party)'}")
         print(f" - checksum before: stored=0x{prior_chk:04X}, calc=0x{calc_before:04X}")
 
         # apply changes to payload
         struct.pack_into("<I", payload, u32_offset, new_money)
-        bcd = to_bcd3(new_money)
-        if bcd is not None:
-            payload[bcd_offset:bcd_offset+3] = bcd
+        if bcd_offset is not None:
+            bcd = to_bcd3(new_money)
+            if bcd is not None:
+                payload[bcd_offset:bcd_offset+3] = bcd
 
         # recompute checksum and write back
         newchk = compute_section_checksum(bytes(payload), valid_len)
