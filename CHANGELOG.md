@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+- Added a bounded sparse-diff change ledger (`max_entries=50`) with grouped edit transactions (`begin`/`commit`/`abort`), LIFO operation-level undo, and full reset-to-original across backend, browser local mode, Switch, and 3DS.
+  - Preserves an immutable baseline snapshot across the session so Reset-to-original restores the exact loaded save even beyond 50 recorded entries, and keeps uncommitted bag dirty state accurate past export and entry eviction.
+  - Hardened party edits into atomic multi-field mutations (`POST /party/{idx}/edit-full`, `editPartyMonFull`), unified immediate PC commits and baseline resynchronization so stale PC/bag buffers never re-apply undone edits, and exposed Change History UI panels/screens with undo and reset across web, Switch, and 3DS.
+  - Added cross-runtime `ledger:regression` checks covering Unbound v2.1.1.1 and Radical Red 4.1 across Python, browser JavaScript, Switch C++, and 3DS C++.
+
 ### Changed
 
 - Reorganized web navigation while preserving the floating bottom bar on mobile and desktop. All Pokémon remains directly accessible there and from PC; Trainer groups read-only identity, money and supported Battle Points. Graphics, save tools and settings are visible header actions on desktop and landscape phones, with a compact menu on narrow portrait screens. ROM graphics status is visible outside the compatibility report; time-tampering recovery and save conversion remain available before loading and are also accessible within the editor.
@@ -22,7 +29,6 @@ The roadmap is ordered by the combination of user value and implementation feasi
 
 | Priority | Proposal | User value | Feasibility | Scope and decision gate |
 |---:|---|---|---|---|
-| 3 | Change ledger with undo and reset-to-original | High | Medium | Build on immutable upload snapshots and existing change reports. Define operation-level undo, pending PC/bag buffer reconciliation, grouped edits, and reset semantics before exposing the workflow in each runtime. |
 | 4 | Party/PC transfer primitive | Very high | Medium | Design an atomic operation covering source clearing, destination validation, party compaction, full-party/full-box errors, checksums, and all four runtimes. |
 | 5 | Party create/insert workflow | High | Medium | Build on the transfer primitive rather than introducing a second party-packing path; validate ownership, identity, slot count, stats, and checksums. |
 | 6 | Bulk PC release and release UX polish | Medium-high | Medium | Reuse the existing single-release primitive, but require a review step, explicit selection behavior, and all-or-nothing failure handling. Party release remains out of scope until compaction is implemented. |

@@ -20,7 +20,7 @@ try {
     const native = [];
     for (const port of ['switch-homebrew', '3ds-homebrew']) {
         const executable = path.join(temporary, port);
-        const sources = ['core/SaveSections.cpp', 'core/SaveSession.cpp', 'core/Party.cpp', 'core/Pc.cpp', 'core/Bag.cpp', 'io/DataLoader.cpp'];
+        const sources = ['core/SaveSections.cpp', 'core/SaveHealth.cpp', 'core/ChangeLedger.cpp', 'core/SaveSession.cpp', 'core/Party.cpp', 'core/Pc.cpp', 'core/Bag.cpp', 'io/DataLoader.cpp'];
         run('g++', ['-std=c++17', '-I' + path.join(repo, port, 'include'), ...sources.map((s) => path.join(port, 'source', s)), path.join(port, 'tests/ot_name_parity.cpp'), '-o', executable]);
         native.push([port, executable]);
     }

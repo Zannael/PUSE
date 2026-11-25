@@ -9,6 +9,8 @@ mkdir -p "$PORT_ROOT/build/host"
 
 g++ -std=c++17 -I"$PORT_ROOT/include" \
     "$PORT_ROOT/source/core/SaveSections.cpp" \
+    "$PORT_ROOT/source/core/SaveHealth.cpp" \
+    "$PORT_ROOT/source/core/ChangeLedger.cpp" \
     "$PORT_ROOT/source/core/SaveSession.cpp" \
     "$PORT_ROOT/source/core/Party.cpp" \
     "$PORT_ROOT/source/core/Pc.cpp" \

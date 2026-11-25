@@ -143,7 +143,7 @@ def main():
             initialized.append(port)
             binary = ROOT / port / 'artifacts/tmp/port/mutation-properties'
             subprocess.run(['g++', '-std=c++17', '-O1', '-I' + str(ROOT / port / 'include'),
-                *[str(ROOT / port / f'source/core/{name}.cpp') for name in ('SaveSession', 'SaveSections', 'Party', 'Pc')],
+                *[str(ROOT / port / f'source/core/{name}.cpp') for name in ('SaveSession', 'SaveHealth', 'ChangeLedger', 'SaveSections', 'Party', 'Pc')],
                 str(ROOT / port / 'source/io/DataLoader.cpp'),
                 str(ROOT / 'backend/tools/mutation_property_native.cpp'), '-o', str(binary)], check=True)
             binaries.append((port, binary))

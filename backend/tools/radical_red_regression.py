@@ -66,7 +66,7 @@ def main():
         binaries=[]
         for port in ['switch-homebrew','3ds-homebrew']:
             binary=tmp/port
-            subprocess.run(['g++','-std=c++17','-I'+str(ROOT/port/'include'),*[str(ROOT/port/f'source/core/{name}.cpp') for name in ['SaveSession','SaveSections','Pc','Party','Bag','Money','PokedexFlags']],str(ROOT/port/'source/io/DataLoader.cpp'),str(ROOT/port/'tests/radical_red_parity.cpp'),'-o',str(binary)],check=True)
+            subprocess.run(['g++','-std=c++17','-I'+str(ROOT/port/'include'),*[str(ROOT/port/f'source/core/{name}.cpp') for name in ['SaveSession','SaveHealth','ChangeLedger','SaveSections','Pc','Party','Bag','Money','PokedexFlags']],str(ROOT/port/'source/io/DataLoader.cpp'),str(ROOT/port/'tests/radical_red_parity.cpp'),'-o',str(binary)],check=True)
             binaries.append((port,binary))
         for mode in ['noop','edit']:
             with contextlib.redirect_stdout(io.StringIO()):expected=backend(source,mode)

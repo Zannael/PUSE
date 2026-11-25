@@ -101,7 +101,7 @@ def main():
             (tmp/'source/profile.json').write_text(serialized_profile())
             binary=tmp/'port/profile'
             subprocess.run(['g++','-std=c++17','-I'+str(ROOT/port/'include'),
-                *[str(ROOT/port/f'source/core/{name}.cpp') for name in ['SaveSession','SaveSections','Pc','Party']],
+                *[str(ROOT/port/f'source/core/{name}.cpp') for name in ['SaveSession','SaveHealth','ChangeLedger','SaveSections','Pc','Party']],
                 str(ROOT/port/'source/io/DataLoader.cpp'),
                 str(ROOT/port/'tests/profile_parity.cpp'),'-o',str(binary)],check=True)
             exported=tmp/'port/export.sav'

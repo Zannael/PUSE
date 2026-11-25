@@ -33,7 +33,8 @@ def main():
             initialized.append(port)
             binary = ROOT / port / 'artifacts/tmp/port/compatibility'
             subprocess.run(['g++', '-std=c++17', '-O1', '-I' + str(ROOT / port / 'include'),
-                str(ROOT / port / 'source/core/SaveSections.cpp'), str(ROOT / port / 'source/core/SaveSession.cpp'),
+                str(ROOT / port / 'source/core/SaveSections.cpp'), str(ROOT / port / 'source/core/SaveHealth.cpp'),
+                str(ROOT / port / 'source/core/ChangeLedger.cpp'), str(ROOT / port / 'source/core/SaveSession.cpp'),
                 str(ROOT / 'backend/tools/compatibility_native.cpp'), '-o', str(binary)], check=True)
             binaries.append((port, binary))
         tmp = ROOT / PORTS[0] / 'artifacts/tmp'
