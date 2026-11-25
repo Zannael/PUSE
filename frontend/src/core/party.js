@@ -396,9 +396,13 @@ function findIdentityPid(rawMon, payload = {}) {
 }
 
 function setNature(rawMon, targetNatureId) {
+    const natureId = Number(targetNatureId);
+    if (!Number.isInteger(natureId) || natureId < 0 || natureId > 24) {
+        throw new Error('Invalid nature_id (expected 0..24)');
+    }
     let pid = ru32(rawMon, OFF_PID);
     const currentAbilitySlot = pid & 1;
-    while ((pid % 25) !== targetNatureId || (pid & 1) !== currentAbilitySlot) {
+    while ((pid % 25) !== natureId || (pid & 1) !== currentAbilitySlot) {
         pid = (pid + 1) >>> 0;
     }
     wu32(rawMon, OFF_PID, pid);
@@ -423,7 +427,11 @@ function setHiddenAbilityFlag(rawMon, active) {
 }
 
 function setAbilitySlot(rawMon, slotType) {
-    if (slotType === 2) {
+    const slot = Number(slotType);
+    if (![0, 1, 2].includes(slot)) {
+        throw new Error('ability_index must be 0, 1, or 2');
+    }
+    if (slot === 2) {
         setHiddenAbilityFlag(rawMon, true);
         return;
     }
@@ -431,7 +439,7 @@ function setAbilitySlot(rawMon, slotType) {
     setHiddenAbilityFlag(rawMon, false);
     let pid = ru32(rawMon, OFF_PID);
     const targetNature = pid % 25;
-    while ((pid % 25) !== targetNature || (pid & 1) !== slotType) {
+    while ((pid % 25) !== targetNature || (pid & 1) !== slot) {
         pid = (pid + 1) >>> 0;
     }
     wu32(rawMon, OFF_PID, pid);
@@ -1086,6 +1094,154 @@ export function updatePartyLevel(buffer, monIndex, payload) {
         wu8(rawMon, OFF_LEVEL_VISUAL, targetLevel);
         recalculatePartyStats(rawMon, true);
     });
+}
+
+function normalizePartyStatDict(statDict, fallbackStats, maxVal) {
+    if (!statDict || typeof statDict !== 'object') {
+        throw new Error('Stats payload must be an object');
+    }
+    const pick = (keys, fallback) => {
+        for (const key of keys) {
+            if (statDict[key] !== undefined && statDict[key] !== null) {
+                const n = Math.trunc(Number(statDict[key]));
+                if (!Number.isFinite(n)) {
+                    throw new Error(`Invalid stat value for ${key}`);
+                }
+                return Math.max(0, Math.min(maxVal, n));
+            }
+        }
+        return Number(fallback);
+    };
+    return {
+        HP: pick(['HP', 'hp'], fallbackStats.HP),
+        Atk: pick(['Atk', 'atk'], fallbackStats.Atk),
+        Def: pick(['Def', 'dfe', 'def'], fallbackStats.Def),
+        Spd: pick(['Spe', 'Spd', 'spe'], fallbackStats.Spd),
+        SpA: pick(['SpA', 'spa'], fallbackStats.SpA),
+        SpD: pick(['SpD', 'spd'], fallbackStats.SpD),
+    };
+}
+
+export function editPartyMonFull(buffer, monIndex, payload = {}, speciesMap = null) {
+    const active = findActiveTrainerSection(buffer);
+    if (!active) {
+        throw new Error('Trainer section not found');
+    }
+    const idx = Number(monIndex);
+    const teamCount = Math.min(PROFILE.storage.party.capacity, ru32(buffer, active.off + PARTY_COUNT_OFFSET));
+    if (!Number.isInteger(idx) || idx < 0 || idx >= teamCount) {
+        throw new Error('Pokemon not found');
+    }
+
+    const monOffset = partyMonOffset(active.off, idx);
+    const rawMon = buffer.slice(monOffset, monOffset + PARTY_MON_SIZE);
+    const speciesBefore = getSpeciesId(rawMon);
+    if (speciesBefore === 0) {
+        throw new Error('Pokemon not found');
+    }
+
+    const hasSpecies = payload.species_id !== undefined && payload.species_id !== null;
+    if (hasSpecies) {
+        const sid = Number(payload.species_id);
+        if (!Number.isInteger(sid) || sid <= 0 || (speciesMap && !speciesMap.has(sid))) {
+            throw new Error('Invalid species_id');
+        }
+        setSpeciesId(rawMon, sid);
+    }
+
+    if (payload.ot_name !== undefined && payload.ot_name !== null) {
+        rawMon.set(encodeText(validateOtName(payload.ot_name), 7), 0x14);
+    }
+
+    if (payload.nickname !== undefined && payload.nickname !== null) {
+        setNickname(rawMon, payload.nickname, speciesMap);
+    }
+
+    if (payload.moves !== undefined && payload.moves !== null) {
+        for (const mv of payload.moves) {
+            const m = Number(mv);
+            if (!Number.isInteger(m) || m < 0 || m > 1023) {
+                throw new Error('Invalid move_id in moves payload');
+            }
+        }
+        setMoves(rawMon, payload.moves, payload.move_pp ?? null, payload.move_pp_ups ?? null);
+    } else if (
+        (payload.move_pp !== undefined && payload.move_pp !== null) ||
+        (payload.move_pp_ups !== undefined && payload.move_pp_ups !== null)
+    ) {
+        setMoves(rawMon, getMoves(rawMon), payload.move_pp ?? null, payload.move_pp_ups ?? null);
+    }
+
+    if (payload.item_id !== undefined && payload.item_id !== null) {
+        setItemId(rawMon, Number(payload.item_id));
+    }
+
+    if (payload.ball_id !== undefined && payload.ball_id !== null) {
+        setBallId(rawMon, payload.ball_id);
+    }
+
+    if (payload.happiness !== undefined && payload.happiness !== null) {
+        setHappiness(rawMon, payload.happiness);
+    }
+
+    if (payload.ivs !== undefined && payload.ivs !== null) {
+        setIvs(rawMon, normalizePartyStatDict(payload.ivs, getIvs(rawMon), 31));
+    }
+
+    if (payload.evs !== undefined && payload.evs !== null) {
+        setEvs(rawMon, normalizePartyStatDict(payload.evs, getEvs(rawMon), 255));
+    }
+
+    if (payload.current_ability_index !== undefined && payload.current_ability_index !== null) {
+        setAbilitySlot(rawMon, Number(payload.current_ability_index));
+    }
+
+    if (payload.nature_id !== undefined && payload.nature_id !== null) {
+        setNature(rawMon, Number(payload.nature_id));
+    }
+
+    if (
+        (payload.shiny !== undefined && payload.shiny !== null) ||
+        (payload.gender !== undefined && payload.gender !== null)
+    ) {
+        const nextPid = findIdentityPid(rawMon, {
+            shiny: payload.shiny,
+            gender: payload.gender,
+        });
+        wu32(rawMon, OFF_PID, nextPid >>> 0);
+    }
+
+    const levelEdit = payload.level_edit;
+    if (levelEdit !== undefined && levelEdit !== null) {
+        const targetLevel = Math.max(1, Math.min(PROFILE.rules.level_max, Number(levelEdit.target_level ?? 1)));
+        let growthRate;
+        if (levelEdit.growth_rate !== undefined && levelEdit.growth_rate !== null && levelEdit.growth_rate !== '') {
+            growthRate = Number(levelEdit.growth_rate);
+            if (!Number.isInteger(growthRate) || growthRate < 0 || growthRate > 5) {
+                throw new Error('growth_rate must be between 0 and 5');
+            }
+        } else {
+            const speciesGrowth = getSpeciesGrowthRate(rawMon);
+            growthRate = speciesGrowth !== null
+                ? speciesGrowth
+                : guessGrowthRate(getExp(rawMon), ru8(rawMon, OFF_LEVEL_VISUAL));
+        }
+        setExp(rawMon, getExpAtLevel(growthRate, targetLevel));
+        wu8(rawMon, OFF_LEVEL_VISUAL, targetLevel);
+    }
+
+    if (!hasSpecies && getSpeciesId(rawMon) !== speciesBefore) {
+        throw new Error(`Safety check failed during party full edit: species changed unexpectedly from ${speciesBefore} to ${getSpeciesId(rawMon)}.`);
+    }
+
+    const statFields = ['species_id', 'ivs', 'evs', 'nature_id', 'shiny', 'gender', 'level_edit'];
+    if (statFields.some((field) => payload[field] !== undefined && payload[field] !== null)) {
+        recalculatePartyStats(rawMon, true);
+    }
+
+    addMonChecksum(rawMon);
+    buffer.set(rawMon, monOffset);
+    recalculateTrainerChecksum(buffer, active.off);
 }
 
 const speciesBaseStats = profileData("base_stats", speciesBaseStatsRaw);

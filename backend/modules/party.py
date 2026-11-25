@@ -754,6 +754,9 @@ class Pokemon:
         return _is_shiny_pid(self.otid, self.pid)
 
     def set_nature(self, target_nature_id):
+        target_nature_id = int(target_nature_id)
+        if target_nature_id < 0 or target_nature_id > 24:
+            raise ValueError("Invalid nature_id (expected 0..24)")
         current_ability_slot = self.pid & 1  # Salva lo slot attuale (0 o 1)
         while (self.pid % 25 != target_nature_id) or (self.pid & 1 != current_ability_slot):
             self.pid = (self.pid + 1) & 0xFFFFFFFF
@@ -944,6 +947,9 @@ class Pokemon:
         """
         slot_type: 0 = Slot 1 (Std), 1 = Slot 2 (Std), 2 = Hidden Ability
         """
+        slot_type = int(slot_type)
+        if slot_type not in (0, 1, 2):
+            raise ValueError("ability_index must be 0, 1, or 2")
         if slot_type == 2:
             # Attiva HA e mantieni il PID attuale
             self.set_hidden_ability_flag(True)
@@ -955,6 +961,137 @@ class Pokemon:
             while (self.pid % 25 != target_nature) or (self.pid & 1 != slot_type):
                 self.pid = (self.pid + 1) & 0xFFFFFFFF
             wu32(self.raw, OFF_PID, self.pid)
+
+
+def _normalize_party_stat_dict(stat_dict, fallback_stats, max_val):
+    """Normalize either backend (hp/atk/dfe/spa/spd/spe) or UI (HP/Atk/Def/SpA/SpD/Spd|Spe) stat dicts."""
+    if not isinstance(stat_dict, dict):
+        raise ValueError("Stats payload must be an object")
+
+    def pick(keys, default_val):
+        for key in keys:
+            if key in stat_dict and stat_dict[key] is not None:
+                val = int(stat_dict[key])
+                return max(0, min(max_val, val))
+        return int(default_val)
+
+    return {
+        "HP": pick(("HP", "hp"), fallback_stats["HP"]),
+        "Atk": pick(("Atk", "atk"), fallback_stats["Atk"]),
+        "Def": pick(("Def", "dfe", "def"), fallback_stats["Def"]),
+        "Spd": pick(("Spe", "Spd", "spe"), fallback_stats["Spd"]),
+        "SpA": pick(("SpA", "spa"), fallback_stats["SpA"]),
+        "SpD": pick(("SpD", "spd"), fallback_stats["SpD"]),
+    }
+
+
+def edit_party_mon_full(data, mon_index, payload):
+    """Atomically validate and apply multi-field edits to one party slot in `data`."""
+    trainer_secs = [s for s in active_sections(data) if s["id"] == TRAINER_SECTION_ID]
+    if not trainer_secs:
+        raise LookupError("Trainer section not found")
+    trainer_off = max(trainer_secs, key=lambda s: s["saveidx"])["off"]
+
+    idx = int(mon_index)
+    team_count = min(PARTY_CAPACITY, ru32(data, trainer_off + PARTY_COUNT_OFFSET))
+    if idx < 0 or idx >= team_count:
+        raise LookupError("Pokemon not found")
+
+    mon_off = trainer_off + PARTY_START_OFFSET + (idx * PARTY_MON_SIZE)
+    pk = Pokemon(data[mon_off: mon_off + PARTY_MON_SIZE])
+    species_before = pk.get_species_id()
+    if species_before == 0:
+        raise LookupError("Pokemon not found")
+
+    species_id = payload.get("species_id")
+    if species_id is not None:
+        sid = int(species_id)
+        if sid <= 0 or sid not in DB_SPECIES:
+            raise ValueError("Invalid species_id")
+        pk.set_species_id(sid)
+
+    if payload.get("ot_name") is not None:
+        pk.set_ot_name(payload["ot_name"])
+
+    if payload.get("nickname") is not None:
+        pk.set_nickname(payload["nickname"])
+
+    if payload.get("moves") is not None:
+        for mv in payload["moves"]:
+            m = int(mv)
+            if m < 0 or m > 1023:
+                raise ValueError("Invalid move_id in moves payload")
+        pk.set_moves(
+            payload["moves"],
+            move_pp=payload.get("move_pp"),
+            move_pp_ups=payload.get("move_pp_ups"),
+        )
+    elif payload.get("move_pp") is not None or payload.get("move_pp_ups") is not None:
+        pk.set_moves(
+            pk.get_moves_ids(),
+            move_pp=payload.get("move_pp"),
+            move_pp_ups=payload.get("move_pp_ups"),
+        )
+
+    if payload.get("item_id") is not None:
+        pk.set_item(int(payload["item_id"]))
+
+    if payload.get("ball_id") is not None:
+        pk.set_ball_id(int(payload["ball_id"]))
+
+    if payload.get("happiness") is not None:
+        pk.set_happiness(payload["happiness"])
+
+    if payload.get("ivs") is not None:
+        pk.set_ivs(_normalize_party_stat_dict(payload["ivs"], pk.get_ivs(), 31))
+
+    if payload.get("evs") is not None:
+        pk.set_evs(_normalize_party_stat_dict(payload["evs"], pk.get_evs(), 255))
+
+    if payload.get("current_ability_index") is not None:
+        pk.set_ability_slot(int(payload["current_ability_index"]))
+
+    if payload.get("nature_id") is not None:
+        pk.set_nature(int(payload["nature_id"]))
+
+    if payload.get("shiny") is not None or payload.get("gender") is not None:
+        pk.set_identity(shiny=payload.get("shiny"), gender=payload.get("gender"))
+
+    level_edit = payload.get("level_edit")
+    if level_edit is not None:
+        requested_level = int(level_edit.get("target_level", 1))
+        target_level = max(1, min(PROFILE["rules"]["level_max"], requested_level))
+        growth_rate_raw = level_edit.get("growth_rate")
+        if growth_rate_raw is not None:
+            growth_rate = int(growth_rate_raw)
+            if growth_rate < 0 or growth_rate > 5:
+                raise ValueError("growth_rate must be between 0 and 5")
+        else:
+            species_growth = get_species_growth_rate(pk.get_species_id())
+            if species_growth is not None:
+                growth_rate = species_growth
+            else:
+                growth_rate, _ = guess_growth_rate(pk.get_exp(), pk.raw[OFF_LEVEL_VISUAL])
+        pk.set_exp(get_exp_at_level(growth_rate, target_level))
+        pk.set_visual_level(target_level)
+
+    if species_id is None and pk.get_species_id() != species_before:
+        raise ValueError(
+            f"Safety check failed during party full edit: species changed unexpectedly "
+            f"from {species_before} to {pk.get_species_id()}."
+        )
+
+    if any(
+        payload.get(field) is not None
+        for field in ("species_id", "ivs", "evs", "nature_id", "shiny", "gender", "level_edit")
+    ):
+        pk.recalculate_party_stats(clamp_hp=True)
+
+    packed = pk.pack_data()
+    data[mon_off: mon_off + PARTY_MON_SIZE] = packed
+    chk = calculate_section_checksum(data[trainer_off: trainer_off + SECTION_SIZE])
+    wu16(data, trainer_off + FOOTER_CHK_OFF, chk)
+    return pk
 
 
 # --- LOGICA SALVATAGGIO ---
