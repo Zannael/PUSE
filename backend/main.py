@@ -17,6 +17,7 @@ from modules import game_progress as game_progress_mod
 from modules import pokedex_flags as pokedex_flags_mod
 from modules import money as money_mod
 from modules import save_health as save_health_mod
+from modules.change_ledger import ChangeLedger
 from pydantic import BaseModel
 from modules import pc as box_mod
 import os
@@ -84,12 +85,56 @@ current_save = {
     "filename": None,
     "dirty": False,
     "bag_dirty": False,
+    "ledger": ChangeLedger(),
     "pc_context": _empty_pc_context(),
 }
 
 
 def _reset_pc_context():
     current_save["pc_context"] = _empty_pc_context()
+
+
+def _sync_dirty_flags():
+    has_save = current_save["data"] is not None
+    orig = current_save.get("original_data")
+    current_save["dirty"] = bool(has_save and orig is not None and bytes(current_save["data"]) != orig)
+    ledger = current_save.get("ledger")
+    current_save["bag_dirty"] = bool(ledger.has_uncommitted_bag_changes()) if ledger else False
+
+
+def _record_mutation(before_bytes, kind, label, *, is_pc=False):
+    ledger = current_save.get("ledger")
+    if ledger is not None and before_bytes is not None and current_save["data"] is not None:
+        ledger.record(before_bytes, current_save["data"], kind, label)
+    _sync_dirty_flags()
+    if not is_pc:
+        _reset_pc_context()
+
+
+def _session_status_payload():
+    _sync_dirty_flags()
+    has_save = current_save["data"] is not None
+    return {
+        "has_save": has_save,
+        "filename": current_save.get("filename"),
+        "size": len(current_save["data"]) if has_save else 0,
+        "dirty": bool(current_save.get("dirty", False)),
+        "bag_dirty": bool(current_save.get("bag_dirty", False)),
+        "has_changes_from_original": bool(current_save.get("dirty", False)),
+    }
+
+
+def _history_payload():
+    ledger = current_save.get("ledger")
+    if current_save["data"] is None or ledger is None:
+        return {
+            "entries": [],
+            "can_undo": False,
+            "can_reset": False,
+            "total_changed_bytes": 0,
+            "max_entries": 50,
+        }
+    return ledger.summary(current_save["data"], current_save["original_data"])
 
 
 def _commit_pc_context_to_save(data, ctx):
@@ -547,26 +592,85 @@ async def upload_save(file: UploadFile = File(...), profile_id: str | None = Non
     current_save["filename"] = file.filename
     current_save["dirty"] = False
     current_save["bag_dirty"] = False
+    current_save["ledger"] = ChangeLedger()
     _reset_pc_context()
     return {"message": f"File {file.filename} loaded successfully!"}
 
 
 @app.get("/session/status")
 async def get_session_status():
-    has_save = current_save["data"] is not None
-    has_changes = bool(
-        has_save
-        and current_save["original_data"] is not None
-        and bytes(current_save["data"]) != current_save["original_data"]
-    )
-    return {
-        "has_save": has_save,
-        "filename": current_save.get("filename"),
-        "size": len(current_save["data"]) if has_save else 0,
-        "dirty": bool(current_save.get("dirty", False)),
-        "bag_dirty": bool(current_save.get("bag_dirty", False)),
-        "has_changes_from_original": has_changes,
-    }
+    return _session_status_payload()
+
+
+class HistoryGroupRequest(BaseModel):
+    kind: str = "edit"
+    label: str = "Edit save"
+
+
+@app.get("/history")
+async def get_history():
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
+    return _history_payload()
+
+
+@app.post("/history/group/begin")
+async def begin_history_group(req: HistoryGroupRequest):
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
+    try:
+        current_save["ledger"].begin_group(current_save["data"], req.kind, req.label)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"status": "History group started"}
+
+
+@app.post("/history/group/commit")
+async def commit_history_group():
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
+    try:
+        entry = current_save["ledger"].commit_group(current_save["data"])
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    _sync_dirty_flags()
+    return {"entry": entry, **_history_payload(), "session": _session_status_payload()}
+
+
+@app.post("/history/group/abort")
+async def abort_history_group():
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
+    aborted = current_save["ledger"].abort_group(current_save["data"])
+    if aborted:
+        _reset_pc_context()
+    _sync_dirty_flags()
+    return {"aborted": aborted, **_history_payload(), "session": _session_status_payload()}
+
+
+@app.post("/history/undo")
+async def undo_last_change():
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
+    try:
+        undone = current_save["ledger"].undo(current_save["data"])
+    except LookupError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    _reset_pc_context()
+    _sync_dirty_flags()
+    return {"undone": undone, **_history_payload(), "session": _session_status_payload()}
+
+
+@app.post("/history/reset")
+async def reset_save_to_original():
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
+    current_save["ledger"].reset(current_save["data"], current_save["original_data"])
+    _reset_pc_context()
+    _sync_dirty_flags()
+    return {**_history_payload(), "session": _session_status_payload()}
 
 
 @app.get("/money")
@@ -642,11 +746,11 @@ async def update_pokedex_flag(species_id: int, data: PokedexFlagUpdate):
     """Update one internal Pokédex flag and refresh the trainer checksum."""
     if current_save["data"] is None:
         raise HTTPException(status_code=400, detail="Upload a .sav file first")
+    before = bytes(current_save["data"])
     result = pokedex_flags_mod.set_pokedex_flag(current_save["data"], species_id, data.flag, data.value)
     if not result.get("ok"):
         raise HTTPException(status_code=400, detail=result.get("reason", "pokedex flag update failed"))
-    current_save["dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "pokedex_edit", f"Update Pokédex #{int(species_id)}")
     return result
 
 
@@ -681,9 +785,9 @@ async def update_battle_points(amount: int):
 
     requested = int(amount)
     clamped = max(BP_MIN, min(BP_MAX, requested))
+    before = bytes(current_save["data"])
     party_mod.wu16(current_save["data"], sec_off + BP_OFFSET_IN_SECTION, clamped)
-    current_save["dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "bp_edit", "Update Battle Points")
 
     # Unbound section 4 behaves as opaque in this project context.
     # Keep checksum untouched to avoid introducing layout-specific side effects.
@@ -702,12 +806,12 @@ async def update_money(amount: int):
         raise HTTPException(status_code=400, detail="Upload a .sav file first")
 
     try:
+        before = bytes(current_save["data"])
         clamped_amount = money_mod.clamp_money(amount)
         # Reuse patch_money_everywhere; it already handles checksums and BCD
         new_data = money_mod.patch_money_everywhere(current_save["data"], clamped_amount)
         current_save["data"] = bytearray(new_data)
-        current_save["dirty"] = True
-        _reset_pc_context()
+        _record_mutation(before, "money_edit", "Update Money")
         return {
             "message": f"Money updated to {clamped_amount}",
             "new_money": clamped_amount,
@@ -1021,10 +1125,10 @@ async def update_party_item(idx: int, data: ItemUpdate):
     pk.set_item(data.item_id)
     _assert_species_unchanged(pk, species_before, "party item update")
 
+    before = bytes(current_save["data"])
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
-    current_save["dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "party_edit", f"Edit Party #{int(idx) + 1}")
     return {"status": "Item updated"}
 
 
@@ -1041,10 +1145,10 @@ async def update_party_ball(idx: int, data: BallUpdate):
         raise HTTPException(status_code=400, detail=str(e))
     _assert_species_unchanged(pk, species_before, "party ball update")
 
+    before = bytes(current_save["data"])
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
-    current_save["dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "party_edit", f"Edit Party #{int(idx) + 1}")
     return {"status": "Ball updated", **_ball_meta(pk.get_ball_id())}
 
 
@@ -1066,10 +1170,10 @@ async def update_party_happiness(idx: int, data: HappinessUpdate):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     _assert_species_unchanged(pk, species_before, "party happiness update")
+    before = bytes(current_save["data"])
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
-    current_save["dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "party_edit", f"Edit Party #{int(idx) + 1}")
     return {"status": "Happiness updated", "happiness": pk.get_happiness()}
 
 
@@ -1086,10 +1190,10 @@ async def update_party_ot_name(idx: int, data: OTNameUpdate):
         pk.set_ot_name(data.ot_name)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    before = bytes(current_save["data"])
     current_save["data"][mon_off:mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
-    current_save["dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "party_edit", f"Edit Party #{int(idx) + 1}")
     return {"status": "Original Trainer name updated", "ot_name": pk.get_ot_name()}
 
 
@@ -1106,10 +1210,10 @@ async def update_party_nickname(idx: int, data: NicknameUpdate):
         raise HTTPException(status_code=400, detail=str(e))
     _assert_species_unchanged(pk, species_before, "party nickname update")
 
+    before = bytes(current_save["data"])
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
-    current_save["dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "party_edit", f"Edit Party #{int(idx) + 1}")
     return {"status": "Nickname updated", "nickname": pk.nickname}
 
 
@@ -1125,10 +1229,10 @@ async def update_party_species(idx: int, data: SpeciesUpdate):
     pk.set_species_id(data.species_id)
     pk.recalculate_party_stats(clamp_hp=True)
 
+    before = bytes(current_save["data"])
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
-    current_save["dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "party_edit", f"Edit Party #{int(idx) + 1}")
     return {"status": "Species updated", "species_id": data.species_id}
 
 
@@ -1145,10 +1249,10 @@ async def switch_ability(idx: int, data: AbilitySwitch):
         raise HTTPException(status_code=400, detail=str(e))
     _assert_species_unchanged(pk, species_before, "party ability switch")
 
+    before = bytes(current_save["data"])
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
-    current_save["dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "party_edit", f"Edit Party #{int(idx) + 1}")
     return {"status": "Ability/PID updated", "new_index": data.ability_index}
 
 
@@ -1173,10 +1277,10 @@ async def update_ivs(idx: int, stats: StatUpdate):
     _assert_species_unchanged(pk, species_before, "party IV update")
 
     # Pack and write back to local buffer
+    before = bytes(current_save["data"])
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
-    current_save["dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "party_edit", f"Edit Party #{int(idx) + 1}")
     return {"status": "IVs updated in memory"}
 
 
@@ -1195,10 +1299,10 @@ async def update_nature(idx: int, data: NatureUpdate):
     pk.recalculate_party_stats(clamp_hp=True)
     _assert_species_unchanged(pk, species_before, "party nature update")
 
+    before = bytes(current_save["data"])
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
-    current_save["dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "party_edit", f"Edit Party #{int(idx) + 1}")
     return {"status": f"Nature changed to {party_mod.DB_NATURES.get(data.nature_id)}"}
 
 
@@ -1220,10 +1324,10 @@ async def update_identity(idx: int, data: IdentityUpdate):
     pk.recalculate_party_stats(clamp_hp=True)
     _assert_species_unchanged(pk, species_before, "party identity update")
 
+    before = bytes(current_save["data"])
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
-    current_save["dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "party_edit", f"Edit Party #{int(idx) + 1}")
     return {
         "status": "Identity updated",
         "pid": pk.pid,
@@ -1265,10 +1369,10 @@ async def update_party_level(idx: int, data: PartyLevelUpdate):
     pk.recalculate_party_stats(clamp_hp=True)
     _assert_species_unchanged(pk, species_before, "party level update")
 
+    before = bytes(current_save["data"])
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
-    current_save["dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "party_edit", f"Edit Party #{int(idx) + 1}")
     return {
         "status": "Level updated",
         "requested_level": requested_level,
@@ -1307,6 +1411,7 @@ async def edit_party_mon_full(idx: int, upd: PartyFullUpdate):
     payload = upd.model_dump(exclude_none=True)
     if upd.ball_id is not None:
         _assert_valid_ball_id(upd.ball_id)
+    before = bytes(current_save["data"])
     try:
         party_mod.edit_party_mon_full(current_save["data"], idx, payload)
     except LookupError as exc:
@@ -1316,8 +1421,7 @@ async def edit_party_mon_full(idx: int, upd: PartyFullUpdate):
     off = get_active_trainer_offset()
     if off is not None:
         refresh_checksum(current_save["data"], off)
-    current_save["dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "party_edit", f"Edit Party #{int(idx) + 1}")
     return {"status": "Party Pokemon updated atomically"}
 
 # Load item database at startup
@@ -1422,6 +1526,9 @@ async def get_pocket_items(anchor_offset: int):
 @app.post("/bag/item/update")
 async def update_bag_item(update: BagItemUpdate):
     """Update item ID or quantity for a specific slot in memory."""
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file first")
+    before = bytes(current_save["data"])
     try:
         bag_mod.write_slot(
             current_save["data"],
@@ -1432,9 +1539,7 @@ async def update_bag_item(update: BagItemUpdate):
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    current_save["dirty"] = True
-    current_save["bag_dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "bag_edit", "Edit Bag slot")
     return {"status": "Bag slot updated"}
 
 
@@ -1693,6 +1798,7 @@ async def edit_pc_mon(upd: PCUpdate):
             detail=f"Safety check failed during PC edit: species changed unexpectedly from {species_before} to {working.species_id}.",
         )
 
+    before = bytes(current_save["data"])
     # Reflect updates in the corresponding buffer and commit immediately to save bytes
     if working.box == 26:
         buf = current_save["pc_context"]["preset_buffer"]
@@ -1714,7 +1820,8 @@ async def edit_pc_mon(upd: PCUpdate):
     mons = current_save["pc_context"]["mons"]
     mons[mons.index(target)] = working
     _commit_pc_context_to_save(current_save["data"], current_save["pc_context"])
-    current_save["dirty"] = True
+    box_label = "Preset" if int(working.box) == 26 else f"Box {int(working.box)}"
+    _record_mutation(before, "pc_edit", f"Edit {box_label} Slot {int(working.slot)}", is_pc=True)
     return {"status": "Update saved to temporary buffer"}
 
 
@@ -1735,6 +1842,7 @@ async def release_pc_mon(upd: PCRelease):
     if target is None:
         raise HTTPException(status_code=404, detail="Pokemon not found in PC")
 
+    before = bytes(current_save["data"])
     empty = box_mod.release_pc_mon(target.raw)
     if box == 26:
         buf = current_save["pc_context"].get("preset_buffer")
@@ -1761,7 +1869,8 @@ async def release_pc_mon(upd: PCRelease):
 
     current_save["pc_context"]["mons"].remove(target)
     _commit_pc_context_to_save(current_save["data"], current_save["pc_context"])
-    current_save["dirty"] = True
+    box_label = "Preset" if box == 26 else f"Box {box}"
+    _record_mutation(before, "pc_release", f"Release {box_label} Slot {slot}", is_pc=True)
     return {"status": "Pokemon released from PC", "box": box, "slot": slot}
 
 
@@ -1806,10 +1915,10 @@ async def update_evs(idx: int, stats: EvUpdate):
     pk.recalculate_party_stats(clamp_hp=True)
     _assert_species_unchanged(pk, species_before, "party EV update")
     # Pack and write back to local buffer
+    before = bytes(current_save["data"])
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
-    current_save["dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "party_edit", f"Edit Party #{int(idx) + 1}")
     return {"status": "EVs updated"}
 
 
@@ -1824,10 +1933,10 @@ async def update_ability(idx: int, data: AbilityUpdate):
     pk.set_hidden_ability_flag(1 if data.is_hidden else 0)
     _assert_species_unchanged(pk, species_before, "party ability flag update")
 
+    before = bytes(current_save["data"])
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
-    current_save["dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "party_edit", f"Edit Party #{int(idx) + 1}")
     return {"status": "Ability updated"}
 
 
@@ -1846,10 +1955,10 @@ async def update_party_moves(idx: int, data: MovesUpdate):
     pk.set_moves(data.moves, move_pp=data.move_pp, move_pp_ups=data.move_pp_ups)
     _assert_species_unchanged(pk, species_before, "party moves update")
 
+    before = bytes(current_save["data"])
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
-    current_save["dirty"] = True
-    _reset_pc_context()
+    _record_mutation(before, "party_edit", f"Edit Party #{int(idx) + 1}")
     return {"status": "Moves updated"}
 
 
@@ -1981,6 +2090,7 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
             detail=f"Safety check failed during PC full edit: species changed unexpectedly from {species_before} to {working.species_id}.",
         )
 
+    before = bytes(current_save["data"])
     # Sync buffer (stream 1-25 or preset 26) and flush immediately to save bytes
     if working.box == 26:
         buf = current_save["pc_context"]["preset_buffer"]
@@ -2002,7 +2112,8 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
     mons = current_save["pc_context"]["mons"]
     mons[mons.index(target)] = working
     _commit_pc_context_to_save(current_save["data"], current_save["pc_context"])
-    current_save["dirty"] = True
+    box_label = "Preset" if int(working.box) == 26 else f"Box {int(working.box)}"
+    _record_mutation(before, "pc_edit", f"Edit {box_label} Slot {int(working.slot)}", is_pc=True)
     return {"status": "PC updates applied to buffer"}
 
 
@@ -2094,6 +2205,7 @@ async def insert_pc_mon(upd: PCInsert):
     if not mon.is_valid:
         raise HTTPException(status_code=400, detail="Failed to build a valid Pokemon")
 
+    before = bytes(current_save["data"])
     mon.buffer_offset = off
     if kind == "preset":
         current_save["pc_context"]["preset_buffer"][off: off + box_mod.MON_SIZE_PC] = mon.raw
@@ -2110,7 +2222,8 @@ async def insert_pc_mon(upd: PCInsert):
 
     current_save["pc_context"]["mons"].append(mon)
     _commit_pc_context_to_save(current_save["data"], current_save["pc_context"])
-    current_save["dirty"] = True
+    box_label = "Preset" if box == 26 else f"Box {box}"
+    _record_mutation(before, "pc_insert", f"Insert {box_label} Slot {slot}", is_pc=True)
 
     smeta = _species_meta(mon.species_id)
     ability_1_id, ability_2_id, ability_hidden_id = box_mod.get_species_ability_ids(mon.species_id)
@@ -2250,7 +2363,8 @@ async def commit_to_file():
         raise HTTPException(status_code=400, detail="No data")
     _finalize_save_bytes(current_save["data"], current_save["pc_context"])
     _commit_pc_context_to_save(current_save["data"], current_save["pc_context"])
-    current_save["bag_dirty"] = False
+    current_save["ledger"].mark_saved()
+    _sync_dirty_flags()
 
     with open(SAVE_FILE_NAME, "wb") as f:
         f.write(current_save["data"])

@@ -118,7 +118,7 @@ def build_save_report(original, current, _include_source=True):
         offset = index * SECTION_SIZE
         before = original[offset:offset + SECTION_SIZE]
         after = current[offset:offset + SECTION_SIZE]
-        if not before and not after:
+        if (not before and not after) or before == after:
             continue
         metadata = sections[index] if index < len(sections) else {"id": None, "save_index": None}
         fields = {}
