@@ -1318,7 +1318,45 @@ export function applyPcContextToSave(buffer, context) {
         }
     }
     for (const id of touched) wu16(buffer, offsets[id] + 0xFF6, gbaChecksum(buffer, offsets[id], checksumLength(id)));
+    if (context.absoluteEdits instanceof Map) {
+        context.absoluteEdits.forEach((raw, absOff) => {
+            if (absOff >= 0 && absOff + raw.length <= buffer.length) {
+                buffer.set(raw, absOff);
+            }
+        });
+    }
+    if (context.absoluteTouchedSectors instanceof Set) {
+        context.absoluteTouchedSectors.forEach((secOff) => {
+            if (secOff < 0 || secOff + SECTION_SIZE > buffer.length) {
+                return;
+            }
+            const secId = ru16(buffer, secOff + OFF_ID);
+            if (PROFILE.container.checksum.opaque_ids.includes(secId)) {
+                return;
+            }
+            wu16(buffer, secOff + 0xFF6, gbaChecksum(buffer, secOff, checksumLength(secId)));
+        });
+    }
     return buffer;
+}
+
+export function syncPcContextBaseline(context, buffer = null) {
+    if (!context) return;
+    if (context.pcBuffer) {
+        context.originalPcBuffer = context.pcBuffer.slice();
+    }
+    if (context.presetBuffer) {
+        context.originalPresetBuffer = context.presetBuffer.slice();
+    }
+    if (buffer) {
+        context.sourceBuffer = buffer;
+    }
+    if (context.absoluteEdits instanceof Map) {
+        context.absoluteEdits.clear();
+    }
+    if (context.absoluteTouchedSectors instanceof Set) {
+        context.absoluteTouchedSectors.clear();
+    }
 }
 
 const speciesIdentityMeta = profileData("identity", speciesIdentityMetaRaw);

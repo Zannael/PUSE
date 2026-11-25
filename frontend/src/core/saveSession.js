@@ -6,6 +6,7 @@ const session = {
     originalBuffer: null,
     filename: null,
     dirty: false,
+    bagDirty: false,
     pcContext: null,
 };
 
@@ -17,6 +18,14 @@ function assertLoaded() {
 
 function cloneBuffer(buffer) {
     return new Uint8Array(buffer);
+}
+
+function buffersEqual(a, b) {
+    if (!a || !b || a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i += 1) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
 }
 
 export async function loadFile(file, profileId = null) {
@@ -32,6 +41,7 @@ export async function loadFile(file, profileId = null) {
     session.originalBuffer = cloneBuffer(bytes);
     session.filename = file.name || 'edited_save.sav';
     session.dirty = false;
+    session.bagDirty = false;
     session.pcContext = null;
     return { filename: session.filename, size: bytes.length };
 }
@@ -50,7 +60,7 @@ export function getOriginalBuffer() {
     return session.originalBuffer;
 }
 
-export function setBuffer(nextBuffer, { dirty = true } = {}) {
+export function setBuffer(nextBuffer, { dirty = true, preservePcContext = false } = {}) {
     if (!(nextBuffer instanceof Uint8Array)) {
         throw new Error('setBuffer expects Uint8Array');
     }
@@ -59,14 +69,21 @@ export function setBuffer(nextBuffer, { dirty = true } = {}) {
     if (dirty) {
         session.dirty = true;
     }
+    if (!preservePcContext) {
+        session.pcContext = null;
+    }
 }
 
-export function updateBuffer(mutator) {
+export function updateBuffer(mutator, { dirty = true, preservePcContext = false } = {}) {
     assertLoaded();
     const working = cloneBuffer(session.saveBuffer);
     mutator(working);
-    setBuffer(working, { dirty: true });
+    setBuffer(working, { dirty, preservePcContext });
     return working;
+}
+
+export function setBagDirty(flag) {
+    session.bagDirty = Boolean(flag);
 }
 
 export function getFilename() {
@@ -80,11 +97,15 @@ export function exportBlob() {
 }
 
 export function getSessionSnapshot() {
+    const hasSave = !!session.saveBuffer;
     return {
         filename: session.filename,
         dirty: session.dirty,
+        bag_dirty: session.bagDirty,
+        has_changes_from_original: hasSave ? !buffersEqual(session.saveBuffer, session.originalBuffer) : false,
         size: session.saveBuffer ? session.saveBuffer.length : 0,
-        hasSave: !!session.saveBuffer,
+        hasSave,
+        has_save: hasSave,
     };
 }
 

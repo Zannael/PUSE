@@ -100,6 +100,7 @@ const App = () => {
             }
             await client.uploadSave(file, requestedProfile);
             setPendingUpload(null);
+            setBagHasUnsavedChanges(false);
             setTrainer(await client.getTrainer());
             setActiveTab('party');
             setPcBoxId(1);
@@ -184,85 +185,81 @@ const App = () => {
     const handleSavePokemon = async (updatedPk) => {
         try {
             const original = selectedPokemon || {};
+            const payload = {};
 
             if (!sameStats(updatedPk.ivs, original.ivs)) {
-                const ivPayload = mapStatsForApi(updatedPk.ivs, 31);
-                await client.updatePartyIvs(updatedPk.index, ivPayload);
+                payload.ivs = mapStatsForApi(updatedPk.ivs, 31);
             }
 
             if (!sameStats(updatedPk.evs, original.evs)) {
-                const evPayload = mapStatsForApi(updatedPk.evs, 252);
-                await client.updatePartyEvs(updatedPk.index, evPayload);
+                payload.evs = mapStatsForApi(updatedPk.evs, 252);
             }
 
             const movesChanged = !sameMoves(updatedPk.moves, original.moves);
             const movePpChanged = !sameMovePp(updatedPk.move_pp, original.move_pp);
             const movePpUpsChanged = !sameMovePp(updatedPk.move_pp_ups, original.move_pp_ups);
             if (movesChanged || movePpChanged || movePpUpsChanged) {
-                await client.updatePartyMoves(updatedPk.index, {
-                    moves: updatedPk.moves,
-                    move_pp: updatedPk.move_pp,
-                    move_pp_ups: updatedPk.move_pp_ups,
-                });
+                payload.moves = updatedPk.moves;
+                payload.move_pp = updatedPk.move_pp;
+                payload.move_pp_ups = updatedPk.move_pp_ups;
             }
 
             if (Number(updatedPk.nature_id) !== Number(original.nature_id)) {
-                await client.updatePartyNature(updatedPk.index, { nature_id: updatedPk.nature_id });
+                payload.nature_id = Number(updatedPk.nature_id);
             }
 
             if (Number(updatedPk.item_id) !== Number(original.item_id)) {
-                await client.updatePartyItem(updatedPk.index, { item_id: updatedPk.item_id });
+                payload.item_id = Number(updatedPk.item_id);
             }
 
             if (Number(updatedPk.ball_id) !== Number(original.ball_id)) {
-                await client.updatePartyBall(updatedPk.index, { ball_id: updatedPk.ball_id });
+                payload.ball_id = Number(updatedPk.ball_id);
             }
 
             if (Number(updatedPk.happiness) !== Number(original.happiness)) {
-                await client.updatePartyHappiness(updatedPk.index, { happiness: Number(updatedPk.happiness) });
+                payload.happiness = Number(updatedPk.happiness);
             }
 
             if (updatedPk.species_id !== selectedPokemon?.species_id) {
-                await client.updatePartySpecies(updatedPk.index, { species_id: updatedPk.species_id });
+                payload.species_id = Number(updatedPk.species_id);
             }
 
             if (String(updatedPk.ot_name || '').trim() !== String(original.ot_name || '').trim()) {
-                await client.updatePartyOtName(updatedPk.index, { ot_name: updatedPk.ot_name });
+                payload.ot_name = updatedPk.ot_name;
             }
 
             if (String(updatedPk.nickname || '').trim() !== String(original.nickname || '').trim()) {
-                await client.updatePartyNickname(updatedPk.index, { nickname: updatedPk.nickname || '' });
+                payload.nickname = updatedPk.nickname || '';
             }
 
             if (Number(updatedPk.current_ability_index) !== Number(original.current_ability_index)) {
-                await client.updatePartyAbilitySwitch(updatedPk.index, { ability_index: updatedPk.current_ability_index });
+                payload.current_ability_index = Number(updatedPk.current_ability_index);
             }
 
-            const identityPayload = {};
             if (Boolean(updatedPk.is_shiny) !== Boolean(original.is_shiny)) {
-                identityPayload.shiny = Boolean(updatedPk.is_shiny);
+                payload.shiny = Boolean(updatedPk.is_shiny);
             }
             if (
                 typeof updatedPk.gender === 'string' &&
                 updatedPk.gender !== original.gender &&
                 (updatedPk.gender === 'male' || updatedPk.gender === 'female' || updatedPk.gender === 'genderless')
             ) {
-                identityPayload.gender = updatedPk.gender;
-            }
-            if (Object.keys(identityPayload).length > 0) {
-                await client.updatePartyIdentity(updatedPk.index, identityPayload);
+                payload.gender = updatedPk.gender;
             }
 
             if (updatedPk.level_edit) {
-                await client.updatePartyLevel(updatedPk.index, updatedPk.level_edit);
+                payload.level_edit = updatedPk.level_edit;
             }
+
+            await client.editPartyFull(updatedPk.index, payload);
             await client.saveAll();
+            setBagHasUnsavedChanges(false);
 
             setSelectedPokemon(null);
             setRefreshKey(prev => prev + 1);
             alert("Pokemon updated and saved successfully!");
-        } catch {
-            alert("Failed to save all changes.");
+        } catch (err) {
+            alert(err?.message || "Failed to save all changes.");
         }
     };
 
@@ -354,11 +351,12 @@ const App = () => {
 
             await client.editPcFull(payload);
             await client.saveAll();
+            setBagHasUnsavedChanges(false);
             setSelectedPokemon(null);
             setRefreshKey(prev => prev + 1);
             alert("PC Box updated successfully!");
-        } catch {
-            alert("Failed to save PC Box.");
+        } catch (err) {
+            alert(err?.message || "Failed to save PC Box.");
         }
     };
 
@@ -366,11 +364,12 @@ const App = () => {
         try {
             await client.insertPc(payload);
             await client.saveAll();
+            setBagHasUnsavedChanges(false);
             setPcInsertTarget(null);
             setRefreshKey(prev => prev + 1);
             alert('Pokemon inserted successfully!');
-        } catch {
-            alert('Failed to add Pokemon to PC box.');
+        } catch (err) {
+            alert(err?.message || 'Failed to add Pokemon to PC box.');
         }
     };
 
@@ -382,10 +381,11 @@ const App = () => {
         try {
             await client.releasePc({ box, slot });
             await client.saveAll();
+            setBagHasUnsavedChanges(false);
             setRefreshKey(prev => prev + 1);
             alert('Pokemon released successfully.');
-        } catch {
-            alert('Failed to release Pokemon.');
+        } catch (err) {
+            alert(err?.message || 'Failed to release Pokemon.');
         }
     };
 
@@ -425,6 +425,7 @@ const App = () => {
         if (!saveReport) return;
         try {
             await client.downloadSave();
+            setBagHasUnsavedChanges(false);
             setShowSaveReport(false);
         } catch (err) {
             console.error(err);

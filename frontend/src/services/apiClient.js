@@ -51,7 +51,14 @@ export function persistRuntimeMode(mode) {
 async function backendJson(path, options = undefined) {
     const res = await fetch(`${API_BASE}${path}`, options);
     if (!res.ok) {
-        throw new Error(`Backend request failed: ${path}`);
+        let detail = null;
+        try {
+            const body = await res.json();
+            detail = body?.detail?.message || body?.detail || null;
+        } catch {
+            // ignore non-JSON error responses
+        }
+        throw new Error(detail || `Backend request failed: ${path}`);
     }
     return res.json();
 }
@@ -255,6 +262,9 @@ const backendClient = {
     getSaveReport() {
         return backendJson('/save-report');
     },
+    getSessionStatus() {
+        return backendJson('/session/status');
+    },
     getParty() {
         return backendJson("/party");
     },
@@ -348,6 +358,13 @@ const backendClient = {
     },
     async updatePartySpecies(index, payload) {
         await backendJson(`/party/${index}/species`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+    },
+    async editPartyFull(index, payload) {
+        return backendJson(`/party/${index}/edit-full`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -609,9 +626,11 @@ const localClient = {
             getFilename,
             getPcContext,
             saveAll,
+            setBagDirty,
         } = await getLocalCoreModules();
         const finalized = new Uint8Array(getBuffer());
         saveAll(finalized, getPcContext());
+        setBagDirty(false);
         downloadBlob(new Blob([finalized], { type: 'application/octet-stream' }), getFilename());
     },
     async getSaveReport() {
@@ -619,6 +638,10 @@ const localClient = {
         const proposed = new Uint8Array(getBuffer());
         saveAll(proposed, getPcContext());
         return buildSaveReport(getOriginalBuffer(), proposed);
+    },
+    async getSessionStatus() {
+        const { getSessionSnapshot } = await getLocalCoreModules();
+        return getSessionSnapshot();
     },
     async getParty() {
         const { getSpeciesMap, getSpeciesFormMetaMap, getParty: readParty, getBuffer } = await getLocalCoreModules();
@@ -697,6 +720,16 @@ const localClient = {
         updateBuffer((next) => patchPartySpecies(next, Number(index), { species_id: speciesId }));
         return { status: 'Species updated in memory' };
     },
+    async editPartyFull(index, payload) {
+        const { updateBuffer, editPartyMonFull, getSpeciesMap } = await getLocalCoreModules();
+        const nextPayload = { ...(payload || {}) };
+        if (nextPayload.species_id !== undefined && nextPayload.species_id !== null) {
+            nextPayload.species_id = await ensureValidSpeciesId(nextPayload.species_id);
+        }
+        const speciesMap = await getSpeciesMap();
+        updateBuffer((next) => editPartyMonFull(next, Number(index), nextPayload, speciesMap));
+        return { status: 'Party Pokemon updated atomically' };
+    },
     async loadPc() {
         const { getBuffer, loadPcContext, setPcContext } = await getLocalCoreModules();
         const context = loadPcContext(getBuffer());
@@ -742,7 +775,10 @@ const localClient = {
             loadPcContext,
             setPcContext,
             getBuffer,
+            updateBuffer,
             editPcMonFull,
+            applyPcContextToSave,
+            syncPcContextBaseline,
             getSpeciesMap,
         } = await getLocalCoreModules();
         let context = getPcContext();
@@ -754,7 +790,12 @@ const localClient = {
         if (nextPayload.species_id !== undefined && nextPayload.species_id !== null) {
             nextPayload.species_id = await ensureValidSpeciesId(nextPayload.species_id);
         }
-        editPcMonFull(context, nextPayload, await getSpeciesMap());
+        const speciesMap = await getSpeciesMap();
+        updateBuffer((next) => {
+            editPcMonFull(context, nextPayload, speciesMap);
+            applyPcContextToSave(next, context);
+            syncPcContextBaseline(context, next);
+        }, { preservePcContext: true });
         return { status: 'PC edit buffered' };
     },
     async releasePc(payload) {
@@ -763,14 +804,21 @@ const localClient = {
             loadPcContext,
             setPcContext,
             getBuffer,
+            updateBuffer,
             releasePcMon,
+            applyPcContextToSave,
+            syncPcContextBaseline,
         } = await getLocalCoreModules();
         let context = getPcContext();
         if (!context) {
             context = loadPcContext(getBuffer());
             setPcContext(context);
         }
-        releasePcMon(context, payload || {});
+        updateBuffer((next) => {
+            releasePcMon(context, payload || {});
+            applyPcContextToSave(next, context);
+            syncPcContextBaseline(context, next);
+        }, { preservePcContext: true });
         return { status: 'PC release buffered' };
     },
     async insertPc(payload) {
@@ -779,8 +827,11 @@ const localClient = {
             loadPcContext,
             setPcContext,
             getBuffer,
+            updateBuffer,
             getSpeciesMap,
             insertPcMon,
+            applyPcContextToSave,
+            syncPcContextBaseline,
         } = await getLocalCoreModules();
         let context = getPcContext();
         if (!context) {
@@ -790,7 +841,13 @@ const localClient = {
         const speciesMap = await getSpeciesMap();
         const nextPayload = { ...(payload || {}) };
         nextPayload.species_id = await ensureValidSpeciesId(nextPayload.species_id);
-        return insertPcMon(context, nextPayload, speciesMap);
+        let inserted = null;
+        updateBuffer((next) => {
+            inserted = insertPcMon(context, nextPayload, speciesMap);
+            applyPcContextToSave(next, context);
+            syncPcContextBaseline(context, next);
+        }, { preservePcContext: true });
+        return inserted;
     },
     async getMoves() {
         const { getMovesList } = await getLocalCoreModules();
@@ -823,7 +880,7 @@ const localClient = {
         return mapPocketFromAnchor(getBuffer(), Number(anchorOffset), itemNames);
     },
     async updateBagItem(payload) {
-        const { updateBuffer, writeSlot } = await getLocalCoreModules();
+        const { updateBuffer, writeSlot, setBagDirty } = await getLocalCoreModules();
         updateBuffer((next) => {
             writeSlot(
                 next,
@@ -833,6 +890,7 @@ const localClient = {
                 payload.encoding || null,
             );
         });
+        setBagDirty(true);
         return { status: 'Bag slot updated' };
     },
     async getBagPocketsBootstrap() {
@@ -840,10 +898,19 @@ const localClient = {
         return { pockets: resolveQuickPockets(getBuffer()) };
     },
     async saveAll() {
-        const { updateBuffer, saveAll: commitSaveAll, getPcContext } = await getLocalCoreModules();
+        const {
+            updateBuffer,
+            saveAll: commitSaveAll,
+            getPcContext,
+            syncPcContextBaseline,
+            setBagDirty,
+        } = await getLocalCoreModules();
         updateBuffer((next) => {
-            commitSaveAll(next, getPcContext());
-        });
+            const context = getPcContext();
+            commitSaveAll(next, context);
+            syncPcContextBaseline(context, next);
+        }, { preservePcContext: true });
+        setBagDirty(false);
         return { message: 'Save completed' };
     },
     async generateRtcRepairPack(brokenFile, fixedFile) {

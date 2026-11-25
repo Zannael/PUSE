@@ -31,6 +31,24 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
     }, [initialUnsaved]);
 
     useEffect(() => {
+        let active = true;
+        if (typeof client?.getSessionStatus === 'function') {
+            client.getSessionStatus()
+                .then((status) => {
+                    if (active && typeof status?.bag_dirty === 'boolean') {
+                        setHasUnsavedBagChanges(status.bag_dirty);
+                    }
+                })
+                .catch(() => {
+                    // Ignore transient status failures; initialUnsaved still applies.
+                });
+        }
+        return () => {
+            active = false;
+        };
+    }, [client]);
+
+    useEffect(() => {
         if (typeof onDirtyChange === 'function') {
             onDirtyChange(hasUnsavedBagChanges);
         }

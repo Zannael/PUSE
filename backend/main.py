@@ -63,12 +63,8 @@ app.add_middleware(
 )
 
 # --- 1. Keep all shared state definitions at the top ---
-current_save = {
-    "data": None,
-    "profile_id": DEFAULT_PROFILE_ID,
-    "original_data": None,
-    "filename": None,
-    "pc_context": {
+def _empty_pc_context():
+    return {
         "sectors": [],
         "headers": {},
         "originals": {},
@@ -77,9 +73,55 @@ current_save = {
         "mons": [],
         "fallback_box_starts": {},
         "fallback_slot_offsets": {},
-        "absolute_touched_sectors": []
+        "absolute_touched_sectors": [],
     }
+
+
+current_save = {
+    "data": None,
+    "profile_id": DEFAULT_PROFILE_ID,
+    "original_data": None,
+    "filename": None,
+    "dirty": False,
+    "bag_dirty": False,
+    "pc_context": _empty_pc_context(),
 }
+
+
+def _reset_pc_context():
+    current_save["pc_context"] = _empty_pc_context()
+
+
+def _commit_pc_context_to_save(data, ctx):
+    if ctx.get("pc_buffer") is not None:
+        box_mod.write_save_HYBRID(
+            data, ctx["sectors"], ctx["pc_buffer"],
+            ctx["headers"], ctx["originals"], None,
+            preset_buffer=ctx["preset_buffer"],
+        )
+        ctx["originals"]["_pc_stream"] = bytes(ctx["pc_buffer"])
+        if ctx.get("preset_buffer") is not None:
+            ctx["originals"][0] = bytes(ctx["preset_buffer"])
+
+    for sec_off in ctx.get("absolute_touched_sectors", []):
+        if sec_off < 0 or sec_off + 0x1000 > len(data):
+            continue
+        sec_id = party_mod.ru16(data, sec_off + 0xFF4)
+        if sec_id in PROFILE["container"]["checksum"]["opaque_ids"]:
+            continue
+        chk_data = data[sec_off: sec_off + box_mod.section_checksum_length(sec_id)]
+        new_chk = bag_mod.gba_checksum(chk_data)
+        party_mod.wu16(data, sec_off + 0xFF6, new_chk)
+
+    ctx["absolute_touched_sectors"] = []
+    return data
+
+
+async def _ensure_pc_loaded():
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file")
+    if current_save["pc_context"].get("pc_buffer") is None:
+        await load_pc()
 
 OPAQUE_SECTION_IDS = frozenset(PROFILE["container"]["checksum"]["opaque_ids"])
 BP_SECTION_ID = PROFILE["storage"]["resources"]["bp_section_id"]
@@ -503,12 +545,28 @@ async def upload_save(file: UploadFile = File(...), profile_id: str | None = Non
     current_save["data"] = bytearray(content)
     current_save["original_data"] = bytes(content)
     current_save["filename"] = file.filename
-    current_save["pc_context"] = {
-        "sectors": [], "headers": {}, "originals": {}, "pc_buffer": None,
-        "preset_buffer": None, "mons": [], "fallback_box_starts": {},
-        "fallback_slot_offsets": {}, "absolute_touched_sectors": []
-    }
+    current_save["dirty"] = False
+    current_save["bag_dirty"] = False
+    _reset_pc_context()
     return {"message": f"File {file.filename} loaded successfully!"}
+
+
+@app.get("/session/status")
+async def get_session_status():
+    has_save = current_save["data"] is not None
+    has_changes = bool(
+        has_save
+        and current_save["original_data"] is not None
+        and bytes(current_save["data"]) != current_save["original_data"]
+    )
+    return {
+        "has_save": has_save,
+        "filename": current_save.get("filename"),
+        "size": len(current_save["data"]) if has_save else 0,
+        "dirty": bool(current_save.get("dirty", False)),
+        "bag_dirty": bool(current_save.get("bag_dirty", False)),
+        "has_changes_from_original": has_changes,
+    }
 
 
 @app.get("/money")
@@ -587,6 +645,8 @@ async def update_pokedex_flag(species_id: int, data: PokedexFlagUpdate):
     result = pokedex_flags_mod.set_pokedex_flag(current_save["data"], species_id, data.flag, data.value)
     if not result.get("ok"):
         raise HTTPException(status_code=400, detail=result.get("reason", "pokedex flag update failed"))
+    current_save["dirty"] = True
+    _reset_pc_context()
     return result
 
 
@@ -622,6 +682,8 @@ async def update_battle_points(amount: int):
     requested = int(amount)
     clamped = max(BP_MIN, min(BP_MAX, requested))
     party_mod.wu16(current_save["data"], sec_off + BP_OFFSET_IN_SECTION, clamped)
+    current_save["dirty"] = True
+    _reset_pc_context()
 
     # Unbound section 4 behaves as opaque in this project context.
     # Keep checksum untouched to avoid introducing layout-specific side effects.
@@ -644,6 +706,8 @@ async def update_money(amount: int):
         # Reuse patch_money_everywhere; it already handles checksums and BCD
         new_data = money_mod.patch_money_everywhere(current_save["data"], clamped_amount)
         current_save["data"] = bytearray(new_data)
+        current_save["dirty"] = True
+        _reset_pc_context()
         return {
             "message": f"Money updated to {clamped_amount}",
             "new_money": clamped_amount,
@@ -959,6 +1023,8 @@ async def update_party_item(idx: int, data: ItemUpdate):
 
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
+    current_save["dirty"] = True
+    _reset_pc_context()
     return {"status": "Item updated"}
 
 
@@ -977,6 +1043,8 @@ async def update_party_ball(idx: int, data: BallUpdate):
 
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
+    current_save["dirty"] = True
+    _reset_pc_context()
     return {"status": "Ball updated", **_ball_meta(pk.get_ball_id())}
 
 
@@ -1000,6 +1068,8 @@ async def update_party_happiness(idx: int, data: HappinessUpdate):
     _assert_species_unchanged(pk, species_before, "party happiness update")
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
+    current_save["dirty"] = True
+    _reset_pc_context()
     return {"status": "Happiness updated", "happiness": pk.get_happiness()}
 
 
@@ -1018,6 +1088,8 @@ async def update_party_ot_name(idx: int, data: OTNameUpdate):
         raise HTTPException(status_code=400, detail=str(e))
     current_save["data"][mon_off:mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
+    current_save["dirty"] = True
+    _reset_pc_context()
     return {"status": "Original Trainer name updated", "ot_name": pk.get_ot_name()}
 
 
@@ -1036,6 +1108,8 @@ async def update_party_nickname(idx: int, data: NicknameUpdate):
 
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
+    current_save["dirty"] = True
+    _reset_pc_context()
     return {"status": "Nickname updated", "nickname": pk.nickname}
 
 
@@ -1053,6 +1127,8 @@ async def update_party_species(idx: int, data: SpeciesUpdate):
 
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
+    current_save["dirty"] = True
+    _reset_pc_context()
     return {"status": "Species updated", "species_id": data.species_id}
 
 
@@ -1063,11 +1139,16 @@ async def switch_ability(idx: int, data: AbilitySwitch):
     pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE])
     species_before = pk.get_species_id()
 
-    pk.set_ability_slot(data.ability_index)
+    try:
+        pk.set_ability_slot(data.ability_index)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     _assert_species_unchanged(pk, species_before, "party ability switch")
 
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
+    current_save["dirty"] = True
+    _reset_pc_context()
     return {"status": "Ability/PID updated", "new_index": data.ability_index}
 
 
@@ -1094,6 +1175,8 @@ async def update_ivs(idx: int, stats: StatUpdate):
     # Pack and write back to local buffer
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
+    current_save["dirty"] = True
+    _reset_pc_context()
     return {"status": "IVs updated in memory"}
 
 
@@ -1105,12 +1188,17 @@ async def update_nature(idx: int, data: NatureUpdate):
 
     pk = party_mod.Pokemon(current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE])
     species_before = pk.get_species_id()
-    pk.set_nature(data.nature_id)
+    try:
+        pk.set_nature(data.nature_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     pk.recalculate_party_stats(clamp_hp=True)
     _assert_species_unchanged(pk, species_before, "party nature update")
 
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
+    current_save["dirty"] = True
+    _reset_pc_context()
     return {"status": f"Nature changed to {party_mod.DB_NATURES.get(data.nature_id)}"}
 
 
@@ -1134,6 +1222,8 @@ async def update_identity(idx: int, data: IdentityUpdate):
 
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
+    current_save["dirty"] = True
+    _reset_pc_context()
     return {
         "status": "Identity updated",
         "pid": pk.pid,
@@ -1177,6 +1267,8 @@ async def update_party_level(idx: int, data: PartyLevelUpdate):
 
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
+    current_save["dirty"] = True
+    _reset_pc_context()
     return {
         "status": "Level updated",
         "requested_level": requested_level,
@@ -1187,6 +1279,46 @@ async def update_party_level(idx: int, data: PartyLevelUpdate):
         "growth_name": party_mod.GROWTH_NAMES.get(growth_rate, "Unknown"),
         "confidence": confidence,
     }
+
+
+class PartyFullUpdate(BaseModel):
+    species_id: int | None = None
+    ot_name: str | None = None
+    nickname: str | None = None
+    moves: List[int] | None = None
+    move_pp: List[int] | None = None
+    move_pp_ups: List[int] | None = None
+    item_id: int | None = None
+    ball_id: int | None = None
+    happiness: int | None = None
+    ivs: dict | None = None
+    evs: dict | None = None
+    current_ability_index: int | None = None
+    nature_id: int | None = None
+    shiny: bool | None = None
+    gender: str | None = None
+    level_edit: PartyLevelUpdate | None = None
+
+
+@app.post("/party/{idx}/edit-full")
+async def edit_party_mon_full(idx: int, upd: PartyFullUpdate):
+    if current_save["data"] is None:
+        raise HTTPException(status_code=400, detail="Upload a .sav file")
+    payload = upd.model_dump(exclude_none=True)
+    if upd.ball_id is not None:
+        _assert_valid_ball_id(upd.ball_id)
+    try:
+        party_mod.edit_party_mon_full(current_save["data"], idx, payload)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    off = get_active_trainer_offset()
+    if off is not None:
+        refresh_checksum(current_save["data"], off)
+    current_save["dirty"] = True
+    _reset_pc_context()
+    return {"status": "Party Pokemon updated atomically"}
 
 # Load item database at startup
 bag_mod.load_item_names_from_file()
@@ -1300,6 +1432,9 @@ async def update_bag_item(update: BagItemUpdate):
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    current_save["dirty"] = True
+    current_save["bag_dirty"] = True
+    _reset_pc_context()
     return {"status": "Bag slot updated"}
 
 
@@ -1384,6 +1519,7 @@ async def load_pc():
 @app.get("/pc/box/{box_id}")
 async def get_box(box_id: int):
     if PROFILE["id"] == "radical-red-4.1" and box_id > 25: _require_feature("preset")
+    await _ensure_pc_loaded()
     """Return all Pokemon in a box with edit-ready data."""
     # Filter loaded Pokemon in context by selected box
     mons = [m for m in current_save["pc_context"]["mons"] if m.box == box_id]
@@ -1520,6 +1656,7 @@ class PCRelease(BaseModel):
 @app.post("/pc/edit")
 async def edit_pc_mon(upd: PCUpdate):
     if int(upd.box) == 26: _require_feature("preset")
+    await _ensure_pc_loaded()
     # Find target Pokemon in global state
     target = next((m for m in current_save["pc_context"]["mons"]
                    if m.box == upd.box and m.slot == upd.slot), None)
@@ -1527,59 +1664,64 @@ async def edit_pc_mon(upd: PCUpdate):
     if not target:
         raise HTTPException(status_code=404, detail="Pokemon not found")
 
-    species_before = target.species_id
+    working = box_mod.UnboundPCMon(target.raw, target.box, target.slot)
+    working.buffer_offset = getattr(target, "buffer_offset", None)
+    if hasattr(target, "buffer_kind"):
+        working.buffer_kind = target.buffer_kind
+    species_before = working.species_id
 
-    # Apply object updates
+    # Apply object updates on the clone so errors leave target untouched
     if upd.moves is not None:
-        target.set_moves(upd.moves, move_pp=upd.move_pp, move_pp_ups=upd.move_pp_ups)
+        working.set_moves(upd.moves, move_pp=upd.move_pp, move_pp_ups=upd.move_pp_ups)
     elif upd.move_pp_ups is not None:
-        target.set_move_pp_ups(upd.move_pp_ups)
-    if upd.item_id is not None: target.set_item_id(upd.item_id)
+        working.set_move_pp_ups(upd.move_pp_ups)
+    if upd.item_id is not None: working.set_item_id(upd.item_id)
     if upd.ball_id is not None:
         try:
-            target.set_ball_id(_assert_valid_ball_id(upd.ball_id))
+            working.set_ball_id(_assert_valid_ball_id(upd.ball_id))
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
     if upd.happiness is not None:
         try:
-            target.set_happiness(upd.happiness)
+            working.set_happiness(upd.happiness)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
 
-    if target.species_id != species_before:
+    if working.species_id != species_before:
         raise HTTPException(
             status_code=400,
-            detail=f"Safety check failed during PC edit: species changed unexpectedly from {species_before} to {target.species_id}.",
+            detail=f"Safety check failed during PC edit: species changed unexpectedly from {species_before} to {working.species_id}.",
         )
 
-    # Reflect updates in the corresponding buffer
-    if target.box == 26:
+    # Reflect updates in the corresponding buffer and commit immediately to save bytes
+    if working.box == 26:
         buf = current_save["pc_context"]["preset_buffer"]
-        off = target.buffer_offset
-    elif getattr(target, "buffer_kind", None) == "absolute":
-        off = target.buffer_offset
-        current_save["data"][off: off + box_mod.MON_SIZE_PC] = target.raw
+        off = working.buffer_offset
+        buf[off: off + box_mod.MON_SIZE_PC] = working.raw
+    elif getattr(working, "buffer_kind", None) == "absolute":
+        off = working.buffer_offset
+        current_save["data"][off: off + box_mod.MON_SIZE_PC] = working.raw
         sector_off = (off // box_mod.SECTION_SIZE) * box_mod.SECTION_SIZE
         if _should_track_absolute_sector_for_checksum(current_save["data"], sector_off):
             touched = set(current_save["pc_context"].get("absolute_touched_sectors", []))
             touched.add(sector_off)
             current_save["pc_context"]["absolute_touched_sectors"] = sorted(touched)
-        return {"status": "Update saved to temporary buffer"}
     else:
         buf = current_save["pc_context"]["pc_buffer"]
-        off = ((target.box - 1) * 30 + (target.slot - 1)) * box_mod.MON_SIZE_PC
+        off = ((working.box - 1) * 30 + (working.slot - 1)) * box_mod.MON_SIZE_PC
+        buf[off: off + box_mod.MON_SIZE_PC] = working.raw
 
-    buf[off: off + box_mod.MON_SIZE_PC] = target.raw
+    mons = current_save["pc_context"]["mons"]
+    mons[mons.index(target)] = working
+    _commit_pc_context_to_save(current_save["data"], current_save["pc_context"])
+    current_save["dirty"] = True
     return {"status": "Update saved to temporary buffer"}
 
 
 @app.post("/pc/release")
 async def release_pc_mon(upd: PCRelease):
     if int(upd.box) == 26: _require_feature("preset")
-    if not current_save["data"]:
-        raise HTTPException(status_code=400, detail="Upload a .sav file")
-    if current_save["pc_context"].get("pc_buffer") is None:
-        await load_pc()
+    await _ensure_pc_loaded()
 
     box = int(upd.box)
     slot = int(upd.slot)
@@ -1618,6 +1760,8 @@ async def release_pc_mon(upd: PCRelease):
         buf[off: off + box_mod.MON_SIZE_PC] = empty
 
     current_save["pc_context"]["mons"].remove(target)
+    _commit_pc_context_to_save(current_save["data"], current_save["pc_context"])
+    current_save["dirty"] = True
     return {"status": "Pokemon released from PC", "box": box, "slot": slot}
 
 
@@ -1661,8 +1805,11 @@ async def update_evs(idx: int, stats: EvUpdate):
     pk.set_evs(new_evs)
     pk.recalculate_party_stats(clamp_hp=True)
     _assert_species_unchanged(pk, species_before, "party EV update")
+    # Pack and write back to local buffer
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
+    current_save["dirty"] = True
+    _reset_pc_context()
     return {"status": "EVs updated"}
 
 
@@ -1679,6 +1826,8 @@ async def update_ability(idx: int, data: AbilityUpdate):
 
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
+    current_save["dirty"] = True
+    _reset_pc_context()
     return {"status": "Ability updated"}
 
 
@@ -1699,6 +1848,8 @@ async def update_party_moves(idx: int, data: MovesUpdate):
 
     current_save["data"][mon_off: mon_off + party_mod.PARTY_MON_SIZE] = pk.pack_data()
     refresh_checksum(current_save["data"], off)
+    current_save["dirty"] = True
+    _reset_pc_context()
     return {"status": "Moves updated"}
 
 
@@ -1765,6 +1916,7 @@ class PCInsert(BaseModel):
 @app.post("/pc/edit-full")
 async def edit_pc_mon_full(upd: PCFullUpdate):
     if int(upd.box) == 26: _require_feature("preset")
+    await _ensure_pc_loaded()
     # Find pokemon in loaded context
     target = next((m for m in current_save["pc_context"]["mons"]
                    if m.box == upd.box and m.slot == upd.slot), None)
@@ -1772,78 +1924,85 @@ async def edit_pc_mon_full(upd: PCFullUpdate):
     if not target:
         raise HTTPException(status_code=404, detail="Pokemon not found in PC")
 
-    species_before = target.species_id
+    working = box_mod.UnboundPCMon(target.raw, target.box, target.slot)
+    working.buffer_offset = getattr(target, "buffer_offset", None)
+    if hasattr(target, "buffer_kind"):
+        working.buffer_kind = target.buffer_kind
+    species_before = working.species_id
 
-    # Apply updates using UnboundPCMon methods (v16)
+    # Apply updates using UnboundPCMon methods on a clone so validation errors never half-apply
     if upd.species_id is not None:
         if upd.species_id <= 0 or upd.species_id not in box_mod.DB_SPECIES:
             raise HTTPException(status_code=400, detail="Invalid species_id")
-        target.set_species_id(upd.species_id)
+        working.set_species_id(upd.species_id)
     if upd.ot_name is not None:
         try:
-            target.set_ot_name(upd.ot_name)
+            working.set_ot_name(upd.ot_name)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
     if upd.nickname is not None:
         try:
-            target.set_nickname(upd.nickname)
+            working.set_nickname(upd.nickname)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
     if upd.moves is not None:
-        target.set_moves(upd.moves, move_pp=upd.move_pp, move_pp_ups=upd.move_pp_ups)
+        working.set_moves(upd.moves, move_pp=upd.move_pp, move_pp_ups=upd.move_pp_ups)
     elif upd.move_pp_ups is not None:
-        target.set_move_pp_ups(upd.move_pp_ups)
-    if upd.item_id is not None: target.set_item_id(upd.item_id)
+        working.set_move_pp_ups(upd.move_pp_ups)
+    if upd.item_id is not None: working.set_item_id(upd.item_id)
     if upd.ball_id is not None:
         try:
-            target.set_ball_id(_assert_valid_ball_id(upd.ball_id))
+            working.set_ball_id(_assert_valid_ball_id(upd.ball_id))
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
     if upd.happiness is not None:
         try:
-            target.set_happiness(upd.happiness)
+            working.set_happiness(upd.happiness)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
-    if upd.ivs: target.set_ivs(upd.ivs)
-    if upd.evs: target.set_evs(upd.evs)
+    if upd.ivs: working.set_ivs(upd.ivs)
+    if upd.evs: working.set_evs(upd.evs)
     if upd.current_ability_index is not None:
         try:
-            target.set_ability_slot(upd.current_ability_index)
+            working.set_ability_slot(upd.current_ability_index)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
-    if upd.nature_id is not None: target.set_nature(upd.nature_id)
+    if upd.nature_id is not None: working.set_nature(upd.nature_id)
     if upd.shiny is not None or upd.gender is not None:
         try:
-            target.set_identity(shiny=upd.shiny, gender=upd.gender)
+            working.set_identity(shiny=upd.shiny, gender=upd.gender)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
-    if upd.exp is not None: target.set_exp(upd.exp)
+    if upd.exp is not None: working.set_exp(upd.exp)
 
-    if upd.species_id is None and target.species_id != species_before:
+    if upd.species_id is None and working.species_id != species_before:
         raise HTTPException(
             status_code=400,
-            detail=f"Safety check failed during PC full edit: species changed unexpectedly from {species_before} to {target.species_id}.",
+            detail=f"Safety check failed during PC full edit: species changed unexpectedly from {species_before} to {working.species_id}.",
         )
 
-    # Sync buffer (stream 1-25 or preset 26)
-    if target.box == 26:
+    # Sync buffer (stream 1-25 or preset 26) and flush immediately to save bytes
+    if working.box == 26:
         buf = current_save["pc_context"]["preset_buffer"]
-        off = target.buffer_offset
-    elif getattr(target, "buffer_kind", None) == "absolute":
-        off = target.buffer_offset
-        current_save["data"][off: off + box_mod.MON_SIZE_PC] = target.raw
+        off = working.buffer_offset
+        buf[off: off + box_mod.MON_SIZE_PC] = working.raw
+    elif getattr(working, "buffer_kind", None) == "absolute":
+        off = working.buffer_offset
+        current_save["data"][off: off + box_mod.MON_SIZE_PC] = working.raw
         sector_off = (off // box_mod.SECTION_SIZE) * box_mod.SECTION_SIZE
         if _should_track_absolute_sector_for_checksum(current_save["data"], sector_off):
             touched = set(current_save["pc_context"].get("absolute_touched_sectors", []))
             touched.add(sector_off)
             current_save["pc_context"]["absolute_touched_sectors"] = sorted(touched)
-        return {"status": "PC updates applied to buffer"}
     else:
         buf = current_save["pc_context"]["pc_buffer"]
-        # Compute linear stream offset
-        off = ((target.box - 1) * 30 + (target.slot - 1)) * box_mod.MON_SIZE_PC
+        off = ((working.box - 1) * 30 + (working.slot - 1)) * box_mod.MON_SIZE_PC
+        buf[off: off + box_mod.MON_SIZE_PC] = working.raw
 
-    buf[off: off + box_mod.MON_SIZE_PC] = target.raw
+    mons = current_save["pc_context"]["mons"]
+    mons[mons.index(target)] = working
+    _commit_pc_context_to_save(current_save["data"], current_save["pc_context"])
+    current_save["dirty"] = True
     return {"status": "PC updates applied to buffer"}
 
 
@@ -1950,6 +2109,8 @@ async def insert_pc_mon(upd: PCInsert):
         current_save["pc_context"]["pc_buffer"][off: off + box_mod.MON_SIZE_PC] = mon.raw
 
     current_save["pc_context"]["mons"].append(mon)
+    _commit_pc_context_to_save(current_save["data"], current_save["pc_context"])
+    current_save["dirty"] = True
 
     smeta = _species_meta(mon.species_id)
     ability_1_id, ability_2_id, ability_hidden_id = box_mod.get_species_ability_ids(mon.species_id)
@@ -2088,6 +2249,8 @@ async def commit_to_file():
     if not current_save["data"]:
         raise HTTPException(status_code=400, detail="No data")
     _finalize_save_bytes(current_save["data"], current_save["pc_context"])
+    _commit_pc_context_to_save(current_save["data"], current_save["pc_context"])
+    current_save["bag_dirty"] = False
 
     with open(SAVE_FILE_NAME, "wb") as f:
         f.write(current_save["data"])
