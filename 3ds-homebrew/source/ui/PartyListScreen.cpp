@@ -3,6 +3,7 @@
 #include "ui/PcBoxScreen.h"
 #include "ui/BagScreen.h"
 #include "ui/MoneyScreen.h"
+#include "ui/HistoryScreen.h"
 #include "Core.h"
 
 #include "starlight/InputManager.h"
@@ -44,6 +45,12 @@ PartyListScreen::PartyListScreen()
         };
         slot_btns_.push_back(btn);
     }
+
+    history_btn_ = scroll_->AddNew<sl::ui::Button>(VRect(2, 2 + kNumSlots * kRowH, 316, kRowH - 2));
+    history_btn_->SetText("Change History");
+    history_btn_->eOnTap = [](sl::ui::Button&) {
+        HistoryScreen::Make()->Open();
+    };
 
     // Top screen info label below header bar
     top_info_ = topScreen->AddNew<sl::ui::Label>(VRect(0, 35, 400, 200));
@@ -94,6 +101,10 @@ void PartyListScreen::RefreshSlots() {
     }
 
     Core* core = Core::Get();
+    if (history_btn_ && core) {
+        const auto history = core->Session().History();
+        history_btn_->SetText("Change History (" + std::to_string(history.entries.size()) + ")");
+    }
     std::string info;
     char buf[32];
     snprintf(buf, sizeof(buf), "Party: %d / 6\n", (int)party_.size());

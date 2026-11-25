@@ -39,6 +39,7 @@ bool SaveSession::LoadFromFile(const std::string &path, std::string *error, cons
     buffer_ = std::move(next);
     original_buffer_ = buffer_;
     source_path_ = path;
+    ledger_.Clear();
     return true;
 }
 
@@ -73,6 +74,7 @@ void SaveSession::Clear() {
     buffer_.clear();
     original_buffer_.clear();
     source_path_.clear();
+    ledger_.Clear();
 }
 
 bool SaveSession::IsLoaded() const {
@@ -108,6 +110,105 @@ std::vector<uint8_t> &SaveSession::MutableBuffer() {
 
 std::vector<SaveSection> SaveSession::Sections() const {
     return ListSections(buffer_);
+}
+
+bool SaveSession::RecordMutation(const std::vector<uint8_t> &before_bytes,
+                                 const std::string &kind,
+                                 const std::string &label,
+                                 LedgerEntrySummary *out_entry) {
+    if (!IsLoaded()) {
+        return false;
+    }
+    return ledger_.Record(before_bytes, buffer_, kind, label, out_entry);
+}
+
+bool SaveSession::BeginHistoryGroup(const std::string &kind,
+                                    const std::string &label,
+                                    std::string *error) {
+    if (!IsLoaded()) {
+        if (error) {
+            *error = "session is empty";
+        }
+        return false;
+    }
+    return ledger_.BeginGroup(buffer_, kind, label, error);
+}
+
+bool SaveSession::CommitHistoryGroup(bool *out_recorded,
+                                     LedgerEntrySummary *out_entry,
+                                     std::string *error) {
+    if (!IsLoaded()) {
+        if (error) {
+            *error = "session is empty";
+        }
+        return false;
+    }
+    return ledger_.CommitGroup(buffer_, out_recorded, out_entry, error);
+}
+
+bool SaveSession::AbortHistoryGroup() {
+    if (!IsLoaded()) {
+        return false;
+    }
+    return ledger_.AbortGroup(buffer_);
+}
+
+bool SaveSession::UndoLastChange(LedgerEntrySummary *out_undone, std::string *error) {
+    if (!IsLoaded()) {
+        if (error) {
+            *error = "session is empty";
+        }
+        return false;
+    }
+    return ledger_.Undo(buffer_, out_undone, error);
+}
+
+void SaveSession::ResetToOriginal() {
+    if (!IsLoaded()) {
+        return;
+    }
+    ledger_.Reset(buffer_, original_buffer_);
+}
+
+void SaveSession::MarkSaved() {
+    ledger_.MarkSaved();
+}
+
+bool SaveSession::HasUnsavedChanges() const {
+    return IsLoaded() && ledger_.HasUnsavedChanges();
+}
+
+bool SaveSession::HasUncommittedBagChanges() const {
+    return IsLoaded() && ledger_.HasUncommittedBagChanges();
+}
+
+bool SaveSession::CanUndo() const {
+    return IsLoaded() && ledger_.EntryCount() > 0;
+}
+
+bool SaveSession::CanReset() const {
+    if (!IsLoaded()) {
+        return false;
+    }
+    return buffer_ != original_buffer_ || ledger_.EntryCount() > 0;
+}
+
+size_t SaveSession::TotalChangedBytes() const {
+    if (!IsLoaded()) {
+        return 0;
+    }
+    return ledger_.Summary(buffer_, original_buffer_).total_changed_bytes;
+}
+
+LedgerSummary SaveSession::History() const {
+    if (!IsLoaded()) {
+        return LedgerSummary{};
+    }
+    return ledger_.Summary(buffer_, original_buffer_);
+}
+
+const ChangeLedger &SaveSession::Ledger() const {
+    return ledger_;
 }
 
 } // namespace puse::core

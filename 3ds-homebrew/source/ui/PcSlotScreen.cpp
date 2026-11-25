@@ -79,11 +79,13 @@ std::string PcSlotScreen::NameOrId(const std::unordered_map<int, std::string>& d
     return std::to_string(id);
 }
 
-void PcSlotScreen::CommitAndRefresh() {
+void PcSlotScreen::CommitAndRefresh(const std::string& kind, const std::string& label) {
     Core* core = Core::Get();
     if (!core) return;
-    core->CommitPcStream();
-    core->SetDirty(true);
+    const std::string resolved_label = label.empty()
+        ? ("Edit Box " + std::to_string(box_) + " slot " + std::to_string(slot_))
+        : label;
+    core->CommitPcStream(nullptr, kind, resolved_label);
     if (occupied_) {
         LoadMon();
         RefreshFields();
@@ -176,7 +178,8 @@ void PcSlotScreen::BuildInsertFields() {
                         scroll_->RemoveAll();
                         field_btns_.clear();
                         BuildEditFields();
-                        CommitAndRefresh();
+                        CommitAndRefresh("pc_insert",
+                            "Insert Box " + std::to_string(box_) + " slot " + std::to_string(slot_));
                     }
                 }));
         };
@@ -528,8 +531,8 @@ void PcSlotScreen::Update(bool focused) {
                     if (slot_off + puse::core::kPcMonSize <= stream.size()) {
                         std::fill(stream.begin() + slot_off,
                                   stream.begin() + slot_off + puse::core::kPcMonSize, 0u);
-                        core->CommitPcStream();
-                        core->SetDirty(true);
+                        core->CommitPcStream(nullptr, "pc_release",
+                            "Release Box " + std::to_string(box_) + " slot " + std::to_string(slot_));
                     }
                     Close();
                 }

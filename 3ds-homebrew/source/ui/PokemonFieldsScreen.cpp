@@ -77,6 +77,7 @@ std::shared_ptr<PokemonFieldsScreen> PokemonFieldsScreen::Make(int slot, Section
 void PokemonFieldsScreen::LoadEntry() {
     Core* core = Core::Get();
     if (!core || !core->Session().IsLoaded()) return;
+    pending_before_ = core->Session().Buffer();
     auto party = puse::core::ParseParty(core->Session().Buffer(), core->SpeciesDb());
     for (auto& e : party) {
         if (e.index == slot_) { entry_ = e; return; }
@@ -93,7 +94,7 @@ void PokemonFieldsScreen::CommitAndRefresh() {
     Core* core = Core::Get();
     if (!core) return;
     puse::core::CommitPartySectionChecksums(core->Session().MutableBuffer());
-    core->SetDirty(true);
+    core->RecordMutation(pending_before_, "party_edit", "Edit Party slot " + std::to_string(slot_ + 1));
     LoadEntry();
     RefreshFields();
     RefreshPreview();

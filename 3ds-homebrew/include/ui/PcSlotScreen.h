@@ -35,7 +35,7 @@ private:
     void BuildInsertFields();
     void BuildEditFields();
     void RefreshFields();
-    void CommitAndRefresh();
+    void CommitAndRefresh(const std::string& kind = "pc_edit", const std::string& label = "");
 
     std::shared_ptr<sl::ui::Button> AddField(int y);
     std::string NameOrId(const std::unordered_map<int, std::string>& db, int id) const;

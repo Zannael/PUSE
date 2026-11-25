@@ -260,7 +260,8 @@ bool Core::SaveWithBackup(std::string* error) {
         if (error) *error = err;
         return false;
     }
-    dirty_ = false;
+    session_.MarkSaved();
+    SyncDirtyFromSession();
     return true;
 }
 
@@ -284,8 +285,14 @@ bool Core::RebuildPcStream(std::string* error) {
     return !pc_stream_.empty();
 }
 
-bool Core::CommitPcStream(std::string* error) {
-    return puse::core::CommitPcStream(session_.MutableBuffer(), pc_stream_, error);
+bool Core::CommitPcStream(std::string* error, const std::string& kind, const std::string& label) {
+    const auto before = session_.Buffer();
+    if (!puse::core::CommitPcStream(session_.MutableBuffer(), pc_stream_, error)) {
+        return false;
+    }
+    session_.RecordMutation(before, kind, label);
+    SyncDirtyFromSession();
+    return true;
 }
 
 bool Core::EnsureBagReady(std::string* error) {
@@ -298,13 +305,52 @@ bool Core::ReadMoney(uint32_t* out, std::string* error) const {
     return puse::core::ReadMoney(session_.Buffer(), out, error);
 }
 bool Core::WriteMoney(uint32_t val, std::string* error) {
-    return puse::core::WriteMoney(session_.MutableBuffer(), val, error);
+    const auto before = session_.Buffer();
+    if (!puse::core::WriteMoney(session_.MutableBuffer(), val, error)) {
+        return false;
+    }
+    session_.RecordMutation(before, "money_edit", "Set Money $" + std::to_string(val));
+    SyncDirtyFromSession();
+    return true;
 }
 bool Core::ReadBp(uint16_t* out, std::string* error) const {
     return puse::core::ReadBp(session_.Buffer(), out, error);
 }
 bool Core::WriteBp(uint16_t val, std::string* error) {
-    return puse::core::WriteBp(session_.MutableBuffer(), val, error);
+    const auto before = session_.Buffer();
+    if (!puse::core::WriteBp(session_.MutableBuffer(), val, error)) {
+        return false;
+    }
+    session_.RecordMutation(before, "bp_edit", "Set Battle Points " + std::to_string(val));
+    SyncDirtyFromSession();
+    return true;
+}
+
+void Core::SyncDirtyFromSession() {
+    dirty_ = session_.HasUnsavedChanges();
+}
+
+bool Core::RecordMutation(const std::vector<uint8_t>& before, const std::string& kind, const std::string& label) {
+    const bool recorded = session_.RecordMutation(before, kind, label);
+    SyncDirtyFromSession();
+    return recorded;
+}
+
+bool Core::UndoLastChange(puse::core::LedgerEntrySummary* out_undone, std::string* error) {
+    if (!session_.UndoLastChange(out_undone, error)) {
+        return false;
+    }
+    std::string pc_err;
+    RebuildPcStream(&pc_err);
+    SyncDirtyFromSession();
+    return true;
+}
+
+void Core::ResetToOriginal() {
+    session_.ResetToOriginal();
+    std::string pc_err;
+    RebuildPcStream(&pc_err);
+    SyncDirtyFromSession();
 }
 
 void Core::SaveConfig() {

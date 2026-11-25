@@ -2,6 +2,7 @@
 #include "ui/MoneyScreen.h"
 #include "ui/RtcScreen.h"
 #include "ui/FieldInspectorScreen.h"
+#include "ui/HistoryScreen.h"
 #include "Core.h"
 
 #include "starlight/InputManager.h"
@@ -26,7 +27,7 @@ namespace puse::ui {
 MoneyScreen::MoneyScreen()
     : BaseScreen(false)
 {
-    InitChrome("B: Back   X: Save   L: Inspect");
+    InitChrome("B: Back   X: Save   L: Inspect   R: History");
 
     // Top: show money + BP
     info_label_ = topScreen->AddNew<sl::ui::Label>(VRect(0, 35, 400, 100));
@@ -48,7 +49,6 @@ MoneyScreen::MoneyScreen()
                 if (val < 0 || val > (long)puse::core::kMaxMoney) return;
                 std::string err;
                 if (core->WriteMoney(static_cast<uint32_t>(val), &err)) {
-                    core->SetDirty(true);
                     Refresh();
                 }
             }));
@@ -68,7 +68,6 @@ MoneyScreen::MoneyScreen()
                 if (val < 0 || val > (int)puse::core::kMaxBp) return;
                 std::string err;
                 if (core->WriteBp(static_cast<uint16_t>(val), &err)) {
-                    core->SetDirty(true);
                     Refresh();
                 }
             }));
@@ -114,6 +113,7 @@ void MoneyScreen::Update(bool focused) {
     BaseScreen::Update(focused);
     if (!focused) { was_focused_ = false; return; }
     if (InputManager::Pressed(Keys::L)) FieldInspectorScreen::Make()->Open();
+    if (InputManager::Pressed(Keys::R)) HistoryScreen::Make()->Open();
     if (!was_focused_) { Refresh(); was_focused_ = true; }
 }
 

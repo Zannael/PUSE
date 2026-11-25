@@ -23,6 +23,8 @@ CPP_COMMON=(
   -std=c++17
   -I"$THREEDS_ROOT/include"
   "$THREEDS_ROOT/source/core/SaveSections.cpp"
+  "$THREEDS_ROOT/source/core/SaveHealth.cpp"
+  "$THREEDS_ROOT/source/core/ChangeLedger.cpp"
   "$THREEDS_ROOT/source/core/SaveSession.cpp"
   "$THREEDS_ROOT/source/core/PokedexFlags.cpp"
   "$THREEDS_ROOT/source/io/DataLoader.cpp"

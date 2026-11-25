@@ -25,6 +25,8 @@ CPP_COMMON=(
   -std=c++17
   -I"$ROOT/include"
   "$ROOT/source/core/SaveSections.cpp"
+  "$ROOT/source/core/SaveHealth.cpp"
+  "$ROOT/source/core/ChangeLedger.cpp"
   "$ROOT/source/core/SaveSession.cpp"
 )
 

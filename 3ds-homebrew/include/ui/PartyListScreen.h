@@ -22,6 +22,7 @@ private:
     std::vector<puse::core::PartyEntry> party_;
     std::shared_ptr<sl::ui::ScrollField> scroll_;
     std::vector<std::shared_ptr<sl::ui::Button>> slot_btns_;
+    std::shared_ptr<sl::ui::Button> history_btn_;
     std::shared_ptr<sl::ui::Label> top_info_;
     bool was_focused_ = false;
 

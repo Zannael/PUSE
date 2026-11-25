@@ -26,6 +26,7 @@ private:
     int slot_;
     Section section_;
     puse::core::PartyEntry entry_;
+    std::vector<uint8_t> pending_before_;
 
     std::shared_ptr<sl::ui::ScrollField> scroll_;
     std::vector<std::shared_ptr<sl::ui::Button>> field_btns_;

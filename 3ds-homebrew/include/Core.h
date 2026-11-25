@@ -31,6 +31,11 @@ public:
     puse::core::SaveSession& Session() { return session_; }
     bool IsDirty() const { return dirty_; }
     void SetDirty(bool d) { dirty_ = d; }
+    void SyncDirtyFromSession();
+
+    bool RecordMutation(const std::vector<uint8_t>& before, const std::string& kind, const std::string& label);
+    bool UndoLastChange(puse::core::LedgerEntrySummary* out_undone = nullptr, std::string* error = nullptr);
+    void ResetToOriginal();
 
     const std::unordered_map<int, std::string>& SpeciesDb() const { return species_db_; }
     const std::unordered_map<int, std::string>& ItemsDb()   const { return items_db_; }
@@ -43,7 +48,9 @@ public:
     const std::vector<uint8_t>& PcStream() const { return pc_stream_; }
     std::vector<uint8_t>& MutablePcStream() { return pc_stream_; }
     bool RebuildPcStream(std::string* error = nullptr);
-    bool CommitPcStream(std::string* error = nullptr);
+    bool CommitPcStream(std::string* error = nullptr,
+                        const std::string& kind = "pc_edit",
+                        const std::string& label = "Edit PC slot");
 
     int SelectedPcBox() const { return selected_pc_box_; }
     void SetSelectedPcBox(int b) { selected_pc_box_ = b; }
