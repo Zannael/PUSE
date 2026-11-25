@@ -11,8 +11,8 @@
 
 ### Fixed
 
-- Fixed Unbound money writes (`money.py`, `money.js`, Switch/3DS `Money.cpp`) to target the canonical `0x290` `u32` offset directly and skip writing the legacy `0x28D` BCD3 shadow when `party_count >= 6`, preventing overlapping BCD3 writes in `patch_money_everywhere` from corrupting Money and protecting active Party slot 6 stats across all four runtimes.
-- Synced Pokédex flag edits inside `PokemonEditorModal` (`PokedexFlagsControls`) and `BagView` dirty-status updates with the Change Ledger immediately, and adjusted 3DS `PartyListScreen` row spacing so all 6 party slots and the `Change History` button remain visible without scrolling.
+- Fixed Unbound money writes across backend, browser local mode, Switch, and 3DS to target the canonical `0x290` `u32` offset directly and skip writing the legacy `0x28D` BCD3 shadow when `party_count >= 6`, preventing overlapping BCD3 writes in `patch_money_everywhere` from corrupting Money and protecting active Party slot 6 stats.
+- Synced Pokédex flag edits inside the Pokémon editor modal and bag dirty-status updates with the Change Ledger immediately, and adjusted 3DS `PartyListScreen` row spacing so all six party slots and the `Change History` button fit visibly without scrolling. Verified browser Local and Backend interactive flows, `ledger:regression`, `profile_regression`, native phases 1–4, frontend lint/build, Switch standard/lite `.nro` builds, and 3DS `.3dsx`/`.cia` builds.
 
 ### Changed
 
