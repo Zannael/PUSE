@@ -1694,6 +1694,11 @@ void MainApplication::HandlePcFieldEdit(const int section_index, const std::stri
     }
     if (!changed) { return; }
 
+    if (!puse::core::CommitPcStream(this->save_session_.MutableBuffer(), this->pc_stream_, &error)) {
+        this->CreateShowDialog("PC commit failed", error.empty() ? "Unknown error" : error, {"OK"}, true);
+        return;
+    }
+
     this->dirty_ = true;
     this->UpdateDirtyUi();
     this->RefreshSelectedPcMon();
@@ -1870,6 +1875,11 @@ void MainApplication::HandleMoveSlotEdit(const std::string &field_key) {
             return;
         }
         if (!changed) { return; }
+
+        if (!puse::core::CommitPcStream(this->save_session_.MutableBuffer(), this->pc_stream_, &error)) {
+            this->CreateShowDialog("PC commit failed", error.empty() ? "Unknown error" : error, {"OK"}, true);
+            return;
+        }
 
         this->dirty_ = true;
         this->UpdateDirtyUi();
