@@ -76,6 +76,16 @@ export function buildSaveReport(original, current, includeSource = true) {
         const offset = index * SECTION_SIZE;
         const before = original.subarray(offset, offset + SECTION_SIZE);
         const after = current.subarray(offset, offset + SECTION_SIZE);
+        let sectionDiffers = before.length !== after.length;
+        if (!sectionDiffers) {
+            for (let k = 0; k < before.length; k += 1) {
+                if (before[k] !== after[k]) {
+                    sectionDiffers = true;
+                    break;
+                }
+            }
+        }
+        if (!sectionDiffers) continue;
         const metadata = sections[index];
         const fields = new Map();
         let payloadBytes = 0;

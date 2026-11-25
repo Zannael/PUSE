@@ -4,7 +4,7 @@ import { Search, Package, Edit3, X, ArrowLeft, Star, Save, CircleHelp } from 'lu
 import { ITEM_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 import { pocketTypeForItemId } from '../core/bag.js';
 
-const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
+const BagView = ({ client, initialUnsaved = false, onDirtyChange, onChanged }) => {
     const isTmHmItemId = (id) => isRadicalRed() ? ['tm','hm'].includes(pocketTypeForItemId(id)) : ((id >= 289 && id <= 346) || (id >= 375 && id <= 444));
     const isKeyItemId = (id) => pocketTypeForItemId(id) === 'key';
 
@@ -273,6 +273,9 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
             setEditingItem(null);
             setModalSearch("");
             setHasUnsavedBagChanges(true);
+            if (typeof onChanged === 'function') {
+                onChanged();
+            }
             alert("Edit applied in memory. Click SAVE BAG CHANGES to write to file.");
         } catch (err) {
             console.error(err);
@@ -284,6 +287,9 @@ const BagView = ({ client, initialUnsaved = false, onDirtyChange }) => {
         try {
             await client.saveAll();
             setHasUnsavedBagChanges(false);
+            if (typeof onChanged === 'function') {
+                onChanged();
+            }
             alert("Bag saved and checksum recalculated successfully!");
         } catch (err) {
             console.error(err);

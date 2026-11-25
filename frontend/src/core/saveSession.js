@@ -1,4 +1,5 @@
 import { DEFAULT_PROFILE_ID, getProfile, chooseProfile, activateProfile } from './profile.js';
+import { ChangeLedger } from './changeLedger.js';
 
 const session = {
     saveBuffer: null,
@@ -7,6 +8,7 @@ const session = {
     filename: null,
     dirty: false,
     bagDirty: false,
+    ledger: new ChangeLedger(),
     pcContext: null,
 };
 
@@ -42,6 +44,7 @@ export async function loadFile(file, profileId = null) {
     session.filename = file.name || 'edited_save.sav';
     session.dirty = false;
     session.bagDirty = false;
+    session.ledger = new ChangeLedger();
     session.pcContext = null;
     return { filename: session.filename, size: bytes.length };
 }
@@ -84,6 +87,94 @@ export function updateBuffer(mutator, { dirty = true, preservePcContext = false 
 
 export function setBagDirty(flag) {
     session.bagDirty = Boolean(flag);
+}
+
+function syncSessionDirtyFromLedger() {
+    const hasSave = !!session.saveBuffer;
+    session.dirty = hasSave && session.originalBuffer
+        ? !buffersEqual(session.saveBuffer, session.originalBuffer)
+        : false;
+    session.bagDirty = session.ledger ? session.ledger.hasUncommittedBagChanges() : false;
+}
+
+export function recordChange(beforeBytes, kind, label) {
+    assertLoaded();
+    const entry = session.ledger.record(beforeBytes, session.saveBuffer, kind, label);
+    syncSessionDirtyFromLedger();
+    return entry;
+}
+
+export function beginHistoryGroup(kind, label) {
+    assertLoaded();
+    session.ledger.beginGroup(session.saveBuffer, kind, label);
+}
+
+export function commitHistoryGroup() {
+    assertLoaded();
+    const entry = session.ledger.commitGroup(session.saveBuffer);
+    syncSessionDirtyFromLedger();
+    return {
+        entry,
+        ...getHistorySummary(),
+        session: getSessionSnapshot(),
+    };
+}
+
+export function abortHistoryGroup() {
+    assertLoaded();
+    const restored = session.ledger.abortGroup();
+    if (restored) {
+        session.saveBuffer = restored;
+        session.pcContext = null;
+    }
+    syncSessionDirtyFromLedger();
+    return {
+        aborted: Boolean(restored),
+        ...getHistorySummary(),
+        session: getSessionSnapshot(),
+    };
+}
+
+export function undoLastChange() {
+    assertLoaded();
+    const { undone, buffer } = session.ledger.undo(session.saveBuffer);
+    session.saveBuffer = buffer;
+    session.pcContext = null;
+    syncSessionDirtyFromLedger();
+    return {
+        undone,
+        ...getHistorySummary(),
+        session: getSessionSnapshot(),
+    };
+}
+
+export function resetSaveToOriginal() {
+    assertLoaded();
+    session.saveBuffer = session.ledger.reset(session.originalBuffer);
+    session.pcContext = null;
+    syncSessionDirtyFromLedger();
+    return {
+        ...getHistorySummary(),
+        session: getSessionSnapshot(),
+    };
+}
+
+export function markSaved() {
+    session.ledger.markSaved();
+    session.bagDirty = false;
+}
+
+export function getHistorySummary() {
+    if (!session.saveBuffer) {
+        return {
+            entries: [],
+            can_undo: false,
+            can_reset: false,
+            total_changed_bytes: 0,
+            max_entries: session.ledger?.maxEntries ?? 50,
+        };
+    }
+    return session.ledger.summary(session.saveBuffer, session.originalBuffer);
 }
 
 export function getFilename() {

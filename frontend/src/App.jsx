@@ -1,5 +1,5 @@
 import { allProfiles, supports, PROFILE } from './core/profile.js';
-import React, { lazy, Suspense, useMemo, useState, useEffect, useRef } from 'react';
+import React, { lazy, Suspense, useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import {
     Upload,
     LayoutGrid,
@@ -19,12 +19,14 @@ import {
     Menu,
     UserRound,
     ListFilter,
+    Undo2,
 } from 'lucide-react';
 import { createApiClient, getInitialRuntimeMode, persistRuntimeMode, RUNTIME_MODES } from './services/apiClient.js';
 import { getExpAtLevel, getSpeciesGrowthRate } from './core/growth.js';
 import GraphicsResources from './components/GraphicsResources.jsx';
 import SaveTools from './components/SaveTools.jsx';
 import Dialog from './components/Dialog.jsx';
+import ChangeLedgerPanel from './components/ChangeLedgerPanel.jsx';
 
 const PartyGrid = lazy(() => import('./components/PartyGrid'));
 const PCGrid = lazy(() => import('./components/PCGrid'));
@@ -111,6 +113,7 @@ const App = () => {
             setBpInput(String(bpData.bp ?? 0));
             setSaveExt(file.name.toLowerCase().endsWith('.srm') ? '.srm' : '.sav');
             setIsLoaded(true);
+            await refreshHistory();
         } catch (err) {
             setUploadError(err.message || 'Upload failed for current runtime mode.');
         } finally {
@@ -141,6 +144,34 @@ const App = () => {
     const [refreshKey, setRefreshKey] = useState(0);
     const [pcBoxId, setPcBoxId] = useState(1);
     const [bagHasUnsavedChanges, setBagHasUnsavedChanges] = useState(false);
+    const [history, setHistory] = useState({
+        entries: [],
+        can_undo: false,
+        can_reset: false,
+        total_changed_bytes: 0,
+        max_entries: 50,
+    });
+    const [historyBusy, setHistoryBusy] = useState(false);
+
+    const refreshHistory = useCallback(async () => {
+        if (!client?.getHistory) return null;
+        try {
+            const [nextHistory, sessionStatus] = await Promise.all([
+                client.getHistory(),
+                client.getSessionStatus ? client.getSessionStatus() : Promise.resolve(null),
+            ]);
+            if (nextHistory) {
+                setHistory(nextHistory);
+            }
+            if (sessionStatus && typeof sessionStatus.bag_dirty === 'boolean') {
+                setBagHasUnsavedChanges(sessionStatus.bag_dirty);
+            }
+            return nextHistory;
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    }, [client]);
 
     const handleTabChange = (nextTab) => {
         if (nextTab === activeTab) return;
@@ -253,7 +284,7 @@ const App = () => {
 
             await client.editPartyFull(updatedPk.index, payload);
             await client.saveAll();
-            setBagHasUnsavedChanges(false);
+            await refreshHistory();
 
             setSelectedPokemon(null);
             setRefreshKey(prev => prev + 1);
@@ -351,7 +382,7 @@ const App = () => {
 
             await client.editPcFull(payload);
             await client.saveAll();
-            setBagHasUnsavedChanges(false);
+            await refreshHistory();
             setSelectedPokemon(null);
             setRefreshKey(prev => prev + 1);
             alert("PC Box updated successfully!");
@@ -364,7 +395,7 @@ const App = () => {
         try {
             await client.insertPc(payload);
             await client.saveAll();
-            setBagHasUnsavedChanges(false);
+            await refreshHistory();
             setPcInsertTarget(null);
             setRefreshKey(prev => prev + 1);
             alert('Pokemon inserted successfully!');
@@ -381,7 +412,7 @@ const App = () => {
         try {
             await client.releasePc({ box, slot });
             await client.saveAll();
-            setBagHasUnsavedChanges(false);
+            await refreshHistory();
             setRefreshKey(prev => prev + 1);
             alert('Pokemon released successfully.');
         } catch (err) {
@@ -392,17 +423,114 @@ const App = () => {
     const handleUpdateResources = async () => {
         const amount = Math.max(0, Math.min(999999999, parseInt(moneyInput, 10) || 0));
         const bpAmount = Math.max(0, Math.min(65535, parseInt(bpInput, 10) || 0));
+        let groupStarted = false;
         try {
-            await Promise.all([client.updateMoney(amount), supports('bp') ? client.updateBp(bpAmount) : Promise.resolve()]);
+            if (client.beginHistoryGroup) {
+                await client.beginHistoryGroup('resources_edit', 'Update Money / BP');
+                groupStarted = true;
+            }
+            await client.updateMoney(amount);
+            if (supports('bp')) {
+                await client.updateBp(bpAmount);
+            }
+            if (groupStarted && client.commitHistoryGroup) {
+                await client.commitHistoryGroup();
+                groupStarted = false;
+            }
             const [mData, bpData] = await Promise.all([client.getMoney(), supports('bp') ? client.getBp() : Promise.resolve({bp: 0})]);
             setMoney(Number(mData.money ?? amount));
             setBp(Number(bpData.bp ?? bpAmount));
             setMoneyInput(String(mData.money ?? amount));
             setBpInput(String(bpData.bp ?? bpAmount));
+            await refreshHistory();
             alert('Trainer currencies updated successfully!');
         } catch (err) {
             console.error(err);
-            alert('Failed to update trainer currencies.');
+            if (groupStarted && client.abortHistoryGroup) {
+                await client.abortHistoryGroup().catch(() => {});
+            }
+            const [mData, bpData] = await Promise.all([
+                client.getMoney().catch(() => null),
+                supports('bp') ? client.getBp().catch(() => null) : Promise.resolve({bp: 0}),
+            ]);
+            if (mData) {
+                setMoney(Number(mData.money ?? 0));
+                setMoneyInput(String(mData.money ?? 0));
+            }
+            if (bpData) {
+                setBp(Number(bpData.bp ?? 0));
+                setBpInput(String(bpData.bp ?? 0));
+            }
+            await refreshHistory();
+            alert(err?.message || 'Failed to update trainer currencies.');
+        }
+    };
+
+    const syncLoadedStateAfterHistoryChange = async (result) => {
+        if (result) {
+            setHistory(result);
+        } else {
+            await refreshHistory();
+        }
+        if (result?.session && typeof result.session.bag_dirty === 'boolean') {
+            setBagHasUnsavedChanges(result.session.bag_dirty);
+        }
+        setSelectedPokemon(null);
+        setPcInsertTarget(null);
+        const [trainerData, mData, bpData] = await Promise.all([
+            client.getTrainer().catch(() => null),
+            client.getMoney().catch(() => null),
+            supports('bp') ? client.getBp().catch(() => null) : Promise.resolve({bp: 0}),
+        ]);
+        if (trainerData) setTrainer(trainerData);
+        if (mData) {
+            setMoney(Number(mData.money ?? 0));
+            setMoneyInput(String(mData.money ?? 0));
+        }
+        if (bpData) {
+            setBp(Number(bpData.bp ?? 0));
+            setBpInput(String(bpData.bp ?? 0));
+        }
+        setRefreshKey(prev => prev + 1);
+        if (showSaveReport) {
+            setSaveReportLoading(true);
+            try {
+                setSaveReport(await client.getSaveReport());
+            } catch (err) {
+                console.error(err);
+                setSaveReportError('Could not inspect this save. Try again before downloading.');
+            } finally {
+                setSaveReportLoading(false);
+            }
+        }
+    };
+
+    const handleUndoLastChange = async () => {
+        if (historyBusy || !history.can_undo) return;
+        setHistoryBusy(true);
+        try {
+            const result = await client.undoLastChange();
+            await syncLoadedStateAfterHistoryChange(result);
+        } catch (err) {
+            alert(err?.message || 'Failed to undo last change.');
+        } finally {
+            setHistoryBusy(false);
+        }
+    };
+
+    const handleResetToOriginal = async () => {
+        if (historyBusy || !history.can_reset) return;
+        if (!window.confirm('Reset the loaded save back to the original uploaded file? This clears all edits made in this session.')) {
+            return;
+        }
+        setHistoryBusy(true);
+        try {
+            const result = await client.resetSaveToOriginal();
+            await syncLoadedStateAfterHistoryChange(result);
+        } catch (err) {
+            alert(err?.message || 'Failed to reset save to original.');
+        } finally {
+            setHistoryBusy(false);
         }
     };
 
@@ -412,7 +540,8 @@ const App = () => {
         setSaveReportError('');
         setSaveReportLoading(true);
         try {
-            setSaveReport(await client.getSaveReport());
+            const [report] = await Promise.all([client.getSaveReport(), refreshHistory()]);
+            setSaveReport(report);
         } catch (err) {
             console.error(err);
             setSaveReportError('Could not inspect this save. Try again before downloading.');
@@ -425,7 +554,7 @@ const App = () => {
         if (!saveReport) return;
         try {
             await client.downloadSave();
-            setBagHasUnsavedChanges(false);
+            await refreshHistory();
             setShowSaveReport(false);
         } catch (err) {
             console.error(err);
@@ -500,8 +629,9 @@ const App = () => {
         if (isLoaded) {
             mainContent.current?.focus({ preventScroll: true });
             window.scrollTo({ top: 0, behavior: 'instant' });
+            refreshHistory();
         }
-    }, [activeTab, isLoaded]);
+    }, [activeTab, isLoaded, refreshKey, refreshHistory]);
 
     const editorNavigation = <>
         <TabItem icon={<LayoutGrid size={20} />} label="Party" active={activeTab === 'party'} onClick={() => handleTabChange('party')} />
@@ -531,6 +661,16 @@ const App = () => {
                         </button>}
                         <div className="app-header-actions items-center gap-1" aria-label="App tools">
                             {isLoaded && <>
+                                <button
+                                    type="button"
+                                    onClick={handleUndoLastChange}
+                                    disabled={!history.can_undo || historyBusy}
+                                    title={history.can_undo ? `Undo: ${history.entries[0]?.label || 'last change'}` : 'No changes to undo'}
+                                    className="inline-flex items-center gap-1 rounded-lg px-2 py-2 text-xs lg:px-3 lg:text-sm text-slate-300 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                    <Undo2 size={15} />
+                                    <span>Undo</span>
+                                </button>
                                 <button type="button" onClick={() => openSection('graphics')} aria-current={activeTab === 'graphics' ? 'page' : undefined} className="rounded-lg px-2 py-2 text-xs lg:px-3 lg:text-sm text-slate-300 hover:bg-slate-700">Graphics</button>
                                 <button type="button" onClick={() => openSection('tools')} aria-current={['tools', 'inspector'].includes(activeTab) ? 'page' : undefined} className="rounded-lg px-2 py-2 text-xs lg:px-3 lg:text-sm text-slate-300 hover:bg-slate-700">Tools</button>
                             </>}
@@ -745,8 +885,13 @@ const App = () => {
                                 onReleasePokemon={handleReleasePC}
                             /> : <AllPokemonTable key={`all-${refreshKey}`} client={client} />}
                             </div>}
-                            {activeTab === 'bag' && <BagView client={client} initialUnsaved={bagHasUnsavedChanges} onDirtyChange={setBagHasUnsavedChanges} />}
-                            {activeTab === 'tools' && <section className="space-y-5"><h2 className="text-2xl font-bold">Save tools</h2><SaveTools client={client} /><button type="button" onClick={() => handleTabChange('inspector')} className="rounded-xl border border-slate-600 px-4 py-3 hover:bg-slate-800">Inspect save fields · Advanced</button></section>}
+                            {activeTab === 'bag' && <BagView key={`bag-${refreshKey}`} client={client} initialUnsaved={bagHasUnsavedChanges} onDirtyChange={setBagHasUnsavedChanges} onChanged={refreshHistory} />}
+                            {activeTab === 'tools' && <section className="space-y-5">
+                                <h2 className="text-2xl font-bold">Save tools</h2>
+                                <ChangeLedgerPanel history={history} busy={historyBusy} onUndo={handleUndoLastChange} onReset={handleResetToOriginal} />
+                                <SaveTools client={client} />
+                                <button type="button" onClick={() => handleTabChange('inspector')} className="rounded-xl border border-slate-600 px-4 py-3 hover:bg-slate-800">Inspect save fields · Advanced</button>
+                            </section>}
                             {activeTab === 'trainer' && trainerPanel}
                             {activeTab === 'inspector' && <FieldInspector key={runtimeMode} client={client} />}
                             {supports('pokedex') && activeTab === 'dex' && <LivingDexPanel key={`dex-${refreshKey}`} client={client} />}
@@ -795,6 +940,7 @@ const App = () => {
                                     </li>)}
                                 </ul> : <p className="mt-1 text-slate-400">No sector changes since upload.</p>}
                             </div>
+                            <ChangeLedgerPanel history={history} busy={historyBusy} onUndo={handleUndoLastChange} onReset={handleResetToOriginal} compact />
                         </div>}
                         <div className="mt-6 flex justify-end gap-2">
                             <button type="button" onClick={() => setShowSaveReport(false)} className="rounded-lg border border-slate-600 px-4 py-2 text-slate-100 hover:bg-slate-800">Cancel</button>
@@ -835,8 +981,9 @@ const App = () => {
             {showMenu && <Dialog title="Menu" onClose={() => setShowMenu(false)}>
                 <div className="grid gap-2">
                     {isLoaded && <>
+                        <button type="button" onClick={() => { setShowMenu(false); handleUndoLastChange(); }} disabled={!history.can_undo || historyBusy} className="rounded-xl bg-slate-800 p-4 text-left hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50">Undo last change<span className="block text-sm text-slate-400">{history.can_undo ? history.entries[0]?.label : 'No recorded changes yet'}</span></button>
                         <button type="button" onClick={() => openSection('graphics')} className="rounded-xl bg-slate-800 p-4 text-left hover:bg-slate-700">Graphics<span className="block text-sm text-slate-400">Import images from your ROM or manage your pack</span></button>
-                        <button type="button" onClick={() => openSection('tools')} className="rounded-xl bg-slate-800 p-4 text-left hover:bg-slate-700">Save tools<span className="block text-sm text-slate-400">Time tampering / Time Fixer, conversion, advanced inspection</span></button>
+                        <button type="button" onClick={() => openSection('tools')} className="rounded-xl bg-slate-800 p-4 text-left hover:bg-slate-700">Save tools<span className="block text-sm text-slate-400">Change history, Time Fixer, conversion, advanced inspection</span></button>
                     </>}
                     <button type="button" onClick={() => { setShowMenu(false); setShowSettings(true); }} className="rounded-xl bg-slate-800 p-4 text-left hover:bg-slate-700">Settings<span className="block text-sm text-slate-400">Runtime and Legit mode help</span></button>
                     {isLoaded && <button type="button" onClick={handleRestartApp} className="rounded-xl border border-slate-600 p-4 text-left hover:bg-slate-800">Load another save</button>}

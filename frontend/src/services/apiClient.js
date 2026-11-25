@@ -265,6 +265,28 @@ const backendClient = {
     getSessionStatus() {
         return backendJson('/session/status');
     },
+    getHistory() {
+        return backendJson('/history');
+    },
+    beginHistoryGroup(kind, label) {
+        return backendJson('/history/group/begin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kind, label }),
+        });
+    },
+    commitHistoryGroup() {
+        return backendJson('/history/group/commit', { method: 'POST' });
+    },
+    abortHistoryGroup() {
+        return backendJson('/history/group/abort', { method: 'POST' });
+    },
+    undoLastChange() {
+        return backendJson('/history/undo', { method: 'POST' });
+    },
+    resetSaveToOriginal() {
+        return backendJson('/history/reset', { method: 'POST' });
+    },
     getParty() {
         return backendJson("/party");
     },
@@ -590,7 +612,8 @@ const localClient = {
         return readPokedexFlags(getBuffer(), Number(speciesId));
     },
     async updatePokedexFlag(speciesId, payload) {
-        const { updateBuffer, setPokedexFlag: patchPokedexFlag } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, setPokedexFlag: patchPokedexFlag } = await getLocalCoreModules();
+        const before = new Uint8Array(getBuffer());
         let result = null;
         updateBuffer((next) => {
             result = patchPokedexFlag(next, Number(speciesId), payload?.flag, payload?.value);
@@ -598,6 +621,7 @@ const localClient = {
         if (!result?.ok) {
             throw new Error(result?.reason || 'pokedex flag update failed');
         }
+        recordChange(before, 'pokedex_edit', `Update Pokédex #${Number(speciesId)}`);
         return result;
     },
     async getPokedexSummary() {
@@ -605,16 +629,20 @@ const localClient = {
         return buildPokedexSummary(getBuffer(), await getSpeciesList());
     },
     async updateMoney(amount) {
-        const { updateBuffer, readMoney, updateMoney: patchMoney } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, readMoney, updateMoney: patchMoney } = await getLocalCoreModules();
+        const before = new Uint8Array(getBuffer());
         const newMoney = updateBuffer((next) => patchMoney(next, amount));
+        recordChange(before, 'money_edit', 'Update Money');
         return {
             message: `Money updated to ${readMoney(newMoney)}`,
             new_money: readMoney(newMoney),
         };
     },
     async updateBp(amount) {
-        const { updateBuffer, readBp, updateBp: patchBp } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, readBp, updateBp: patchBp } = await getLocalCoreModules();
+        const before = new Uint8Array(getBuffer());
         const nextBuffer = updateBuffer((next) => patchBp(next, amount));
+        recordChange(before, 'bp_edit', 'Update Battle Points');
         return {
             message: `Battle Points updated to ${readBp(nextBuffer)}`,
             bp: readBp(nextBuffer),
@@ -626,11 +654,11 @@ const localClient = {
             getFilename,
             getPcContext,
             saveAll,
-            setBagDirty,
+            markSaved,
         } = await getLocalCoreModules();
         const finalized = new Uint8Array(getBuffer());
         saveAll(finalized, getPcContext());
-        setBagDirty(false);
+        markSaved();
         downloadBlob(new Blob([finalized], { type: 'application/octet-stream' }), getFilename());
     },
     async getSaveReport() {
@@ -643,6 +671,31 @@ const localClient = {
         const { getSessionSnapshot } = await getLocalCoreModules();
         return getSessionSnapshot();
     },
+    async getHistory() {
+        const { getHistorySummary } = await getLocalCoreModules();
+        return getHistorySummary();
+    },
+    async beginHistoryGroup(kind, label) {
+        const { beginHistoryGroup: startGroup } = await getLocalCoreModules();
+        startGroup(kind, label);
+        return { status: 'History group started' };
+    },
+    async commitHistoryGroup() {
+        const { commitHistoryGroup: endGroup } = await getLocalCoreModules();
+        return endGroup();
+    },
+    async abortHistoryGroup() {
+        const { abortHistoryGroup: cancelGroup } = await getLocalCoreModules();
+        return cancelGroup();
+    },
+    async undoLastChange() {
+        const { undoLastChange: undo } = await getLocalCoreModules();
+        return undo();
+    },
+    async resetSaveToOriginal() {
+        const { resetSaveToOriginal: resetSave } = await getLocalCoreModules();
+        return resetSave();
+    },
     async getParty() {
         const { getSpeciesMap, getSpeciesFormMetaMap, getParty: readParty, getBuffer } = await getLocalCoreModules();
         return Promise.all([getSpeciesMap(), getSpeciesFormMetaMap()]).then(([speciesMap, speciesMeta]) =>
@@ -654,80 +707,108 @@ const localClient = {
         return collectAllPokemon(localClient);
     },
     async updatePartyIvs(index, payload) {
-        const { updateBuffer, updatePartyIvs: patchPartyIvs } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, updatePartyIvs: patchPartyIvs } = await getLocalCoreModules();
+        const before = new Uint8Array(getBuffer());
         updateBuffer((next) => patchPartyIvs(next, Number(index), payload || {}));
+        recordChange(before, 'party_edit', `Edit Party #${Number(index) + 1}`);
         return { status: 'IVs updated in memory' };
     },
     async updatePartyEvs(index, payload) {
-        const { updateBuffer, updatePartyEvs: patchPartyEvs } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, updatePartyEvs: patchPartyEvs } = await getLocalCoreModules();
+        const before = new Uint8Array(getBuffer());
         updateBuffer((next) => patchPartyEvs(next, Number(index), payload || {}));
+        recordChange(before, 'party_edit', `Edit Party #${Number(index) + 1}`);
         return { status: 'EVs updated in memory' };
     },
     async updatePartyMoves(index, payload) {
-        const { updateBuffer, updatePartyMoves: patchPartyMoves } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, updatePartyMoves: patchPartyMoves } = await getLocalCoreModules();
+        const before = new Uint8Array(getBuffer());
         updateBuffer((next) => patchPartyMoves(next, Number(index), payload || {}));
+        recordChange(before, 'party_edit', `Edit Party #${Number(index) + 1}`);
         return { status: 'Moves updated in memory' };
     },
     async updatePartyAbilitySwitch(index, payload) {
-        const { updateBuffer, updatePartyAbilitySwitch: patchPartyAbilitySwitch } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, updatePartyAbilitySwitch: patchPartyAbilitySwitch } = await getLocalCoreModules();
+        const before = new Uint8Array(getBuffer());
         updateBuffer((next) => patchPartyAbilitySwitch(next, Number(index), payload || {}));
+        recordChange(before, 'party_edit', `Edit Party #${Number(index) + 1}`);
         return { status: 'Ability updated in memory' };
     },
     async updatePartyNature(index, payload) {
-        const { updateBuffer, updatePartyNature: patchPartyNature } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, updatePartyNature: patchPartyNature } = await getLocalCoreModules();
+        const before = new Uint8Array(getBuffer());
         updateBuffer((next) => patchPartyNature(next, Number(index), payload || {}));
+        recordChange(before, 'party_edit', `Edit Party #${Number(index) + 1}`);
         return { status: 'Nature updated in memory' };
     },
     async updatePartyLevel(index, payload) {
-        const { updateBuffer, updatePartyLevel: patchPartyLevel } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, updatePartyLevel: patchPartyLevel } = await getLocalCoreModules();
+        const before = new Uint8Array(getBuffer());
         updateBuffer((next) => patchPartyLevel(next, Number(index), payload || {}));
+        recordChange(before, 'party_edit', `Edit Party #${Number(index) + 1}`);
         return { status: 'Level updated in memory' };
     },
     async updatePartyItem(index, payload) {
-        const { updateBuffer, updatePartyItem: patchPartyItem } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, updatePartyItem: patchPartyItem } = await getLocalCoreModules();
+        const before = new Uint8Array(getBuffer());
         updateBuffer((next) => patchPartyItem(next, Number(index), payload || {}));
+        recordChange(before, 'party_edit', `Edit Party #${Number(index) + 1}`);
         return { status: 'Item updated in memory' };
     },
     async updatePartyBall(index, payload) {
-        const { updateBuffer, updatePartyBall: patchPartyBall } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, updatePartyBall: patchPartyBall } = await getLocalCoreModules();
+        const before = new Uint8Array(getBuffer());
         updateBuffer((next) => patchPartyBall(next, Number(index), payload || {}));
+        recordChange(before, 'party_edit', `Edit Party #${Number(index) + 1}`);
         return { status: 'Ball updated in memory' };
     },
     async updatePartyHappiness(index, payload) {
-        const { updateBuffer, updatePartyHappiness: patchPartyHappiness } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, updatePartyHappiness: patchPartyHappiness } = await getLocalCoreModules();
+        const before = new Uint8Array(getBuffer());
         updateBuffer((next) => patchPartyHappiness(next, Number(index), payload || {}));
+        recordChange(before, 'party_edit', `Edit Party #${Number(index) + 1}`);
         return { status: 'Happiness updated in memory' };
     },
     async updatePartyIdentity(index, payload) {
-        const { updateBuffer, updatePartyIdentity: patchPartyIdentity } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, updatePartyIdentity: patchPartyIdentity } = await getLocalCoreModules();
+        const before = new Uint8Array(getBuffer());
         updateBuffer((next) => patchPartyIdentity(next, Number(index), payload || {}));
+        recordChange(before, 'party_edit', `Edit Party #${Number(index) + 1}`);
         return { status: 'Identity updated in memory' };
     },
     async updatePartyOtName(index, payload) {
-        const { updateBuffer, updatePartyOtName } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, updatePartyOtName } = await getLocalCoreModules();
+        const before = new Uint8Array(getBuffer());
         updateBuffer((next) => updatePartyOtName(next, Number(index), payload || {}));
+        recordChange(before, 'party_edit', `Edit Party #${Number(index) + 1}`);
         return { status: 'Original Trainer name updated in memory' };
     },
     async updatePartyNickname(index, payload) {
-        const { updateBuffer, updatePartyNickname: patchPartyNickname, getSpeciesMap } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, updatePartyNickname: patchPartyNickname, getSpeciesMap } = await getLocalCoreModules();
         const speciesMap = await getSpeciesMap();
+        const before = new Uint8Array(getBuffer());
         updateBuffer((next) => patchPartyNickname(next, Number(index), payload || {}, speciesMap));
+        recordChange(before, 'party_edit', `Edit Party #${Number(index) + 1}`);
         return { status: 'Nickname updated in memory' };
     },
     async updatePartySpecies(index, payload) {
-        const { updateBuffer, updatePartySpecies: patchPartySpecies } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, updatePartySpecies: patchPartySpecies } = await getLocalCoreModules();
         const speciesId = await ensureValidSpeciesId(payload?.species_id);
+        const before = new Uint8Array(getBuffer());
         updateBuffer((next) => patchPartySpecies(next, Number(index), { species_id: speciesId }));
+        recordChange(before, 'party_edit', `Edit Party #${Number(index) + 1}`);
         return { status: 'Species updated in memory' };
     },
     async editPartyFull(index, payload) {
-        const { updateBuffer, editPartyMonFull, getSpeciesMap } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, editPartyMonFull, getSpeciesMap } = await getLocalCoreModules();
         const nextPayload = { ...(payload || {}) };
         if (nextPayload.species_id !== undefined && nextPayload.species_id !== null) {
             nextPayload.species_id = await ensureValidSpeciesId(nextPayload.species_id);
         }
         const speciesMap = await getSpeciesMap();
+        const before = new Uint8Array(getBuffer());
         updateBuffer((next) => editPartyMonFull(next, Number(index), nextPayload, speciesMap));
+        recordChange(before, 'party_edit', `Edit Party #${Number(index) + 1}`);
         return { status: 'Party Pokemon updated atomically' };
     },
     async loadPc() {
@@ -791,11 +872,16 @@ const localClient = {
             nextPayload.species_id = await ensureValidSpeciesId(nextPayload.species_id);
         }
         const speciesMap = await getSpeciesMap();
+        const before = new Uint8Array(getBuffer());
         updateBuffer((next) => {
             editPcMonFull(context, nextPayload, speciesMap);
             applyPcContextToSave(next, context);
             syncPcContextBaseline(context, next);
         }, { preservePcContext: true });
+        const boxNum = Number(nextPayload.box);
+        const boxLabel = boxNum === 26 ? 'Preset' : `Box ${boxNum}`;
+        const { recordChange } = await getLocalCoreModules();
+        recordChange(before, 'pc_edit', `Edit ${boxLabel} Slot ${Number(nextPayload.slot)}`);
         return { status: 'PC edit buffered' };
     },
     async releasePc(payload) {
@@ -805,6 +891,7 @@ const localClient = {
             setPcContext,
             getBuffer,
             updateBuffer,
+            recordChange,
             releasePcMon,
             applyPcContextToSave,
             syncPcContextBaseline,
@@ -814,11 +901,15 @@ const localClient = {
             context = loadPcContext(getBuffer());
             setPcContext(context);
         }
+        const before = new Uint8Array(getBuffer());
         updateBuffer((next) => {
             releasePcMon(context, payload || {});
             applyPcContextToSave(next, context);
             syncPcContextBaseline(context, next);
         }, { preservePcContext: true });
+        const boxNum = Number(payload?.box);
+        const boxLabel = boxNum === 26 ? 'Preset' : `Box ${boxNum}`;
+        recordChange(before, 'pc_release', `Release ${boxLabel} Slot ${Number(payload?.slot)}`);
         return { status: 'PC release buffered' };
     },
     async insertPc(payload) {
@@ -828,6 +919,7 @@ const localClient = {
             setPcContext,
             getBuffer,
             updateBuffer,
+            recordChange,
             getSpeciesMap,
             insertPcMon,
             applyPcContextToSave,
@@ -841,12 +933,16 @@ const localClient = {
         const speciesMap = await getSpeciesMap();
         const nextPayload = { ...(payload || {}) };
         nextPayload.species_id = await ensureValidSpeciesId(nextPayload.species_id);
+        const before = new Uint8Array(getBuffer());
         let inserted = null;
         updateBuffer((next) => {
             inserted = insertPcMon(context, nextPayload, speciesMap);
             applyPcContextToSave(next, context);
             syncPcContextBaseline(context, next);
         }, { preservePcContext: true });
+        const boxNum = Number(inserted?.box ?? nextPayload.box);
+        const boxLabel = boxNum === 26 ? 'Preset' : `Box ${boxNum}`;
+        recordChange(before, 'pc_insert', `Insert ${boxLabel} Slot ${Number(inserted?.slot ?? nextPayload.slot)}`);
         return inserted;
     },
     async getMoves() {
@@ -880,7 +976,8 @@ const localClient = {
         return mapPocketFromAnchor(getBuffer(), Number(anchorOffset), itemNames);
     },
     async updateBagItem(payload) {
-        const { updateBuffer, writeSlot, setBagDirty } = await getLocalCoreModules();
+        const { getBuffer, updateBuffer, recordChange, writeSlot } = await getLocalCoreModules();
+        const before = new Uint8Array(getBuffer());
         updateBuffer((next) => {
             writeSlot(
                 next,
@@ -890,7 +987,7 @@ const localClient = {
                 payload.encoding || null,
             );
         });
-        setBagDirty(true);
+        recordChange(before, 'bag_edit', 'Edit Bag slot');
         return { status: 'Bag slot updated' };
     },
     async getBagPocketsBootstrap() {
@@ -903,14 +1000,14 @@ const localClient = {
             saveAll: commitSaveAll,
             getPcContext,
             syncPcContextBaseline,
-            setBagDirty,
+            markSaved,
         } = await getLocalCoreModules();
         updateBuffer((next) => {
             const context = getPcContext();
             commitSaveAll(next, context);
             syncPcContextBaseline(context, next);
         }, { preservePcContext: true });
-        setBagDirty(false);
+        markSaved();
         return { message: 'Save completed' };
     },
     async generateRtcRepairPack(brokenFile, fixedFile) {
