@@ -2,19 +2,15 @@
 
 ## Unreleased
 
-### Added
+### Changed
 
 - Added a bounded sparse-diff change ledger (`max_entries=50`) with grouped edit transactions (`begin`/`commit`/`abort`), LIFO operation-level undo, and full reset-to-original across backend, browser local mode, Switch, and 3DS.
   - Preserves an immutable baseline snapshot across the session so Reset-to-original restores the exact loaded save even beyond 50 recorded entries, and keeps uncommitted bag dirty state accurate past export and entry eviction.
   - Hardened party edits into atomic multi-field mutations (`POST /party/{idx}/edit-full`, `editPartyMonFull`), unified immediate PC commits and baseline resynchronization so stale PC/bag buffers never re-apply undone edits, and exposed Change History UI panels/screens with undo and reset across web, Switch, and 3DS.
   - Added cross-runtime `ledger:regression` checks covering Unbound v2.1.1.1 and Radical Red 4.1 across Python, browser JavaScript, Switch C++, and 3DS C++.
 
-### Fixed
-
 - Fixed Unbound money writes across backend, browser local mode, Switch, and 3DS to target the canonical `0x290` `u32` offset directly and skip writing the legacy `0x28D` BCD3 shadow when `party_count >= 6`, preventing overlapping BCD3 writes in `patch_money_everywhere` from corrupting Money and protecting active Party slot 6 stats.
 - Synced Pokédex flag edits inside the Pokémon editor modal and bag dirty-status updates with the Change Ledger immediately, and adjusted 3DS `PartyListScreen` row spacing so all six party slots and the `Change History` button fit visibly without scrolling. Verified browser Local and Backend interactive flows, `ledger:regression`, `profile_regression`, native phases 1–4, frontend lint/build, Switch standard/lite `.nro` builds, and 3DS `.3dsx`/`.cia` builds.
-
-### Changed
 
 - Reorganized web navigation while preserving the floating bottom bar on mobile and desktop. All Pokémon remains directly accessible there and from PC; Trainer groups read-only identity, money and supported Battle Points. Graphics, save tools and settings are visible header actions on desktop and landscape phones, with a compact menu on narrow portrait screens. ROM graphics status is visible outside the compatibility report; time-tampering recovery and save conversion remain available before loading and are also accessible within the editor.
 - Changed save loading to start with file selection and request game/version confirmation only when required, retaining the selected file. Compatibility and mutation checks remain unchanged; runtime settings cannot switch away from a loaded session.
