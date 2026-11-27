@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Package, Trash2 } from 'lucide-react';
+import { ArrowLeftRight, ChevronLeft, ChevronRight, Package, Trash2 } from 'lucide-react';
 import { POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 
 import { PROFILE, isRadicalRed } from '../core/profile.js';
@@ -9,8 +9,9 @@ function getBoxLabel(boxId) {
     return Number(boxId) === 26 ? 'Preset' : `Box ${boxId}`;
 }
 
-const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon, onReleasePokemon }) => {
+const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon, onReleasePokemon, onTransferPokemon }) => {
     const VISIBLE_BOX_SEQUENCE = useMemo(() => isRadicalRed() ? Array.from({length: PROFILE.storage.pc.box_count}, (_, i) => i + 1) : [...Array.from({length:24}, (_, i) => i + 1),26], []);
+    const isOrdinaryBox = Number(boxId) >= 1 && Number(boxId) <= Number(PROFILE.storage.pc.box_count);
     const [pokemon, setPokemon] = useState([]);
     const [writableSlots, setWritableSlots] = useState(new Set());
     const [loading, setLoading] = useState(false);
@@ -154,18 +155,34 @@ const PCGrid = ({ client, boxId, onBoxChange, onEditPokemon, onAddPokemon, onRel
                                                 }
                                             }}
                                         />
-                                        <button
-                                            type="button"
-                                            title={`Release ${pk.nickname || 'Pokemon'}`}
-                                            aria-label={`Release ${pk.nickname || 'Pokemon'}`}
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                onReleasePokemon?.({ box: boxId, slot, pokemon: pk });
-                                            }}
-                                            className="absolute right-1 top-1 rounded-lg bg-slate-950/80 p-1.5 text-slate-400 opacity-0 transition-all hover:bg-rose-500/90 hover:text-white group-hover:opacity-100"
-                                        >
-                                            <Trash2 size={13} />
-                                        </button>
+                                        <div className="absolute right-1 top-1 flex items-center gap-1">
+                                            {isOrdinaryBox && onTransferPokemon && (
+                                                <button
+                                                    type="button"
+                                                    title={`Transfer ${pk.nickname || 'Pokemon'} to Party`}
+                                                    aria-label={`Transfer ${pk.nickname || 'Pokemon'} to Party`}
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        onTransferPokemon({ sourceType: 'pc', box: boxId, slot, pokemon: pk });
+                                                    }}
+                                                    className="rounded-lg bg-slate-950/80 p-1.5 text-slate-300 opacity-0 transition-all hover:bg-blue-500/90 hover:text-white focus:opacity-100 group-hover:opacity-100"
+                                                >
+                                                    <ArrowLeftRight size={13} />
+                                                </button>
+                                            )}
+                                            <button
+                                                type="button"
+                                                title={`Release ${pk.nickname || 'Pokemon'}`}
+                                                aria-label={`Release ${pk.nickname || 'Pokemon'}`}
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    onReleasePokemon?.({ box: boxId, slot, pokemon: pk });
+                                                }}
+                                                className="rounded-lg bg-slate-950/80 p-1.5 text-slate-400 opacity-0 transition-all hover:bg-rose-500/90 hover:text-white focus:opacity-100 group-hover:opacity-100"
+                                            >
+                                                <Trash2 size={13} />
+                                            </button>
+                                        </div>
                                     </>
                                 ) : (
                                     <span className={`text-[10px] font-mono ${writable ? 'text-slate-500 group-hover:text-emerald-300' : 'text-slate-600'}`}>

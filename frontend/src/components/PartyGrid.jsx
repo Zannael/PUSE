@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import PokemonCard from './PokemonCard';
 import { Loader2 } from 'lucide-react';
 
-const PartyGrid = ({ client, onEditPokemon }) => {
+const PartyGrid = ({ client, onEditPokemon, onTransferPokemon }) => {
     const [party, setParty] = useState([]);
     const [loading, setLoading] = useState(true);
     const fetchParty = useCallback(async () => {
@@ -35,6 +35,7 @@ const PartyGrid = ({ client, onEditPokemon }) => {
                     pokemon={pk}
                     getPokemonIconUrl={client.getPokemonIconUrl}
                     onEdit={() => onEditPokemon(pk)}
+                    onTransfer={onTransferPokemon ? () => onTransferPokemon({ sourceType: 'party', pokemon: pk, partyCount: party.length }) : undefined}
                 />
             ))}
         </div>

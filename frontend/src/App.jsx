@@ -38,6 +38,7 @@ const PokemonEditorModal = lazy(() =>
     import('./components/PokemonEditorModal.jsx').then((mod) => ({ default: mod.PokemonEditorModal }))
 );
 const AddPcPokemonModal = lazy(() => import('./components/AddPcPokemonModal.jsx'));
+const TransferModal = lazy(() => import('./components/TransferModal.jsx'));
 
 const LEGIT_MODE_STORAGE_KEY = 'puse_legit_mode';
 
@@ -141,6 +142,7 @@ const App = () => {
 
     const [selectedPokemon, setSelectedPokemon] = useState(null);
     const [pcInsertTarget, setPcInsertTarget] = useState(null);
+    const [transferTarget, setTransferTarget] = useState(null);
     const [refreshKey, setRefreshKey] = useState(0);
     const [pcBoxId, setPcBoxId] = useState(1);
     const [bagHasUnsavedChanges, setBagHasUnsavedChanges] = useState(false);
@@ -420,6 +422,17 @@ const App = () => {
         }
     };
 
+    const handleTransferCompleted = async (result) => {
+        if (result?.history) {
+            setHistory(result.history);
+        } else {
+            await refreshHistory();
+        }
+        setTransferTarget(null);
+        setSelectedPokemon(null);
+        setRefreshKey((prev) => prev + 1);
+    };
+
     const handleUpdateResources = async () => {
         const amount = Math.max(0, Math.min(999999999, parseInt(moneyInput, 10) || 0));
         const bpAmount = Math.max(0, Math.min(65535, parseInt(bpInput, 10) || 0));
@@ -477,6 +490,7 @@ const App = () => {
         }
         setSelectedPokemon(null);
         setPcInsertTarget(null);
+        setTransferTarget(null);
         const [trainerData, mData, bpData] = await Promise.all([
             client.getTrainer().catch(() => null),
             client.getMoney().catch(() => null),
@@ -867,6 +881,7 @@ const App = () => {
                                     key={`party-${refreshKey}`}
                                     client={client}
                                     onEditPokemon={(pk) => setSelectedPokemon(pk)}
+                                    onTransferPokemon={(target) => setTransferTarget(target)}
                                 />
                             )}
                             {['pc', 'all'].includes(activeTab) && <div className="space-y-5">
@@ -883,6 +898,7 @@ const App = () => {
                                 }}
                                 onAddPokemon={(target) => setPcInsertTarget(target)}
                                 onReleasePokemon={handleReleasePC}
+                                onTransferPokemon={(target) => setTransferTarget(target)}
                             /> : <AllPokemonTable key={`all-${refreshKey}`} client={client} />}
                             </div>}
                             {activeTab === 'bag' && <BagView key={`bag-${refreshKey}`} client={client} initialUnsaved={bagHasUnsavedChanges} onDirtyChange={setBagHasUnsavedChanges} onChanged={refreshHistory} />}
@@ -973,6 +989,17 @@ const App = () => {
                         legitMode={legitMode}
                         onClose={() => setPcInsertTarget(null)}
                         onConfirm={handleInsertPcPokemon}
+                    />
+                </Suspense>
+            )}
+
+            {transferTarget && (
+                <Suspense fallback={null}>
+                    <TransferModal
+                        client={client}
+                        target={transferTarget}
+                        onClose={() => setTransferTarget(null)}
+                        onCompleted={handleTransferCompleted}
                     />
                 </Suspense>
             )}

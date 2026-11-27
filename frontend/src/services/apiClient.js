@@ -94,7 +94,8 @@ async function getLocalCoreModules() {
             import('../core/gameProgress.js'),
             import('../core/pokedexFlags.js'),
             import('../core/saveHealth.js'),
-        ]).then(([catalog, party, saveSession, pc, bag, money, commit, rtc, saveConvert, balls, gameProgress, pokedexFlags, saveHealth]) => ({
+            import('../core/transfer.js'),
+        ]).then(([catalog, party, saveSession, pc, bag, money, commit, rtc, saveConvert, balls, gameProgress, pokedexFlags, saveHealth, transfer]) => ({
             ...catalog,
             ...party,
             ...saveSession,
@@ -108,6 +109,7 @@ async function getLocalCoreModules() {
             ...gameProgress,
             ...pokedexFlags,
             ...saveHealth,
+            ...transfer,
         }));
     }
     return localCoreModulesPromise;
@@ -420,6 +422,13 @@ const backendClient = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
+        });
+    },
+    transferPartyPc(payload) {
+        return backendJson('/transfer/party-pc', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload || {}),
         });
     },
     getMoves() {
@@ -944,6 +953,37 @@ const localClient = {
         const boxLabel = boxNum === 26 ? 'Preset' : `Box ${boxNum}`;
         recordChange(before, 'pc_insert', `Insert ${boxLabel} Slot ${Number(inserted?.slot ?? nextPayload.slot)}`);
         return inserted;
+    },
+    async transferPartyPc(payload) {
+        const {
+            loadCatalog,
+            getBuffer,
+            setBuffer,
+            recordChange,
+            transferPartyPc,
+            getHistorySummary,
+            getSessionSnapshot,
+        } = await getLocalCoreModules();
+        await loadCatalog();
+        const before = new Uint8Array(getBuffer());
+        const working = new Uint8Array(before);
+        const result = transferPartyPc(working, payload || {});
+        setBuffer(working, { dirty: true, preservePcContext: false });
+        const pNum = Number(result.party_index) + 1;
+        const bNum = Number(result.box);
+        const sNum = Number(result.slot);
+        const label = result.mode === 'party_to_pc'
+            ? `Move Party #${pNum} -> Box ${bNum}-${sNum}`
+            : result.mode === 'pc_to_party'
+                ? `Move Box ${bNum}-${sNum} -> Party #${pNum}`
+                : `Swap Party #${pNum} <-> Box ${bNum}-${sNum}`;
+        recordChange(before, 'party_pc_transfer', label);
+        return {
+            status: 'ok',
+            ...result,
+            history: getHistorySummary(),
+            session: getSessionSnapshot(),
+        };
     },
     async getMoves() {
         const { getMovesList } = await getLocalCoreModules();

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Zap, Shield, Heart, Target, Wind, Activity } from 'lucide-react';
+import { ArrowLeftRight, Zap, Shield, Heart, Target, Wind, Activity } from 'lucide-react';
 import { POKEMON_ICON_FALLBACK_URL } from '../core/iconResolver.js';
 
-const PokemonCard = ({ pokemon, onEdit, getPokemonIconUrl }) => {
+const PokemonCard = ({ pokemon, onEdit, onTransfer, getPokemonIconUrl }) => {
     const [showHiddenAbilityHint, setShowHiddenAbilityHint] = React.useState(false);
     // Funzione per il colore delle barre IV (0-31)
     const getIvColor = (val) => {
@@ -67,20 +67,36 @@ const PokemonCard = ({ pokemon, onEdit, getPokemonIconUrl }) => {
                     )}
                 </div>
 
-                {pokemon.is_hidden_ability && (
-                    <button
-                        type="button"
-                        title="Hidden Ability"
-                        aria-label="Hidden Ability"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setShowHiddenAbilityHint((prev) => !prev);
-                        }}
-                        className="bg-amber-500/20 text-amber-400 px-2 py-1 rounded-xl border border-amber-500/30 text-[10px] font-black tracking-widest"
-                    >
-                        HA
-                    </button>
-                )}
+                <div className="flex flex-col items-end gap-1.5 shrink-0">
+                    {onTransfer && (
+                        <button
+                            type="button"
+                            title="Transfer / Swap with PC"
+                            aria-label={`Transfer ${pokemon.nickname || pokemon.species_name || 'Pokemon'} to PC`}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onTransfer(pokemon);
+                            }}
+                            className="rounded-xl border border-white/10 bg-slate-800/80 p-2 text-slate-300 transition-colors hover:border-blue-400/50 hover:bg-blue-600/20 hover:text-blue-300"
+                        >
+                            <ArrowLeftRight size={15} />
+                        </button>
+                    )}
+                    {pokemon.is_hidden_ability && (
+                        <button
+                            type="button"
+                            title="Hidden Ability"
+                            aria-label="Hidden Ability"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowHiddenAbilityHint((prev) => !prev);
+                            }}
+                            className="bg-amber-500/20 text-amber-400 px-2 py-1 rounded-xl border border-amber-500/30 text-[10px] font-black tracking-widest"
+                        >
+                            HA
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Statistiche IVs */}
