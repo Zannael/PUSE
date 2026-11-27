@@ -1,15 +1,18 @@
 #include "ui/PokemonSectionsScreen.h"
 #include "ui/PokemonFieldsScreen.h"
+#include "ui/PcBoxScreen.h"
 #include "Core.h"
 #include "io/IconLoader.h"
 
 #include "starlight/datatypes/Color.h"
 #include "starlight/datatypes/VRect.h"
 #include "starlight/datatypes/Vector2.h"
+#include "starlight/dialog/MessageBox.h"
 #include "starlight/ui/Button.h"
 #include "starlight/ui/Image.h"
 
 #include <puse/core/Party.hpp>
+#include <puse/core/Transfer.hpp>
 #include <cstdio>
 
 using sl::Color;
@@ -23,13 +26,41 @@ PokemonSectionsScreen::PokemonSectionsScreen(int slot)
 {
     InitChrome("B: Back   A: Select   X: Save");
 
-    // 4 section buttons on bottom screen
-    static const char* kLabels[] = {"Summary", "Battle", "Training", "Moves"};
-    for (int i = 0; i < 4; ++i) {
-        auto btn = touchScreen->AddNew<sl::ui::Button>(VRect(4, 4 + i * 52, 312, 48));
+    // 5 section buttons on bottom screen (5 * 42 = 210 < 218)
+    static const char* kLabels[] = {"Summary", "Battle", "Training", "Moves", "Transfer to PC"};
+    for (int i = 0; i < 5; ++i) {
+        auto btn = touchScreen->AddNew<sl::ui::Button>(VRect(4, 4 + i * 42, 312, 38));
         btn->SetText(kLabels[i]);
         btn->eOnTap = [this, i](sl::ui::Button&) {
-            PokemonFieldsScreen::Make(slot_, static_cast<PokemonFieldsScreen::Section>(i))->Open();
+            if (i < 4) {
+                PokemonFieldsScreen::Make(slot_, static_cast<PokemonFieldsScreen::Section>(i))->Open();
+                return;
+            }
+            auto box = starlight::dialog::MessageBox::New(
+                starlight::dialog::MessageBox::YesNo,
+                "Move to first empty PC slot?\nYes: First empty PC slot\nNo: Browse PC boxes",
+                [this](int choice) {
+                    if (choice == 0) {
+                        Core* core = Core::Get();
+                        if (!core) return;
+                        puse::core::TransferRequest req{puse::core::TransferMode::PartyToPc, slot_, 0, 0};
+                        puse::core::TransferResult res{};
+                        std::string err;
+                        if (!core->TransferPartyPc(req, &res, &err)) {
+                            starlight::dialog::MessageBox::New(
+                                starlight::dialog::MessageBox::Ok,
+                                err.empty() ? "Transfer failed" : err)->Open();
+                            return;
+                        }
+                        std::string msg = "Moved Party #" + std::to_string(res.party_index + 1) +
+                            " to Box " + std::to_string(res.box) + "-" + std::to_string(res.slot);
+                        Close();
+                        starlight::dialog::MessageBox::New(starlight::dialog::MessageBox::Ok, msg)->Open();
+                    } else if (choice == 1) {
+                        PcBoxScreen::MakeForTransfer(slot_, [this]() { Close(); })->Open();
+                    }
+                });
+            box->Open();
         };
     }
 

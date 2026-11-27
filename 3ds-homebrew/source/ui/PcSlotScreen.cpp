@@ -1,4 +1,5 @@
 #include "ui/PcSlotScreen.h"
+#include "ui/PartyListScreen.h"
 #include "Core.h"
 
 #include "starlight/InputManager.h"
@@ -10,6 +11,7 @@
 
 #include <puse/core/Pc.hpp>
 #include <puse/core/Party.hpp>
+#include <puse/core/Transfer.hpp>
 
 #include <cstdio>
 #include <cstdlib>
@@ -429,6 +431,40 @@ void PcSlotScreen::BuildEditFields() {
     }
 
     RefreshFields();
+
+    // Transfer actions (placed after RefreshFields indexed buttons)
+    {
+        auto btn = scroll_->AddNew<sl::ui::Button>(VRect(kRowX, y, kRowW, kRowH - 2));
+        y += kRowH;
+        btn->SetText("Transfer: Move to Party");
+        btn->eOnTap = [this](sl::ui::Button&) {
+            Core* core = Core::Get();
+            if (!core) return;
+            puse::core::TransferRequest req{puse::core::TransferMode::PcToParty, -1, box_, slot_};
+            puse::core::TransferResult res{};
+            std::string err;
+            if (!core->TransferPartyPc(req, &res, &err)) {
+                MessageBox::New(MessageBox::Ok, err.empty() ? "Transfer failed" : err)->Open();
+                return;
+            }
+            std::string msg = "Moved Box " + std::to_string(res.box) + "-" + std::to_string(res.slot) +
+                " to Party #" + std::to_string(res.party_index + 1);
+            Close();
+            MessageBox::New(MessageBox::Ok, msg)->Open();
+        };
+    }
+    {
+        auto btn = scroll_->AddNew<sl::ui::Button>(VRect(kRowX, y, kRowW, kRowH - 2));
+        y += kRowH;
+        btn->SetText("Transfer: Swap with Party");
+        btn->eOnTap = [this](sl::ui::Button&) {
+            PartyListScreen::MakeForSwap(box_, slot_, [this]() {
+                LoadMon();
+                RefreshFields();
+                RefreshPreview();
+            })->Open();
+        };
+    }
 }
 
 // ---------------------------------------------------------------------------

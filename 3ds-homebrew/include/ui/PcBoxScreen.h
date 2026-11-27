@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <functional>
 #include <vector>
 #include <string>
 
@@ -15,11 +16,15 @@ namespace puse::ui {
 class PcBoxScreen : public BaseScreen {
 public:
     static std::shared_ptr<PcBoxScreen> Make();
+    static std::shared_ptr<PcBoxScreen> MakeForTransfer(int party_slot, std::function<void()> on_done = nullptr);
     PcBoxScreen();
+    PcBoxScreen(int transfer_party_slot, std::function<void()> on_done);
     void Update(bool focused) override;
 
 private:
-    int box_ = 1;                          // 1-based, [1..18]
+    int box_ = 1;                          // 1-based
+    int transfer_party_slot_ = -1;
+    std::function<void()> on_transfer_done_;
     std::vector<puse::core::PcMon> mons_;  // current box contents
 
     // Bottom: 30 slot buttons in 3 cols × 10 rows

@@ -326,6 +326,28 @@ bool Core::WriteBp(uint16_t val, std::string* error) {
     return true;
 }
 
+bool Core::TransferPartyPc(const puse::core::TransferRequest& req, puse::core::TransferResult* out, std::string* error) {
+    const auto before = session_.Buffer();
+    puse::core::TransferResult result{};
+    if (!puse::core::TransferPartyPc(session_.MutableBuffer(), req, &result, error)) {
+        return false;
+    }
+    const int p_num = result.party_index + 1;
+    std::string label;
+    if (result.mode == puse::core::TransferMode::PartyToPc) {
+        label = "Move Party #" + std::to_string(p_num) + " -> Box " + std::to_string(result.box) + "-" + std::to_string(result.slot);
+    } else if (result.mode == puse::core::TransferMode::PcToParty) {
+        label = "Move Box " + std::to_string(result.box) + "-" + std::to_string(result.slot) + " -> Party #" + std::to_string(p_num);
+    } else {
+        label = "Swap Party #" + std::to_string(p_num) + " <-> Box " + std::to_string(result.box) + "-" + std::to_string(result.slot);
+    }
+    RecordMutation(before, "party_pc_transfer", label);
+    std::string pc_err;
+    RebuildPcStream(&pc_err);
+    if (out) *out = result;
+    return true;
+}
+
 void Core::SyncDirtyFromSession() {
     dirty_ = session_.HasUnsavedChanges();
 }

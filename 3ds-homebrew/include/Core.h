@@ -2,6 +2,7 @@
 
 #include "starlight/Application.h"
 #include <puse/core/SaveSession.hpp>
+#include <puse/core/Transfer.hpp>
 #include <puse/io/DataLoader.hpp>
 #include <3ds.h>
 #include <unordered_map>
@@ -64,6 +65,9 @@ public:
     bool WriteMoney(uint32_t val, std::string* error = nullptr);
     bool ReadBp(uint16_t* out, std::string* error = nullptr) const;
     bool WriteBp(uint16_t val, std::string* error = nullptr);
+    bool TransferPartyPc(const puse::core::TransferRequest& req,
+                         puse::core::TransferResult* out = nullptr,
+                         std::string* error = nullptr);
 
     // Save with backup; returns true on success.
     bool SaveWithBackup(std::string* error = nullptr);

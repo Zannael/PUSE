@@ -6,8 +6,10 @@
 #include "starlight/datatypes/Color.h"
 #include "starlight/datatypes/VRect.h"
 #include "starlight/datatypes/Vector2.h"
+#include "starlight/dialog/MessageBox.h"
 
 #include <puse/core/Pc.hpp>
+#include <puse/core/Transfer.hpp>
 #include <cstdio>
 
 using sl::Color;
@@ -24,9 +26,16 @@ static constexpr int kSlotH  = 21;
 namespace puse::ui {
 
 PcBoxScreen::PcBoxScreen()
-    : BaseScreen(false)
+    : PcBoxScreen(-1, nullptr) {}
+
+PcBoxScreen::PcBoxScreen(int transfer_party_slot, std::function<void()> on_done)
+    : BaseScreen(false),
+      transfer_party_slot_(transfer_party_slot),
+      on_transfer_done_(std::move(on_done))
 {
-    InitChrome("B: Back   L/R: Prev/Next Box   A: Slot   X: Save");
+    InitChrome(transfer_party_slot_ >= 0
+        ? "B: Cancel   L/R: Box   Tap: Move/Swap"
+        : "B: Back   L/R: Prev/Next Box   A: Slot   X: Save");
 
     // 30 slot buttons — 3 cols × 10 rows (3*104=312, 10*21=210 < 218)
     for (int i = 0; i < kCols * kRows; ++i) {
@@ -39,6 +48,31 @@ PcBoxScreen::PcBoxScreen()
             bool occ = false;
             for (auto& m : mons_) {
                 if (m.slot == slot) { occ = true; break; }
+            }
+            if (transfer_party_slot_ >= 0) {
+                Core* core = Core::Get();
+                if (!core) return;
+                puse::core::TransferRequest req{};
+                req.mode = occ ? puse::core::TransferMode::SwapPartyPc : puse::core::TransferMode::PartyToPc;
+                req.party_index = transfer_party_slot_;
+                req.box = box_;
+                req.slot = slot;
+                puse::core::TransferResult res{};
+                std::string err;
+                if (!core->TransferPartyPc(req, &res, &err)) {
+                    starlight::dialog::MessageBox::New(
+                        starlight::dialog::MessageBox::Ok,
+                        err.empty() ? "Transfer failed" : err)->Open();
+                    return;
+                }
+                std::string msg = occ
+                    ? ("Swapped Party #" + std::to_string(res.party_index + 1) + " with Box " + std::to_string(res.box) + "-" + std::to_string(res.slot))
+                    : ("Moved Party #" + std::to_string(res.party_index + 1) + " to Box " + std::to_string(res.box) + "-" + std::to_string(res.slot));
+                auto cb = on_transfer_done_;
+                Close();
+                if (cb) cb();
+                starlight::dialog::MessageBox::New(starlight::dialog::MessageBox::Ok, msg)->Open();
+                return;
             }
             PcSlotScreen::Make(box_, slot, occ)->Open();
         };
@@ -65,6 +99,10 @@ PcBoxScreen::PcBoxScreen()
 
 std::shared_ptr<PcBoxScreen> PcBoxScreen::Make() {
     return std::make_shared<PcBoxScreen>();
+}
+
+std::shared_ptr<PcBoxScreen> PcBoxScreen::MakeForTransfer(int party_slot, std::function<void()> on_done) {
+    return std::make_shared<PcBoxScreen>(party_slot, std::move(on_done));
 }
 
 void PcBoxScreen::LoadBox() {

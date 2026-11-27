@@ -10,9 +10,11 @@
 #include "starlight/datatypes/Color.h"
 #include "starlight/datatypes/VRect.h"
 #include "starlight/datatypes/Vector2.h"
+#include "starlight/dialog/MessageBox.h"
 #include "starlight/ui/Label.h"
 
 #include <puse/core/Party.hpp>
+#include <puse/core/Transfer.hpp>
 #include <cstdio>
 
 using sl::Color;
@@ -26,9 +28,17 @@ static constexpr int kNumSlots = 6;
 namespace puse::ui {
 
 PartyListScreen::PartyListScreen()
-    : BaseScreen(true)
+    : PartyListScreen(0, 0, nullptr) {}
+
+PartyListScreen::PartyListScreen(int swap_box, int swap_slot, std::function<void()> on_done)
+    : BaseScreen(swap_box <= 0),
+      swap_box_(swap_box),
+      swap_slot_(swap_slot),
+      on_swap_done_(std::move(on_done))
 {
-    InitChrome("A: Edit  L:PC  R:Bag  SEL:$  Y:Legit  X:Save");
+    InitChrome(swap_box_ > 0
+        ? "B: Cancel   Tap party slot to Swap"
+        : "A: Edit  L:PC  R:Bag  SEL:$  Y:Legit  X:Save");
 
     // 6-slot button list + Change History button on bottom screen (6*30 + 34 = 214 < 218)
     scroll_ = touchScreen->AddNew<sl::ui::ScrollField>(VRect(0, 0, 320, 218));
@@ -38,6 +48,26 @@ PartyListScreen::PartyListScreen()
         btn->eOnTap = [this, i](sl::ui::Button&) {
             for (auto& e : party_) {
                 if (e.index == i) {
+                    if (swap_box_ > 0) {
+                        Core* core = Core::Get();
+                        if (!core) return;
+                        puse::core::TransferRequest req{puse::core::TransferMode::SwapPartyPc, i, swap_box_, swap_slot_};
+                        puse::core::TransferResult res{};
+                        std::string err;
+                        if (!core->TransferPartyPc(req, &res, &err)) {
+                            starlight::dialog::MessageBox::New(
+                                starlight::dialog::MessageBox::Ok,
+                                err.empty() ? "Swap failed" : err)->Open();
+                            return;
+                        }
+                        std::string msg = "Swapped Party #" + std::to_string(res.party_index + 1) +
+                            " with Box " + std::to_string(res.box) + "-" + std::to_string(res.slot);
+                        auto cb = on_swap_done_;
+                        Close();
+                        if (cb) cb();
+                        starlight::dialog::MessageBox::New(starlight::dialog::MessageBox::Ok, msg)->Open();
+                        return;
+                    }
                     PokemonSectionsScreen::Make(i)->Open();
                     return;
                 }
@@ -46,11 +76,13 @@ PartyListScreen::PartyListScreen()
         slot_btns_.push_back(btn);
     }
 
-    history_btn_ = scroll_->AddNew<sl::ui::Button>(VRect(2, 2 + kNumSlots * kRowH, 316, 34));
-    history_btn_->SetText("Change History");
-    history_btn_->eOnTap = [](sl::ui::Button&) {
-        HistoryScreen::Make()->Open();
-    };
+    if (swap_box_ <= 0) {
+        history_btn_ = scroll_->AddNew<sl::ui::Button>(VRect(2, 2 + kNumSlots * kRowH, 316, 34));
+        history_btn_->SetText("Change History");
+        history_btn_->eOnTap = [](sl::ui::Button&) {
+            HistoryScreen::Make()->Open();
+        };
+    }
 
     // Top screen info label below header bar
     top_info_ = topScreen->AddNew<sl::ui::Label>(VRect(0, 35, 400, 200));
@@ -64,6 +96,10 @@ PartyListScreen::PartyListScreen()
 
 std::shared_ptr<PartyListScreen> PartyListScreen::Make() {
     return std::make_shared<PartyListScreen>();
+}
+
+std::shared_ptr<PartyListScreen> PartyListScreen::MakeForSwap(int pc_box, int pc_slot, std::function<void()> on_done) {
+    return std::make_shared<PartyListScreen>(pc_box, pc_slot, std::move(on_done));
 }
 
 void PartyListScreen::LoadParty() {
@@ -133,15 +169,17 @@ void PartyListScreen::Update(bool focused) {
         was_focused_ = true;
     }
 
-    if (InputManager::Pressed(Keys::L))      PcBoxScreen::Make()->Open();
-    if (InputManager::Pressed(Keys::R))      BagScreen::Make()->Open();
-    if (InputManager::Pressed(Keys::Select)) MoneyScreen::Make()->Open();
+    if (swap_box_ <= 0) {
+        if (InputManager::Pressed(Keys::L))      PcBoxScreen::Make()->Open();
+        if (InputManager::Pressed(Keys::R))      BagScreen::Make()->Open();
+        if (InputManager::Pressed(Keys::Select)) MoneyScreen::Make()->Open();
 
-    // Y: toggle legit mode
-    Core* core = Core::Get();
-    if (core && InputManager::Pressed(Keys::Y)) {
-        core->SetLegitMode(!core->LegitMode());
-        RefreshSlots();
+        // Y: toggle legit mode
+        Core* core = Core::Get();
+        if (core && InputManager::Pressed(Keys::Y)) {
+            core->SetLegitMode(!core->LegitMode());
+            RefreshSlots();
+        }
     }
 }
 
