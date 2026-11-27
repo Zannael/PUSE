@@ -14,6 +14,7 @@
 #include <puse/core/Pc.hpp>
 #include <puse/core/Rtc.hpp>
 #include <puse/core/SaveSession.hpp>
+#include <puse/core/Transfer.hpp>
 
 namespace puse::ui {
 
@@ -261,6 +262,13 @@ class MainApplication : public pu::ui::Application {
     // Edit context for shared layouts (sections / fields / moves)
     EditContext edit_context_;
 
+    // Party/PC transfer destination picker state
+    bool transfer_pick_mode_;
+    bool transfer_pick_from_party_;
+    int transfer_source_party_index_;
+    int transfer_source_pc_box_;
+    int transfer_source_pc_slot_;
+
     void ConfigureTheme();
     bool LoadSpeciesIdTokens();
     void BuildItemIconIndex();
@@ -304,6 +312,10 @@ class MainApplication : public pu::ui::Application {
     void OpenMoveSlotPage(int slot);
     void OpenPcMonPage(int box, int slot);
     void OpenBagPocketPage(const std::string &pocket_type);
+    void StartTransferFromParty(int party_index);
+    void StartTransferFromPc(int box, int slot);
+    void ExecuteTransferAction(const core::TransferRequest &req, int pops_after_success);
+    void ClearTransferPickMode();
     void ShowSaveToast(const std::string &msg);
     void ShowLayoutScreen(pu::ui::Layout::Ref layout);
     bool PopLayoutScreen();

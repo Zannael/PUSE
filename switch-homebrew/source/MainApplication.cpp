@@ -20,6 +20,7 @@
 #include <puse/core/Pc.hpp>
 #include <puse/core/Rtc.hpp>
 #include <puse/core/SaveSession.hpp>
+#include <puse/core/Transfer.hpp>
 #include <puse/io/DataLoader.hpp>
 
 namespace {
@@ -984,6 +985,7 @@ void MainApplication::OnSaveFileSelected(const std::string &path) {
     puse::core::TrainerIdentity trainer{};
     if (puse::core::ReadTrainerIdentity(this->save_session_.Buffer(), &trainer))
         this->home_layout_->SetSubtitle(std::string(puse::core::profile::Current().id) + " | " + trainer.name + " | TID " + std::to_string(trainer.trainer_id & 65535));
+    this->ClearTransferPickMode();
     this->UpdateDirtyUi();
     this->RebuildHomeMenu();
 
@@ -1502,8 +1504,12 @@ void MainApplication::RebuildPcBoxListMenu() {
             this->RebuildPcBoxMenu();
             std::string title = "Box " + std::to_string(b);
             this->pc_box_layout_->SetTitle(title);
-            const int cnt = puse::core::CountPcBoxMons(this->pc_stream_, b);
-            this->pc_box_layout_->SetSubtitle(std::to_string(cnt) + " Pokemon in this box");
+            if (this->transfer_pick_mode_ && this->transfer_pick_from_party_) {
+                this->pc_box_layout_->SetSubtitle("Empty slot: Move here   |   Occupied slot: Swap");
+            } else {
+                const int cnt = puse::core::CountPcBoxMons(this->pc_stream_, b);
+                this->pc_box_layout_->SetSubtitle(std::to_string(cnt) + " Pokemon in this box");
+            }
             this->ShowLayoutScreen(this->pc_box_layout_);
         }, HidNpadButton_A);
         menu->AddItem(item);
@@ -1547,7 +1553,23 @@ void MainApplication::RebuildPcBoxMenu() {
         if (sit != slot_map.end()) {
             item->SetIcon(GetPokemonIcon(sit->second->species_id, sit->second->is_shiny, sit->second->gender, sit->second->pid, true));
         }
-        if (sit != slot_map.end()) {
+        if (this->transfer_pick_mode_ && this->transfer_pick_from_party_) {
+            const int s = slot;
+            if (sit != slot_map.end()) {
+                item->AddOnKey([this, s]() {
+                    this->ExecuteTransferAction(
+                        {core::TransferMode::SwapPartyPc, this->transfer_source_party_index_, this->selected_pc_box_, s},
+                        3);
+                }, HidNpadButton_A);
+            } else {
+                item->SetColor({160, 210, 255, 255});
+                item->AddOnKey([this, s]() {
+                    this->ExecuteTransferAction(
+                        {core::TransferMode::PartyToPc, this->transfer_source_party_index_, this->selected_pc_box_, s},
+                        3);
+                }, HidNpadButton_A);
+            }
+        } else if (sit != slot_map.end()) {
             const int s = slot;
             item->AddOnKey([this, s]() {
                 this->OpenPcMonPage(this->selected_pc_box_, s);
@@ -2094,6 +2116,12 @@ void MainApplication::RebuildPartyMenu() {
 
         const int idx = static_cast<int>(i);
         item->AddOnKey([this, idx]() {
+            if (this->transfer_pick_mode_ && !this->transfer_pick_from_party_) {
+                this->ExecuteTransferAction(
+                    {core::TransferMode::SwapPartyPc, idx, this->transfer_source_pc_box_, this->transfer_source_pc_slot_},
+                    2);
+                return;
+            }
             this->party_list_layout_->GetMenu()->SetSelectedIndex(static_cast<u32>(idx));
             this->selected_party_index_ = idx;
             this->OpenSelectedPartyPage();
@@ -2129,6 +2157,20 @@ void MainApplication::RebuildPokemonSectionsMenu() {
         }, HidNpadButton_A);
         menu->AddItem(item);
     }
+
+    const std::string transfer_label = (this->edit_context_ == EditContext::Party)
+        ? "Transfer to PC"
+        : "Transfer to Party";
+    auto transfer_item = pu::ui::elm::MenuItem::New(transfer_label);
+    transfer_item->SetColor(this->theme_.accent);
+    transfer_item->AddOnKey([this]() {
+        if (this->edit_context_ == EditContext::Party) {
+            this->StartTransferFromParty(this->selected_party_index_);
+        } else {
+            this->StartTransferFromPc(this->selected_pc_box_, this->selected_pc_slot_);
+        }
+    }, HidNpadButton_A);
+    menu->AddItem(transfer_item);
 
     menu->ForceReloadItems();
     menu->SetSelectedIndex(0);
@@ -2381,6 +2423,117 @@ void MainApplication::RebuildMoveEditMenu() {
     menu->SetSelectedIndex(0);
 }
 
+void MainApplication::ClearTransferPickMode() {
+    this->transfer_pick_mode_ = false;
+    if (this->pc_box_list_layout_) {
+        this->pc_box_list_layout_->SetTitle("PC");
+        this->pc_box_list_layout_->SetSubtitle("Select a box");
+        if (this->pc_stream_loaded_) {
+            this->RebuildPcBoxListMenu();
+        }
+    }
+    if (this->party_list_layout_) {
+        this->party_list_layout_->SetTitle("Party");
+        this->party_list_layout_->SetSubtitle(
+            this->party_.empty() ? "Party is empty" : ("Loaded " + std::to_string(this->party_.size()) + " slot(s)"));
+        this->RebuildPartyMenu();
+    }
+}
+
+void MainApplication::ExecuteTransferAction(const core::TransferRequest &req, const int pops_after_success) {
+    const auto before = this->save_session_.Buffer();
+    core::TransferResult result{};
+    std::string error;
+    if (!core::TransferPartyPc(this->save_session_.MutableBuffer(), req, &result, &error)) {
+        this->CreateShowDialog("Transfer failed", error.empty() ? "Could not complete transfer." : error, {"OK"}, true);
+        return;
+    }
+
+    const int p_num = result.party_index + 1;
+    std::string label;
+    if (result.mode == core::TransferMode::PartyToPc) {
+        label = "Move Party #" + std::to_string(p_num) + " -> Box " + std::to_string(result.box) + "-" + std::to_string(result.slot);
+    } else if (result.mode == core::TransferMode::PcToParty) {
+        label = "Move Box " + std::to_string(result.box) + "-" + std::to_string(result.slot) + " -> Party #" + std::to_string(p_num);
+    } else {
+        label = "Swap Party #" + std::to_string(p_num) + " <-> Box " + std::to_string(result.box) + "-" + std::to_string(result.slot);
+    }
+
+    this->save_session_.RecordMutation(before, "party_pc_transfer", label);
+    this->transfer_pick_mode_ = false;
+    for (int p = 0; p < pops_after_success && this->layout_stack_.size() > 1; ++p) {
+        this->layout_stack_.pop_back();
+    }
+    if (this->pc_box_list_layout_) {
+        this->pc_box_list_layout_->SetTitle("PC");
+        this->pc_box_list_layout_->SetSubtitle("Select a box");
+    }
+    if (this->party_list_layout_) {
+        this->party_list_layout_->SetTitle("Party");
+    }
+    this->SyncAfterHistoryMutation();
+    if (this->pc_stream_loaded_) {
+        this->RebuildPcBoxListMenu();
+        if (!this->layout_stack_.empty() && this->layout_stack_.back() == this->pc_box_layout_) {
+            this->RebuildPcBoxMenu();
+            const int cnt = core::CountPcBoxMons(this->pc_stream_, this->selected_pc_box_);
+            this->pc_box_layout_->SetSubtitle(std::to_string(cnt) + " Pokemon in this box");
+        }
+    }
+    this->LoadLayout(this->layout_stack_.back());
+    this->ShowSaveToast(label);
+}
+
+void MainApplication::StartTransferFromParty(const int party_index) {
+    if (party_index < 0 || static_cast<size_t>(party_index) >= this->party_.size()) {
+        return;
+    }
+    const int choice = this->CreateShowDialog(
+        "Transfer to PC",
+        "Move to the first open ordinary PC slot, or choose a box and slot to move or swap.",
+        {"First Empty PC Slot", "Choose Box & Slot", "Cancel"},
+        true);
+    if (choice == 0) {
+        this->ExecuteTransferAction({core::TransferMode::PartyToPc, party_index, 0, 0}, 1);
+    } else if (choice == 1) {
+        if (!this->pc_stream_loaded_) {
+            this->CreateShowDialog("PC unavailable", "PC sectors could not be loaded from save.", {"OK"}, true);
+            return;
+        }
+        this->transfer_pick_mode_ = true;
+        this->transfer_pick_from_party_ = true;
+        this->transfer_source_party_index_ = party_index;
+        this->RebuildPcBoxListMenu();
+        this->pc_box_list_layout_->SetTitle("Choose Destination Box");
+        this->pc_box_list_layout_->SetSubtitle("Party #" + std::to_string(party_index + 1) + " — empty: Move | occupied: Swap");
+        this->ShowLayoutScreen(this->pc_box_list_layout_);
+    }
+}
+
+void MainApplication::StartTransferFromPc(const int box, const int slot) {
+    const int choice = this->CreateShowDialog(
+        "Transfer to Party",
+        "Move to the next open party slot, or choose a party Pokemon to swap with.",
+        {"Move to Party", "Swap with Party", "Cancel"},
+        true);
+    if (choice == 0) {
+        this->ExecuteTransferAction({core::TransferMode::PcToParty, -1, box, slot}, 1);
+    } else if (choice == 1) {
+        if (this->party_.empty()) {
+            this->CreateShowDialog("Party empty", "No party Pokemon available to swap.", {"OK"}, true);
+            return;
+        }
+        this->transfer_pick_mode_ = true;
+        this->transfer_pick_from_party_ = false;
+        this->transfer_source_pc_box_ = box;
+        this->transfer_source_pc_slot_ = slot;
+        this->RebuildPartyMenu();
+        this->party_list_layout_->SetTitle("Choose Party Slot to Swap");
+        this->party_list_layout_->SetSubtitle("Swapping with Box " + std::to_string(box) + "-" + std::to_string(slot));
+        this->ShowLayoutScreen(this->party_list_layout_);
+    }
+}
+
 void MainApplication::ShowSaveToast(const std::string &msg) {
     this->save_toast_->SetText(msg);
     this->StartOverlayWithTimeout(this->save_toast_, 2000);
@@ -2396,8 +2549,13 @@ bool MainApplication::PopLayoutScreen() {
         return false;
     }
 
+    const auto popped = this->layout_stack_.back();
     this->layout_stack_.pop_back();
     this->LoadLayout(this->layout_stack_.back());
+    if ((popped == this->pc_box_list_layout_ && this->transfer_pick_mode_ && this->transfer_pick_from_party_) ||
+        (popped == this->party_list_layout_ && this->transfer_pick_mode_ && !this->transfer_pick_from_party_)) {
+        this->ClearTransferPickMode();
+    }
     return true;
 }
 
@@ -2410,6 +2568,11 @@ void MainApplication::OnLoad() {
     this->pc_stream_loaded_ = false;
     this->dirty_ = false;
     this->edit_context_ = EditContext::Party;
+    this->transfer_pick_mode_ = false;
+    this->transfer_pick_from_party_ = true;
+    this->transfer_source_party_index_ = -1;
+    this->transfer_source_pc_box_ = 1;
+    this->transfer_source_pc_slot_ = 1;
     this->item_index_ready_ = false;
     this->selected_bag_pocket_type_ = "main";
     this->bag_pockets_.clear();
