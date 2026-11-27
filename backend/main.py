@@ -17,6 +17,7 @@ from modules import game_progress as game_progress_mod
 from modules import pokedex_flags as pokedex_flags_mod
 from modules import money as money_mod
 from modules import save_health as save_health_mod
+from modules import transfer as transfer_mod
 from modules.change_ledger import ChangeLedger
 from pydantic import BaseModel
 from modules import pc as box_mod
@@ -2284,6 +2285,53 @@ async def insert_pc_mon(upd: PCInsert):
             "ability_name_current": ability_name_current,
             "ability_label_current": ability_label_current,
         }
+    }
+
+
+class PartyPcTransferRequest(BaseModel):
+    mode: str
+    party_index: int | None = None
+    box: int | None = None
+    slot: int | None = None
+
+
+def _format_transfer_label(result: dict) -> str:
+    mode = result["mode"]
+    p_num = int(result["party_index"]) + 1
+    b_num = int(result["box"])
+    s_num = int(result["slot"])
+    if mode == "party_to_pc":
+        return f"Move Party #{p_num} -> Box {b_num}-{s_num}"
+    if mode == "pc_to_party":
+        return f"Move Box {b_num}-{s_num} -> Party #{p_num}"
+    return f"Swap Party #{p_num} <-> Box {b_num}-{s_num}"
+
+
+@app.post("/transfer/party-pc")
+async def transfer_party_pc_endpoint(req: PartyPcTransferRequest):
+    if not current_save["data"]:
+        raise HTTPException(status_code=400, detail="Upload a .sav file")
+
+    before = bytes(current_save["data"])
+    try:
+        result = transfer_mod.transfer_party_pc(
+            current_save["data"],
+            mode=req.mode,
+            party_index=req.party_index,
+            box=req.box,
+            slot=req.slot,
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    _record_mutation(before, "party_pc_transfer", _format_transfer_label(result), is_pc=False)
+    return {
+        "status": "ok",
+        **result,
+        "history": _history_payload(),
+        "session": _session_status_payload(),
     }
 
 
